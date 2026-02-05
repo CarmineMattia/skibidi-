@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(cat:*)",
+      "Bash(node:*)",
+      "mcp__chrome-devtools__list_pages",
+      "mcp__chrome-devtools__navigate_page",
+      "mcp__chrome-devtools__take_snapshot",
+      "mcp__chrome-devtools__take_screenshot",
+      "mcp__chrome-devtools__click",
+      "mcp__chrome-devtools__wait_for",
+      "mcp__supabase__list_tables",
+      "mcp__supabase__execute_sql",
+      "Bash(test:*)",
+      "Bash(npx tsc:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(dir:*)",
+      "mcp__chrome-devtools__list_console_messages",
+      "Bash(npm start)",
+      "Bash(curl:*)",
+      "Bash(timeout /t 10 /nobreak)",
+      "mcp__supabase__list_migrations",
+      "mcp__supabase__list_edge_functions",
+      "Bash(ls:*)",
+      "mcp__supabase__generate_typescript_types",
+      "mcp__supabase__get_logs",
+      "mcp__supabase__apply_migration"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "supabase"
+  ]
+}

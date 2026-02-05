@@ -1,0 +1,64 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Design System CSS Variables (Modern POS Theme) */
+:root {
+  /* Kiosk Minimal Theme (McDonald's inspired) */
+  --background: 0 0% 100%; /* Pure White */
+  --foreground: 0 0% 10%; /* Near Black */
+  
+  --card: 0 0% 98%; /* Very light gray for cards */
+  --card-foreground: 0 0% 10%;
+  
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 10%;
+  
+  --primary: 45 90% 50%; /* Golden Yellow (McDonald's-ish) - or keep user's purple if preferred, but let's go with a safe "Brand" color. Let's stick to a bold dark color for primary actions to contrast with white. */
+  /* Actually, let's use a bold Orange/Red as requested in previous conversations or a neutral dark. 
+     The user asked for "McDonald's style". McDonald's is often white background, black text, yellow/red accents.
+     Let's use a warm Yellow/Gold for accents and Dark Gray for primary buttons to look clean.
+  */
+  --primary: 35 90% 50%; /* Warm Gold/Yellow */
+  --primary-foreground: 0 0% 10%; /* Black text on yellow */
+  
+  --secondary: 0 0% 96%; /* Light Gray */
+  --secondary-foreground: 0 0% 10%;
+  
+  --muted: 0 0% 96%;
+  --muted-foreground: 0 0% 40%;
+  
+  --accent: 35 90% 50%;
+  --accent-foreground: 0 0% 10%;
+  
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 100%;
+  
+  --border: 0 0% 90%;
+  --input: 0 0% 90%;
+  --ring: 35 90% 50%;
+  
+  --radius: 1rem; /* Rounded corners */
+}
+
+.dark {
+  --background: 222.2 84% 4.9%;
+  --foreground: 210 40% 98%;
+  --card: 222.2 84% 4.9%;
+  --card-foreground: 210 40% 98%;
+  --popover: 222.2 84% 4.9%;
+  --popover-foreground: 210 40% 98%;
+  --primary: 210 40% 98%;
+  --primary-foreground: 222.2 47.4% 11.2%;
+  --secondary: 217.2 32.6% 17.5%;
+  --secondary-foreground: 210 40% 98%;
+  --muted: 217.2 32.6% 17.5%;
+  --muted-foreground: 215 20.2% 65.1%;
+  --accent: 217.2 32.6% 17.5%;
+  --accent-foreground: 210 40% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 217.2 32.6% 17.5%;
+  --input: 217.2 32.6% 17.5%;
+  --ring: 212.7 26.8% 83.9%;
+}
