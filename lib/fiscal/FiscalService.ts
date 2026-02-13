@@ -47,13 +47,15 @@ export class FiscalProviderFactory {
         switch (config.provider) {
             case 'acube':
                 return new AcubeFiscalProvider({
-                    apiKey: config.api_key,
-                    apiEndpoint: config.api_endpoint,
+                    apiKey: config.api_key!,
+                    apiEndpoint: config.api_endpoint!,
+                    provider: 'acube',
                 });
             case 'fatture-in-cloud':
                 return new FattureInCloudProvider({
-                    apiKey: config.api_key,
-                    apiEndpoint: config.api_endpoint,
+                    apiKey: config.api_key!,
+                    apiEndpoint: config.api_endpoint!,
+                    provider: 'fatture-in-cloud',
                 });
             case 'epson':
                 // Epson RT would need separate implementation (direct TCP/HTTP)

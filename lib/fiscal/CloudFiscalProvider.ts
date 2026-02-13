@@ -25,7 +25,7 @@ interface CloudFiscalProviderConfig {
  */
 export abstract class CloudFiscalProvider implements IFiscalProvider {
     abstract readonly name: string;
-    readonly provider: FiscalProviderType;
+    readonly provider!: FiscalProviderType;
     protected config: CloudFiscalProviderConfig;
 
     constructor(config: CloudFiscalProviderConfig) {
@@ -78,7 +78,7 @@ export abstract class CloudFiscalProvider implements IFiscalProvider {
      */
     async voidReceipt(externalId: string): Promise<FiscalProviderResult> {
         try {
-            const response = await this.apiRequest(`/receipts/${externalId}/void`, 'POST');
+            const response = await this.apiRequest<{ receipt_number?: string }>(`/receipts/${externalId}/void`, 'POST');
             return {
                 success: true,
                 external_id: externalId,

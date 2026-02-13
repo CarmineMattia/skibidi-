@@ -12,8 +12,9 @@
  * - pending: Order created but not yet fiscalized
  * - success: Successfully fiscalized
  * - error: Fiscalization failed, queued for retry
+ * Note: Re-exported from database.types to avoid duplication
  */
-export type FiscalStatus = 'pending' | 'success' | 'error';
+// FiscalStatus is now exported from database.types.ts
 
 /**
  * Payment method for fiscal receipt
