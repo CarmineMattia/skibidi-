@@ -10,7 +10,19 @@ import { useQuery } from '@tanstack/react-query';
 import { FontAwesome } from '@expo/vector-icons';
 import { Linking, Modal, Pressable, ScrollView, Share, Text, View } from 'react-native';
 
-type Order = Database['public']['Tables']['orders']['Row'];
+type Order = Database['public']['Tables']['orders']['Row'] & {
+    order_items?: Array<{
+        quantity: number;
+        unit_price: number;
+        total_price: number;
+        notes: string | null;
+        products: {
+            name: string;
+            price: number;
+            category: string | null;
+        };
+    }>;
+};
 
 // Extended type with joined order_items for receipt display
 // Using any to avoid fighting with Supabase null types

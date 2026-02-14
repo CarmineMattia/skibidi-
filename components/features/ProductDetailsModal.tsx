@@ -4,6 +4,7 @@ import type { Product } from '@/types';
 import { FontAwesome } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Image, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Toast } from './Toast';
 
 interface ProductDetailsModalProps {
     visible: boolean;
@@ -20,6 +21,10 @@ export function ProductDetailsModal({ visible, onClose, product }: ProductDetail
     // Map of ingredient modifications: 'no' | 'standard' | 'extra'
     const [modifications, setModifications] = useState<Record<string, 'no' | 'standard' | 'extra'>>({});
 
+    // Toast state for boomer-friendly feedback
+    const [showToast, setShowToast] = useState(false);
+    const [toastMessage, setToastMessage] = useState('');
+
     const { addItem } = useCart();
 
     const handleAddToCart = () => {
@@ -35,6 +40,12 @@ export function ProductDetailsModal({ visible, onClose, product }: ProductDetail
         });
 
         addItem(product, quantity, notes, modifiers);
+        
+        // Boomer UX: show immediate feedback
+        const itemText = quantity > 1 ? `${quantity} prodotti` : '1 prodotto';
+        setToastMessage(`✓ Aggiunto: ${itemText}`);
+        setShowToast(true);
+        
         onClose();
 
         // Reset state
@@ -83,6 +94,14 @@ export function ProductDetailsModal({ visible, onClose, product }: ProductDetail
 
     return (
         <Modal visible={visible} animationType="slide" transparent>
+            {/* Toast for boomer-friendly feedback */}
+            <Toast 
+                visible={showToast} 
+                message={toastMessage} 
+                type="success"
+                onHide={() => setShowToast(false)}
+            />
+            
             <View className="flex-1 bg-black/50 justify-end sm:justify-center sm:items-center">
                 <Pressable className="absolute inset-0" onPress={onClose} />
 
