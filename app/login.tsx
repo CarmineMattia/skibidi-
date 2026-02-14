@@ -259,12 +259,14 @@ export default function LoginScreen() {
                 onSubmitEditing={handleSubmit}
               />
               <Pressable
-                className="absolute right-3 top-0 bottom-0 justify-center active:opacity-50"
+                className="absolute right-2 top-1 bottom-1 justify-center px-2 active:opacity-50"
                 onPress={() => setShowPassword(!showPassword)}
+                accessibilityRole="button"
+                accessibilityLabel={showPassword ? 'Nascondi password' : 'Mostra password'}
               >
                 <FontAwesome
                   name={showPassword ? 'eye' : 'eye-slash'}
-                  size={20}
+                  size={24}
                   color="#6b7280"
                 />
               </Pressable>

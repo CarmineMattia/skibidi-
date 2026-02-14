@@ -46,38 +46,43 @@ export function CartItem({ item, onUpdateQuantity, onRemove }: CartItemProps) {
           ) : null}
         </View>
 
-        {/* Remove Button */}
+        {/* Remove Button - Boomer friendly: larger tap area */}
         <Pressable
           onPress={onRemove}
-          className="bg-destructive/10 p-2 rounded-full active:bg-destructive/20"
-          hitSlop={10}
+          className="bg-destructive/10 p-3 rounded-xl active:bg-destructive/30"
+          accessibilityRole="button"
+          accessibilityLabel="Rimuovi prodotto"
         >
-          <Text className="text-destructive font-bold text-xs">✕</Text>
+          <Text className="text-destructive font-bold text-base">✕</Text>
         </Pressable>
       </View>
 
       {/* Quantity Controls & Subtotal */}
       <View className="flex-row justify-between items-center">
-        {/* Quantity Controls */}
-        <View className="flex-row items-center bg-secondary/50 rounded-xl p-1 border border-border/50">
+        {/* Quantity Controls - Boomer friendly: larger buttons */}
+        <View className="flex-row items-center bg-secondary/50 rounded-2xl p-2 border border-border/50">
           <Pressable
             onPress={() => onUpdateQuantity(quantity - 1)}
-            className="w-10 h-10 items-center justify-center bg-card rounded-lg shadow-sm active:scale-95"
+            className="w-14 h-14 items-center justify-center bg-card rounded-xl shadow-sm active:bg-destructive/20"
+            accessibilityRole="button"
+            accessibilityLabel="Diminuisci quantità"
           >
-            <Text className="text-foreground font-bold text-xl leading-none pb-1">−</Text>
+            <Text className="text-foreground font-bold text-2xl leading-none">−</Text>
           </Pressable>
 
-          <View className="w-12 items-center">
-            <Text className="text-foreground font-bold text-lg">
+          <View className="w-16 items-center">
+            <Text className="text-foreground font-extrabold text-xl">
               {quantity}
             </Text>
           </View>
 
           <Pressable
             onPress={() => onUpdateQuantity(quantity + 1)}
-            className="w-10 h-10 items-center justify-center bg-primary rounded-lg shadow-sm active:scale-95"
+            className="w-14 h-14 items-center justify-center bg-primary rounded-xl shadow-sm active:scale-95"
+            accessibilityRole="button"
+            accessibilityLabel="Aumenta quantità"
           >
-            <Text className="text-primary-foreground font-bold text-xl leading-none pb-1">+</Text>
+            <Text className="text-primary-foreground font-bold text-2xl leading-none">+</Text>
           </Pressable>
         </View>
 
