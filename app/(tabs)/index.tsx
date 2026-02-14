@@ -14,7 +14,7 @@ import {
 import { useDashboardStats } from '@/lib/hooks/useDashboardStats';
 import { useAuth } from '@/lib/stores/AuthContext';
 import { useRouter } from 'expo-router';
-import { ActivityIndicator, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, RefreshControl, ScrollView, Text, View } from 'react-native';
 
 export default function HomeScreen() {
   const { userRole, isKioskMode, user, signOut } = useAuth();
@@ -22,12 +22,29 @@ export default function HomeScreen() {
   const { data: stats, isLoading, refetch } = useDashboardStats();
 
   const handleSignOut = async () => {
-    try {
-      await signOut();
-      router.replace('/login');
-    } catch (error) {
-      console.error('Errore durante il logout:', error);
-    }
+    // Boomer UX: confirm before logout to prevent accidental clicks
+    Alert.alert(
+      'Conferma Logout',
+      'Sei sicuro di voler uscire?',
+      [
+        {
+          text: 'Annulla',
+          style: 'cancel',
+        },
+        {
+          text: 'Esci',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await signOut();
+              router.replace('/login');
+            } catch (error) {
+              console.error('Errore durante il logout:', error);
+            }
+          },
+        },
+      ]
+    );
   };
 
   return (

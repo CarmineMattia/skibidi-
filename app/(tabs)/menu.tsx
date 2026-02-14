@@ -76,13 +76,30 @@ export default function MenuScreen() {
   };
 
   const handleLogout = async () => {
-    try {
-      await signOut();
-      router.replace('/login');
-    } catch (error) {
-      console.error('Logout error:', error);
-      Alert.alert('Errore', 'Impossibile effettuare il logout.');
-    }
+    // Boomer UX: confirm before logout to prevent accidental clicks
+    Alert.alert(
+      'Conferma Logout',
+      'Sei sicuro di voler uscire?',
+      [
+        {
+          text: 'Annulla',
+          style: 'cancel',
+        },
+        {
+          text: 'Esci',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await signOut();
+              router.replace('/login');
+            } catch (error) {
+              console.error('Logout error:', error);
+              Alert.alert('Errore', 'Impossibile effettuare il logout.');
+            }
+          },
+        },
+      ]
+    );
   };
 
   if (categoriesLoading || productsLoading) {
