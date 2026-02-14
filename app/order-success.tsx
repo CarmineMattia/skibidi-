@@ -57,7 +57,7 @@ export default function OrderSuccessScreen() {
                             className="bg-blue-600 w-full py-4 rounded-2xl items-center active:opacity-90 flex-row justify-center"
                             onPress={() => setShowReceipt(true)}
                         >
-                            <FontAwesome name="receipt" size={24} color="white" style={{ marginRight: 8 }} />
+                            <FontAwesome name="file-text" size={24} color="white" style={{ marginRight: 8 }} />
                             <Text className="text-background font-bold text-xl">
                                 Visualizza Scontrino
                             </Text>

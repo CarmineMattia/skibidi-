@@ -4,4 +4,4 @@
  */
 
 export * from './database.types';
-export * from './fiscal.types';
+export type { FiscalOrderData, FiscalProviderResult, FiscalReceipt, IFiscalProvider, FiscalConfig, FiscalProviderType } from './fiscal.types';

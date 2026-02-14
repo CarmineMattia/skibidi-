@@ -47,11 +47,13 @@ export class FiscalProviderFactory {
         switch (config.provider) {
             case 'acube':
                 return new AcubeFiscalProvider({
+                    provider: 'acube',
                     apiKey: config.api_key,
                     apiEndpoint: config.api_endpoint,
                 });
             case 'fatture-in-cloud':
                 return new FattureInCloudProvider({
+                    provider: 'fatture-in-cloud',
                     apiKey: config.api_key,
                     apiEndpoint: config.api_endpoint,
                 });

@@ -46,36 +46,36 @@ export function CartItem({ item, onUpdateQuantity, onRemove }: CartItemProps) {
           ) : null}
         </View>
 
-        {/* Remove Button */}
+        {/* Remove Button - Boomer friendly: larger tap area */}
         <Pressable
           onPress={onRemove}
-          className="bg-destructive/10 p-2 rounded-full active:bg-destructive/20"
-          hitSlop={10}
+          className="bg-destructive/10 p-3 rounded-full active:bg-destructive/30"
+          hitSlop={12}
         >
-          <Text className="text-destructive font-bold text-xs">✕</Text>
+          <Text className="text-destructive font-bold text-lg">✕</Text>
         </Pressable>
       </View>
 
       {/* Quantity Controls & Subtotal */}
       <View className="flex-row justify-between items-center">
-        {/* Quantity Controls */}
+        {/* Quantity Controls - Boomer friendly: larger buttons */}
         <View className="flex-row items-center bg-secondary/50 rounded-xl p-1 border border-border/50">
           <Pressable
             onPress={() => onUpdateQuantity(quantity - 1)}
-            className="w-10 h-10 items-center justify-center bg-card rounded-lg shadow-sm active:scale-95"
+            className="w-12 h-12 items-center justify-center bg-card rounded-lg shadow-sm active:scale-95"
           >
-            <Text className="text-foreground font-bold text-xl leading-none pb-1">−</Text>
+            <Text className="text-foreground font-bold text-2xl leading-none pb-1">−</Text>
           </Pressable>
 
-          <View className="w-12 items-center">
-            <Text className="text-foreground font-bold text-lg">
+          <View className="w-14 items-center">
+            <Text className="text-foreground font-bold text-xl">
               {quantity}
             </Text>
           </View>
 
           <Pressable
             onPress={() => onUpdateQuantity(quantity + 1)}
-            className="w-10 h-10 items-center justify-center bg-primary rounded-lg shadow-sm active:scale-95"
+            className="w-12 h-12 items-center justify-center bg-primary rounded-lg shadow-sm active:scale-95"
           >
             <Text className="text-primary-foreground font-bold text-xl leading-none pb-1">+</Text>
           </Pressable>
