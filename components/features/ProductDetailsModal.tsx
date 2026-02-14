@@ -166,7 +166,7 @@ export function ProductDetailsModal({ visible, onClose, product }: ProductDetail
                                                 <View className="flex-row items-center gap-3 bg-secondary/30 rounded-lg p-1.5">
                                                     <Pressable
                                                         onPress={() => updateModification(ingredient, -1)}
-                                                        className={`w-10 h-10 items-center justify-center rounded-md ${status === 'no' ? 'opacity-30' : 'bg-card shadow-sm active:scale-95'}`}
+                                                        className={`w-12 h-12 items-center justify-center rounded-lg ${status === 'no' ? 'opacity-30' : 'bg-card shadow-sm active:scale-95'}`}
                                                         disabled={status === 'no'}
                                                         accessibilityRole="button"
                                                         accessibilityLabel="Rimuovi ingrediente"
@@ -184,7 +184,7 @@ export function ProductDetailsModal({ visible, onClose, product }: ProductDetail
 
                                                     <Pressable
                                                         onPress={() => updateModification(ingredient, 1)}
-                                                        className={`w-10 h-10 items-center justify-center rounded-md ${status === 'extra' ? 'opacity-30' : 'bg-card shadow-sm active:scale-95'}`}
+                                                        className={`w-12 h-12 items-center justify-center rounded-lg ${status === 'extra' ? 'opacity-30' : 'bg-card shadow-sm active:scale-95'}`}
                                                         disabled={status === 'extra'}
                                                         accessibilityRole="button"
                                                         accessibilityLabel="Aggiungi ingrediente extra"
