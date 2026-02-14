@@ -30,10 +30,10 @@ export function CartSummary({ onCheckout, isCheckingOut = false }: CartSummaryPr
           </View>
           {!isEmpty && (
             <Pressable
-              className="bg-destructive/10 px-4 py-2 rounded-xl border border-destructive/30"
+              className="bg-destructive/10 px-5 py-2.5 rounded-xl border border-destructive/30 active:bg-destructive/20 active:opacity-70"
               onPress={clearCart}
             >
-              <Text className="text-destructive font-extrabold text-sm">Svuota</Text>
+              <Text className="text-destructive font-extrabold text-base">Svuota</Text>
             </Pressable>
           )}
         </View>
@@ -82,9 +82,9 @@ export function CartSummary({ onCheckout, isCheckingOut = false }: CartSummaryPr
               </View>
             </View>
 
-            {/* Checkout Button */}
+            {/* Checkout Button - Large touch target for boomer accessibility */}
             <Pressable
-              className="bg-primary rounded-2xl p-5 shadow-xl items-center border-2 border-primary"
+              className="bg-primary rounded-2xl p-5 shadow-xl items-center border-2 border-primary active:bg-primary/80 active:opacity-80"
               style={{
                 opacity: isCheckingOut ? 0.5 : 1,
               }}
