@@ -159,9 +159,9 @@ export default function LoginScreen() {
         </View>
 
         {/* Mode Toggle */}
-        <View className="flex-row bg-muted/50 rounded-lg p-1 mb-6">
+        <View className="flex-row bg-muted/50 rounded-xl p-1.5 mb-6">
           <Pressable
-            className={`flex-1 py-3 rounded-md ${mode === 'login' ? 'bg-primary' : 'bg-transparent'
+            className={`flex-1 py-4 rounded-lg ${mode === 'login' ? 'bg-primary' : 'bg-transparent'
               }`}
             onPress={() => setMode('login')}
           >
@@ -173,7 +173,7 @@ export default function LoginScreen() {
             </Text>
           </Pressable>
           <Pressable
-            className={`flex-1 py-3 rounded-md ${mode === 'signup' ? 'bg-primary' : 'bg-transparent'
+            className={`flex-1 py-4 rounded-lg ${mode === 'signup' ? 'bg-primary' : 'bg-transparent'
               }`}
             onPress={() => setMode('signup')}
           >

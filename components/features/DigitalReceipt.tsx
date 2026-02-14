@@ -299,7 +299,7 @@ export function DigitalReceipt({ visible, orderId, onClose }: DigitalReceiptProp
                                             ) : order.fiscal_status === 'error' ? (
                                                 <FontAwesome name="exclamation-circle" size={20} color="#ef4444" />
                                             ) : (
-                                                <FontAwesome name="clock" size={20} color="#f59e0b" />
+                                                <FontAwesome name="clock-o" size={20} color="#f59e0b" />
                                             )}
                                             <Text
                                                 className={`ml-2 font-semibold ${
