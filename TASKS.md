@@ -44,6 +44,7 @@
 ### 2026-02-14
 - [done] Boomer-tests: fix 14 errori TypeScript (syntax, icon, types, exports)
 - [done] Boomer UX: aggiunto Toast feedback visivo quando si aggiunge al carrello
+- [done] Boomer UX: aggiunto dialogo conferma logout (previene click accidentali)
 
 ### 2026-02-13
 - [done] Fix 14 errori TypeScript

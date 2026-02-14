@@ -25,6 +25,12 @@
 ### Progressi Chiave
 - 2026-02-14: Fix 14 errori TypeScript (syntax error, icon name, duplicate export, type mismatch)
 - 2026-02-14: Aggiunto Toast component per feedback immediato (boomer UX)
+- 2026-02-14: Aggiunto dialogo conferma logout per prevenire click accidentali
+
+### Ultimi 3 Cicli Completati
+1. **Ciclo 1:** Fix 14 errori TypeScript → branch `fix/boomer-ts-errors-20260214`
+2. **Ciclo 2:** Toast feedback su add-to-cart → branch `fix/boomer-ts-errors-20260214`  
+3. **Ciclo 3:** Logout confirmation dialog → branch `usability/boomer-logout-confirm`
 - 2026-02-13: Fix 14 errori TypeScript
 - 2026-02-13: Setup cron boomer-tests ogni ora
 
