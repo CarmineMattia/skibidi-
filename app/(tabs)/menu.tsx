@@ -155,15 +155,6 @@ export default function MenuScreen() {
         </View>
       </View>
 
-      {/* DEBUG INFO - REMOVE LATER */}
-      {isAuthenticated && (
-        <View className="bg-yellow-200 p-2 items-center">
-          <Text className="text-xs font-mono">
-            Debug: Role={userRole} | Kiosk={isKioskMode ? 'YES' : 'NO'} | Auth={isAuthenticated ? 'YES' : 'NO'}
-          </Text>
-        </View>
-      )}
-
       {/* Main Content Area - Split Layout */}
       <View className="flex-1 flex-row">
         {/* Left Sidebar - Categories (Toggleable) */}
