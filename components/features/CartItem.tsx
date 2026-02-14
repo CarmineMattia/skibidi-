@@ -49,10 +49,10 @@ export function CartItem({ item, onUpdateQuantity, onRemove }: CartItemProps) {
         {/* Remove Button */}
         <Pressable
           onPress={onRemove}
-          className="bg-destructive/10 p-2 rounded-full active:bg-destructive/20"
+          className="bg-destructive/10 p-3 rounded-full active:bg-destructive/30"
           hitSlop={10}
         >
-          <Text className="text-destructive font-bold text-xs">✕</Text>
+          <Text className="text-destructive font-bold text-lg">✕</Text>
         </Pressable>
       </View>
 
