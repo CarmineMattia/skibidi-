@@ -163,13 +163,15 @@ export function ProductDetailsModal({ visible, onClose, product }: ProductDetail
                                                     </Text>
                                                 </View>
 
-                                                <View className="flex-row items-center gap-3 bg-secondary/30 rounded-lg p-1">
+                                                <View className="flex-row items-center gap-3 bg-secondary/30 rounded-lg p-1.5">
                                                     <Pressable
                                                         onPress={() => updateModification(ingredient, -1)}
-                                                        className={`w-8 h-8 items-center justify-center rounded-md ${status === 'no' ? 'opacity-30' : 'bg-card shadow-sm'}`}
+                                                        className={`w-10 h-10 items-center justify-center rounded-md ${status === 'no' ? 'opacity-30' : 'bg-card shadow-sm active:scale-95'}`}
                                                         disabled={status === 'no'}
+                                                        accessibilityRole="button"
+                                                        accessibilityLabel="Rimuovi ingrediente"
                                                     >
-                                                        <FontAwesome name="minus" size={12} color="#000" />
+                                                        <FontAwesome name="minus" size={14} color="#000" />
                                                     </Pressable>
 
                                                     <View className="w-24 items-center">
@@ -182,10 +184,12 @@ export function ProductDetailsModal({ visible, onClose, product }: ProductDetail
 
                                                     <Pressable
                                                         onPress={() => updateModification(ingredient, 1)}
-                                                        className={`w-8 h-8 items-center justify-center rounded-md ${status === 'extra' ? 'opacity-30' : 'bg-card shadow-sm'}`}
+                                                        className={`w-10 h-10 items-center justify-center rounded-md ${status === 'extra' ? 'opacity-30' : 'bg-card shadow-sm active:scale-95'}`}
                                                         disabled={status === 'extra'}
+                                                        accessibilityRole="button"
+                                                        accessibilityLabel="Aggiungi ingrediente extra"
                                                     >
-                                                        <FontAwesome name="plus" size={12} color="#000" />
+                                                        <FontAwesome name="plus" size={14} color="#000" />
                                                     </Pressable>
                                                 </View>
                                             </View>
