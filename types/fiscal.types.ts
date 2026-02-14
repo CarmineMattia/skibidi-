@@ -3,17 +3,11 @@
  * Supports legal fiscalization requirements
  */
 
+import type { FiscalStatus } from './database.types';
+
 // ============================================================================
 // ENUMS
 // ============================================================================
-
-/**
- * Fiscal status of an order
- * - pending: Order created but not yet fiscalized
- * - success: Successfully fiscalized
- * - error: Fiscalization failed, queued for retry
- */
-export type FiscalStatus = 'pending' | 'success' | 'error';
 
 /**
  * Payment method for fiscal receipt
@@ -24,6 +18,9 @@ export type PaymentMethod = 'cash' | 'card' | 'digital';
  * Supported fiscal providers
  */
 export type FiscalProviderType = 'acube' | 'fatture-in-cloud' | 'epson';
+
+// Re-export FiscalStatus from database.types
+export { FiscalStatus };
 
 // ============================================================================
 // DATA STRUCTURES
