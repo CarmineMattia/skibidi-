@@ -46,13 +46,14 @@ export function CartItem({ item, onUpdateQuantity, onRemove }: CartItemProps) {
           ) : null}
         </View>
 
-        {/* Remove Button */}
+        {/* Remove Button - Larger for boomer accessibility */}
         <Pressable
           onPress={onRemove}
-          className="bg-destructive/10 p-2 rounded-full active:bg-destructive/20"
-          hitSlop={10}
+          className="bg-destructive/20 p-3 rounded-xl active:bg-destructive/30 min-w-[44px] min-h-[44px] items-center justify-center"
+          accessibilityLabel="Rimuovi prodotto"
+          accessibilityRole="button"
         >
-          <Text className="text-destructive font-bold text-xs">✕</Text>
+          <Text className="text-destructive font-bold text-lg">🗑️ Rimuovi</Text>
         </Pressable>
       </View>
 

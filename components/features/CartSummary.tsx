@@ -4,8 +4,20 @@
  */
 
 import { useCart } from '@/lib/stores/CartContext';
+import { Alert } from 'react-native';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { CartItem } from './CartItem';
+
+const confirmClearCart = (onConfirm: () => void) => {
+  Alert.alert(
+    'Svuota Carrello?',
+    'Sei sicuro di voler rimuovere tutti i prodotti dal carrello?',
+    [
+      { text: 'Annulla', style: 'cancel' },
+      { text: 'Svuota', style: 'destructive', onPress: onConfirm },
+    ]
+  );
+};
 
 interface CartSummaryProps {
   onCheckout?: () => void;
@@ -30,10 +42,11 @@ export function CartSummary({ onCheckout, isCheckingOut = false }: CartSummaryPr
           </View>
           {!isEmpty && (
             <Pressable
-              className="bg-destructive/10 px-4 py-2 rounded-xl border border-destructive/30"
-              onPress={clearCart}
+              className="bg-destructive/10 px-4 py-3 rounded-xl border border-destructive/30 active:bg-destructive/20 min-h-[44px]"
+              onPress={() => confirmClearCart(clearCart)}
+              accessibilityLabel="Svuota carrello"
             >
-              <Text className="text-destructive font-extrabold text-sm">Svuota</Text>
+              <Text className="text-destructive font-extrabold text-base">🗑️ Svuota</Text>
             </Pressable>
           )}
         </View>

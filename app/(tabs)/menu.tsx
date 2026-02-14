@@ -75,14 +75,27 @@ export default function MenuScreen() {
     router.push('/modal');
   };
 
-  const handleLogout = async () => {
-    try {
-      await signOut();
-      router.replace('/login');
-    } catch (error) {
-      console.error('Logout error:', error);
-      Alert.alert('Errore', 'Impossibile effettuare il logout.');
-    }
+  const handleLogout = () => {
+    Alert.alert(
+      'Esci dall\'account?',
+      'Sei sicuro di voler effettuare il logout?',
+      [
+        { text: 'Annulla', style: 'cancel' },
+        { 
+          text: 'Esci', 
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await signOut();
+              router.replace('/login');
+            } catch (error) {
+              console.error('Logout error:', error);
+              Alert.alert('Errore', 'Impossibile effettuare il logout.');
+            }
+          }
+        },
+      ]
+    );
   };
 
   if (categoriesLoading || productsLoading) {
