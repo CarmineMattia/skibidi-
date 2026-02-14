@@ -127,23 +127,27 @@ export function ProductDetailsModal({ visible, onClose, product }: ProductDetail
                         )}
 
                         {/* Quantity Selector */}
-                        <View className="flex-row items-center justify-center gap-6 mb-8 bg-secondary/20 p-4 rounded-xl">
+                        <View className="flex-row items-center justify-center gap-6 mb-8 bg-secondary/20 p-5 rounded-xl">
                             <Pressable
                                 onPress={decrementQuantity}
-                                className="w-12 h-12 rounded-full bg-card border border-border items-center justify-center active:scale-95"
+                                className="w-16 h-16 rounded-full bg-card border-2 border-border items-center justify-center active:scale-95 active:bg-destructive/10"
+                                accessibilityRole="button"
+                                accessibilityLabel="Diminuisci quantità"
                             >
-                                <FontAwesome name="minus" size={20} color="#000" />
+                                <FontAwesome name="minus" size={24} color="#000" />
                             </Pressable>
 
-                            <Text className="text-3xl font-bold text-foreground w-12 text-center">
+                            <Text className="text-4xl font-bold text-foreground w-16 text-center">
                                 {quantity}
                             </Text>
 
                             <Pressable
                                 onPress={incrementQuantity}
-                                className="w-12 h-12 rounded-full bg-primary items-center justify-center active:scale-95 shadow-md"
+                                className="w-16 h-16 rounded-full bg-primary items-center justify-center active:scale-95 shadow-md"
+                                accessibilityRole="button"
+                                accessibilityLabel="Aumenta quantità"
                             >
-                                <FontAwesome name="plus" size={20} color="white" />
+                                <FontAwesome name="plus" size={24} color="white" />
                             </Pressable>
                         </View>
 
@@ -163,18 +167,20 @@ export function ProductDetailsModal({ visible, onClose, product }: ProductDetail
                                                     </Text>
                                                 </View>
 
-                                                <View className="flex-row items-center gap-3 bg-secondary/30 rounded-lg p-1">
+                                                <View className="flex-row items-center gap-3 bg-secondary/30 rounded-lg p-2">
                                                     <Pressable
                                                         onPress={() => updateModification(ingredient, -1)}
-                                                        className={`w-8 h-8 items-center justify-center rounded-md ${status === 'no' ? 'opacity-30' : 'bg-card shadow-sm'}`}
+                                                        className={`w-12 h-12 items-center justify-center rounded-lg ${status === 'no' ? 'opacity-30' : 'bg-card shadow-sm active:scale-95'}`}
                                                         disabled={status === 'no'}
+                                                        accessibilityRole="button"
+                                                        accessibilityLabel="Rimuovi ingrediente"
                                                     >
-                                                        <FontAwesome name="minus" size={12} color="#000" />
+                                                        <FontAwesome name="minus" size={16} color="#000" />
                                                     </Pressable>
 
                                                     <View className="w-24 items-center">
                                                         {status !== 'standard' && (
-                                                            <Text className="text-sm font-bold">
+                                                            <Text className="text-base font-bold">
                                                                 {getStatusIcon(status)} {status === 'no' ? 'No' : 'Extra'}
                                                             </Text>
                                                         )}
@@ -182,10 +188,12 @@ export function ProductDetailsModal({ visible, onClose, product }: ProductDetail
 
                                                     <Pressable
                                                         onPress={() => updateModification(ingredient, 1)}
-                                                        className={`w-8 h-8 items-center justify-center rounded-md ${status === 'extra' ? 'opacity-30' : 'bg-card shadow-sm'}`}
+                                                        className={`w-12 h-12 items-center justify-center rounded-lg ${status === 'extra' ? 'opacity-30' : 'bg-card shadow-sm active:scale-95'}`}
                                                         disabled={status === 'extra'}
+                                                        accessibilityRole="button"
+                                                        accessibilityLabel="Aggiungi ingrediente extra"
                                                     >
-                                                        <FontAwesome name="plus" size={12} color="#000" />
+                                                        <FontAwesome name="plus" size={16} color="#000" />
                                                     </Pressable>
                                                 </View>
                                             </View>
