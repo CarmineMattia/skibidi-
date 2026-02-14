@@ -44,7 +44,6 @@ function cartToFiscalItems(items: CartItem[]): FiscalOrderData['items'] {
     unit_price: Math.round(item.product.price * 100), // Convert to cents
     total_price: Math.round(item.product.price * item.quantity * 100),
     vat_rate: 22, // Default VAT rate (22% for food)
-    category: item.product.category,
   }));
 }
 

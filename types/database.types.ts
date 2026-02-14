@@ -8,9 +8,7 @@ export * from './database.types.generated';
 
 // Legacy aliases for convenience
 export type UserRole = 'admin' | 'customer' | 'kiosk';
-
 export type FiscalStatus = 'pending' | 'success' | 'error';
-
 export type OrderStatus = 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
 
 export interface Profile {
