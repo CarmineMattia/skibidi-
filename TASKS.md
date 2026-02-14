@@ -10,9 +10,9 @@
 ## Task Aperte
 
 ### Alta Priorità
-- [ ] Merge branch `fix/boomer-types-202602140401` (TypeScript fixes)
-- [ ] Configurare test script (npm test)
-- [ ] Configurare lint script (npm run lint)
+- [x] Fix TypeScript errors (branch `fix/ts-errors-202602140439`)
+- [ ] Merge branch `fix/ts-errors-202602140439`
+- [ ] Merge branch `fix/boomer-types-202602140401` (se ancora aperta)
 
 ### Media Priorità
 - [ ] Implementare sistema offline-first (Phase 5)
