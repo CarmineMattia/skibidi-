@@ -46,7 +46,7 @@ const mockProduct: Product = {
   name: 'Pizza Margherita',
   price: 8.50,
   description: 'Classic tomato and mozzarella',
-  image_url: null,
+  image_url: undefined,
   category_id: 'cat1',
   active: true,
   display_order: 1,
