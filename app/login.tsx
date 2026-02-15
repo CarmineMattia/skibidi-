@@ -336,18 +336,18 @@ export default function LoginScreen() {
 
         {/* Kiosk Mode Button - Larger for boomer accessibility */}
         <Pressable
-          className="bg-muted rounded-xl p-5 border border-border active:opacity-80"
+          className="bg-muted rounded-xl p-6 border border-border active:opacity-80"
           onPress={handleKioskMode}
           disabled={isLoading}
         >
           <View className="items-center">
-            <View className="flex-row items-center gap-2 mb-2">
-              <Text className="text-3xl">🖥️</Text>
-              <Text className="text-foreground font-semibold text-xl">
+            <View className="flex-row items-center gap-3 mb-2">
+              <Text className="text-4xl">🖥️</Text>
+              <Text className="text-foreground font-semibold text-2xl">
                 Modalità Kiosk
               </Text>
             </View>
-            <Text className="text-muted-foreground text-base text-center">
+            <Text className="text-muted-foreground text-lg text-center">
               Ordini anonimi senza login
             </Text>
           </View>
