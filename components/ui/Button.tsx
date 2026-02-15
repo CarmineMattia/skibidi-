@@ -59,22 +59,26 @@ const buttonTextVariants = cva('font-medium text-center', {
 export interface ButtonProps
   extends PressableProps,
     VariantProps<typeof buttonVariants> {
-  title: string;
+  title?: string;
+  children?: React.ReactNode;
 }
 
 export function Button({
   title,
+  children,
   variant,
   size,
   className,
+  disabled,
   ...props
 }: ButtonProps) {
   return (
     <Pressable
       className={cn(buttonVariants({ variant, size, className }))}
+      disabled={disabled}
       {...props}
     >
-      <Text className={cn(buttonTextVariants({ variant, size }))}>{title}</Text>
+      {children || (title && <Text className={cn(buttonTextVariants({ variant, size }))}>{title}</Text>)}
     </Pressable>
   );
 }
