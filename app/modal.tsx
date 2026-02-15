@@ -284,7 +284,7 @@ export default function CheckoutScreen() {
             </View>
           </View>
 
-          <View className="flex-row gap-3">
+          <View className="flex-row gap-3 items-center">
             <Button
               title="Indietro"
               variant="outline"
@@ -293,13 +293,18 @@ export default function CheckoutScreen() {
               size="lg"
               disabled={isProcessing}
             />
-            <Button
-              title={isProcessing ? 'Elaborazione...' : `Paga Ora €${totalAmount.toFixed(2)}`}
-              onPress={handlePayment}
-              className="flex-[2]"
-              size="lg"
-              disabled={isProcessing}
-            />
+            {isProcessing ? (
+              <View className="flex-[2] h-14 bg-primary/50 rounded-xl items-center justify-center">
+                <ActivityIndicator color="white" size="large" />
+              </View>
+            ) : (
+              <Button
+                title={`Paga Ora €${totalAmount.toFixed(2)}`}
+                onPress={handlePayment}
+                className="flex-[2]"
+                size="lg"
+              />
+            )}
           </View>
         </View>
       </View>
