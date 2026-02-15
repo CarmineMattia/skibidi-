@@ -4,7 +4,7 @@
  */
 
 import { useCart } from '@/lib/stores/CartContext';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { CartItem } from './CartItem';
 
 interface CartSummaryProps {
@@ -95,7 +95,11 @@ export function CartSummary({ onCheckout, isCheckingOut = false }: CartSummaryPr
                 <Text className="text-primary-foreground font-extrabold text-xl">
                   {isCheckingOut ? 'Elaborazione...' : 'Procedi al Pagamento'}
                 </Text>
-                {!isCheckingOut && <Text className="text-primary-foreground text-3xl">→</Text>}
+                {isCheckingOut ? (
+                  <ActivityIndicator color="#fff" size="small" />
+                ) : (
+                  <Text className="text-primary-foreground text-3xl">→</Text>
+                )}
               </View>
             </Pressable>
           </View>

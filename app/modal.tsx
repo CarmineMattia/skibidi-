@@ -293,13 +293,21 @@ export default function CheckoutScreen() {
               size="lg"
               disabled={isProcessing}
             />
-            <Button
-              title={isProcessing ? 'Elaborazione...' : `Paga Ora €${totalAmount.toFixed(2)}`}
+            <Pressable
+              className="flex-[2] bg-primary rounded-xl h-14 shadow-xl items-center justify-center border-2 border-primary"
+              style={{ opacity: isProcessing ? 0.5 : 1 }}
               onPress={handlePayment}
-              className="flex-[2]"
-              size="lg"
               disabled={isProcessing}
-            />
+            >
+              <View className="flex-row items-center gap-2">
+                <Text className="text-primary-foreground font-extrabold text-lg">
+                  {isProcessing ? 'Elaborazione...' : `Paga Ora €${totalAmount.toFixed(2)}`}
+                </Text>
+                {isProcessing ? (
+                  <ActivityIndicator color="#fff" size="small" />
+                ) : null}
+              </View>
+            </Pressable>
           </View>
         </View>
       </View>
