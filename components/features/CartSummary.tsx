@@ -31,9 +31,10 @@ export function CartSummary({ onCheckout, isCheckingOut = false }: CartSummaryPr
           {!isEmpty && (
             <Pressable
               className="bg-destructive/10 px-5 py-3 rounded-xl border border-destructive/30"
+              style={{ minHeight: 48 }}
               onPress={clearCart}
             >
-              <Text className="text-destructive font-extrabold text-base">Svuota</Text>
+              <Text className="text-destructive font-extrabold text-lg">Svuota</Text>
             </Pressable>
           )}
         </View>

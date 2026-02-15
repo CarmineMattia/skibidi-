@@ -288,11 +288,12 @@ export default function CheckoutScreen() {
               title="Indietro"
               variant="outline"
               onPress={handleBackStep}
+              size="lg"
               className="flex-1"
               disabled={isProcessing}
             />
             <Pressable
-              className={`flex-[2] bg-primary rounded-xl p-4 items-center shadow-lg active:scale-95 transition-transform ${isProcessing ? 'opacity-50' : ''}`}
+              className={`flex-[2] bg-primary rounded-xl p-5 items-center shadow-lg active:scale-95 transition-transform ${isProcessing ? 'opacity-50' : ''}`}
               onPress={handlePayment}
               disabled={isProcessing}
             >
@@ -319,7 +320,7 @@ export default function CheckoutScreen() {
     <View className="flex-1 bg-background">
       {/* Header with Steps */}
       <View className="p-6 border-b border-border bg-card flex-row items-center justify-between">
-        <Pressable onPress={handleBackStep} className="p-2">
+        <Pressable onPress={handleBackStep} className="p-3">
           <FontAwesome name="arrow-left" size={24} color="#000" />
         </Pressable>
         <View className="flex-row gap-2">
