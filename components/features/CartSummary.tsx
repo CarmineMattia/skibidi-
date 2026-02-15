@@ -30,10 +30,10 @@ export function CartSummary({ onCheckout, isCheckingOut = false }: CartSummaryPr
           </View>
           {!isEmpty && (
             <Pressable
-              className="bg-destructive/10 px-4 py-2 rounded-xl border border-destructive/30"
+              className="bg-destructive/10 px-5 py-3 rounded-xl border border-destructive/30"
               onPress={clearCart}
             >
-              <Text className="text-destructive font-extrabold text-sm">Svuota</Text>
+              <Text className="text-destructive font-extrabold text-base">Svuota</Text>
             </Pressable>
           )}
         </View>
