@@ -71,7 +71,10 @@ export function Button({
 }: ButtonProps) {
   return (
     <Pressable
-      className={cn(buttonVariants({ variant, size, className }))}
+      className={cn(
+        buttonVariants({ variant, size, className }),
+        props.disabled && 'opacity-50'
+      )}
       {...props}
     >
       <Text className={cn(buttonTextVariants({ variant, size }))}>{title}</Text>
