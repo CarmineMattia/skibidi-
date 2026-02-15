@@ -289,26 +289,16 @@ export default function CheckoutScreen() {
               variant="outline"
               onPress={handleBackStep}
               className="flex-1"
+              size="lg"
               disabled={isProcessing}
             />
-            <Pressable
-              className={`flex-[2] bg-primary rounded-xl p-4 items-center shadow-lg active:scale-95 transition-transform ${isProcessing ? 'opacity-50' : ''}`}
+            <Button
+              title={`Paga Ora €${totalAmount.toFixed(2)}`}
               onPress={handlePayment}
+              className="flex-[2]"
+              size="lg"
               disabled={isProcessing}
-            >
-              {isProcessing ? (
-                <View className="flex-row items-center gap-3">
-                  <ActivityIndicator color="#000" />
-                  <Text className="text-primary-foreground font-bold text-xl">
-                    Elaborazione...
-                  </Text>
-                </View>
-              ) : (
-                <Text className="text-primary-foreground font-bold text-xl">
-                  Paga Ora €{totalAmount.toFixed(2)}
-                </Text>
-              )}
-            </Pressable>
+            />
           </View>
         </View>
       </View>
