@@ -223,25 +223,25 @@ export default function MenuScreen() {
       {/* Mobile Cart Button (Fixed at bottom) */}
       {!isLargeScreen && totalItems > 0 && (
         <View
-          className="absolute bottom-0 left-0 right-0 p-4 bg-background border-t border-border"
+          className="absolute bottom-0 left-0 right-0 p-5 bg-background border-t border-border"
           style={{ paddingBottom: insets.bottom + 16 }}
         >
           <Pressable
             onPress={() => setIsCartVisible(true)}
-            className="bg-primary rounded-2xl p-4 shadow-xl flex-row items-center justify-between active:opacity-80"
+            className="bg-primary rounded-2xl p-5 shadow-xl flex-row items-center justify-between active:opacity-80"
           >
-            <View className="flex-row items-center gap-2">
-              <Text className="text-primary-foreground text-3xl">🛒</Text>
+            <View className="flex-row items-center gap-3">
+              <Text className="text-primary-foreground text-4xl">🛒</Text>
               <View>
-                <Text className="text-primary-foreground font-bold text-lg">
+                <Text className="text-primary-foreground font-bold text-xl">
                   Vedi Carrello
                 </Text>
-                <Text className="text-primary-foreground/80 text-sm">
+                <Text className="text-primary-foreground/80 text-base">
                   {totalItems} {totalItems === 1 ? 'prodotto' : 'prodotti'}
                 </Text>
               </View>
             </View>
-            <Text className="text-primary-foreground font-extrabold text-2xl">
+            <Text className="text-primary-foreground font-extrabold text-3xl">
               €{totalAmount.toFixed(2)}
             </Text>
           </Pressable>
