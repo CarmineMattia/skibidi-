@@ -4,6 +4,7 @@
  */
 
 import { Pressable, Text, PressableProps } from 'react-native';
+import type { ReactNode } from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils/cn';
 
@@ -59,11 +60,13 @@ const buttonTextVariants = cva('font-medium text-center', {
 export interface ButtonProps
   extends PressableProps,
     VariantProps<typeof buttonVariants> {
-  title: string;
+  title?: string;
+  children?: ReactNode;
 }
 
 export function Button({
   title,
+  children,
   variant,
   size,
   className,
@@ -74,7 +77,7 @@ export function Button({
       className={cn(buttonVariants({ variant, size, className }))}
       {...props}
     >
-      <Text className={cn(buttonTextVariants({ variant, size }))}>{title}</Text>
+      {children || (title && <Text className={cn(buttonTextVariants({ variant, size }))}>{title}</Text>)}
     </Pressable>
   );
 }
