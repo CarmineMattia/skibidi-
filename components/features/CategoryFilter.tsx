@@ -119,7 +119,7 @@ export function CategoryFilter({
       {!isAuthenticated && (
         <View className="p-3 border-t border-border bg-card">
           <Pressable
-            className="bg-primary rounded-xl py-3 px-2 active:opacity-80"
+            className="bg-primary rounded-xl h-12 py-3 px-3 active:opacity-80"
             onPress={() => router.push('/login')}
           >
             <Text className="text-2xl text-center mb-1">👤</Text>

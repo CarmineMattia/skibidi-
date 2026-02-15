@@ -105,9 +105,8 @@ export function ProductCard({ product, onAddToCart, onEditPress }: ProductCardPr
         </View>
 
         {/* Action Button - Pill Style */}
-        {/* Action Button - Pill Style */}
         <Pressable
-          className="bg-white py-3 px-4 md:py-3.5 md:px-6 rounded-full items-center justify-center active:scale-95 transition-transform"
+          className="bg-white h-12 py-3 px-4 md:h-14 md:py-4 md:px-6 rounded-full items-center justify-center active:scale-95 transition-transform"
           onPress={handleAddToCart}
           accessibilityRole="button"
           accessibilityLabel={`Aggiungi ${product.name} al carrello`}
