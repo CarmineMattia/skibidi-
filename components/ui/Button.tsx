@@ -3,6 +3,7 @@
  * Componente bottone riutilizzabile stile shadcn/ui
  */
 
+import React from 'react';
 import { Pressable, Text, PressableProps } from 'react-native';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils/cn';
@@ -59,22 +60,30 @@ const buttonTextVariants = cva('font-medium text-center', {
 export interface ButtonProps
   extends PressableProps,
     VariantProps<typeof buttonVariants> {
-  title: string;
+  title?: string;
+  children?: React.ReactNode;
 }
 
 export function Button({
   title,
+  children,
   variant,
   size,
   className,
+  disabled,
   ...props
 }: ButtonProps) {
   return (
     <Pressable
-      className={cn(buttonVariants({ variant, size, className }))}
+      className={cn(buttonVariants({ variant, size, className }), disabled && 'opacity-50')}
+      disabled={disabled}
       {...props}
     >
-      <Text className={cn(buttonTextVariants({ variant, size }))}>{title}</Text>
+      {children ? (
+        children
+      ) : (
+        <Text className={cn(buttonTextVariants({ variant, size }))}>{title}</Text>
+      )}
     </Pressable>
   );
 }
