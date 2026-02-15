@@ -54,17 +54,17 @@ export default function OrderSuccessScreen() {
 
                     <View className="w-full gap-4 mb-8">
                         <Pressable
-                            className="bg-blue-600 w-full py-4 rounded-2xl items-center active:opacity-90 flex-row justify-center"
+                            className="bg-blue-600 w-full py-6 rounded-2xl items-center active:opacity-90 flex-row justify-center"
                             onPress={() => setShowReceipt(true)}
                         >
-                            <FontAwesome name="file-text" size={24} color="white" style={{ marginRight: 8 }} />
+                            <FontAwesome name="file-text" size={28} color="white" style={{ marginRight: 12 }} />
                             <Text className="text-background font-bold text-xl">
                                 Visualizza Scontrino
                             </Text>
                         </Pressable>
 
                         <Pressable
-                            className="bg-foreground w-full py-6 rounded-2xl items-center active:opacity-90"
+                            className="bg-foreground w-full py-7 rounded-2xl items-center active:opacity-90"
                             onPress={() => router.replace('/(tabs)/menu')}
                         >
                             <Text className="text-background font-bold text-2xl">

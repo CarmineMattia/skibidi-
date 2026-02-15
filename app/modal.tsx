@@ -205,6 +205,7 @@ export default function CheckoutScreen() {
           variant="outline"
           onPress={handleBackStep}
           className="flex-1"
+          size="lg"
         />
         <Button
           title="Vai al Pagamento"
@@ -293,7 +294,7 @@ export default function CheckoutScreen() {
               disabled={isProcessing}
             />
             <Button
-              title={`Paga Ora €${totalAmount.toFixed(2)}`}
+              title={isProcessing ? 'Elaborazione...' : `Paga Ora €${totalAmount.toFixed(2)}`}
               onPress={handlePayment}
               className="flex-[2]"
               size="lg"
