@@ -320,13 +320,13 @@ export default function CheckoutScreen() {
     <View className="flex-1 bg-background">
       {/* Header with Steps */}
       <View className="p-6 border-b border-border bg-card flex-row items-center justify-between">
-        <Pressable onPress={handleBackStep} className="p-2">
+        <Pressable onPress={handleBackStep} className="p-3 rounded-xl active:bg-secondary/50">
           <FontAwesome name="arrow-left" size={24} color="#000" />
         </Pressable>
         <View className="flex-row gap-2">
-          <View className={`h-3 w-12 rounded-full ${step === 'type' ? 'bg-primary' : 'bg-primary/30'}`} />
-          <View className={`h-3 w-12 rounded-full ${step === 'details' ? 'bg-primary' : 'bg-primary/30'}`} />
-          <View className={`h-3 w-12 rounded-full ${step === 'payment' ? 'bg-primary' : 'bg-primary/30'}`} />
+          <View className={`h-4 w-14 rounded-full ${step === 'type' ? 'bg-primary' : 'bg-primary/30'}`} />
+          <View className={`h-4 w-14 rounded-full ${step === 'details' ? 'bg-primary' : 'bg-primary/30'}`} />
+          <View className={`h-4 w-14 rounded-full ${step === 'payment' ? 'bg-primary' : 'bg-primary/30'}`} />
         </View>
         <View className="w-8" />
       </View>
