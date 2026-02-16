@@ -293,13 +293,25 @@ export default function CheckoutScreen() {
               size="lg"
               disabled={isProcessing}
             />
-            <Button
-              title={isProcessing ? 'Elaborazione...' : `Paga Ora €${totalAmount.toFixed(2)}`}
+            <Pressable
+              className="flex-[2] bg-primary rounded-xl p-5 items-center border-2 border-primary"
+              style={{ opacity: isProcessing ? 0.5 : 1 }}
               onPress={handlePayment}
-              className="flex-[2]"
-              size="lg"
               disabled={isProcessing}
-            />
+            >
+              {isProcessing ? (
+                <View className="flex-row items-center gap-3">
+                  <ActivityIndicator color="#fff" size="small" />
+                  <Text className="text-primary-foreground font-extrabold text-lg">
+                    Elaborazione...
+                  </Text>
+                </View>
+              ) : (
+                <Text className="text-primary-foreground font-extrabold text-lg">
+                  Paga Ora €{totalAmount.toFixed(2)}
+                </Text>
+              )}
+            </Pressable>
           </View>
         </View>
       </View>
@@ -314,9 +326,9 @@ export default function CheckoutScreen() {
           <FontAwesome name="arrow-left" size={24} color="#000" />
         </Pressable>
         <View className="flex-row gap-2">
-          <View className={`h-2 w-12 rounded-full ${step === 'type' ? 'bg-primary' : 'bg-primary/30'}`} />
-          <View className={`h-2 w-12 rounded-full ${step === 'details' ? 'bg-primary' : 'bg-primary/30'}`} />
-          <View className={`h-2 w-12 rounded-full ${step === 'payment' ? 'bg-primary' : 'bg-primary/30'}`} />
+          <View className={`h-3 w-12 rounded-full ${step === 'type' ? 'bg-primary' : 'bg-primary/30'}`} />
+          <View className={`h-3 w-12 rounded-full ${step === 'details' ? 'bg-primary' : 'bg-primary/30'}`} />
+          <View className={`h-3 w-12 rounded-full ${step === 'payment' ? 'bg-primary' : 'bg-primary/30'}`} />
         </View>
         <View className="w-8" />
       </View>
