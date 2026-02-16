@@ -114,7 +114,7 @@ export default function MenuScreen() {
           {isAdmin && (
             <Pressable
               onPress={handleCreatePress}
-              className="bg-primary px-4 py-2 rounded-full flex-row items-center gap-2 active:opacity-80"
+              className="bg-primary px-4 py-3 rounded-full flex-row items-center gap-2 active:opacity-80"
             >
               <FontAwesome name="plus" size={16} color="white" />
               <Text className="text-primary-foreground font-bold text-base">Nuovo</Text>
