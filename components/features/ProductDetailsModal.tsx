@@ -102,10 +102,10 @@ export function ProductDetailsModal({ visible, onClose, product }: ProductDetail
                             </View>
                         )}
                         <Pressable
-                            className="absolute top-4 right-4 bg-black/50 p-2 rounded-full"
+                            className="absolute top-4 right-4 bg-black/50 p-3 rounded-full"
                             onPress={onClose}
                         >
-                            <FontAwesome name="times" size={20} color="white" />
+                            <FontAwesome name="times" size={24} color="white" />
                         </Pressable>
                     </View>
 
