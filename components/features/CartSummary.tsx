@@ -4,7 +4,7 @@
  */
 
 import { useCart } from '@/lib/stores/CartContext';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { CartItem } from './CartItem';
 
 interface CartSummaryProps {
@@ -84,18 +84,30 @@ export function CartSummary({ onCheckout, isCheckingOut = false }: CartSummaryPr
 
             {/* Checkout Button */}
             <Pressable
-              className="bg-primary rounded-2xl p-5 shadow-xl items-center border-2 border-primary"
+              className="bg-primary rounded-2xl p-5 shadow-xl items-center justify-center border-2 border-primary"
               style={{
                 opacity: isCheckingOut ? 0.5 : 1,
+                minHeight: 56,
               }}
               onPress={onCheckout || (() => console.log('Checkout!'))}
               disabled={isCheckingOut}
             >
               <View className="flex-row items-center gap-3">
-                <Text className="text-primary-foreground font-extrabold text-xl">
-                  {isCheckingOut ? 'Elaborazione...' : 'Procedi al Pagamento'}
-                </Text>
-                {!isCheckingOut && <Text className="text-primary-foreground text-3xl">→</Text>}
+                {isCheckingOut ? (
+                  <>
+                    <ActivityIndicator color="#fff" size="small" />
+                    <Text className="text-primary-foreground font-extrabold text-xl">
+                      Elaborazione...
+                    </Text>
+                  </>
+                ) : (
+                  <>
+                    <Text className="text-primary-foreground font-extrabold text-xl">
+                      Procedi al Pagamento
+                    </Text>
+                    <Text className="text-primary-foreground text-3xl">→</Text>
+                  </>
+                )}
               </View>
             </Pressable>
           </View>
