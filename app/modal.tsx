@@ -302,7 +302,7 @@ export default function CheckoutScreen() {
               </View>
             ) : (
               <Pressable
-                className="flex-[2] h-14 bg-primary rounded-xl items-center justify-center shadow-xl border-2 border-primary"
+                className="flex-[2] h-14 bg-primary rounded-xl items-center justify-center shadow-xl border-2 border-primary active:opacity-80 active:scale-95"
                 onPress={handlePayment}
               >
                 <Text className="text-primary-foreground font-extrabold text-lg">
