@@ -148,7 +148,7 @@ export function CategoryFilter({
           </View>
 
           <Pressable
-            className="bg-destructive/10 rounded-xl py-3 px-4 active:opacity-80 flex-row items-center justify-center gap-2"
+            className="bg-destructive/10 rounded-xl py-4 px-4 active:opacity-80 flex-row items-center justify-center gap-2"
             onPress={async () => {
               try {
                 await signOut();
