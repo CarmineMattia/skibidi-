@@ -293,13 +293,23 @@ export default function CheckoutScreen() {
               size="lg"
               disabled={isProcessing}
             />
-            <Button
-              title={isProcessing ? 'Elaborazione...' : `Paga Ora €${totalAmount.toFixed(2)}`}
-              onPress={handlePayment}
-              className="flex-[2]"
-              size="lg"
-              disabled={isProcessing}
-            />
+            {isProcessing ? (
+              <View className="flex-[2] h-14 bg-primary rounded-xl items-center justify-center flex-row gap-3">
+                <ActivityIndicator color="#fff" size="small" />
+                <Text className="text-primary-foreground font-extrabold text-lg">
+                  Elaborazione...
+                </Text>
+              </View>
+            ) : (
+              <Pressable
+                className="flex-[2] h-14 bg-primary rounded-xl items-center justify-center shadow-xl border-2 border-primary"
+                onPress={handlePayment}
+              >
+                <Text className="text-primary-foreground font-extrabold text-lg">
+                  Paga Ora €{totalAmount.toFixed(2)}
+                </Text>
+              </Pressable>
+            )}
           </View>
         </View>
       </View>
@@ -314,9 +324,9 @@ export default function CheckoutScreen() {
           <FontAwesome name="arrow-left" size={24} color="#000" />
         </Pressable>
         <View className="flex-row gap-2">
-          <View className={`h-2 w-12 rounded-full ${step === 'type' ? 'bg-primary' : 'bg-primary/30'}`} />
-          <View className={`h-2 w-12 rounded-full ${step === 'details' ? 'bg-primary' : 'bg-primary/30'}`} />
-          <View className={`h-2 w-12 rounded-full ${step === 'payment' ? 'bg-primary' : 'bg-primary/30'}`} />
+          <View className={`h-3 w-12 rounded-full ${step === 'type' ? 'bg-primary' : 'bg-primary/30'}`} />
+          <View className={`h-3 w-12 rounded-full ${step === 'details' ? 'bg-primary' : 'bg-primary/30'}`} />
+          <View className={`h-3 w-12 rounded-full ${step === 'payment' ? 'bg-primary' : 'bg-primary/30'}`} />
         </View>
         <View className="w-8" />
       </View>
