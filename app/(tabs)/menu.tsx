@@ -102,7 +102,7 @@ export default function MenuScreen() {
           {/* Hamburger Menu */}
           <Pressable
             onPress={() => setIsSidebarVisible(!isSidebarVisible)}
-            className="bg-secondary rounded-lg p-2 w-10 h-10 items-center justify-center active:opacity-80 mr-2"
+            className="bg-secondary rounded-lg p-3 w-12 h-12 items-center justify-center active:opacity-80 mr-2"
           >
             <FontAwesome name={isSidebarVisible ? "close" : "bars"} size={20} color="black" />
           </Pressable>
@@ -260,7 +260,7 @@ export default function MenuScreen() {
             <Text className="text-foreground font-extrabold text-2xl">🛒 Carrello</Text>
             <Pressable
               onPress={() => setIsCartVisible(false)}
-              className="bg-secondary rounded-full p-2 w-10 h-10 items-center justify-center active:opacity-80"
+              className="bg-secondary rounded-full p-3 w-12 h-12 items-center justify-center active:opacity-80"
             >
               <FontAwesome name="close" size={20} color="black" />
             </Pressable>
