@@ -144,7 +144,7 @@ export default function MenuScreen() {
           {/* Logout Button - Only show for authenticated users */}
           {isAuthenticated && (
             <Pressable
-              className="bg-destructive rounded-full px-5 py-2 flex-row items-center gap-2 active:opacity-80"
+              className="bg-destructive rounded-full px-5 py-3 flex-row items-center gap-2 active:opacity-80"
               onPress={handleLogout}
             >
               <Text className="text-destructive-foreground font-bold text-lg">
