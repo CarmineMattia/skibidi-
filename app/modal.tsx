@@ -1,27 +1,35 @@
 import { CartItem } from '@/components/features/CartItem';
+import { PaymentSelection } from '@/components/features/PaymentSelection';
 import { Button } from '@/components/ui/Button';
 import { useCreateOrder } from '@/lib/hooks/useCreateOrder';
+import { useOfflineQueue } from '@/lib/hooks/useOfflineQueue';
 import { useAuth } from '@/lib/stores/AuthContext';
 import { useCart } from '@/lib/stores/CartContext';
+import type { PaymentProvider } from '@/lib/hooks/usePayment';
 import { FontAwesome } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View, useWindowDimensions } from 'react-native';
 
 type OrderType = 'eat_in' | 'take_away' | 'delivery';
-type CheckoutStep = 'type' | 'details' | 'payment';
+type CheckoutStep = 'type' | 'details' | 'payment' | 'processing' | 'success';
 
 export default function CheckoutScreen() {
+  const { width } = useWindowDimensions();
+  const isLargeScreen = width >= 768;
+
   const { items, totalAmount, updateQuantity, removeItem, clearCart } = useCart();
-  const { profile, isAuthenticated } = useAuth();
+  const { profile, isAuthenticated, isGuest } = useAuth();
+  const { addToQueue, isOnline } = useOfflineQueue();
   const router = useRouter();
   const createOrder = useCreateOrder();
 
   const [step, setStep] = useState<CheckoutStep>('type');
   const [orderType, setOrderType] = useState<OrderType>('eat_in');
-  const [paymentMethod, setPaymentMethod] = useState<'card' | 'cash'>('card');
+  const [paymentProvider, setPaymentProvider] = useState<PaymentProvider>('stripe');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [transactionId, setTransactionId] = useState<string>('');
 
   // Customer Details
   const [name, setName] = useState('');
@@ -35,8 +43,10 @@ export default function CheckoutScreen() {
       setName(profile.full_name || '');
       setPhone(profile.phone || '');
       setAddress(profile.address || '');
+    } else if (isGuest) {
+      setName('ospite123');
     }
-  }, [isAuthenticated, profile]);
+  }, [isAuthenticated, profile, isGuest]);
 
   const handleNextStep = () => {
     if (step === 'type') {
@@ -75,9 +85,31 @@ export default function CheckoutScreen() {
     setIsProcessing(true);
 
     try {
+      // If offline, queue the order instead of trying to create it
+      if (!isOnline) {
+        await addToQueue({
+          items,
+          notes: `Metodo di pagamento: ${paymentProvider}`,
+          orderType,
+          customerName: name,
+          customerPhone: phone,
+          deliveryAddress: address,
+          tableNumber: tableNumber,
+          paymentMethod: paymentProvider === 'cash' ? 'cash' : 'card',
+        });
+
+        clearCart();
+        Alert.alert(
+          'Ordine salvato',
+          'Il tuo ordine è stato salvato e verrà inviato quando la connessione sarà ripristinata.',
+          [{ text: 'OK', onPress: () => router.replace('/') }]
+        );
+        return;
+      }
+
       const result = await createOrder.mutateAsync({
         items,
-        notes: `Metodo di pagamento: ${paymentMethod === 'card' ? 'Carta di Credito' : 'Contanti'}`,
+        notes: `Metodo di pagamento: ${paymentProvider}`,
         orderType,
         customerName: name,
         customerPhone: phone,
@@ -205,7 +237,6 @@ export default function CheckoutScreen() {
           variant="outline"
           onPress={handleBackStep}
           className="flex-1"
-          size="lg"
         />
         <Button
           title="Vai al Pagamento"
@@ -221,6 +252,18 @@ export default function CheckoutScreen() {
       {/* Left Column: Order Items */}
       <View className="flex-1 p-6 border-r border-border">
         <Text className="text-xl font-bold mb-4">Riepilogo Ordine ({orderType === 'eat_in' ? 'Tavolo' : orderType === 'take_away' ? 'Asporto' : 'Delivery'})</Text>
+
+        {/* Offline indicator */}
+        {!isOnline && (
+          <View className="bg-amber-100 border border-amber-300 rounded-xl p-4 mb-4 flex-row items-center gap-3">
+            <Text className="text-2xl">📡</Text>
+            <View>
+              <Text className="font-bold text-amber-800">Sei Offline</Text>
+              <Text className="text-amber-700 text-sm">L'ordine verrà salvato e sincronizzato automaticamente</Text>
+            </View>
+          </View>
+        )}
+
         <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="gap-4">
           {items.map((item, index) => (
             <CartItem
@@ -240,11 +283,12 @@ export default function CheckoutScreen() {
 
           <View className="gap-4">
             <Pressable
-              className={`p-6 rounded-2xl border-2 flex-row items-center gap-4 ${paymentMethod === 'card'
+              className={`p-6 rounded-2xl border-2 flex-row items-center gap-4 ${paymentProvider === 'stripe'
                 ? 'bg-primary/10 border-primary'
                 : 'bg-card border-border'
                 }`}
-              onPress={() => setPaymentMethod('card')}
+              onPress={() => setPaymentProvider('stripe')}
+              disabled={isProcessing}
             >
               <Text className="text-3xl">💳</Text>
               <View>
@@ -254,11 +298,27 @@ export default function CheckoutScreen() {
             </Pressable>
 
             <Pressable
-              className={`p-6 rounded-2xl border-2 flex-row items-center gap-4 ${paymentMethod === 'cash'
+              className={`p-6 rounded-2xl border-2 flex-row items-center gap-4 ${paymentProvider === 'terminal'
                 ? 'bg-primary/10 border-primary'
                 : 'bg-card border-border'
                 }`}
-              onPress={() => setPaymentMethod('cash')}
+              onPress={() => setPaymentProvider('terminal')}
+              disabled={isProcessing}
+            >
+              <Text className="text-3xl">🏪</Text>
+              <View>
+                <Text className="font-bold text-lg text-foreground">POS in Cassa</Text>
+                <Text className="text-muted-foreground">Paga con il terminale fisico</Text>
+              </View>
+            </Pressable>
+
+            <Pressable
+              className={`p-6 rounded-2xl border-2 flex-row items-center gap-4 ${paymentProvider === 'cash'
+                ? 'bg-primary/10 border-primary'
+                : 'bg-card border-border'
+                }`}
+              onPress={() => setPaymentProvider('cash')}
+              disabled={isProcessing}
             >
               <Text className="text-3xl">💶</Text>
               <View>
@@ -290,26 +350,26 @@ export default function CheckoutScreen() {
               variant="outline"
               onPress={handleBackStep}
               className="flex-1"
-              size="lg"
               disabled={isProcessing}
             />
-            {isProcessing ? (
-              <View className="flex-[2] h-14 bg-primary rounded-xl items-center justify-center flex-row gap-3">
-                <ActivityIndicator color="#fff" size="small" />
-                <Text className="text-primary-foreground font-extrabold text-lg">
-                  Elaborazione...
+            <Pressable
+              className={`flex-[2] bg-primary rounded-xl p-4 items-center shadow-lg active:scale-95 transition-transform ${isProcessing ? 'opacity-50' : ''}`}
+              onPress={handlePayment}
+              disabled={isProcessing}
+            >
+              {isProcessing ? (
+                <View className="flex-row items-center gap-3">
+                  <ActivityIndicator color="#000" />
+                  <Text className="text-primary-foreground font-bold text-xl">
+                    Elaborazione...
+                  </Text>
+                </View>
+              ) : (
+                <Text className="text-primary-foreground font-bold text-xl">
+                  {isOnline ? 'Conferma Ordine' : 'Salva Ordine'}
                 </Text>
-              </View>
-            ) : (
-              <Pressable
-                className="flex-[2] h-14 bg-primary rounded-xl items-center justify-center shadow-xl border-2 border-primary"
-                onPress={handlePayment}
-              >
-                <Text className="text-primary-foreground font-extrabold text-lg">
-                  Paga Ora €{totalAmount.toFixed(2)}
-                </Text>
-              </Pressable>
-            )}
+              )}
+            </Pressable>
           </View>
         </View>
       </View>
@@ -320,13 +380,13 @@ export default function CheckoutScreen() {
     <View className="flex-1 bg-background">
       {/* Header with Steps */}
       <View className="p-6 border-b border-border bg-card flex-row items-center justify-between">
-        <Pressable onPress={handleBackStep} className="p-3 rounded-xl active:bg-secondary/50">
+        <Pressable onPress={handleBackStep} className="p-2">
           <FontAwesome name="arrow-left" size={24} color="#000" />
         </Pressable>
         <View className="flex-row gap-2">
-          <View className={`h-4 w-14 rounded-full ${step === 'type' ? 'bg-primary' : 'bg-primary/30'}`} />
-          <View className={`h-4 w-14 rounded-full ${step === 'details' ? 'bg-primary' : 'bg-primary/30'}`} />
-          <View className={`h-4 w-14 rounded-full ${step === 'payment' ? 'bg-primary' : 'bg-primary/30'}`} />
+          <View className={`h-2 w-12 rounded-full ${step === 'type' ? 'bg-primary' : 'bg-primary/30'}`} />
+          <View className={`h-2 w-12 rounded-full ${step === 'details' ? 'bg-primary' : 'bg-primary/30'}`} />
+          <View className={`h-2 w-12 rounded-full ${step === 'payment' ? 'bg-primary' : 'bg-primary/30'}`} />
         </View>
         <View className="w-8" />
       </View>

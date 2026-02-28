@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Skibidi Orders",
-    "slug": "skibidi-orders",
+    "name": "temp-project",
+    "slug": "temp-project",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -34,6 +34,13 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "a52f86d7-77bd-40b7-837b-a0fd8a0ca684"
+      }
+    },
+    "owner": "crime983"
   }
 }

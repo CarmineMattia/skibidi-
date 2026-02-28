@@ -102,10 +102,10 @@ export function ProductDetailsModal({ visible, onClose, product }: ProductDetail
                             </View>
                         )}
                         <Pressable
-                            className="absolute top-4 right-4 bg-black/50 p-3 rounded-full"
+                            className="absolute top-4 right-4 bg-black/50 p-2 rounded-full"
                             onPress={onClose}
                         >
-                            <FontAwesome name="times" size={24} color="white" />
+                            <FontAwesome name="times" size={20} color="white" />
                         </Pressable>
                     </View>
 
@@ -163,15 +163,13 @@ export function ProductDetailsModal({ visible, onClose, product }: ProductDetail
                                                     </Text>
                                                 </View>
 
-                                                <View className="flex-row items-center gap-3 bg-secondary/30 rounded-lg p-1.5">
+                                                <View className="flex-row items-center gap-3 bg-secondary/30 rounded-lg p-1">
                                                     <Pressable
                                                         onPress={() => updateModification(ingredient, -1)}
-                                                        className={`w-12 h-12 items-center justify-center rounded-lg ${status === 'no' ? 'opacity-30' : 'bg-card shadow-sm active:scale-95'}`}
+                                                        className={`w-8 h-8 items-center justify-center rounded-md ${status === 'no' ? 'opacity-30' : 'bg-card shadow-sm'}`}
                                                         disabled={status === 'no'}
-                                                        accessibilityRole="button"
-                                                        accessibilityLabel="Rimuovi ingrediente"
                                                     >
-                                                        <FontAwesome name="minus" size={14} color="#000" />
+                                                        <FontAwesome name="minus" size={12} color="#000" />
                                                     </Pressable>
 
                                                     <View className="w-24 items-center">
@@ -184,12 +182,10 @@ export function ProductDetailsModal({ visible, onClose, product }: ProductDetail
 
                                                     <Pressable
                                                         onPress={() => updateModification(ingredient, 1)}
-                                                        className={`w-12 h-12 items-center justify-center rounded-lg ${status === 'extra' ? 'opacity-30' : 'bg-card shadow-sm active:scale-95'}`}
+                                                        className={`w-8 h-8 items-center justify-center rounded-md ${status === 'extra' ? 'opacity-30' : 'bg-card shadow-sm'}`}
                                                         disabled={status === 'extra'}
-                                                        accessibilityRole="button"
-                                                        accessibilityLabel="Aggiungi ingrediente extra"
                                                     >
-                                                        <FontAwesome name="plus" size={14} color="#000" />
+                                                        <FontAwesome name="plus" size={12} color="#000" />
                                                     </Pressable>
                                                 </View>
                                             </View>

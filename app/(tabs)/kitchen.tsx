@@ -67,7 +67,7 @@ export default function KitchenScreen() {
           <View className="flex-row items-center gap-3">
             {/* Fiscal retry button */}
             <Pressable
-              className="bg-yellow-500 rounded-full px-4 py-3 flex-row items-center gap-2 active:opacity-80"
+              className="bg-yellow-500 rounded-full px-4 py-2 flex-row items-center gap-2 active:opacity-80"
               onPress={() => setShowFiscalRetry(true)}
             >
               <FontAwesome name="exclamation-triangle" size={16} color="white" />
@@ -75,13 +75,13 @@ export default function KitchenScreen() {
             </Pressable>
 
             {/* Live indicator */}
-            <View className="bg-green-500 rounded-full px-4 py-3 flex-row items-center gap-2">
+            <View className="bg-green-500 rounded-full px-4 py-2 flex-row items-center gap-2">
               <View className="w-2 h-2 bg-white rounded-full animate-pulse" />
               <Text className="text-white font-bold text-sm">LIVE</Text>
             </View>
 
             {/* Order count */}
-            <View className="bg-primary rounded-full px-5 py-3">
+            <View className="bg-primary rounded-full px-5 py-2">
               <Text className="text-primary-foreground font-bold text-lg">
                 {orders.length} {orders.length === 1 ? 'ordine' : 'ordini'}
               </Text>
@@ -94,7 +94,7 @@ export default function KitchenScreen() {
           {FILTER_OPTIONS.map((filter, index) => (
             <Pressable
               key={filter.label}
-              className={`px-5 py-3 rounded-xl ${
+              className={`px-5 py-2.5 rounded-xl ${
                 selectedFilterIndex === index
                   ? 'bg-primary'
                   : 'bg-secondary'

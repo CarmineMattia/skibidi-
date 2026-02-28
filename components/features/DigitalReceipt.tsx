@@ -7,25 +7,10 @@ import { Button } from '@/components/ui/Button';
 import { supabase } from '@/lib/api/supabase';
 import type { Database } from '@/types/database.types';
 import { useQuery } from '@tanstack/react-query';
-import { FontAwesome, Ionicons } from '@expo/vector-icons';
+import { FontAwesome } from '@expo/vector-icons';
 import { Linking, Modal, Pressable, ScrollView, Share, Text, View } from 'react-native';
 
 type Order = Database['public']['Tables']['orders']['Row'];
-
-type OrderItem = {
-    quantity: number;
-    unit_price: number;
-    total_price: number;
-    notes: string | null;
-    products: {
-        name: string;
-        price: number;
-    };
-};
-
-type OrderWithItems = Order & {
-    order_items: OrderItem[];
-};
 
 interface DigitalReceiptProps {
     visible: boolean;
@@ -49,7 +34,8 @@ export function DigitalReceipt({ visible, orderId, onClose }: DigitalReceiptProp
                         notes,
                         products!inner (
                             name,
-                            price
+                            price,
+                            category
                         )
                     )
                 `)
@@ -61,25 +47,7 @@ export function DigitalReceipt({ visible, orderId, onClose }: DigitalReceiptProp
                 throw error;
             }
 
-            // Convert null to undefined for type compatibility
-            const orderData = data as OrderWithItems;
-            if (orderData.customer_id === null) {
-                orderData.customer_id = undefined;
-            }
-            if (orderData.customer_name === null) {
-                orderData.customer_name = undefined;
-            }
-            if (orderData.notes === null) {
-                orderData.notes = undefined;
-            }
-            if (orderData.fiscal_external_id === null) {
-                orderData.fiscal_external_id = undefined;
-            }
-            if (orderData.pdf_url === null) {
-                orderData.pdf_url = undefined;
-            }
-
-            return orderData;
+            return data;
         },
         enabled: visible && !!orderId,
     });
@@ -112,7 +80,7 @@ export function DigitalReceipt({ visible, orderId, onClose }: DigitalReceiptProp
         }
     };
 
-    const formatReceiptText = (orderData: OrderWithItems): string => {
+    const formatReceiptText = (orderData: Order): string => {
         const date = new Date(orderData.created_at).toLocaleString('it-IT');
         const items = orderData.order_items || [];
 
@@ -127,10 +95,10 @@ export function DigitalReceipt({ visible, orderId, onClose }: DigitalReceiptProp
             text += `---------------------------------\n\n`;
         }
 
-        items.forEach((item: OrderItem, index: number) => {
+        items.forEach((item, index) => {
             const price = item.unit_price?.toFixed(2) || '0.00';
             const total = item.total_price?.toFixed(2) || '0.00';
-            text += `${index + 1}. ${item.products?.name || 'Product'}\n`;
+            text += `${index + 1}. ${item.product?.name || 'Product'}\n`;
             text += `   ${item.quantity} x €${price} = €${total}\n`;
             if (item.notes) {
                 text += `   (${item.notes})\n`;
@@ -253,14 +221,14 @@ export function DigitalReceipt({ visible, orderId, onClose }: DigitalReceiptProp
                                             </View>
                                         </View>
 
-                                        {(order.order_items || []).map((item: OrderItem, index: number) => (
+                                        {(order.order_items || []).map((item, index) => (
                                             <View
                                                 key={index}
                                                 className="flex-row p-3 border-b border-border"
                                             >
                                                 <View className="flex-1">
                                                     <Text className="text-card-foreground font-medium">
-                                                        {item.products?.name || 'Product'}
+                                                        {item.product?.name || 'Product'}
                                                     </Text>
                                                     {item.notes && (
                                                         <Text className="text-muted-foreground text-xs mt-1">
@@ -331,7 +299,7 @@ export function DigitalReceipt({ visible, orderId, onClose }: DigitalReceiptProp
                                             ) : order.fiscal_status === 'error' ? (
                                                 <FontAwesome name="exclamation-circle" size={20} color="#ef4444" />
                                             ) : (
-                                                <Ionicons name="time-outline" size={20} color="#f59e0b" />
+                                                <FontAwesome name="clock" size={20} color="#f59e0b" />
                                             )}
                                             <Text
                                                 className={`ml-2 font-semibold ${

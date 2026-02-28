@@ -25,7 +25,7 @@ interface CloudFiscalProviderConfig {
  */
 export abstract class CloudFiscalProvider implements IFiscalProvider {
     abstract readonly name: string;
-    abstract readonly provider: FiscalProviderType;
+    readonly provider: FiscalProviderType;
     protected config: CloudFiscalProviderConfig;
 
     constructor(config: CloudFiscalProviderConfig) {
@@ -78,7 +78,7 @@ export abstract class CloudFiscalProvider implements IFiscalProvider {
      */
     async voidReceipt(externalId: string): Promise<FiscalProviderResult> {
         try {
-            const response = await this.apiRequest(`/receipts/${externalId}/void`, 'POST') as { receipt_number?: string };
+            const response = await this.apiRequest(`/receipts/${externalId}/void`, 'POST');
             return {
                 success: true,
                 external_id: externalId,
@@ -202,7 +202,6 @@ export abstract class CloudFiscalProvider implements IFiscalProvider {
  */
 export class AcubeFiscalProvider extends CloudFiscalProvider {
     readonly name = 'A-Cube';
-    readonly provider: FiscalProviderType = 'acube';
 
     constructor(config: CloudFiscalProviderConfig) {
         super({ ...config, provider: 'acube' });
@@ -280,7 +279,6 @@ export class AcubeFiscalProvider extends CloudFiscalProvider {
  */
 export class FattureInCloudProvider extends CloudFiscalProvider {
     readonly name = 'FattureInCloud';
-    readonly provider: FiscalProviderType = 'fatture-in-cloud';
 
     constructor(config: CloudFiscalProviderConfig) {
         super({ ...config, provider: 'fatture-in-cloud' });

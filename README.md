@@ -1,105 +1,154 @@
-# Skibidi Orders 🍟
+# 🚽 SKIBIDI ORDERS
 
-Self-ordering kiosk system for restaurants, pizzerias, and bars. Built with Expo (React Native).
+> Sistema POS per ristorazione con infinite Rizz. No cap.
 
-## Features
+Sistema proprietario per la ristorazione che unifica l'esperienza Consumatore (Web/Mobile) e Gestore/Totem (App Nativa Kiosk). Gestisce ordini, pagamenti e fiscalità italiana tramite comunicazione diretta con Registratori Telematici (RT) Epson.
 
-- 📱 **Menu Display** - Beautiful product grid with categories
-- 🛒 **Shopping Cart** - Add items, customize, checkout
-- 👨‍🍳 **Kitchen Dashboard** - Real-time order management
-- 🔐 **Admin Panel** - Product & category management
-- 🧾 **Fiscal Integration** - Italian receipt compliance
+## 📦 Stack Tecnologico
 
-## Tech Stack
+- **Framework**: React Native (Expo SDK 54)
+- **Linguaggio**: TypeScript (Strict Mode)
+- **Routing**: Expo Router v6
+- **Styling**: NativeWind (Tailwind CSS per React Native)
+- **UI Components**: Design System personalizzato stile shadcn/ui
+- **Backend**: Supabase (PostgreSQL + Auth + Realtime)
+- **State Management**: React Context + TanStack Query v5
+- **Icons**: Expo Vector Icons + Lucide React Native
 
-- **Expo** (React Native 0.81)
-- **TypeScript**
-- **Supabase** (Backend/DB)
-- **React Query**
-- **NativeWind** (Tailwind CSS)
-- **Expo Router**
+## 🏗️ Struttura del Progetto
 
-## Getting Started
+```
+skibidi-orders/
+├── app/                      # Routing (Expo Router)
+│   ├── (tabs)/              # Tab navigation principale
+│   └── _layout.tsx          # Root layout con providers
+├── components/              # Componenti riutilizzabili
+│   ├── ui/                  # Componenti UI base (Button, Card, etc.)
+│   └── features/            # Componenti feature-specific
+├── lib/                     # Business logic
+│   ├── api/                 # Supabase client, Query provider
+│   ├── fiscal/              # Logica fiscalità (RT Epson)
+│   ├── hooks/               # Custom React hooks
+│   ├── stores/              # Context providers
+│   └── utils/               # Utility functions
+├── types/                   # TypeScript type definitions
+│   └── database.types.ts    # Database schema types
+├── assets/                  # Immagini, font, etc.
+├── global.css              # CSS globale (Tailwind)
+├── tailwind.config.js      # Configurazione Tailwind
+└── supabase-schema.sql     # Schema SQL per Supabase
+```
 
-### Prerequisites
+## 🚀 Setup Iniziale
 
-- Node.js 18+
-- npm or pnpm
-
-### Installation
+### 1. Clona e Installa Dipendenze
 
 ```bash
-# Clone the repo
-git clone https://github.com/CarmineMattia/skibidi-.git
-cd skibidi-
-
-# Install dependencies
+cd "skibidi orders"
 npm install
+```
 
-# Start development
+### 2. Configura Supabase
+
+1. Vai su [supabase.com](https://supabase.com) e crea un nuovo progetto
+2. Vai nella SQL Editor e esegui il contenuto del file `supabase-schema.sql`
+3. Copia `.env.example` in `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+4. Inserisci le tue credenziali Supabase nel file `.env`:
+   ```env
+   EXPO_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+   EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
+   ```
+
+### 3. Avvia il Progetto
+
+```bash
+# Web (browser)
+npm run web
+
+# Android (emulatore o dispositivo)
+npm run android
+
+# iOS (solo su macOS)
+npm run ios
+
+# Expo Dev Client
 npm start
 ```
 
-### Environment Variables
+## ✅ FASE 1 - Completata
 
-Copy `.env.example` to `.env` and fill in your Supabase credentials:
+- [x] Inizializzazione progetto Expo con TypeScript e Expo Router
+- [x] Configurazione NativeWind (Tailwind) per Native e Web
+- [x] Design system base (colori, tipografia, componenti atomici stile shadcn)
+- [x] Setup Supabase con TypeScript types
+- [x] Schema database con tabelle e RLS policies
+- [x] Struttura cartelle scalabile
 
-```bash
-cp .env.example .env
+## 🎨 Design System
+
+Il progetto utilizza un design system ispirato a shadcn/ui con CSS variables per i colori:
+
+```typescript
+// Usa i componenti UI pre-configurati
+import { Button, Card, CardHeader, CardTitle } from '@/components/ui';
+
+// Oppure usa direttamente le classi Tailwind
+<View className="bg-primary rounded-lg p-4">
+  <Text className="text-primary-foreground font-semibold">Hello</Text>
+</View>
 ```
 
-Required variables:
-- `EXPO_PUBLIC_SUPABASE_URL` - Your Supabase project URL
-- `EXPO_PUBLIC_SUPABASE_ANON_KEY` - Supabase anon key
+### Palette Colori
 
-## Deployment
+Tutti i colori sono configurabili tramite CSS variables in `global.css`:
 
-### Web (Netlify)
+- `primary` - Colore primario
+- `secondary` - Colore secondario
+- `destructive` - Per azioni distruttive
+- `muted` - Testi e elementi secondari
+- `accent` - Accenti e highlights
+- `background` / `foreground` - Sfondo e testo principale
+- `card` - Componenti card
+- `border` / `input` / `ring` - Bordi e focus
 
-```bash
-# Export for web
-npx expo export --platform web
+## 🗄️ Database Schema
 
-# Deploy to Netlify
-# Option 1: Drag & drop the 'dist' folder to https://app.netlify.com/drop
-# Option 2: Use Netlify CLI
-npx netlify-cli deploy --prod --dir=./dist
-```
+### Tabelle Principali
 
-### Android (EAS)
+- **profiles**: Profili utenti (admin, customer, kiosk)
+- **categories**: Categorie prodotti
+- **products**: Prodotti del menù
+- **orders**: Ordini con stato e fiscalizzazione
+- **order_items**: Dettaglio items per ordine
 
-```bash
-# Install EAS CLI
-npm install -g eas-cli
+### Row Level Security (RLS)
 
-# Build
-eas build -p android
-```
+Tutte le tabelle hanno RLS abilitato con policies appropriate:
+- Utenti possono vedere solo i propri ordini
+- Admin e Kiosk hanno accesso completo
+- Prodotti attivi visibili a tutti
 
-### iOS (EAS)
+## 📱 Prossimi Passi (Fase 2)
 
-```bash
-eas build -p ios
-```
+Vedi `roadmap.md` per la roadmap completa del progetto.
 
-## Project Structure
+La Fase 2 includerà:
+- Implementazione navigazione e layout responsive
+- Componente ProductCard e griglia Menu
+- Logica Carrello (Context locale)
+- Autenticazione (Login Admin vs Accesso Anonimo Kiosk)
 
-```
-skibidi-/
-├── app/                    # Expo Router pages
-│   ├── (tabs)/            # Tab navigation
-│   │   ├── menu.tsx      # Main menu
-│   │   ├── kitchen.tsx   # Kitchen dashboard
-│   │   └── two.tsx       # Admin/settings
-│   ├── login.tsx         # Auth page
-│   ├── modal.tsx         # Checkout modal
-│   └── order-success.tsx # Success page
-├── components/            # React components
-├── lib/                  # Hooks, stores, utilities
-├── types/                # TypeScript types
-└── assets/               # Images, fonts
-```
+## 🤝 Contribuire
 
-## License
+Questo è un progetto proprietario. Per contribuire, contatta il team di sviluppo.
 
-MIT
+## 📄 Licenza
+
+Proprietario - Tutti i diritti riservati
+
+---
+
+**Built with Rizz** 💪 | Powered by Expo + Supabase

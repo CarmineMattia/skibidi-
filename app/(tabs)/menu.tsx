@@ -8,8 +8,10 @@ import { CategoryFilter } from '@/components/features/CategoryFilter';
 import { EditProductModal } from '@/components/features/EditProductModal';
 import { ProductCard } from '@/components/features/ProductCard';
 import { ProductDetailsModal } from '@/components/features/ProductDetailsModal';
+import { SkeletonGrid, SkeletonProductCard, FullPageLoading } from '@/components/ui/Skeleton';
 import { useCategories } from '@/lib/hooks/useCategories';
 import { useCreateOrder } from '@/lib/hooks/useCreateOrder';
+import { useOfflineQueue, OfflineIndicator } from '@/lib/hooks/useOfflineQueue';
 import { useProducts } from '@/lib/hooks/useProducts';
 import { useAuth } from '@/lib/stores/AuthContext';
 import { useCart } from '@/lib/stores/CartContext';
@@ -18,7 +20,7 @@ import { FontAwesome } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Alert, FlatList, Modal, Pressable, Text, View, useWindowDimensions } from 'react-native';
+import { Alert, FlatList, Modal, Pressable, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function MenuScreen() {
@@ -35,20 +37,15 @@ export default function MenuScreen() {
   const [isSidebarVisible, setIsSidebarVisible] = useState(isLargeScreen);
   const insets = useSafeAreaInsets();
 
-
-
-
   const { data: categories = [], isLoading: categoriesLoading } = useCategories();
   const { data: products = [], isLoading: productsLoading } = useProducts(
     selectedCategoryId || undefined
   );
   const { items, clearCart, totalItems, totalAmount } = useCart();
-  const { isAuthenticated, profile, signOut, isKioskMode, userRole } = useAuth();
+  const { isAuthenticated, profile, signOut, userRole, isGuest, exitGuestMode, isAdmin } = useAuth();
   const createOrder = useCreateOrder();
   const router = useRouter();
   const queryClient = useQueryClient();
-
-  const isAdmin = profile?.role === 'admin';
 
   const handleProductPress = (productId: string) => {
     const product = products.find(p => p.id === productId);
@@ -77,7 +74,12 @@ export default function MenuScreen() {
 
   const handleLogout = async () => {
     try {
-      await signOut();
+      if (isGuest && !isAuthenticated) {
+        // Uscita dalla modalità ospite
+        exitGuestMode();
+      } else {
+        await signOut();
+      }
       router.replace('/login');
     } catch (error) {
       console.error('Logout error:', error);
@@ -85,13 +87,9 @@ export default function MenuScreen() {
     }
   };
 
-  if (categoriesLoading || productsLoading) {
-    return (
-      <View className="flex-1 bg-background items-center justify-center">
-        <ActivityIndicator size="large" className="text-primary" />
-        <Text className="text-muted-foreground mt-4">Caricamento menu...</Text>
-      </View>
-    );
+  // Initial loading state
+  if (categoriesLoading) {
+    return <FullPageLoading message="Caricamento categorie..." />;
   }
 
   return (
@@ -102,7 +100,7 @@ export default function MenuScreen() {
           {/* Hamburger Menu */}
           <Pressable
             onPress={() => setIsSidebarVisible(!isSidebarVisible)}
-            className="bg-secondary rounded-lg p-3 w-12 h-12 items-center justify-center active:opacity-80 mr-2"
+            className="bg-secondary rounded-lg p-2 w-10 h-10 items-center justify-center active:opacity-80 mr-2"
           >
             <FontAwesome name={isSidebarVisible ? "close" : "bars"} size={20} color="black" />
           </Pressable>
@@ -114,21 +112,32 @@ export default function MenuScreen() {
           {isAdmin && (
             <Pressable
               onPress={handleCreatePress}
-              className="bg-primary px-4 py-3 rounded-full flex-row items-center gap-2 active:opacity-80"
+              className="bg-primary px-3 py-1 rounded-full flex-row items-center gap-2 active:opacity-80 ml-4"
             >
-              <FontAwesome name="plus" size={16} color="white" />
-              <Text className="text-primary-foreground font-bold text-base">Nuovo</Text>
+              <FontAwesome name="plus" size={14} color="white" />
+              <Text className="text-primary-foreground font-bold text-sm">Nuovo</Text>
             </Pressable>
           )}
         </View>
 
         <View className="flex-row items-center gap-4">
+          {isAdmin && (
+            <Pressable
+              onPress={() => router.push('/admin-options')}
+              className="bg-secondary rounded-full px-4 py-2 flex-row items-center gap-2 active:opacity-80"
+            >
+              <FontAwesome name="cog" size={16} color="black" />
+              <Text className="text-foreground font-medium text-sm">Opzioni</Text>
+            </Pressable>
+          )}
           {/* User Info - Show user name or "Ospite" for guests */}
           <View className="bg-secondary rounded-full px-4 py-2">
             <Text className="text-secondary-foreground font-medium">
               {isAuthenticated && profile
                 ? `👤 ${profile.full_name || profile.email}`
-                : '👤 Ospite'}
+                : isGuest
+                  ? '👤 ospite123'
+                  : '👤 Ospite'}
             </Text>
           </View>
 
@@ -141,10 +150,10 @@ export default function MenuScreen() {
             </View>
           )}
 
-          {/* Logout Button - Only show for authenticated users */}
-          {isAuthenticated && (
+          {/* Logout Button - Show for autenticati o ospite */}
+          {(isAuthenticated || isGuest) && (
             <Pressable
-              className="bg-destructive rounded-full px-5 py-3 flex-row items-center gap-2 active:opacity-80"
+              className="bg-destructive rounded-full px-5 py-2 flex-row items-center gap-2 active:opacity-80"
               onPress={handleLogout}
             >
               <Text className="text-destructive-foreground font-bold text-lg">
@@ -177,8 +186,26 @@ export default function MenuScreen() {
 
         {/* Center - Product Grid */}
         <View className="flex-1 bg-secondary/10">
+          {/* Offline Indicator */}
+          <OfflineIndicator />
 
-          {products.length === 0 ? (
+          {productsLoading ? (
+            <FlatList
+              data={Array.from({ length: 6 })}
+              keyExtractor={(_, index) => `skeleton-${index}`}
+              numColumns={isLargeScreen ? 3 : 1}
+              key={isLargeScreen ? 'large' : 'small'}
+              contentContainerClassName="p-4 md:p-6 pb-24"
+              columnWrapperClassName={isLargeScreen ? "gap-6" : undefined}
+              ItemSeparatorComponent={() => <View className="h-4 md:h-6" />}
+              showsVerticalScrollIndicator={false}
+              renderItem={() => (
+                <View className={`flex-1 ${isLargeScreen ? 'h-[450px]' : 'h-[380px]'} max-w-[500px]`}>
+                  <SkeletonProductCard isLarge={isLargeScreen} />
+                </View>
+              )}
+            />
+          ) : products.length === 0 ? (
             <View className="flex-1 items-center justify-center p-8">
               <Text className="text-6xl mb-4 opacity-50">🍽️</Text>
               <Text className="text-muted-foreground text-xl font-medium">
@@ -223,25 +250,25 @@ export default function MenuScreen() {
       {/* Mobile Cart Button (Fixed at bottom) */}
       {!isLargeScreen && totalItems > 0 && (
         <View
-          className="absolute bottom-0 left-0 right-0 p-5 bg-background border-t border-border"
+          className="absolute bottom-0 left-0 right-0 p-4 bg-background border-t border-border"
           style={{ paddingBottom: insets.bottom + 16 }}
         >
           <Pressable
             onPress={() => setIsCartVisible(true)}
-            className="bg-primary rounded-2xl p-5 shadow-xl flex-row items-center justify-between active:opacity-80"
+            className="bg-primary rounded-2xl p-4 shadow-xl flex-row items-center justify-between active:opacity-80"
           >
-            <View className="flex-row items-center gap-3">
-              <Text className="text-primary-foreground text-4xl">🛒</Text>
+            <View className="flex-row items-center gap-2">
+              <Text className="text-primary-foreground text-3xl">🛒</Text>
               <View>
-                <Text className="text-primary-foreground font-bold text-xl">
+                <Text className="text-primary-foreground font-bold text-lg">
                   Vedi Carrello
                 </Text>
-                <Text className="text-primary-foreground/80 text-base">
+                <Text className="text-primary-foreground/80 text-sm">
                   {totalItems} {totalItems === 1 ? 'prodotto' : 'prodotti'}
                 </Text>
               </View>
             </View>
-            <Text className="text-primary-foreground font-extrabold text-3xl">
+            <Text className="text-primary-foreground font-extrabold text-2xl">
               €{totalAmount.toFixed(2)}
             </Text>
           </Pressable>
@@ -260,7 +287,7 @@ export default function MenuScreen() {
             <Text className="text-foreground font-extrabold text-2xl">🛒 Carrello</Text>
             <Pressable
               onPress={() => setIsCartVisible(false)}
-              className="bg-secondary rounded-full p-3 w-12 h-12 items-center justify-center active:opacity-80"
+              className="bg-secondary rounded-full p-2 w-10 h-10 items-center justify-center active:opacity-80"
             >
               <FontAwesome name="close" size={20} color="black" />
             </Pressable>

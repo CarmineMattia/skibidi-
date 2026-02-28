@@ -9,7 +9,21 @@ import type { Profile } from '@/types/database.types';
 import type { Session, User } from '@supabase/supabase-js';
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 
+const GUEST_FLAG_KEY = 'skibidi_lastLoginAsGuest';
+const KIOSK_FLAG_KEY = 'skibidi_kioskModeEnabled';
+const GUEST_NAME = 'ospite123';
 
+function getStorage(): Storage | null {
+  try {
+    const globalObject: any = globalThis as any;
+    if (globalObject && globalObject.localStorage) {
+      return globalObject.localStorage as Storage;
+    }
+  } catch {
+    // localStorage non disponibile (es. ambiente native)
+  }
+  return null;
+}
 
 interface AuthContextType {
   session: Session | null;
@@ -18,6 +32,11 @@ interface AuthContextType {
   userRole: UserRole;
   isLoading: boolean;
   isKioskMode: boolean;
+   /**
+    * True quando l'utente sta usando il profilo ospite locale
+    * (senza account Supabase).
+    */
+  isGuest: boolean;
   isAuthenticated: boolean;
 
   // Role checks
@@ -31,6 +50,9 @@ interface AuthContextType {
 
   // Mode switching
   enterKioskMode: () => void;
+  exitKioskMode: () => void;
+  enterGuestMode: () => void;
+  exitGuestMode: () => void;
   setUserRole: (role: UserRole) => Promise<void>;
 }
 
@@ -55,6 +77,67 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [userRole, setUserRole] = useState<UserRole>('kiosk');
   const [isLoading, setIsLoading] = useState(true);
   const [isKioskMode, setIsKioskMode] = useState(true);
+  const [isGuest, setIsGuest] = useState(false);
+
+  const applyStoredAnonymousMode = () => {
+    const storage = getStorage();
+    if (!storage) {
+      setIsKioskMode(true);
+      setIsGuest(false);
+      setUserRole('kiosk');
+      setIsLoading(false);
+      return;
+    }
+
+    const lastGuest = storage.getItem(GUEST_FLAG_KEY) === 'true';
+    const kioskEnabled = storage.getItem(KIOSK_FLAG_KEY) === 'true';
+
+    if (lastGuest) {
+      setIsGuest(true);
+      setIsKioskMode(false);
+      setUserRole('customer');
+      setIsLoading(false);
+      return;
+    }
+
+    if (kioskEnabled) {
+      setIsGuest(false);
+      setIsKioskMode(true);
+      setUserRole('kiosk');
+      setIsLoading(false);
+      return;
+    }
+
+    // Default: kiosk mode
+    setIsGuest(false);
+    setIsKioskMode(true);
+    setUserRole('kiosk');
+    setIsLoading(false);
+  };
+
+  const saveGuestFlag = (value: boolean) => {
+    const storage = getStorage();
+    if (!storage) return;
+    if (value) {
+      storage.setItem(GUEST_FLAG_KEY, 'true');
+      // quando usiamo l'ospite, disattiviamo il flag kiosk
+      storage.setItem(KIOSK_FLAG_KEY, 'false');
+    } else {
+      storage.removeItem(GUEST_FLAG_KEY);
+    }
+  };
+
+  const saveKioskFlag = (value: boolean) => {
+    const storage = getStorage();
+    if (!storage) return;
+    if (value) {
+      storage.setItem(KIOSK_FLAG_KEY, 'true');
+      // se kiosk è attivo, non siamo ospiti
+      storage.setItem(GUEST_FLAG_KEY, 'false');
+    } else {
+      storage.removeItem(KIOSK_FLAG_KEY);
+    }
+  };
 
   useEffect(() => {
     // Get initial session
@@ -66,8 +149,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
         // Fetch user role from profiles table
         fetchUserRole(session.user);
         setIsKioskMode(false);
+        setIsGuest(false);
       } else {
-        setIsLoading(false);
+        applyStoredAnonymousMode();
       }
     });
 
@@ -81,10 +165,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (session?.user) {
         fetchUserRole(session.user);
         setIsKioskMode(false);
+        setIsGuest(false);
       } else {
         setUserRole('kiosk');
-        setIsKioskMode(true);
-        setIsLoading(false);
+        applyStoredAnonymousMode();
       }
     });
 
@@ -220,12 +304,46 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setProfile(null);
     setUserRole('kiosk');
     setIsKioskMode(true);
+    setIsGuest(false);
+    saveGuestFlag(false);
+    saveKioskFlag(true);
   };
 
   const enterKioskMode = () => {
     setIsKioskMode(true);
     setUserRole('kiosk');
     setProfile(null);
+    setIsGuest(false);
+    saveKioskFlag(true);
+  };
+
+  const exitKioskMode = () => {
+    setIsKioskMode(false);
+    // Se non c'è sessione autenticata e nessun ospite, torniamo alla modalità base
+    if (!session && !isGuest) {
+      setUserRole('kiosk');
+    }
+    saveKioskFlag(false);
+  };
+
+  const enterGuestMode = () => {
+    setIsGuest(true);
+    setIsKioskMode(false);
+    setUserRole('customer');
+    setProfile(null);
+    saveGuestFlag(true);
+  };
+
+  const exitGuestMode = () => {
+    setIsGuest(false);
+    saveGuestFlag(false);
+
+    if (!session) {
+      // Se non c'è un utente loggato, torniamo alla modalità kiosk base
+      setIsKioskMode(true);
+      saveKioskFlag(true);
+      setUserRole('kiosk');
+    }
   };
 
   const updateUserRole = async (newRole: UserRole) => {
@@ -252,6 +370,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     userRole,
     isLoading,
     isKioskMode,
+    isGuest,
     isAuthenticated: !!session && !!user,
     isAdmin: userRole === 'admin',
     isCustomer: userRole === 'customer',
@@ -259,6 +378,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
     signUp,
     signOut,
     enterKioskMode,
+    exitKioskMode,
+    enterGuestMode,
+    exitGuestMode,
     setUserRole: updateUserRole,
   };
 

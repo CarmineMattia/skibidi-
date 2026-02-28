@@ -119,11 +119,11 @@ export function CategoryFilter({
       {!isAuthenticated && (
         <View className="p-3 border-t border-border bg-card">
           <Pressable
-            className="bg-primary rounded-xl py-4 px-4 active:opacity-80"
+            className="bg-primary rounded-xl py-3 px-2 active:opacity-80"
             onPress={() => router.push('/login')}
           >
             <Text className="text-2xl text-center mb-1">👤</Text>
-            <Text className="text-primary-foreground font-bold text-base text-center leading-tight">
+            <Text className="text-primary-foreground font-bold text-xs text-center leading-tight">
               Accedi o{'\n'}Registrati
             </Text>
           </Pressable>
@@ -148,7 +148,7 @@ export function CategoryFilter({
           </View>
 
           <Pressable
-            className="bg-destructive/10 rounded-xl py-4 px-4 active:opacity-80 flex-row items-center justify-center gap-2"
+            className="bg-destructive/10 rounded-lg py-2 px-2 active:opacity-80 flex-row items-center justify-center gap-2"
             onPress={async () => {
               try {
                 await signOut();
@@ -158,8 +158,8 @@ export function CategoryFilter({
               }
             }}
           >
-            <Text className="text-lg">🚪</Text>
-            <Text className="text-destructive font-bold text-base">Esci</Text>
+            <Text className="text-xs">🚪</Text>
+            <Text className="text-destructive font-bold text-xs">Esci</Text>
           </Pressable>
         </View>
       )}

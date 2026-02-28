@@ -3,8 +3,6 @@
  * Supports legal fiscalization requirements
  */
 
-import type { FiscalStatus as DbFiscalStatus } from './database.types';
-
 // ============================================================================
 // ENUMS
 // ============================================================================
@@ -15,7 +13,7 @@ import type { FiscalStatus as DbFiscalStatus } from './database.types';
  * - success: Successfully fiscalized
  * - error: Fiscalization failed, queued for retry
  */
-export type FiscalStatus = DbFiscalStatus;
+export type FiscalStatus = 'pending' | 'success' | 'error';
 
 /**
  * Payment method for fiscal receipt

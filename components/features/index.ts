@@ -12,3 +12,5 @@ export * from './EditProductModal';
 export * from './KitchenOrderCard';
 export * from './FiscalRetryPanel';
 export * from './DigitalReceipt';
+export * from './PaymentSelection';
+export * from './OfflineQueueStatus';

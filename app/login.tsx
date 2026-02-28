@@ -42,7 +42,7 @@ export default function LoginScreen() {
   const emailInputRef = useRef<TextInput>(null);
   const passwordInputRef = useRef<TextInput>(null);
 
-  const { signIn, signUp, enterKioskMode } = useAuth();
+  const { signIn, signUp, enterGuestMode } = useAuth();
   const router = useRouter();
 
   const handleSubmit = async () => {
@@ -136,8 +136,8 @@ export default function LoginScreen() {
     }
   };
 
-  const handleKioskMode = () => {
-    enterKioskMode();
+  const handleGuestLogin = () => {
+    enterGuestMode();
     router.replace('/(tabs)/menu');
   };
 
@@ -158,27 +158,27 @@ export default function LoginScreen() {
           </Text>
         </View>
 
-        {/* Mode Toggle - Larger for boomer accessibility */}
-        <View className="flex-row bg-muted/50 rounded-lg p-1.5 mb-6">
+        {/* Mode Toggle */}
+        <View className="flex-row bg-muted/50 rounded-lg p-1 mb-6">
           <Pressable
-            className={`flex-1 py-4 rounded-md ${mode === 'login' ? 'bg-primary' : 'bg-transparent'
+            className={`flex-1 py-3 rounded-md ${mode === 'login' ? 'bg-primary' : 'bg-transparent'
               }`}
             onPress={() => setMode('login')}
           >
             <Text
-              className={`text-center font-bold text-lg ${mode === 'login' ? 'text-primary-foreground' : 'text-muted-foreground'
+              className={`text-center font-bold ${mode === 'login' ? 'text-primary-foreground' : 'text-muted-foreground'
                 }`}
             >
               Login
             </Text>
           </Pressable>
           <Pressable
-            className={`flex-1 py-4 rounded-md ${mode === 'signup' ? 'bg-primary' : 'bg-transparent'
+            className={`flex-1 py-3 rounded-md ${mode === 'signup' ? 'bg-primary' : 'bg-transparent'
               }`}
             onPress={() => setMode('signup')}
           >
             <Text
-              className={`text-center font-bold text-lg ${mode === 'signup' ? 'text-primary-foreground' : 'text-muted-foreground'
+              className={`text-center font-bold ${mode === 'signup' ? 'text-primary-foreground' : 'text-muted-foreground'
                 }`}
             >
               Registrati
@@ -207,7 +207,7 @@ export default function LoginScreen() {
             <View className="mb-4">
               <Text className="text-card-foreground font-medium mb-2">Nome Completo</Text>
               <TextInput
-                className="bg-background border border-border rounded-lg px-4 py-4 text-foreground text-lg"
+                className="bg-background border border-border rounded-lg px-4 py-3 text-foreground"
                 placeholder="Mario Rossi"
                 placeholderTextColor="#9ca3af"
                 value={fullName}
@@ -226,7 +226,7 @@ export default function LoginScreen() {
             <Text className="text-card-foreground font-medium mb-2">Email</Text>
             <TextInput
               ref={emailInputRef}
-              className="bg-background border border-border rounded-lg px-4 py-4 text-foreground text-lg"
+              className="bg-background border border-border rounded-lg px-4 py-3 text-foreground"
               placeholder="esempio@email.com"
               placeholderTextColor="#9ca3af"
               value={email}
@@ -247,7 +247,7 @@ export default function LoginScreen() {
             <View className="relative">
               <TextInput
                 ref={passwordInputRef}
-                className="bg-background border border-border rounded-lg px-4 py-4 pr-12 text-foreground text-lg"
+                className="bg-background border border-border rounded-lg px-4 py-3 pr-12 text-foreground"
                 placeholder="••••••••"
                 placeholderTextColor="#9ca3af"
                 value={password}
@@ -259,12 +259,12 @@ export default function LoginScreen() {
                 onSubmitEditing={handleSubmit}
               />
               <Pressable
-                className="absolute right-3 top-0 bottom-0 justify-center p-1 active:opacity-50"
+                className="absolute right-3 top-0 bottom-0 justify-center active:opacity-50"
                 onPress={() => setShowPassword(!showPassword)}
               >
                 <FontAwesome
                   name={showPassword ? 'eye' : 'eye-slash'}
-                  size={24}
+                  size={20}
                   color="#6b7280"
                 />
               </Pressable>
@@ -279,7 +279,7 @@ export default function LoginScreen() {
                 {ROLE_OPTIONS.map((option) => (
                   <Pressable
                     key={option.value}
-                    className={`border-2 rounded-xl p-4 ${selectedRole === option.value
+                    className={`border-2 rounded-lg p-3 ${selectedRole === option.value
                       ? 'border-primary bg-primary/10'
                       : 'border-border bg-transparent'
                       }`}
@@ -287,17 +287,17 @@ export default function LoginScreen() {
                     disabled={isLoading}
                   >
                     <View className="flex-row items-center gap-3">
-                      <Text className="text-3xl">{option.icon}</Text>
+                      <Text className="text-2xl">{option.icon}</Text>
                       <View className="flex-1">
                         <Text
-                          className={`font-bold text-lg ${selectedRole === option.value
+                          className={`font-bold text-base ${selectedRole === option.value
                             ? 'text-primary'
                             : 'text-card-foreground'
                             }`}
                         >
                           {option.label}
                         </Text>
-                        <Text className="text-muted-foreground text-sm">
+                        <Text className="text-muted-foreground text-xs">
                           {option.description}
                         </Text>
                       </View>
@@ -334,21 +334,21 @@ export default function LoginScreen() {
           <View className="flex-1 h-px bg-border" />
         </View>
 
-        {/* Kiosk Mode Button - Larger for boomer accessibility */}
+        {/* Guest Mode Button */}
         <Pressable
-          className="bg-muted rounded-xl p-6 border border-border active:opacity-80"
-          onPress={handleKioskMode}
+          className="bg-muted rounded-xl p-4 border border-border active:opacity-80"
+          onPress={handleGuestLogin}
           disabled={isLoading}
         >
           <View className="items-center">
-            <View className="flex-row items-center gap-3 mb-2">
-              <Text className="text-4xl">🖥️</Text>
-              <Text className="text-foreground font-semibold text-2xl">
-                Modalità Kiosk
+            <View className="flex-row items-center gap-2 mb-1">
+              <Text className="text-2xl">👤</Text>
+              <Text className="text-foreground font-semibold text-lg">
+                Entra come ospite
               </Text>
             </View>
-            <Text className="text-muted-foreground text-lg text-center">
-              Ordini anonimi senza login
+            <Text className="text-muted-foreground text-sm text-center">
+              Ordina velocemente senza registrazione (profilo ospite)
             </Text>
           </View>
         </Pressable>

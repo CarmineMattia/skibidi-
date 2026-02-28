@@ -11,6 +11,7 @@ import { QueryProvider } from '@/lib/api/QueryProvider';
 import { CartProvider } from '@/lib/stores/CartContext';
 import { AuthProvider, useAuth } from '@/lib/stores/AuthContext';
 import { FiscalProvider } from '@/lib/stores/FiscalContext';
+import { OfflineQueueProvider, OfflineIndicator } from '@/lib/hooks/useOfflineQueue';
 
 // Import global CSS for NativeWind
 import '../global.css';
@@ -58,19 +59,21 @@ function RootLayoutNav() {
   return (
     <QueryProvider>
       <FiscalProvider>
-        <AuthProvider>
-          <CartProvider>
-            <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-              <AuthGuard>
-                <Stack>
-                  <Stack.Screen name="login" options={{ headerShown: false }} />
-                  <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                  <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-                </Stack>
-              </AuthGuard>
-            </ThemeProvider>
-          </CartProvider>
-        </AuthProvider>
+        <OfflineQueueProvider>
+          <AuthProvider>
+            <CartProvider>
+              <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+                <AuthGuard>
+                  <Stack>
+                    <Stack.Screen name="login" options={{ headerShown: false }} />
+                    <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                    <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+                  </Stack>
+                </AuthGuard>
+              </ThemeProvider>
+            </CartProvider>
+          </AuthProvider>
+        </OfflineQueueProvider>
       </FiscalProvider>
     </QueryProvider>
   );
