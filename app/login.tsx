@@ -42,7 +42,7 @@ export default function LoginScreen() {
   const emailInputRef = useRef<TextInput>(null);
   const passwordInputRef = useRef<TextInput>(null);
 
-  const { signIn, signUp, enterKioskMode } = useAuth();
+  const { signIn, signUp, enterGuestMode } = useAuth();
   const router = useRouter();
 
   const handleSubmit = async () => {
@@ -136,8 +136,8 @@ export default function LoginScreen() {
     }
   };
 
-  const handleKioskMode = () => {
-    enterKioskMode();
+  const handleGuestLogin = () => {
+    enterGuestMode();
     router.replace('/(tabs)/menu');
   };
 
@@ -334,21 +334,21 @@ export default function LoginScreen() {
           <View className="flex-1 h-px bg-border" />
         </View>
 
-        {/* Kiosk Mode Button */}
+        {/* Guest Mode Button */}
         <Pressable
           className="bg-muted rounded-xl p-4 border border-border active:opacity-80"
-          onPress={handleKioskMode}
+          onPress={handleGuestLogin}
           disabled={isLoading}
         >
           <View className="items-center">
             <View className="flex-row items-center gap-2 mb-1">
-              <Text className="text-2xl">🖥️</Text>
+              <Text className="text-2xl">👤</Text>
               <Text className="text-foreground font-semibold text-lg">
-                Modalità Kiosk
+                Entra come ospite
               </Text>
             </View>
             <Text className="text-muted-foreground text-sm text-center">
-              Ordini anonimi senza login
+              Ordina velocemente senza registrazione (profilo ospite)
             </Text>
           </View>
         </Pressable>

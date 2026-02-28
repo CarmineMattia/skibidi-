@@ -1,4 +1,7 @@
 {
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "0"
+  },
   "permissions": {
     "allow": [
       "Bash(npm install:*)",
@@ -26,11 +29,15 @@
       "Bash(ls:*)",
       "mcp__supabase__generate_typescript_types",
       "mcp__supabase__get_logs",
-      "mcp__supabase__apply_migration"
+      "mcp__supabase__apply_migration",
+      "Bash(xargs -I {} sh -c 'echo \"\"=== {} ===\"\" && head -30 {}')",
+      "mcp__supabase__get_advisors",
+      "Bash(npx playwright install:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
-    "supabase"
+    "supabase",
+    "chrome-devtools"
   ]
 }

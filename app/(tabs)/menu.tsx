@@ -8,8 +8,10 @@ import { CategoryFilter } from '@/components/features/CategoryFilter';
 import { EditProductModal } from '@/components/features/EditProductModal';
 import { ProductCard } from '@/components/features/ProductCard';
 import { ProductDetailsModal } from '@/components/features/ProductDetailsModal';
+import { SkeletonGrid, SkeletonProductCard, FullPageLoading } from '@/components/ui/Skeleton';
 import { useCategories } from '@/lib/hooks/useCategories';
 import { useCreateOrder } from '@/lib/hooks/useCreateOrder';
+import { useOfflineQueue, OfflineIndicator } from '@/lib/hooks/useOfflineQueue';
 import { useProducts } from '@/lib/hooks/useProducts';
 import { useAuth } from '@/lib/stores/AuthContext';
 import { useCart } from '@/lib/stores/CartContext';
@@ -18,7 +20,7 @@ import { FontAwesome } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Alert, FlatList, Modal, Pressable, Text, View, useWindowDimensions } from 'react-native';
+import { Alert, FlatList, Modal, Pressable, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function MenuScreen() {
@@ -35,20 +37,15 @@ export default function MenuScreen() {
   const [isSidebarVisible, setIsSidebarVisible] = useState(isLargeScreen);
   const insets = useSafeAreaInsets();
 
-
-
-
   const { data: categories = [], isLoading: categoriesLoading } = useCategories();
   const { data: products = [], isLoading: productsLoading } = useProducts(
     selectedCategoryId || undefined
   );
   const { items, clearCart, totalItems, totalAmount } = useCart();
-  const { isAuthenticated, profile, signOut, isKioskMode, userRole } = useAuth();
+  const { isAuthenticated, profile, signOut, userRole, isGuest, exitGuestMode, isAdmin } = useAuth();
   const createOrder = useCreateOrder();
   const router = useRouter();
   const queryClient = useQueryClient();
-
-  const isAdmin = profile?.role === 'admin';
 
   const handleProductPress = (productId: string) => {
     const product = products.find(p => p.id === productId);
@@ -77,7 +74,12 @@ export default function MenuScreen() {
 
   const handleLogout = async () => {
     try {
-      await signOut();
+      if (isGuest && !isAuthenticated) {
+        // Uscita dalla modalità ospite
+        exitGuestMode();
+      } else {
+        await signOut();
+      }
       router.replace('/login');
     } catch (error) {
       console.error('Logout error:', error);
@@ -85,13 +87,9 @@ export default function MenuScreen() {
     }
   };
 
-  if (categoriesLoading || productsLoading) {
-    return (
-      <View className="flex-1 bg-background items-center justify-center">
-        <ActivityIndicator size="large" className="text-primary" />
-        <Text className="text-muted-foreground mt-4">Caricamento menu...</Text>
-      </View>
-    );
+  // Initial loading state
+  if (categoriesLoading) {
+    return <FullPageLoading message="Caricamento categorie..." />;
   }
 
   return (
@@ -123,12 +121,23 @@ export default function MenuScreen() {
         </View>
 
         <View className="flex-row items-center gap-4">
+          {isAdmin && (
+            <Pressable
+              onPress={() => router.push('/admin-options')}
+              className="bg-secondary rounded-full px-4 py-2 flex-row items-center gap-2 active:opacity-80"
+            >
+              <FontAwesome name="cog" size={16} color="black" />
+              <Text className="text-foreground font-medium text-sm">Opzioni</Text>
+            </Pressable>
+          )}
           {/* User Info - Show user name or "Ospite" for guests */}
           <View className="bg-secondary rounded-full px-4 py-2">
             <Text className="text-secondary-foreground font-medium">
               {isAuthenticated && profile
                 ? `👤 ${profile.full_name || profile.email}`
-                : '👤 Ospite'}
+                : isGuest
+                  ? '👤 ospite123'
+                  : '👤 Ospite'}
             </Text>
           </View>
 
@@ -141,8 +150,8 @@ export default function MenuScreen() {
             </View>
           )}
 
-          {/* Logout Button - Only show for authenticated users */}
-          {isAuthenticated && (
+          {/* Logout Button - Show for autenticati o ospite */}
+          {(isAuthenticated || isGuest) && (
             <Pressable
               className="bg-destructive rounded-full px-5 py-2 flex-row items-center gap-2 active:opacity-80"
               onPress={handleLogout}
@@ -177,8 +186,26 @@ export default function MenuScreen() {
 
         {/* Center - Product Grid */}
         <View className="flex-1 bg-secondary/10">
+          {/* Offline Indicator */}
+          <OfflineIndicator />
 
-          {products.length === 0 ? (
+          {productsLoading ? (
+            <FlatList
+              data={Array.from({ length: 6 })}
+              keyExtractor={(_, index) => `skeleton-${index}`}
+              numColumns={isLargeScreen ? 3 : 1}
+              key={isLargeScreen ? 'large' : 'small'}
+              contentContainerClassName="p-4 md:p-6 pb-24"
+              columnWrapperClassName={isLargeScreen ? "gap-6" : undefined}
+              ItemSeparatorComponent={() => <View className="h-4 md:h-6" />}
+              showsVerticalScrollIndicator={false}
+              renderItem={() => (
+                <View className={`flex-1 ${isLargeScreen ? 'h-[450px]' : 'h-[380px]'} max-w-[500px]`}>
+                  <SkeletonProductCard isLarge={isLargeScreen} />
+                </View>
+              )}
+            />
+          ) : products.length === 0 ? (
             <View className="flex-1 items-center justify-center p-8">
               <Text className="text-6xl mb-4 opacity-50">🍽️</Text>
               <Text className="text-muted-foreground text-xl font-medium">

@@ -77,6 +77,50 @@ export interface OrderItem {
   created_at: string;
 }
 
+// ============================================
+// FISCAL TABLES (Italian Compliance)
+// ============================================
+
+export type FiscalAuditAction = 'emit' | 'void' | 'retry' | 'cancel';
+
+export type FiscalAuditStatus = 'pending' | 'success' | 'error';
+
+export type FiscalProvider = 'mock' | 'acube' | 'fatture-in-cloud' | 'epson';
+
+export interface FiscalAuditLog {
+  id: string;
+  order_id: string;
+  action: FiscalAuditAction;
+  provider: FiscalProvider;
+  external_id?: string;
+  request_data: Record<string, unknown>;
+  response_data?: Record<string, unknown>;
+  status: FiscalAuditStatus;
+  error_message?: string;
+  error_code?: string;
+  attempt_count: number;
+  processing_time_ms?: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export type RetryQueueStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'manual';
+
+export interface FiscalRetryQueue {
+  id: string;
+  order_id: string;
+  provider: FiscalProvider;
+  priority: number;
+  attempt_count: number;
+  max_attempts: number;
+  next_retry_at: string;
+  last_error?: string;
+  last_error_code?: string;
+  status: RetryQueueStatus;
+  created_at: string;
+  updated_at: string;
+}
+
 // Helper types for joins
 export interface OrderWithItems extends Order {
   order_items: OrderItem[];
@@ -115,9 +159,60 @@ export interface Database {
         Insert: Omit<OrderItem, 'id' | 'created_at'>;
         Update: Partial<Omit<OrderItem, 'id' | 'created_at'>>;
       };
+      fiscal_audit_log: {
+        Row: FiscalAuditLog;
+        Insert: Omit<FiscalAuditLog, 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<FiscalAuditLog, 'id' | 'created_at' | 'updated_at'>>;
+      };
+      fiscal_retry_queue: {
+        Row: FiscalRetryQueue;
+        Insert: Omit<FiscalRetryQueue, 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<FiscalRetryQueue, 'id' | 'created_at' | 'updated_at'>>;
+      };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      is_admin: {
+        args: { user_id: string };
+        returns: boolean;
+      };
+      update_updated_at_column: {
+        args: Record<string, never>;
+        returns: unknown;
+      };
+      handle_new_user: {
+        args: Record<string, never>;
+        returns: unknown;
+      };
+      log_fiscal_event: {
+        args: {
+          p_order_id: string;
+          p_action: string;
+          p_provider: string;
+          p_external_id?: string;
+          p_request_data: Record<string, unknown>;
+          p_response_data?: Record<string, unknown>;
+          p_status: string;
+          p_error_message?: string;
+          p_error_code?: string;
+          p_processing_time_ms?: number;
+        };
+        returns: string;
+      };
+      add_to_fiscal_retry_queue: {
+        args: {
+          p_order_id: string;
+          p_provider?: string;
+          p_error_message?: string;
+          p_error_code?: string;
+        };
+        returns: string;
+      };
+      process_fiscal_retry_queue: {
+        args: { p_batch_size?: number };
+        returns: number;
+      };
+    };
     Enums: {
       user_role: UserRole;
       fiscal_status: FiscalStatus;
