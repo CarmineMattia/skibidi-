@@ -35,39 +35,39 @@ export default function OrderSuccessScreen() {
     }));
 
     return (
-        <View className="flex-1 bg-primary items-center justify-center p-8">
-            <View className="bg-card p-12 rounded-[3rem] items-center shadow-2xl w-full max-w-2xl">
-                <Animated.View style={[animatedIconStyle]} className="mb-8">
-                    <View className="bg-green-500 h-40 w-40 rounded-full items-center justify-center shadow-lg">
-                        <Text className="text-white text-8xl">✓</Text>
+        <View className="flex-1 bg-primary items-center justify-center px-4 sm:px-8">
+            <View className="bg-card p-6 sm:p-8 md:p-12 rounded-3xl items-center shadow-2xl w-full max-w-md">
+                <Animated.View style={[animatedIconStyle]} className="mb-6">
+                    <View className="bg-green-500 h-24 w-24 sm:h-32 sm:w-32 md:h-40 md:w-40 rounded-full items-center justify-center shadow-lg">
+                        <Text className="text-white text-5xl sm:text-6xl md:text-8xl">✓</Text>
                     </View>
                 </Animated.View>
 
                 <Animated.View style={[animatedTextStyle]} className="items-center w-full">
-                    <Text className="text-foreground font-extrabold text-4xl mb-4 text-center">
+                    <Text className="text-foreground font-extrabold text-2xl sm:text-3xl md:text-4xl mb-3 text-center">
                         Ordine Confermato!
                     </Text>
-                    <Text className="text-muted-foreground text-xl text-center mb-12">
+                    <Text className="text-muted-foreground text-base sm:text-lg md:text-xl text-center mb-8 leading-relaxed">
                         Il tuo ordine #{orderId ? orderId.slice(0, 8).toUpperCase() : 'N/A'} è in preparazione.
                         Ritira lo scontrino.
                     </Text>
 
-                    <View className="w-full gap-4 mb-8">
+                    <View className="w-full gap-3 mb-6">
                         <Pressable
-                            className="bg-blue-600 w-full py-4 rounded-2xl items-center active:opacity-90 flex-row justify-center"
+                            className="bg-blue-600 w-full py-4 sm:py-5 rounded-xl items-center active:opacity-90 flex-row justify-center min-h-[56px]"
                             onPress={() => setShowReceipt(true)}
                         >
-                            <FontAwesome name="receipt" size={24} color="white" style={{ marginRight: 8 }} />
-                            <Text className="text-background font-bold text-xl">
+                            <FontAwesome name="receipt" size={20} color="white" style={{ marginRight: 8 }} />
+                            <Text className="text-background font-bold text-base sm:text-lg">
                                 Visualizza Scontrino
                             </Text>
                         </Pressable>
 
                         <Pressable
-                            className="bg-foreground w-full py-6 rounded-2xl items-center active:opacity-90"
+                            className="bg-foreground w-full py-5 sm:py-6 rounded-xl items-center active:opacity-90 min-h-[56px]"
                             onPress={() => router.replace('/(tabs)/menu')}
                         >
-                            <Text className="text-background font-bold text-2xl">
+                            <Text className="text-background font-bold text-lg sm:text-xl">
                                 Torna al Menu
                             </Text>
                         </Pressable>
