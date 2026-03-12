@@ -351,13 +351,6 @@ export default function CheckoutScreen() {
         </View>
       </View>
     </ScrollView>
-                </Text>
-              )}
-            </Pressable>
-          </View>
-        </View>
-      </View>
-    </View>
   );
 
   return (
