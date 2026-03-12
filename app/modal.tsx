@@ -248,125 +248,109 @@ export default function CheckoutScreen() {
   );
 
   const renderPayment = () => (
-    <View className="flex-1 flex-row">
-      {/* Left Column: Order Items */}
-      <View className="flex-1 p-6 border-r border-border">
-        <Text className="text-xl font-bold mb-4">Riepilogo Ordine ({orderType === 'eat_in' ? 'Tavolo' : orderType === 'take_away' ? 'Asporto' : 'Delivery'})</Text>
+    <ScrollView className="flex-1" contentContainerClassName="p-4">
+      {/* Order Summary - MOBILE OPTIMIZED (no sidebar) */}
+      <View className="bg-card rounded-xl p-4 mb-4 border border-border">
+        <Text className="text-base font-bold mb-3">
+          Riepilogo ({orderType === 'eat_in' ? 'Tavolo' : orderType === 'take_away' ? 'Asporto' : 'Consegna'})
+        </Text>
 
-        {/* Offline indicator */}
+        {/* Offline indicator - Compact */}
         {!isOnline && (
-          <View className="bg-amber-100 border border-amber-300 rounded-xl p-4 mb-4 flex-row items-center gap-3">
-            <Text className="text-2xl">📡</Text>
+          <View className="bg-amber-100 border border-amber-300 rounded-lg p-3 mb-3 flex-row items-center gap-2">
+            <Text className="text-xl">📡</Text>
             <View>
-              <Text className="font-bold text-amber-800">Sei Offline</Text>
-              <Text className="text-amber-700 text-sm">L'ordine verrà salvato e sincronizzato automaticamente</Text>
+              <Text className="font-bold text-amber-800 text-sm">Offline</Text>
+              <Text className="text-amber-700 text-xs">Ordine salvato in locale</Text>
             </View>
           </View>
         )}
 
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="gap-4">
-          {items.map((item, index) => (
-            <CartItem
-              key={`${item.product.id}-${index}`}
-              item={item}
-              onUpdateQuantity={(qty) => updateQuantity(index, qty)}
-              onRemove={() => removeItem(index)}
-            />
+        {/* Items List - Compact */}
+        <View className="gap-2 mb-3">
+          {items.map((item, idx) => (
+            <View key={idx} className="flex-row justify-between items-center py-2 border-b border-border last:border-0">
+              <View className="flex-1">
+                <Text className="text-sm font-medium" numberOfLines={1}>{item.product.name}</Text>
+                <Text className="text-xs text-muted-foreground">x{item.quantity}</Text>
+              </View>
+              <Text className="text-sm font-bold">€{(item.product.price * item.quantity).toFixed(2)}</Text>
+            </View>
           ))}
-        </ScrollView>
-      </View>
-
-      {/* Right Column: Payment & Totals */}
-      <View className="w-[400px] bg-secondary/10 p-8 justify-between">
-        <View>
-          <Text className="text-xl font-bold text-foreground mb-6">Metodo di Pagamento</Text>
-
-          <View className="gap-4">
-            <Pressable
-              className={`p-6 rounded-2xl border-2 flex-row items-center gap-4 ${paymentProvider === 'stripe'
-                ? 'bg-primary/10 border-primary'
-                : 'bg-card border-border'
-                }`}
-              onPress={() => setPaymentProvider('stripe')}
-              disabled={isProcessing}
-            >
-              <Text className="text-3xl">💳</Text>
-              <View>
-                <Text className="font-bold text-lg text-foreground">Carta di Credito</Text>
-                <Text className="text-muted-foreground">Visa, Mastercard, Amex</Text>
-              </View>
-            </Pressable>
-
-            <Pressable
-              className={`p-6 rounded-2xl border-2 flex-row items-center gap-4 ${paymentProvider === 'terminal'
-                ? 'bg-primary/10 border-primary'
-                : 'bg-card border-border'
-                }`}
-              onPress={() => setPaymentProvider('terminal')}
-              disabled={isProcessing}
-            >
-              <Text className="text-3xl">🏪</Text>
-              <View>
-                <Text className="font-bold text-lg text-foreground">POS in Cassa</Text>
-                <Text className="text-muted-foreground">Paga con il terminale fisico</Text>
-              </View>
-            </Pressable>
-
-            <Pressable
-              className={`p-6 rounded-2xl border-2 flex-row items-center gap-4 ${paymentProvider === 'cash'
-                ? 'bg-primary/10 border-primary'
-                : 'bg-card border-border'
-                }`}
-              onPress={() => setPaymentProvider('cash')}
-              disabled={isProcessing}
-            >
-              <Text className="text-3xl">💶</Text>
-              <View>
-                <Text className="font-bold text-lg text-foreground">Contanti</Text>
-                <Text className="text-muted-foreground">Paga alla cassa</Text>
-              </View>
-            </Pressable>
-          </View>
         </View>
 
-        <View>
-          <View className="bg-card p-6 rounded-2xl border border-border mb-6">
-            <View className="flex-row justify-between items-center mb-2">
-              <Text className="text-muted-foreground text-lg">Subtotale</Text>
-              <Text className="text-foreground text-lg">€{totalAmount.toFixed(2)}</Text>
-            </View>
-            <View className="h-[1px] bg-border my-2" />
-            <View className="flex-row justify-between items-center">
-              <Text className="text-foreground font-extrabold text-2xl">Totale</Text>
-              <Text className="text-primary font-extrabold text-4xl">
-                €{totalAmount.toFixed(2)}
-              </Text>
-            </View>
-          </View>
+        {/* Total */}
+        <View className="flex-row justify-between items-center pt-3 border-t border-border">
+          <Text className="text-base font-bold">Totale</Text>
+          <Text className="text-2xl font-bold text-primary">€{totalAmount.toFixed(2)}</Text>
+        </View>
+      </View>
 
-          <View className="flex-row gap-3">
-            <Button
-              title="Indietro"
-              variant="outline"
-              onPress={handleBackStep}
-              className="flex-1"
-              disabled={isProcessing}
-            />
-            <Pressable
-              className={`flex-[2] bg-primary rounded-xl p-4 items-center shadow-lg active:scale-95 transition-transform ${isProcessing ? 'opacity-50' : ''}`}
-              onPress={handlePayment}
-              disabled={isProcessing}
-            >
-              {isProcessing ? (
-                <View className="flex-row items-center gap-3">
-                  <ActivityIndicator color="#000" />
-                  <Text className="text-primary-foreground font-bold text-xl">
-                    Elaborazione...
-                  </Text>
-                </View>
-              ) : (
-                <Text className="text-primary-foreground font-bold text-xl">
-                  {isOnline ? 'Conferma Ordine' : 'Salva Ordine'}
+      {/* Payment Methods */}
+      <View className="mb-4">
+        <Text className="text-lg font-bold mb-3">Metodo di Pagamento</Text>
+        
+          <Pressable
+            className={`p-4 rounded-xl border-2 flex-row items-center gap-3 ${
+              paymentProvider === 'stripe' ? 'bg-primary/10 border-primary' : 'bg-card border-border'
+            }`}
+            onPress={() => setPaymentProvider('stripe')}
+            disabled={isProcessing}
+          >
+            <Text className="text-3xl">💳</Text>
+            <View className="flex-1">
+              <Text className="font-bold text-base">Carta di Credito</Text>
+              <Text className="text-muted-foreground text-xs">Visa, Mastercard, Amex</Text>
+            </View>
+          </Pressable>
+
+          <Pressable
+            className={`p-4 rounded-xl border-2 flex-row items-center gap-3 ${
+              paymentProvider === 'terminal' ? 'bg-primary/10 border-primary' : 'bg-card border-border'
+            }`}
+            onPress={() => setPaymentProvider('terminal')}
+            disabled={isProcessing}
+          >
+            <Text className="text-3xl">🏪</Text>
+            <View className="flex-1">
+              <Text className="font-bold text-base">POS in Cassa</Text>
+              <Text className="text-muted-foreground text-xs">Terminale fisico</Text>
+            </View>
+          </Pressable>
+
+          <Pressable
+            className={`p-4 rounded-xl border-2 flex-row items-center gap-3 ${
+              paymentProvider === 'cash' ? 'bg-primary/10 border-primary' : 'bg-card border-border'
+            }`}
+            onPress={() => setPaymentProvider('cash')}
+            disabled={isProcessing}
+          >
+            <Text className="text-3xl">💶</Text>
+            <View className="flex-1">
+              <Text className="font-bold text-base">Contanti</Text>
+              <Text className="text-muted-foreground text-xs">Paga alla cassa</Text>
+            </View>
+          </Pressable>
+        </View>
+
+        {/* Footer Buttons */}
+        <View className="gap-3 mt-4">
+          <Button
+            title="Indietro"
+            variant="outline"
+            onPress={handleBackStep}
+            disabled={isProcessing}
+            size="lg"
+          />
+          <Button
+            title={isProcessing ? 'Elaborazione...' : (isOnline ? 'Conferma Ordine' : 'Salva Ordine')}
+            onPress={handlePayment}
+            disabled={isProcessing}
+            size="lg"
+          />
+        </View>
+      </View>
+    </ScrollView>
                 </Text>
               )}
             </Pressable>
