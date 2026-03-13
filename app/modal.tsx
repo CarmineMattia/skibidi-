@@ -36,6 +36,7 @@ export default function CheckoutScreen() {
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
   const [tableNumber, setTableNumber] = useState('');
+  const [errors, setErrors] = useState<{name?: string; phone?: string; address?: string; tableNumber?: string}>({});
 
   // Pre-fill data if logged in
   useEffect(() => {
@@ -52,23 +53,46 @@ export default function CheckoutScreen() {
     if (step === 'type') {
       setStep('details');
     } else if (step === 'details') {
-      // Validate details
+      // Clear previous errors
+      setErrors({});
+      
+      const newErrors: {name?: string; phone?: string; address?: string; tableNumber?: string} = {};
+      let hasError = false;
+
+      // Validate Name
       if (orderType !== 'eat_in' && !name.trim()) {
-        Alert.alert('Attenzione', 'Inserisci il tuo nome.');
-        return;
+        newErrors.name = 'Inserisci il tuo nome';
+        hasError = true;
       }
+
+      // Validate Table Number
       if (orderType === 'eat_in' && !tableNumber.trim()) {
-        Alert.alert('Attenzione', 'Inserisci il numero del tavolo.');
-        return;
+        newErrors.tableNumber = 'Inserisci il numero del tavolo';
+        hasError = true;
       }
+
+      // Validate Phone
       if ((orderType === 'take_away' || orderType === 'delivery') && !phone.trim()) {
-        Alert.alert('Attenzione', 'Inserisci un numero di telefono.');
-        return;
+        newErrors.phone = 'Inserisci un numero di telefono';
+        hasError = true;
       }
+
+      // Validate Address
       if (orderType === 'delivery' && !address.trim()) {
-        Alert.alert('Attenzione', 'Inserisci l\'indirizzo di consegna.');
+        newErrors.address = 'Inserisci l\'indirizzo di consegna';
+        hasError = true;
+      }
+
+      if (hasError) {
+        setErrors(newErrors);
+        Alert.alert(
+          '⚠️ Campi Mancanti',
+          'Per favore compila tutti i campi obbligatori evidenziati in rosso.',
+          [{ text: 'OK' }]
+        );
         return;
       }
+
       setStep('payment');
     }
   };
@@ -193,12 +217,20 @@ export default function CheckoutScreen() {
         <View>
           <Text className="text-sm font-medium mb-2">{orderType === 'eat_in' ? 'Nome (Opzionale)' : 'Nome *'}</Text>
           <TextInput
-            className="bg-background border border-border rounded-xl px-4 py-3 text-base min-h-[56px]"
+            className={`bg-background border rounded-xl px-4 py-3 text-base min-h-[56px] ${
+              errors.name ? 'border-red-500 bg-red-50' : 'border-border'
+            }`}
             placeholder="Il tuo nome"
             value={name}
             onChangeText={setName}
             autoCapitalize="words"
           />
+          {errors.name && (
+            <Text className="text-red-500 text-xs mt-1 flex-row items-center gap-1">
+              <Text>⚠️</Text>
+              <Text>{errors.name}</Text>
+            </Text>
+          )}
         </View>
 
         {/* Tavolo */}
@@ -206,13 +238,21 @@ export default function CheckoutScreen() {
           <View>
             <Text className="text-sm font-medium mb-2">Numero Tavolo *</Text>
             <TextInput
-              className="bg-background border border-border rounded-xl px-4 py-3 text-base min-h-[56px]"
+              className={`bg-background border rounded-xl px-4 py-3 text-base min-h-[56px] ${
+                errors.tableNumber ? 'border-red-500 bg-red-50' : 'border-border'
+              }`}
               placeholder="Es: 5"
               keyboardType="number-pad"
               value={tableNumber}
               onChangeText={(text) => setTableNumber(text.replace(/[^0-9]/g, ''))}
               maxLength={3}
             />
+            {errors.tableNumber && (
+              <Text className="text-red-500 text-xs mt-1 flex-row items-center gap-1">
+                <Text>⚠️</Text>
+                <Text>{errors.tableNumber}</Text>
+              </Text>
+            )}
           </View>
         )}
 
@@ -221,12 +261,20 @@ export default function CheckoutScreen() {
           <View>
             <Text className="text-sm font-medium mb-2">Telefono *</Text>
             <TextInput
-              className="bg-background border border-border rounded-xl px-4 py-3 text-base min-h-[56px]"
+              className={`bg-background border rounded-xl px-4 py-3 text-base min-h-[56px] ${
+                errors.phone ? 'border-red-500 bg-red-50' : 'border-border'
+              }`}
               placeholder="Il tuo numero"
               keyboardType="phone-pad"
               value={phone}
               onChangeText={setPhone}
             />
+            {errors.phone && (
+              <Text className="text-red-500 text-xs mt-1 flex-row items-center gap-1">
+                <Text>⚠️</Text>
+                <Text>{errors.phone}</Text>
+              </Text>
+            )}
           </View>
         )}
 
@@ -235,12 +283,20 @@ export default function CheckoutScreen() {
           <View>
             <Text className="text-sm font-medium mb-2">Indirizzo *</Text>
             <TextInput
-              className="bg-background border border-border rounded-xl px-4 py-3 text-base min-h-[80px]"
+              className={`bg-background border rounded-xl px-4 py-3 text-base min-h-[80px] ${
+                errors.address ? 'border-red-500 bg-red-50' : 'border-border'
+              }`}
               placeholder="Via, Civico, Città"
               multiline
               value={address}
               onChangeText={setAddress}
             />
+            {errors.address && (
+              <Text className="text-red-500 text-xs mt-1 flex-row items-center gap-1">
+                <Text>⚠️</Text>
+                <Text>{errors.address}</Text>
+              </Text>
+            )}
           </View>
         )}
 
