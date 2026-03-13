@@ -133,70 +133,82 @@ export default function CheckoutScreen() {
   };
 
   const renderOrderTypeSelection = () => (
-    <View className="flex-1 justify-center gap-6 p-8">
-      <Text className="text-3xl font-bold text-center mb-8">Come vuoi ricevere il tuo ordine?</Text>
+    <ScrollView className="flex-1" contentContainerClassName="p-6">
+      <View className="flex-1 justify-center">
+        <Text className="text-2xl font-bold text-center mb-8">Come vuoi ricevere?</Text>
 
-      <View className="flex-row gap-6 justify-center">
-        <Pressable
-          className={`flex-1 max-w-[250px] aspect-square bg-card rounded-3xl border-2 items-center justify-center gap-4 shadow-sm active:scale-95 transition-transform ${orderType === 'eat_in' ? 'border-primary bg-primary/5' : 'border-border'
+        <View className="gap-4 mb-6">
+          {/* Mangio Qui */}
+          <Pressable
+            className={`p-6 rounded-2xl border-2 items-center gap-3 shadow-sm active:scale-98 transition-transform ${
+              orderType === 'eat_in' ? 'border-primary bg-primary/10' : 'border-border'
             }`}
-          onPress={() => setOrderType('eat_in')}
-        >
-          <Text className="text-6xl">🍽️</Text>
-          <Text className="text-xl font-bold">Mangio Qui</Text>
-        </Pressable>
+            onPress={() => setOrderType('eat_in')}
+          >
+            <Text className="text-5xl">🍽️</Text>
+            <Text className="text-lg font-bold text-center">Mangio Qui</Text>
+            <Text className="text-muted-foreground text-sm text-center">Al tavolo, servizio completo</Text>
+          </Pressable>
 
-        <Pressable
-          className={`flex-1 max-w-[250px] aspect-square bg-card rounded-3xl border-2 items-center justify-center gap-4 shadow-sm active:scale-95 transition-transform ${orderType === 'take_away' ? 'border-primary bg-primary/5' : 'border-border'
+          {/* Da Asporto */}
+          <Pressable
+            className={`p-6 rounded-2xl border-2 items-center gap-3 shadow-sm active:scale-98 transition-transform ${
+              orderType === 'take_away' ? 'border-primary bg-primary/10' : 'border-border'
             }`}
-          onPress={() => setOrderType('take_away')}
-        >
-          <Text className="text-6xl">🛍️</Text>
-          <Text className="text-xl font-bold">Da Asporto</Text>
-        </Pressable>
+            onPress={() => setOrderType('take_away')}
+          >
+            <Text className="text-5xl">🛍️</Text>
+            <Text className="text-lg font-bold text-center">Da Asporto</Text>
+            <Text className="text-muted-foreground text-sm text-center">Ritira in negozio</Text>
+          </Pressable>
 
-        <Pressable
-          className={`flex-1 max-w-[250px] aspect-square bg-card rounded-3xl border-2 items-center justify-center gap-4 shadow-sm active:scale-95 transition-transform ${orderType === 'delivery' ? 'border-primary bg-primary/5' : 'border-border'
+          {/* Delivery */}
+          <Pressable
+            className={`p-6 rounded-2xl border-2 items-center gap-3 shadow-sm active:scale-98 transition-transform ${
+              orderType === 'delivery' ? 'border-primary bg-primary/10' : 'border-border'
             }`}
-          onPress={() => setOrderType('delivery')}
-        >
-          <Text className="text-6xl">🛵</Text>
-          <Text className="text-xl font-bold">Delivery</Text>
-        </Pressable>
+            onPress={() => setOrderType('delivery')}
+          >
+            <Text className="text-5xl">🛵</Text>
+            <Text className="text-lg font-bold text-center">Delivery</Text>
+            <Text className="text-muted-foreground text-sm text-center">A domicilio (+€2)</Text>
+          </Pressable>
+        </View>
+
+        <Button
+          title="Continua"
+          onPress={handleNextStep}
+          size="lg"
+        />
       </View>
-
-      <Button
-        title="Continua"
-        onPress={handleNextStep}
-        size="lg"
-        className="mt-8 self-center w-[300px]"
-      />
-    </View>
+    </ScrollView>
   );
 
   const renderDetailsForm = () => (
-    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1 p-8 justify-center max-w-2xl w-full self-center">
-      <Text className="text-3xl font-bold text-center mb-8">I tuoi dati</Text>
+    <ScrollView className="flex-1" contentContainerClassName="p-6">
+      <View className="flex-1 justify-center">
+        <Text className="text-2xl font-bold text-center mb-6">I Tuoi Dati</Text>
 
-      <View className="bg-card p-8 rounded-3xl border border-border shadow-sm gap-6">
-        <View>
-          <Text className="font-medium mb-2 ml-1">{orderType === 'eat_in' ? 'Nome (Opzionale)' : 'Nome *'}</Text>
-          <TextInput
-            className="bg-background border border-border rounded-xl p-4 text-lg"
-            placeholder="Il tuo nome"
-            value={name}
-            onChangeText={setName}
-          />
-        </View>
-
-        {orderType === 'eat_in' && (
+        <View className="bg-card p-6 rounded-2xl border border-border shadow-sm gap-4">
           <View>
-            <Text className="font-medium mb-2 ml-1">Numero Tavolo *</Text>
+            <Text className="text-sm font-medium mb-2">{orderType === 'eat_in' ? 'Nome (Opzionale)' : 'Nome *'}</Text>
             <TextInput
-              className="bg-background border border-border rounded-xl p-4 text-lg"
-              placeholder="Es. 12"
-              keyboardType="number-pad"
-              value={tableNumber}
+              className="bg-background border border-border rounded-xl px-4 py-3 text-base min-h-[56px]"
+              placeholder="Il tuo nome"
+              value={name}
+              onChangeText={setName}
+              autoCapitalize="words"
+            />
+          </View>
+
+          {orderType === 'eat_in' && (
+            <View>
+              <Text className="text-sm font-medium mb-2">Numero Tavolo *</Text>
+              <TextInput
+                className="bg-background border border-border rounded-xl px-4 py-3 text-base min-h-[56px]"
+                placeholder="Es: 5"
+                keyboardType="number-pad"
+                value={tableNumber}
               onChangeText={(text) => setTableNumber(text.replace(/[^0-9]/g, ''))}
               maxLength={3}
             />
@@ -356,17 +368,13 @@ export default function CheckoutScreen() {
 
   return (
     <View className="flex-1 bg-background">
-      {/* Header with Steps */}
-      <View className="p-6 border-b border-border bg-card flex-row items-center justify-between">
-        <Pressable onPress={handleBackStep} className="p-2">
-          <FontAwesome name="arrow-left" size={24} color="#000" />
-        </Pressable>
-        <View className="flex-row gap-2">
-          <View className={`h-2 w-12 rounded-full ${step === 'type' ? 'bg-primary' : 'bg-primary/30'}`} />
-          <View className={`h-2 w-12 rounded-full ${step === 'details' ? 'bg-primary' : 'bg-primary/30'}`} />
-          <View className={`h-2 w-12 rounded-full ${step === 'payment' ? 'bg-primary' : 'bg-primary/30'}`} />
+      {/* Step Indicator Only (no back button - Expo Router provides it) */}
+      <View className="pt-4 pb-2 border-b border-border bg-card">
+        <View className="flex-row gap-2 justify-center">
+          <View className={`h-2 w-16 rounded-full ${step === 'type' ? 'bg-primary' : 'bg-primary/30'}`} />
+          <View className={`h-2 w-16 rounded-full ${step === 'details' ? 'bg-primary' : 'bg-primary/30'}`} />
+          <View className={`h-2 w-16 rounded-full ${step === 'payment' ? 'bg-primary' : 'bg-primary/30'}`} />
         </View>
-        <View className="w-8" />
       </View>
 
       {step === 'type' && renderOrderTypeSelection()}
