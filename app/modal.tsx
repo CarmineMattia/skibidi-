@@ -429,8 +429,11 @@ export default function CheckoutScreen() {
 
   return (
     <View className="flex-1 bg-background">
-      {/* Step Indicator Only (no back button - Expo Router provides it) */}
-      <View className="pt-4 pb-2 border-b border-border bg-card">
+      {/* Header with Title and Step Indicator */}
+      <View className="pt-4 pb-3 border-b border-border bg-card">
+        <Text className="text-xl font-bold text-center mb-2">
+          {step === 'type' ? 'Nuovo Ordine' : step === 'details' ? 'I Tuoi Dati' : 'Pagamento'}
+        </Text>
         <View className="flex-row gap-2 justify-center">
           <View className={`h-2 w-16 rounded-full ${step === 'type' ? 'bg-primary' : 'bg-primary/30'}`} />
           <View className={`h-2 w-16 rounded-full ${step === 'details' ? 'bg-primary' : 'bg-primary/30'}`} />
