@@ -7,7 +7,7 @@ import { useAuth } from '@/lib/stores/AuthContext';
 import { useCart } from '@/lib/stores/CartContext';
 import type { PaymentProvider } from '@/lib/hooks/usePayment';
 import { FontAwesome } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View, useWindowDimensions } from 'react-native';
@@ -428,24 +428,35 @@ export default function CheckoutScreen() {
   );
 
   return (
-    <View className="flex-1 bg-background">
-      {/* Header with Title and Step Indicator */}
-      <View className="pt-4 pb-3 border-b border-border bg-card">
-        <Text className="text-xl font-bold text-center mb-2">
-          {step === 'type' ? 'Nuovo Ordine' : step === 'details' ? 'I Tuoi Dati' : 'Pagamento'}
-        </Text>
-        <View className="flex-row gap-2 justify-center">
-          <View className={`h-2 w-16 rounded-full ${step === 'type' ? 'bg-primary' : 'bg-primary/30'}`} />
-          <View className={`h-2 w-16 rounded-full ${step === 'details' ? 'bg-primary' : 'bg-primary/30'}`} />
-          <View className={`h-2 w-16 rounded-full ${step === 'payment' ? 'bg-primary' : 'bg-primary/30'}`} />
+    <>
+      {/* Hide Expo Router default header */}
+      <Stack.Screen options={{ headerShown: false }} />
+      
+      <View className="flex-1 bg-background">
+        {/* Custom Header with Back Button and Title */}
+        <View className="pt-4 pb-3 border-b border-border bg-card">
+          <View className="flex-row items-center justify-between px-4 mb-2">
+            <Pressable onPress={handleBackStep} className="p-2">
+              <FontAwesome name="arrow-left" size={20} color="#000" />
+            </Pressable>
+            <Text className="text-xl font-bold flex-1 text-center">
+              {step === 'type' ? 'Nuovo Ordine' : step === 'details' ? 'I Tuoi Dati' : 'Pagamento'}
+            </Text>
+            <View className="w-10" />
+          </View>
+          <View className="flex-row gap-2 justify-center">
+            <View className={`h-2 w-16 rounded-full ${step === 'type' ? 'bg-primary' : 'bg-primary/30'}`} />
+            <View className={`h-2 w-16 rounded-full ${step === 'details' ? 'bg-primary' : 'bg-primary/30'}`} />
+            <View className={`h-2 w-16 rounded-full ${step === 'payment' ? 'bg-primary' : 'bg-primary/30'}`} />
+          </View>
         </View>
+
+        {step === 'type' && renderOrderTypeSelection()}
+        {step === 'details' && renderDetailsForm()}
+        {step === 'payment' && renderPayment()}
+
+        <StatusBar style={Platform.OS === 'ios' ? 'light' : 'auto'} />
       </View>
-
-      {step === 'type' && renderOrderTypeSelection()}
-      {step === 'details' && renderDetailsForm()}
-      {step === 'payment' && renderPayment()}
-
-      <StatusBar style={Platform.OS === 'ios' ? 'light' : 'auto'} />
-    </View>
+    </>
   );
 }
