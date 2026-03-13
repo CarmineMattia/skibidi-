@@ -186,40 +186,42 @@ export default function CheckoutScreen() {
 
   const renderDetailsForm = () => (
     <ScrollView className="flex-1" contentContainerClassName="p-6">
-      <View className="flex-1 justify-center">
-        <Text className="text-2xl font-bold text-center mb-6">I Tuoi Dati</Text>
+      <View className="flex-1 justify-center gap-4">
+        <Text className="text-2xl font-bold text-center mb-2">I Tuoi Dati</Text>
 
-        <View className="bg-card p-6 rounded-2xl border border-border shadow-sm gap-4">
+        {/* Nome */}
+        <View>
+          <Text className="text-sm font-medium mb-2">{orderType === 'eat_in' ? 'Nome (Opzionale)' : 'Nome *'}</Text>
+          <TextInput
+            className="bg-background border border-border rounded-xl px-4 py-3 text-base min-h-[56px]"
+            placeholder="Il tuo nome"
+            value={name}
+            onChangeText={setName}
+            autoCapitalize="words"
+          />
+        </View>
+
+        {/* Tavolo */}
+        {orderType === 'eat_in' && (
           <View>
-            <Text className="text-sm font-medium mb-2">{orderType === 'eat_in' ? 'Nome (Opzionale)' : 'Nome *'}</Text>
+            <Text className="text-sm font-medium mb-2">Numero Tavolo *</Text>
             <TextInput
               className="bg-background border border-border rounded-xl px-4 py-3 text-base min-h-[56px]"
-              placeholder="Il tuo nome"
-              value={name}
-              onChangeText={setName}
-              autoCapitalize="words"
-            />
-          </View>
-
-          {orderType === 'eat_in' && (
-            <View>
-              <Text className="text-sm font-medium mb-2">Numero Tavolo *</Text>
-              <TextInput
-                className="bg-background border border-border rounded-xl px-4 py-3 text-base min-h-[56px]"
-                placeholder="Es: 5"
-                keyboardType="number-pad"
-                value={tableNumber}
+              placeholder="Es: 5"
+              keyboardType="number-pad"
+              value={tableNumber}
               onChangeText={(text) => setTableNumber(text.replace(/[^0-9]/g, ''))}
               maxLength={3}
             />
           </View>
         )}
 
+        {/* Telefono */}
         {(orderType === 'take_away' || orderType === 'delivery') && (
           <View>
-            <Text className="font-medium mb-2 ml-1">Telefono *</Text>
+            <Text className="text-sm font-medium mb-2">Telefono *</Text>
             <TextInput
-              className="bg-background border border-border rounded-xl p-4 text-lg"
+              className="bg-background border border-border rounded-xl px-4 py-3 text-base min-h-[56px]"
               placeholder="Il tuo numero"
               keyboardType="phone-pad"
               value={phone}
@@ -228,35 +230,38 @@ export default function CheckoutScreen() {
           </View>
         )}
 
+        {/* Indirizzo */}
         {orderType === 'delivery' && (
           <View>
-            <Text className="font-medium mb-2 ml-1">Indirizzo di Consegna *</Text>
+            <Text className="text-sm font-medium mb-2">Indirizzo *</Text>
             <TextInput
-              className="bg-background border border-border rounded-xl p-4 text-lg min-h-[100px]"
-              placeholder="Via, Civico, Città..."
+              className="bg-background border border-border rounded-xl px-4 py-3 text-base min-h-[80px]"
+              placeholder="Via, Civico, Città"
               multiline
-              textAlignVertical="top"
               value={address}
               onChangeText={setAddress}
             />
           </View>
         )}
-      </View>
 
-      <View className="flex-row gap-4 mt-8">
-        <Button
-          title="Indietro"
-          variant="outline"
-          onPress={handleBackStep}
-          className="flex-1"
-        />
-        <Button
-          title="Vai al Pagamento"
-          onPress={handleNextStep}
-          className="flex-1"
-        />
+        {/* Buttons */}
+        <View className="flex-row gap-3 mt-4">
+          <Button
+            title="Indietro"
+            variant="outline"
+            onPress={handleBackStep}
+            className="flex-1"
+            size="lg"
+          />
+          <Button
+            title="Continua"
+            onPress={handleNextStep}
+            className="flex-1"
+            size="lg"
+          />
+        </View>
       </View>
-    </KeyboardAvoidingView>
+    </ScrollView>
   );
 
   const renderPayment = () => (
