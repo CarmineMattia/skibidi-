@@ -42,7 +42,7 @@ export default function MenuScreen() {
     selectedCategoryId || undefined
   );
   const { items, clearCart, totalItems, totalAmount } = useCart();
-  const { isAuthenticated, profile, signOut, userRole, isGuest, exitGuestMode, isAdmin } = useAuth();
+  const { isAuthenticated, profile, signOut, userRole, isGuest, exitGuestMode, isAdmin, isKioskMode } = useAuth();
   const createOrder = useCreateOrder();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -143,15 +143,6 @@ export default function MenuScreen() {
           )}
         </View>
       </View>
-
-      {/* DEBUG INFO - REMOVE LATER */}
-      {isAuthenticated && (
-        <View className="bg-yellow-200 p-2 items-center">
-          <Text className="text-xs font-mono">
-            Debug: Role={userRole} | Kiosk={isKioskMode ? 'YES' : 'NO'} | Auth={isAuthenticated ? 'YES' : 'NO'}
-          </Text>
-        </View>
-      )}
 
       {/* Main Content Area - Split Layout */}
       <View className="flex-1 flex-row">
