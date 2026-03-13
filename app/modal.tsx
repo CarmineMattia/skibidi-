@@ -7,7 +7,7 @@ import { useAuth } from '@/lib/stores/AuthContext';
 import { useCart } from '@/lib/stores/CartContext';
 import type { PaymentProvider } from '@/lib/hooks/usePayment';
 import { FontAwesome } from '@expo/vector-icons';
-import { useRouter, useHead } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View, useWindowDimensions } from 'react-native';
@@ -28,11 +28,6 @@ export default function CheckoutScreen() {
   const [step, setStep] = useState<CheckoutStep>('type');
   const [orderType, setOrderType] = useState<OrderType>('eat_in');
   const [paymentProvider, setPaymentProvider] = useState<PaymentProvider>('stripe');
-
-  // Update browser tab title based on step
-  useHead({
-    title: step === 'type' ? 'Nuovo Ordine - Skibidi Orders' : step === 'details' ? 'I Tuoi Dati - Skibidi Orders' : 'Pagamento - Skibidi Orders',
-  });
   const [isProcessing, setIsProcessing] = useState(false);
   const [transactionId, setTransactionId] = useState<string>('');
 
