@@ -100,65 +100,45 @@ export default function MenuScreen() {
           {/* Hamburger Menu */}
           <Pressable
             onPress={() => setIsSidebarVisible(!isSidebarVisible)}
-            className="bg-secondary rounded-lg p-2 w-10 h-10 items-center justify-center active:opacity-80 mr-2"
+            className="bg-secondary rounded-lg p-2 w-9 h-9 items-center justify-center active:opacity-80 mr-2"
           >
-            <FontAwesome name={isSidebarVisible ? "close" : "bars"} size={20} color="black" />
+            <FontAwesome name={isSidebarVisible ? "close" : "bars"} size={18} color="black" />
           </Pressable>
 
-          <Text className="text-3xl">🍟</Text>
-          <Text className="text-foreground font-extrabold text-2xl tracking-tight">
+          <Text className="text-2xl">🍟</Text>
+          <Text className="text-foreground font-extrabold text-lg tracking-tight">
             SKIBIDI ORDERS
           </Text>
-          {isAdmin && (
-            <Pressable
-              onPress={handleCreatePress}
-              className="bg-primary px-3 py-1 rounded-full flex-row items-center gap-2 active:opacity-80 ml-4"
-            >
-              <FontAwesome name="plus" size={14} color="white" />
-              <Text className="text-primary-foreground font-bold text-sm">Nuovo</Text>
-            </Pressable>
-          )}
         </View>
 
-        <View className="flex-row items-center gap-4">
-          {isAdmin && (
-            <Pressable
-              onPress={() => router.push('/admin-options')}
-              className="bg-secondary rounded-full px-4 py-2 flex-row items-center gap-2 active:opacity-80"
-            >
-              <FontAwesome name="cog" size={16} color="black" />
-              <Text className="text-foreground font-medium text-sm">Opzioni</Text>
-            </Pressable>
-          )}
-          {/* User Info - Show user name or "Ospite" for guests */}
-          <View className="bg-secondary rounded-full px-4 py-2">
-            <Text className="text-secondary-foreground font-medium">
+        <View className="flex-row items-center gap-3">
+          {/* User Info - Compact */}
+          <View className="bg-secondary rounded-full px-3 py-1.5">
+            <Text className="text-secondary-foreground font-medium text-sm">
               {isAuthenticated && profile
-                ? `👤 ${profile.full_name || profile.email}`
+                ? `👤 ${profile.full_name?.split(' ')[0] || profile.email.split('@')[0]}`
                 : isGuest
-                  ? '👤 ospite123'
+                  ? '👤 Ospite'
                   : '👤 Ospite'}
             </Text>
           </View>
 
-          {/* Order Counter Badge - Minimal */}
+          {/* Order Counter Badge - Compact */}
           {totalItems > 0 && (
-            <View className="bg-primary rounded-full px-5 py-2 flex-row items-center gap-2">
-              <Text className="text-primary-foreground font-bold text-lg">
+            <View className="bg-primary rounded-full px-4 py-1.5 flex-row items-center gap-1.5">
+              <Text className="text-primary-foreground font-bold text-sm">
                 🛒 {totalItems}
               </Text>
             </View>
           )}
 
-          {/* Logout Button - Show for autenticati o ospite */}
+          {/* Logout Button - Compact */}
           {(isAuthenticated || isGuest) && (
             <Pressable
-              className="bg-destructive rounded-full px-5 py-2 flex-row items-center gap-2 active:opacity-80"
+              className="bg-destructive/10 rounded-full p-2 active:opacity-80"
               onPress={handleLogout}
             >
-              <Text className="text-destructive-foreground font-bold text-lg">
-                🚪 Esci
-              </Text>
+              <FontAwesome name="sign-out" size={18} color="#ef4444" />
             </Pressable>
           )}
         </View>
