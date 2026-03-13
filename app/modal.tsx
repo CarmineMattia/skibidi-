@@ -290,6 +290,7 @@ export default function CheckoutScreen() {
       <View className="mb-4">
         <Text className="text-lg font-bold mb-3">Metodo di Pagamento</Text>
         
+        <View className="gap-3">
           <Pressable
             className={`p-4 rounded-xl border-2 flex-row items-center gap-3 ${
               paymentProvider === 'stripe' ? 'bg-primary/10 border-primary' : 'bg-card border-border'
