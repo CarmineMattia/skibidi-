@@ -114,72 +114,46 @@ export default function HomeScreen() {
         <RefreshControl refreshing={false} onRefresh={() => {}} />
       }
     >
-      {/* Header with Logo */}
-      <View className="bg-white p-6 pb-4 border-b border-gray-200">
-        <View className="flex-row items-center justify-between mb-4">
-          <View className="flex-row items-center gap-3">
-            <Text className="text-4xl">🍽️</Text>
-            <View>
-              <Text className="text-3xl font-extrabold text-gray-900">
-                SKIBIDI ORDERS
-              </Text>
-              <Text className="text-base text-orange-600 font-bold">
-                Sistema POS
-              </Text>
-            </View>
-          </View>
-          {isAuthenticated && (
-            <Pressable onPress={handleSignOut} className="p-2">
-              <Text className="text-orange-600 font-bold text-sm">Logout</Text>
-            </Pressable>
-          )}
-        </View>
-
-        {/* Welcome Message */}
-        <View className="bg-orange-50 rounded-2xl p-4 border border-orange-200">
-          <View className="flex-row items-center gap-3 mb-2">
-            <Text className="text-3xl">👋</Text>
-            <View>
-              <Text className="text-lg font-bold text-gray-900">
-                {isAuthenticated ? `Ciao, ${profile?.full_name || 'Utente'}!` : 'Benvenuto!'}
-              </Text>
-              <Text className="text-sm text-gray-600">
-                {isAuthenticated ? 'Felice di rivederti' : 'Accedi o ordina come ospite'}
-              </Text>
-            </View>
+      {/* Compact Header */}
+      <View className="bg-white p-4 pb-3 border-b border-gray-200">
+        <View className="flex-row items-center gap-2">
+          <Text className="text-3xl">🍽️</Text>
+          <View>
+            <Text className="text-2xl font-extrabold text-gray-900">
+              SKIBIDI ORDERS
+            </Text>
+            <Text className="text-sm text-orange-600 font-bold">
+              Sistema POS
+            </Text>
           </View>
         </View>
       </View>
 
-      <View className="p-6 gap-6">
+      <View className="p-4 gap-5">
         {/* 🔥 Menu Combo */}
         <View>
-          <View className="flex-row justify-between items-center mb-3">
-            <Text className="text-2xl font-extrabold text-gray-900">🔥 Menu Combo</Text>
+          <View className="flex-row justify-between items-center mb-2">
+            <Text className="text-lg font-extrabold text-gray-900">🔥 Menu Combo</Text>
             <Pressable onPress={() => router.push('/(tabs)/menu?filter=combos')}>
-              <Text className="text-orange-600 text-sm font-bold">Vedi tutti →</Text>
+              <Text className="text-orange-600 text-xs font-bold">Vedi →</Text>
             </Pressable>
           </View>
 
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="gap-4">
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="gap-3">
             {comboMenus.map((combo) => (
               <Pressable
                 key={combo.id}
-                className="bg-white rounded-2xl border-2 border-orange-200 p-4 w-[180px] active:scale-98 shadow-sm"
-                onPress={() => Alert.alert('✅ Aggiunto!', `${combo.name} aggiunto al carrello`)}
+                className="bg-white rounded-xl border border-orange-200 p-3 w-[150px] active:scale-98 shadow-sm"
+                onPress={() => Alert.alert('✅ Aggiunto!', `${combo.name} aggiunto`)}
               >
-                <View className="items-center mb-3">
-                  <Text className="text-4xl mb-2">{combo.image}</Text>
-                  <View className="bg-red-500 rounded-full px-3 py-1 mb-2">
-                    <Text className="text-white text-xs font-bold">{combo.discount}</Text>
+                <View className="items-center mb-2">
+                  <Text className="text-3xl mb-1">{combo.image}</Text>
+                  <View className="bg-red-500 rounded-full px-2 py-0.5 mb-1">
+                    <Text className="text-white text-[10px] font-bold">{combo.discount}</Text>
                   </View>
                 </View>
-                <Text className="font-bold text-center mb-1 text-gray-900">{combo.name}</Text>
-                <Text className="text-gray-600 text-xs text-center mb-2">{combo.description}</Text>
-                <View className="flex-row justify-center items-center gap-2">
-                  <Text className="text-gray-400 text-xs line-through">€{combo.oldPrice.toFixed(2)}</Text>
-                  <Text className="text-lg font-bold text-orange-600">€{combo.price.toFixed(2)}</Text>
-                </View>
+                <Text className="font-bold text-center mb-1 text-gray-900 text-sm">{combo.name}</Text>
+                <Text className="text-orange-600 font-extrabold text-center">€{combo.price.toFixed(2)}</Text>
               </Pressable>
             ))}
           </ScrollView>
@@ -188,46 +162,37 @@ export default function HomeScreen() {
         {/* 📦 Ordini Recenti */}
         {isAuthenticated && (
           <View>
-            <View className="flex-row justify-between items-center mb-3">
-              <Text className="text-2xl font-extrabold text-gray-900">📦 Ordini Recenti</Text>
+            <View className="flex-row justify-between items-center mb-2">
+              <Text className="text-lg font-extrabold text-gray-900">📦 Ordini Recenti</Text>
               <Pressable onPress={() => router.push('/(tabs)/two')}>
-                <Text className="text-orange-600 text-sm font-bold">Vedi tutti →</Text>
+                <Text className="text-orange-600 text-xs font-bold">Vedi →</Text>
               </Pressable>
             </View>
 
-            <View className="gap-3">
+            <View className="gap-2">
               {recentOrders.map((order) => (
                 <Pressable
                   key={order.id}
-                  className="bg-white rounded-xl border border-gray-200 p-4 active:bg-gray-50 shadow-sm"
+                  className="bg-white rounded-lg border border-gray-200 p-3 active:bg-gray-50"
                   onPress={() => router.push('/(tabs)/two')}
                 >
-                  <View className="flex-row justify-between items-center mb-2">
+                  <View className="flex-row justify-between items-center">
                     <View>
-                      <Text className="font-bold text-gray-900">{order.id}</Text>
-                      <Text className="text-gray-500 text-xs">{order.date}</Text>
+                      <Text className="font-bold text-gray-900 text-sm">{order.id}</Text>
+                      <Text className="text-gray-500 text-[10px]">{order.date}</Text>
                     </View>
                     <View className="items-end">
-                      <View className="bg-green-100 border border-green-300 rounded-full px-3 py-1">
-                        <Text className="text-green-800 text-xs font-bold">{order.status}</Text>
-                      </View>
-                      <Text className="text-orange-600 font-bold mt-1">€{order.total.toFixed(2)}</Text>
+                      <Text className="text-green-600 text-[10px] font-bold bg-green-100 px-2 py-0.5 rounded-full">{order.status}</Text>
+                      <Text className="text-orange-600 font-bold text-sm">€{order.total.toFixed(2)}</Text>
                     </View>
                   </View>
-                  <View className="flex-row gap-2 pt-2 border-t border-gray-200">
+                  <View className="flex-row gap-2 mt-2 pt-2 border-t border-gray-200">
                     <Pressable
-                      className="flex-1 bg-orange-100 rounded-lg py-2 flex-row items-center justify-center gap-2"
+                      className="flex-1 bg-orange-100 rounded py-1.5 flex-row items-center justify-center gap-1"
                       onPress={() => handleReorder(order.id)}
                     >
-                      <FontAwesome name="repeat" size={14} color="#f97316" />
-                      <Text className="text-orange-600 text-xs font-bold">Riordina</Text>
-                    </Pressable>
-                    <Pressable
-                      className="flex-1 bg-gray-100 rounded-lg py-2 flex-row items-center justify-center gap-2"
-                      onPress={() => router.push('/(tabs)/two')}
-                    >
-                      <FontAwesome name="file-text-o" size={14} color="#6b7280" />
-                      <Text className="text-gray-600 text-xs font-medium">Dettagli</Text>
+                      <FontAwesome name="repeat" size={12} color="#f97316" />
+                      <Text className="text-orange-600 text-[10px] font-bold">Riordina</Text>
                     </Pressable>
                   </View>
                 </Pressable>
@@ -236,24 +201,24 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* 📋 Categorie Rapide */}
+        {/* 📋 Categorie */}
         <View>
-          <View className="flex-row justify-between items-center mb-3">
-            <Text className="text-2xl font-extrabold text-gray-900">📋 Categorie</Text>
+          <View className="flex-row justify-between items-center mb-2">
+            <Text className="text-lg font-extrabold text-gray-900">📋 Categorie</Text>
             <Pressable onPress={() => router.push('/(tabs)/menu')}>
-              <Text className="text-orange-600 text-sm font-bold">Vedi menu →</Text>
+              <Text className="text-orange-600 text-xs font-bold">Vedi →</Text>
             </Pressable>
           </View>
 
-          <View className="flex-row flex-wrap gap-3">
+          <View className="flex-row flex-wrap gap-2">
             {categories.map((cat) => (
               <Pressable
                 key={cat.id}
-                className={`${cat.color} rounded-2xl p-4 w-[90px] items-center active:scale-95 shadow-sm`}
+                className={`${cat.color} rounded-xl p-3 w-[70px] items-center active:scale-95`}
                 onPress={() => router.push(`/(tabs)/menu?category=${cat.id}`)}
               >
-                <Text className="text-4xl mb-2">{cat.icon}</Text>
-                <Text className="text-xs font-bold text-center text-gray-900">{cat.name}</Text>
+                <Text className="text-3xl mb-1">{cat.icon}</Text>
+                <Text className="text-[10px] font-bold text-center text-gray-900">{cat.name}</Text>
               </Pressable>
             ))}
           </View>
@@ -261,75 +226,55 @@ export default function HomeScreen() {
 
         {/* 📧 Magic Link per Guest */}
         {!isAuthenticated && (
-          <View className="bg-purple-50 rounded-2xl border-2 border-purple-200 p-6 gap-4">
-            <View className="items-center">
-              <Text className="text-3xl mb-2">📧</Text>
-              <Text className="text-xl font-extrabold text-gray-900 text-center">
-                Vedi i Tuoi Ordini
-              </Text>
-              <Text className="text-gray-600 text-sm text-center mt-1">
-                Inserisci la tua email per ricevere un link magico
-              </Text>
+          <View className="bg-purple-50 rounded-xl border border-purple-200 p-4 gap-3">
+            <View className="flex-row items-center gap-2">
+              <Text className="text-2xl">📧</Text>
+              <Text className="font-extrabold text-gray-900">Vedi i Tuoi Ordini</Text>
             </View>
-
             <TextInput
-              className="bg-white border border-gray-300 rounded-xl px-4 py-3 text-base"
+              className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm"
               placeholder="tua@email.com"
               keyboardType="email-address"
               autoCapitalize="none"
               value={email}
               onChangeText={setEmail}
             />
-
             <Button
-              title={isSending ? 'Invio...' : 'Invia Link Magico'}
+              title={isSending ? 'Invio...' : 'Invia Link'}
               onPress={handleSendMagicLink}
               disabled={isSending}
-              size="lg"
+              size="default"
             />
-
-            <Text className="text-gray-500 text-xs text-center">
-              🔒 Il link scade dopo 24 ore. Nessun account necessario.
-            </Text>
           </View>
         )}
 
         {/* ⚡ Azioni Rapide */}
-        <View className="bg-white rounded-2xl border-2 border-gray-200 p-6 gap-4 shadow-sm">
-          <View className="flex-row items-center gap-2 mb-2">
-            <Text className="text-2xl">⚡</Text>
-            <Text className="text-xl font-extrabold text-gray-900">Azioni Rapide</Text>
+        <View className="bg-white rounded-xl border border-gray-200 p-4 gap-3">
+          <View className="flex-row items-center gap-2">
+            <Text className="text-xl">⚡</Text>
+            <Text className="font-extrabold text-gray-900">Azioni Rapide</Text>
           </View>
 
           <Button
-            title="🛒 Vai al Menu POS"
+            title="🛒 Vai al Menu"
             variant="default"
             onPress={() => router.push('/(tabs)/menu')}
-            size="lg"
+            size="default"
           />
 
           {userRole === 'admin' && (
-            <>
-              <Button
-                title="👨‍🍳 Cucina (Kitchen)"
-                variant="secondary"
-                onPress={() => router.push('/(tabs)/kitchen')}
-                size="lg"
-              />
-              <Button
-                title="📋 Lista Ordini Completa"
-                variant="outline"
-                onPress={() => router.push('/(tabs)/two')}
-                size="lg"
-              />
-            </>
+            <Button
+              title="👨‍🍳 Cucina"
+              variant="outline"
+              onPress={() => router.push('/(tabs)/kitchen')}
+              size="default"
+            />
           )}
         </View>
 
         {/* Footer */}
-        <View className="items-center py-6 border-t border-gray-200">
-          <Text className="text-gray-500 text-sm">SKIBIDI ORDERS v1.0</Text>
-          <Text className="text-gray-400 text-xs mt-1">Powered by Expo + Supabase</Text>
+        <View className="items-center py-4 border-t border-gray-200">
+          <Text className="text-gray-400 text-[10px]">SKIBIDI ORDERS v1.0</Text>
         </View>
       </View>
     </ScrollView>
