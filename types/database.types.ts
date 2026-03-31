@@ -9,7 +9,9 @@ export * from './database.types.generated';
 // Legacy aliases for convenience
 export type UserRole = 'admin' | 'customer' | 'kiosk';
 
-export type FiscalStatus = 'pending' | 'success' | 'error';
+// FiscalStatus is the canonical export from fiscal.types — import it to avoid duplicate export
+import type { FiscalStatus } from './fiscal.types';
+export type { FiscalStatus };
 
 export type OrderStatus = 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
 
@@ -22,6 +24,7 @@ export interface Profile {
   updated_at: string;
   phone?: string;
   address?: string;
+  company_id?: string | null;
 }
 
 export interface Category {
@@ -32,6 +35,7 @@ export interface Category {
   active: boolean;
   created_at: string;
   updated_at: string;
+  company_id: string;
 }
 
 export interface Product {
@@ -46,6 +50,7 @@ export interface Product {
   created_at: string;
   updated_at: string;
   ingredients?: string[];
+  company_id: string;
 }
 
 export interface Order {
@@ -64,6 +69,7 @@ export interface Order {
   customer_phone?: string;
   delivery_address?: string;
   table_number?: string;
+  company_id: string;
 }
 
 export interface OrderItem {

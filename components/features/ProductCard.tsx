@@ -3,17 +3,15 @@
  * Card per visualizzare prodotto in menu (New Design: Full Image + Gradient)
  */
 
-import { useAuth } from '@/lib/stores/AuthContext';
 import type { Product } from '@/types/database.types';
 import { FontAwesome } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useCallback } from 'react';
-import { Image, Pressable, Text, View } from 'react-native';
+import { Image, Pressable, Text, View, useWindowDimensions } from 'react-native';
 
 interface ProductCardProps {
-  product: Product;
-  onAddToCart: (productId: string) => void;
-  onEditPress?: () => void;
+  readonly product: Product;
+  readonly onAddToCart: (productId: string) => void;
+  readonly onEditPress?: () => void;
 }
 
 // Helper function to get emoji icon based on product name
@@ -41,7 +39,8 @@ function getProductIcon(product: Product): string {
 }
 
 export function ProductCard({ product, onAddToCart, onEditPress }: ProductCardProps) {
-  const { userRole, isKioskMode } = useAuth();
+  const { width } = useWindowDimensions();
+  const isMobile = width < 768;
 
   // Only show edit button if onEditPress is provided (which implies admin check in parent)
   const showEditButton = !!onEditPress;
@@ -51,72 +50,76 @@ export function ProductCard({ product, onAddToCart, onEditPress }: ProductCardPr
   }, [product.id, onAddToCart]);
 
   const icon = getProductIcon(product);
-  const formattedPrice = `€${product.price.toFixed(2)}`;
+  const formattedPrice = `$${product.price.toFixed(2)}`;
 
   return (
-    <View className="flex-1 rounded-2xl md:rounded-[30px] overflow-hidden bg-secondary/80 relative shadow-md">
-      {/* Background Image - Absolute */}
-      {product.image_url ? (
-        <Image
-          source={{ uri: product.image_url }}
-          className="absolute top-0 left-0 right-0 bottom-0 w-full h-full"
-          resizeMode="cover"
-        />
-      ) : (
-        <View className="absolute top-0 left-0 right-0 bottom-0 w-full h-full items-center justify-center bg-zinc-800">
-          <Text className="text-6xl md:text-8xl opacity-80">{icon}</Text>
-        </View>
-      )}
-
-      {/* Gradient Overlay */}
-      <LinearGradient
-        colors={['transparent', 'rgba(0,0,0,0.4)', 'rgba(0,0,0,0.9)']}
-        locations={[0, 0.4, 1]}
-        className="absolute top-0 left-0 right-0 bottom-0 h-full w-full"
-      />
+    <View className="flex-1 rounded-3xl overflow-hidden bg-white border border-[#ead8c7] shadow-sm relative">
+      <View className={isMobile ? 'h-[58%]' : 'h-[60%]'}>
+        {product.image_url ? (
+          <Image
+            source={{ uri: product.image_url }}
+            className="w-full h-full"
+            resizeMode="cover"
+          />
+        ) : (
+          <View className="w-full h-full items-center justify-center bg-[#f7efe3]">
+            <Text className={`${isMobile ? 'text-5xl' : 'text-6xl md:text-8xl'}`}>{icon}</Text>
+          </View>
+        )}
+      </View>
 
       {/* Admin Edit Button */}
       {showEditButton && (
         <Pressable
-          className="absolute top-3 right-3 bg-black/40 p-3 rounded-full z-20 backdrop-blur-sm active:bg-black/60"
+          className={`absolute z-20 rounded-full bg-black/45 active:bg-black/60 ${
+            isMobile ? 'top-2 right-2 p-2' : 'top-3 right-3 p-3'
+          }`}
           onPress={(e) => {
             e.stopPropagation();
             onEditPress?.();
           }}
         >
-          <FontAwesome name="pencil" size={16} color="white" />
+          <FontAwesome name="pencil" size={isMobile ? 14 : 16} color="white" />
         </Pressable>
       )}
 
-      {/* Content Container - Pushed to bottom */}
-      <View className="flex-1 justify-end p-5">
-
-        {/* Text Content */}
-        <View className="mb-3 md:mb-4">
-          <Text className="text-white font-bold text-xl md:text-2xl mb-1 md:mb-2 drop-shadow-sm leading-tight">
-            {product.name}
-          </Text>
-
-          {(product.description || product.ingredients) && (
-            <Text className="text-zinc-200 text-sm font-medium leading-5 opacity-90" numberOfLines={3}>
-              {product.description || product.ingredients?.join(', ')}
-            </Text>
-          )}
-        </View>
-
-        {/* Action Button - Pill Style */}
-        {/* Action Button - Pill Style */}
-        <Pressable
-          className="bg-white py-3 px-4 md:py-3.5 md:px-6 rounded-full items-center justify-center active:scale-95 transition-transform"
-          onPress={handleAddToCart}
-          accessibilityRole="button"
-          accessibilityLabel={`Aggiungi ${product.name} al carrello`}
+      <View className={isMobile ? 'flex-1 px-4 py-3' : 'flex-1 px-4 py-4'}>
+        <Text className="text-[11px] font-bold uppercase tracking-wide text-[#8f7068]">Classic</Text>
+        <Text
+          className={`text-gray-900 font-extrabold leading-tight ${
+            isMobile ? 'text-lg mt-0.5' : 'text-xl mt-1'
+          }`}
+          numberOfLines={1}
         >
-          <Text className="text-black font-extrabold text-sm md:text-base tracking-wide">
-            Aggiungi {formattedPrice}
-          </Text>
-        </Pressable>
+          {product.name}
+        </Text>
 
+        {(product.description || product.ingredients) && (
+          <Text
+            className={`text-gray-600 ${isMobile ? 'text-xs mt-1' : 'text-sm mt-1.5'}`}
+            numberOfLines={2}
+          >
+            {product.description || product.ingredients?.join(', ')}
+          </Text>
+        )}
+
+        <View className="mt-auto flex-row items-center justify-between">
+          <Text className={`${isMobile ? 'text-lg' : 'text-xl'} font-black text-[#d4451a]`}>
+            {formattedPrice}
+          </Text>
+          <Pressable
+            className={`bg-[#d4451a] rounded-full items-center justify-center active:opacity-90 ${
+              isMobile ? 'h-10 px-4' : 'h-11 px-5'
+            }`}
+            onPress={handleAddToCart}
+            accessibilityRole="button"
+            accessibilityLabel={`Aggiungi ${product.name} al carrello`}
+          >
+            <Text className={`text-white font-extrabold ${isMobile ? 'text-sm' : 'text-base'}`}>
+              add
+            </Text>
+          </Pressable>
+        </View>
       </View>
     </View>
   );

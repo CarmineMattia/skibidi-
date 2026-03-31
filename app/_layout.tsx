@@ -11,6 +11,7 @@ import { QueryProvider } from '@/lib/api/QueryProvider';
 import { CartProvider } from '@/lib/stores/CartContext';
 import { AuthProvider, useAuth } from '@/lib/stores/AuthContext';
 import { FiscalProvider } from '@/lib/stores/FiscalContext';
+import { TenantProvider } from '@/lib/stores/TenantContext';
 import { OfflineQueueProvider, OfflineIndicator } from '@/lib/hooks/useOfflineQueue';
 
 // Import global CSS for NativeWind
@@ -58,23 +59,28 @@ function RootLayoutNav() {
 
   return (
     <QueryProvider>
-      <FiscalProvider>
-        <OfflineQueueProvider>
-          <AuthProvider>
-            <CartProvider>
-              <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-                <AuthGuard>
-                  <Stack>
-                    <Stack.Screen name="login" options={{ headerShown: false }} />
-                    <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                    <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-                  </Stack>
-                </AuthGuard>
-              </ThemeProvider>
-            </CartProvider>
-          </AuthProvider>
-        </OfflineQueueProvider>
-      </FiscalProvider>
+      <TenantProvider>
+        <FiscalProvider>
+          <OfflineQueueProvider>
+            <AuthProvider>
+              <CartProvider>
+                <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+                  <AuthGuard>
+                    <Stack>
+                      <Stack.Screen name="login" options={{ headerShown: false }} />
+                      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                      <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+                      <Stack.Screen name="order-success" options={{ headerShown: false }} />
+                      <Stack.Screen name="order-tracking" options={{ headerShown: false }} />
+                      <Stack.Screen name="rewards" options={{ headerShown: false }} />
+                    </Stack>
+                  </AuthGuard>
+                </ThemeProvider>
+              </CartProvider>
+            </AuthProvider>
+          </OfflineQueueProvider>
+        </FiscalProvider>
+      </TenantProvider>
     </QueryProvider>
   );
 }

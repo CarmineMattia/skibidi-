@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/Button';
 import { supabase } from '@/lib/api/supabase';
+import { useTenant } from '@/lib/stores/TenantContext';
 import type { Product } from '@/types';
 import { FontAwesome } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
@@ -15,6 +16,7 @@ interface EditProductModalProps {
 
 export function EditProductModal({ visible, onClose, product }: EditProductModalProps) {
     const isEditing = !!product;
+    const { companyId } = useTenant();
 
     const [name, setName] = useState('');
     const [price, setPrice] = useState('');
@@ -113,6 +115,10 @@ export function EditProductModal({ visible, onClose, product }: EditProductModal
             Alert.alert('Errore', 'Nome e prezzo sono obbligatori');
             return;
         }
+        if (!companyId) {
+            Alert.alert('Errore', 'Tenant non risolto. Riprova tra qualche secondo.');
+            return;
+        }
 
         setIsLoading(true);
         try {
@@ -129,6 +135,7 @@ export function EditProductModal({ visible, onClose, product }: EditProductModal
                 category_id: product?.category_id || '85316818-56a5-4eed-9066-7a23341db9cb', // Use existing category or default to "Panini"
                 active: true,
                 display_order: 0,
+                company_id: companyId,
             };
 
             console.log('Saving product:', productData);
@@ -139,7 +146,8 @@ export function EditProductModal({ visible, onClose, product }: EditProductModal
                 const { error: updateError } = await supabase
                     .from('products')
                     .update(productData)
-                    .eq('id', product.id);
+                    .eq('id', product.id)
+                    .eq('company_id', companyId);
                 error = updateError;
             } else {
                 const { error: insertError } = await supabase

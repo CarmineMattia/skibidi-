@@ -13,7 +13,7 @@ import { FontAwesome } from '@expo/vector-icons';
 
 export default function OrderSuccessScreen() {
     const router = useRouter();
-    const { orderId } = useLocalSearchParams<{ orderId: string }>();
+    const { orderId, orderType } = useLocalSearchParams<{ orderId: string; orderType?: string }>();
     const [showReceipt, setShowReceipt] = useState(false);
     const scale = useSharedValue(0);
     const opacity = useSharedValue(0);
@@ -45,21 +45,33 @@ export default function OrderSuccessScreen() {
 
                 <Animated.View style={[animatedTextStyle]} className="items-center w-full">
                     <Text className="text-foreground font-extrabold text-2xl sm:text-3xl md:text-4xl mb-3 text-center">
-                        Ordine Confermato!
+                        Order Confirmed!
                     </Text>
                     <Text className="text-muted-foreground text-base sm:text-lg md:text-xl text-center mb-8 leading-relaxed">
-                        Il tuo ordine #{orderId ? orderId.slice(0, 8).toUpperCase() : 'N/A'} è in preparazione.
-                        Ritira lo scontrino.
+                        Your order #{orderId ? orderId.slice(0, 8).toUpperCase() : 'N/A'} is now in preparation.
+                        View your digital receipt below.
                     </Text>
 
                     <View className="w-full gap-3 mb-6">
                         <Pressable
+                            className="bg-[#d4451a] w-full py-4 sm:py-5 rounded-xl items-center active:opacity-90 min-h-[56px]"
+                            onPress={() =>
+                                router.push(
+                                    `/order-tracking?orderType=${encodeURIComponent(orderType || 'delivery')}&orderId=${encodeURIComponent(orderId || '')}`
+                                )
+                            }
+                        >
+                            <Text className="text-white font-bold text-base sm:text-lg">
+                                Track Order
+                            </Text>
+                        </Pressable>
+                        <Pressable
                             className="bg-blue-600 w-full py-4 sm:py-5 rounded-xl items-center active:opacity-90 flex-row justify-center min-h-[56px]"
                             onPress={() => setShowReceipt(true)}
                         >
-                            <FontAwesome name="receipt" size={20} color="white" style={{ marginRight: 8 }} />
+                            <FontAwesome name="file-text-o" size={20} color="white" style={{ marginRight: 8 }} />
                             <Text className="text-background font-bold text-base sm:text-lg">
-                                Visualizza Scontrino
+                                View Receipt
                             </Text>
                         </Pressable>
 
@@ -68,7 +80,7 @@ export default function OrderSuccessScreen() {
                             onPress={() => router.replace('/(tabs)/menu')}
                         >
                             <Text className="text-background font-bold text-lg sm:text-xl">
-                                Torna al Menu
+                                Back to Menu
                             </Text>
                         </Pressable>
                     </View>

@@ -10,9 +10,9 @@ import { useRouter } from 'expo-router';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
 interface CategoryFilterProps {
-  categories: Category[];
-  selectedCategoryId: string | null;
-  onSelectCategory: (categoryId: string | null) => void;
+  readonly categories: Category[];
+  readonly selectedCategoryId: string | null;
+  readonly onSelectCategory: (categoryId: string | null) => void;
 }
 
 // Helper function to get emoji for category
@@ -53,7 +53,7 @@ export function CategoryFilter({
   const router = useRouter();
 
   return (
-    <View className="w-[100px] bg-secondary/30 h-full border-r border-border">
+    <View className="w-[108px] bg-white h-full border-r border-orange-100">
       <ScrollView
         className="flex-1"
         contentContainerClassName="py-4 gap-4 items-center"
@@ -62,10 +62,10 @@ export function CategoryFilter({
         {/* All Categories */}
         <Pressable
           className={cn(
-            'w-20 h-20 rounded-2xl items-center justify-center border-2',
+            'w-20 h-20 rounded-2xl items-center justify-center border',
             selectedCategoryId === null
-              ? 'bg-primary border-primary shadow-md'
-              : 'bg-card border-transparent'
+              ? 'bg-orange-500 border-orange-500 shadow-md'
+              : 'bg-orange-50 border-orange-100'
           )}
           onPress={() => onSelectCategory(null)}
         >
@@ -74,8 +74,8 @@ export function CategoryFilter({
             className={cn(
               'text-xs font-bold text-center',
               selectedCategoryId === null
-                ? 'text-primary-foreground'
-                : 'text-muted-foreground'
+                ? 'text-white'
+                : 'text-orange-700'
             )}
           >
             Tutti
@@ -91,10 +91,10 @@ export function CategoryFilter({
             <Pressable
               key={category.id}
               className={cn(
-                'w-20 h-20 rounded-2xl items-center justify-center border-2',
+                'w-20 h-20 rounded-2xl items-center justify-center border',
                 isSelected
-                  ? 'bg-primary border-primary shadow-md'
-                  : 'bg-card border-transparent'
+                  ? 'bg-orange-500 border-orange-500 shadow-md'
+                  : 'bg-orange-50 border-orange-100'
               )}
               onPress={() => onSelectCategory(category.id)}
             >
@@ -103,8 +103,8 @@ export function CategoryFilter({
                 className={cn(
                   'text-xs font-bold text-center px-1',
                   isSelected
-                    ? 'text-primary-foreground'
-                    : 'text-muted-foreground'
+                    ? 'text-white'
+                    : 'text-orange-700'
                 )}
                 numberOfLines={1}
               >
@@ -117,13 +117,13 @@ export function CategoryFilter({
 
       {/* Login/Register Button for Guest Users */}
       {!isAuthenticated && (
-        <View className="p-3 border-t border-border bg-card">
+        <View className="p-3 border-t border-orange-100 bg-white">
           <Pressable
-            className="bg-primary rounded-xl py-3 px-2 active:opacity-80"
+            className="bg-orange-500 rounded-xl py-3 px-2 active:opacity-80"
             onPress={() => router.push('/login')}
           >
             <Text className="text-2xl text-center mb-1">👤</Text>
-            <Text className="text-primary-foreground font-bold text-xs text-center leading-tight">
+            <Text className="text-white font-bold text-xs text-center leading-tight">
               Accedi o{'\n'}Registrati
             </Text>
           </Pressable>
@@ -132,9 +132,9 @@ export function CategoryFilter({
 
       {/* User Info & Logout for Authenticated Users */}
       {isAuthenticated && (
-        <View className="p-3 border-t border-border bg-card gap-2">
+        <View className="p-3 border-t border-orange-100 bg-white gap-2">
           <View className="items-center">
-            <View className="w-12 h-12 rounded-full bg-primary items-center justify-center mb-2">
+            <View className="w-12 h-12 rounded-full bg-orange-100 items-center justify-center mb-2">
               <Text className="text-2xl">
                 {profile?.full_name ? profile.full_name.charAt(0).toUpperCase() : '👤'}
               </Text>

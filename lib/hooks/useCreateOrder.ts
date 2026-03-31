@@ -5,6 +5,7 @@
 
 import { supabase } from '@/lib/api/supabase';
 import type { CartItem } from '@/lib/stores/CartContext';
+import { useTenant } from '@/lib/stores/TenantContext';
 import type { Database } from '@/types/database.types';
 import type { FiscalOrderData, FiscalProviderResult, PaymentMethod } from '@/types/fiscal.types';
 import { getFiscalService } from '@/lib/fiscal/FiscalService';
@@ -68,6 +69,7 @@ function calculateVatCents(items: CartItem[]): number {
 export function useCreateOrder() {
   const queryClient = useQueryClient();
   const fiscalService = getFiscalService();
+  const { companyId } = useTenant();
 
   return useMutation({
     mutationFn: async ({
@@ -102,6 +104,7 @@ export function useCreateOrder() {
         customer_phone: customerPhone,
         delivery_address: deliveryAddress,
         table_number: tableNumber,
+        company_id: companyId!,
       };
 
       const { data: order, error: orderError } = await supabase
