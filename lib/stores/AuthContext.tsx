@@ -45,7 +45,13 @@ interface AuthContextType {
 
   // Auth actions
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, fullName?: string, role?: UserRole) => Promise<void>;
+  signUp: (
+    email: string,
+    password: string,
+    fullName?: string,
+    role?: UserRole
+  ) => Promise<{ requiresEmailConfirmation: boolean; email: string }>;
+  resendConfirmationEmail: (email: string) => Promise<void>;
   signOut: () => Promise<void>;
 
   // Mode switching
@@ -179,7 +185,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, role, email, full_name, phone, address, created_at, updated_at')
+        .select('id, role, email, full_name, created_at, updated_at, company_id')
         .eq('id', user.id)
         .maybeSingle(); // Use maybeSingle to avoid error on no rows
 
@@ -195,10 +201,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
           role: data.role as UserRole,
           email: data.email || undefined,
           full_name: data.full_name || undefined,
-          phone: data.phone || undefined,
-          address: data.address || undefined,
+          // phone/address are optional and may not exist in every DB migration state
+          phone: undefined,
+          address: undefined,
           created_at: data.created_at,
           updated_at: data.updated_at,
+          company_id: data.company_id ?? undefined,
         };
         setProfile(profileData);
         setUserRole(profileData.role);
@@ -294,6 +302,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
         // Don't throw - profile might already exist from trigger
       }
     }
+
+    return {
+      // Supabase returns null session when email confirmation is required
+      requiresEmailConfirmation: !!authData.user && !authData.session,
+      email,
+    };
   };
 
   const signOut = async () => {
@@ -307,6 +321,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setIsGuest(false);
     saveGuestFlag(false);
     saveKioskFlag(true);
+  };
+
+  const resendConfirmationEmail = async (email: string) => {
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email,
+    });
+
+    if (error) throw error;
   };
 
   const enterKioskMode = () => {
@@ -376,6 +399,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     isCustomer: userRole === 'customer',
     signIn,
     signUp,
+    resendConfirmationEmail,
     signOut,
     enterKioskMode,
     exitKioskMode,

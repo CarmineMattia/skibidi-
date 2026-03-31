@@ -9,7 +9,7 @@ import type { UserRole } from '@/types';
 import { FontAwesome } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, Pressable, Text, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Linking, Platform, Pressable, Text, TextInput, View } from 'react-native';
 
 type AuthMode = 'login' | 'signup';
 
@@ -35,18 +35,22 @@ export default function LoginScreen() {
   const [fullName, setFullName] = useState('');
   const [selectedRole, setSelectedRole] = useState<UserRole>('customer');
   const [isLoading, setIsLoading] = useState(false);
+  const [isResendingConfirmation, setIsResendingConfirmation] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [pendingConfirmationEmail, setPendingConfirmationEmail] = useState<string | null>(null);
 
   const emailInputRef = useRef<TextInput>(null);
   const passwordInputRef = useRef<TextInput>(null);
 
-  const { signIn, signUp, enterGuestMode } = useAuth();
+  const { signIn, signUp, resendConfirmationEmail, enterGuestMode } = useAuth();
   const router = useRouter();
 
   const handleSubmit = async () => {
     setErrorMessage(null);
+    setSuccessMessage(null);
 
     // Validation
     if (!email.trim() || !password.trim()) {
@@ -79,12 +83,19 @@ export default function LoginScreen() {
         await signIn(email.trim(), password);
         router.replace('/(tabs)/menu');
       } else {
-        await signUp(email.trim(), password, fullName.trim(), selectedRole);
-        Alert.alert(
-          'Registrazione completata',
-          'Controlla la tua email per confermare l\'account',
-          [{ text: 'OK', onPress: () => setMode('login') }]
-        );
+        const signUpResult = await signUp(email.trim(), password, fullName.trim(), selectedRole);
+
+        if (signUpResult.requiresEmailConfirmation) {
+          setMode('login');
+          setPassword('');
+          setPendingConfirmationEmail(signUpResult.email);
+          setSuccessMessage(
+            `Ti abbiamo inviato un'email di conferma a ${signUpResult.email}. Conferma l'account e poi effettua il login.`
+          );
+        } else {
+          // In case autoconfirm is enabled in Supabase settings.
+          router.replace('/(tabs)/menu');
+        }
       }
     } catch (error: any) {
       console.error('Auth error:', error);
@@ -133,6 +144,43 @@ export default function LoginScreen() {
       setErrorMessage(displayError);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleResendConfirmation = async () => {
+    if (!pendingConfirmationEmail) {
+      setErrorMessage('Nessuna email da riconfermare. Effettua prima la registrazione.');
+      return;
+    }
+
+    setErrorMessage(null);
+    setIsResendingConfirmation(true);
+    try {
+      await resendConfirmationEmail(pendingConfirmationEmail);
+      setSuccessMessage(
+        `Email di conferma reinviata a ${pendingConfirmationEmail}. Controlla anche la cartella spam.`
+      );
+    } catch (error: any) {
+      let message = 'Impossibile reinviare l\'email di conferma. Riprova.';
+      if (error?.message) {
+        message = error.message;
+      }
+      setErrorMessage(message);
+    } finally {
+      setIsResendingConfirmation(false);
+    }
+  };
+
+  const openWebmail = async (url: string) => {
+    try {
+      const canOpen = await Linking.canOpenURL(url);
+      if (!canOpen) {
+        setErrorMessage('Impossibile aprire il link della webmail.');
+        return;
+      }
+      await Linking.openURL(url);
+    } catch {
+      setErrorMessage('Impossibile aprire il link della webmail.');
     }
   };
 
@@ -191,6 +239,46 @@ export default function LoginScreen() {
           <Text className="text-card-foreground font-semibold text-xl mb-6">
             {mode === 'login' ? 'Accedi' : 'Crea Account'}
           </Text>
+
+          {/* Success Message */}
+          {successMessage && (
+            <View className="bg-emerald-50 border border-emerald-200 p-3 rounded-lg mb-4 gap-2">
+              <View className="flex-row items-center gap-2">
+                <FontAwesome name="check-circle" size={16} color="#059669" />
+                <Text className="text-emerald-700 text-sm font-medium flex-1">
+                  {successMessage}
+                </Text>
+              </View>
+
+              {Platform.OS === 'web' && pendingConfirmationEmail && (
+                <View className="flex-row items-center gap-2">
+                  <Pressable
+                    className="px-2.5 py-1 rounded-md border border-emerald-300 bg-white/70"
+                    onPress={() => openWebmail('https://mail.google.com')}
+                  >
+                    <Text className="text-emerald-800 text-xs font-semibold">Apri Gmail</Text>
+                  </Pressable>
+                  <Pressable
+                    className="px-2.5 py-1 rounded-md border border-emerald-300 bg-white/70"
+                    onPress={() => openWebmail('https://outlook.live.com/mail/0/')}
+                  >
+                    <Text className="text-emerald-800 text-xs font-semibold">Apri Outlook</Text>
+                  </Pressable>
+                </View>
+              )}
+            </View>
+          )}
+
+          {pendingConfirmationEmail && mode === 'login' && (
+            <Button
+              title={isResendingConfirmation ? 'Invio in corso...' : 'Reinvia email di conferma'}
+              variant="outline"
+              size="sm"
+              onPress={handleResendConfirmation}
+              className="mb-4"
+              disabled={isLoading || isResendingConfirmation}
+            />
+          )}
 
           {/* Error Message */}
           {errorMessage && (
