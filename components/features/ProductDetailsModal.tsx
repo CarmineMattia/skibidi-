@@ -72,9 +72,9 @@ export function ProductDetailsModal({ visible, onClose, product }: ProductDetail
 
     const getStatusIcon = (status: string) => {
         switch (status) {
-            case 'no': return '🚫';
-            case 'extra': return '➕';
-            default: return '✅';
+            case 'no': return 'ban';
+            case 'extra': return 'plus-circle';
+            default: return 'check-circle';
         }
     };
 
@@ -98,7 +98,7 @@ export function ProductDetailsModal({ visible, onClose, product }: ProductDetail
                             />
                         ) : (
                             <View className="w-full h-full items-center justify-center bg-secondary/30">
-                                <Text className="text-6xl">🍔</Text>
+                                <FontAwesome name="cutlery" size={44} color="#9ca3af" />
                             </View>
                         )}
                         <Pressable
@@ -174,9 +174,12 @@ export function ProductDetailsModal({ visible, onClose, product }: ProductDetail
 
                                                     <View className="w-24 items-center">
                                                         {status !== 'standard' && (
-                                                            <Text className="text-sm font-bold">
-                                                                {getStatusIcon(status)} {status === 'no' ? 'No' : 'Extra'}
-                                                            </Text>
+                                                            <View className="flex-row items-center gap-1">
+                                                                <FontAwesome name={getStatusIcon(status) as any} size={12} color={status === 'no' ? '#dc2626' : '#ea580c'} />
+                                                                <Text className="text-sm font-bold">
+                                                                    {status === 'no' ? 'No' : 'Extra'}
+                                                                </Text>
+                                                            </View>
                                                         )}
                                                     </View>
 

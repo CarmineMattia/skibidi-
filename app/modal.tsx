@@ -2,12 +2,13 @@ import { Button } from '@/components/ui/Button';
 import { useCreateOrder } from '@/lib/hooks/useCreateOrder';
 import { useOfflineQueue } from '@/lib/hooks/useOfflineQueue';
 import { useAuth } from '@/lib/stores/AuthContext';
+import { useAppSettings } from '@/lib/stores/AppSettingsContext';
 import { useCart } from '@/lib/stores/CartContext';
 import type { PaymentProvider } from '@/lib/hooks/usePayment';
 import { FontAwesome } from '@expo/vector-icons';
 import { useRouter, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Alert, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 
 type OrderType = 'eat_in' | 'take_away' | 'delivery';
@@ -16,6 +17,7 @@ type CheckoutStep = 'type' | 'details' | 'payment' | 'processing' | 'success';
 export default function CheckoutScreen() {
   const { items, totalAmount, clearCart } = useCart();
   const { profile, isAuthenticated, isGuest } = useAuth();
+  const { language, deliveryFee } = useAppSettings();
   const { addToQueue, isOnline } = useOfflineQueue();
   const router = useRouter();
   const createOrder = useCreateOrder();
@@ -26,6 +28,120 @@ export default function CheckoutScreen() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [confirmedOrderId, setConfirmedOrderId] = useState<string | null>(null);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+
+  const i18n = useMemo(
+    () =>
+      language === 'en'
+        ? {
+            reviewTitle: 'Review your order',
+            reviewSubtitle: 'Final step before payment.',
+            dineInTitle: 'Dine in',
+            dineInSubtitle: 'Table service',
+            takeawayTitle: 'Take away',
+            takeawaySubtitle: 'Pickup in store',
+            deliveryTitle: 'Delivery',
+            deliverySubtitle: `Home delivery (+€${deliveryFee.toFixed(2)})`,
+            detailsTitle: 'Your details',
+            paymentTitle: 'Payment',
+            nameLabelOptional: 'Name (optional)',
+            nameLabelRequired: 'Name *',
+            tableLabel: 'Table number *',
+            phoneLabel: 'Phone *',
+            addressLabel: 'Address *',
+            namePlaceholder: 'Your name',
+            tablePlaceholder: 'e.g. 5',
+            phonePlaceholder: 'Your phone number',
+            addressPlaceholder: 'Street, number, city',
+            summaryTitle: 'Order summary',
+            table: 'Table',
+            pickup: 'Take away',
+            delivery: 'Delivery',
+            subtotal: 'Subtotal',
+            deliveryFee: 'Delivery fee',
+            total: 'Total',
+            paymentMethod: 'Payment method',
+            card: 'Credit card',
+            cardSubtitle: 'Visa, Mastercard, Amex',
+            terminal: 'POS at counter',
+            terminalSubtitle: 'Physical terminal',
+            cash: 'Cash',
+            cashSubtitle: 'Pay at counter',
+            cashDeliverySubtitle: 'Pay on delivery',
+            confirmOrder: 'Confirm order',
+            saveOrder: 'Save order',
+            back: 'Back',
+            continue: 'Continue',
+            orderConfirmed: 'Order confirmed',
+            openSummary: 'Open order summary',
+            orderSaved: 'Order saved',
+            orderSavedSubtitle: 'Your order will sync when connection is back.',
+            missingFields: 'Missing fields',
+            missingFieldsSubtitle: 'Please complete all required fields highlighted in red.',
+            cannotCreateOrder: 'Unable to create order now. Please try again.',
+            offline: 'Offline',
+            offlineOrderSaved: 'Order saved locally',
+          }
+        : {
+            reviewTitle: 'Riepilogo ordine',
+            reviewSubtitle: 'Ultimo passaggio prima del pagamento.',
+            dineInTitle: 'Mangio qui',
+            dineInSubtitle: 'Servizio al tavolo',
+            takeawayTitle: 'Da asporto',
+            takeawaySubtitle: 'Ritiro in negozio',
+            deliveryTitle: 'Delivery',
+            deliverySubtitle: `A domicilio (+€${deliveryFee.toFixed(2)})`,
+            detailsTitle: 'I tuoi dati',
+            paymentTitle: 'Pagamento',
+            nameLabelOptional: 'Nome (opzionale)',
+            nameLabelRequired: 'Nome *',
+            tableLabel: 'Numero tavolo *',
+            phoneLabel: 'Telefono *',
+            addressLabel: 'Indirizzo *',
+            namePlaceholder: 'Il tuo nome',
+            tablePlaceholder: 'Es: 5',
+            phonePlaceholder: 'Il tuo numero',
+            addressPlaceholder: 'Via, civico, citta',
+            summaryTitle: 'Riepilogo ordine',
+            table: 'Tavolo',
+            pickup: 'Asporto',
+            delivery: 'Consegna',
+            subtotal: 'Subtotale',
+            deliveryFee: 'Costo consegna',
+            total: 'Totale',
+            paymentMethod: 'Metodo di pagamento',
+            card: 'Carta di credito',
+            cardSubtitle: 'Visa, Mastercard, Amex',
+            terminal: 'POS in cassa',
+            terminalSubtitle: 'Terminale fisico',
+            cash: 'Contanti',
+            cashSubtitle: 'Paga alla cassa',
+            cashDeliverySubtitle: 'Paga alla consegna',
+            confirmOrder: 'Conferma ordine',
+            saveOrder: 'Salva ordine',
+            back: 'Indietro',
+            continue: 'Continua',
+            orderConfirmed: 'Ordine confermato',
+            openSummary: 'Vai al riepilogo ordine',
+            orderSaved: 'Ordine salvato',
+            orderSavedSubtitle: 'Il tuo ordine verra inviato quando la connessione sara ripristinata.',
+            missingFields: 'Campi mancanti',
+            missingFieldsSubtitle: 'Compila tutti i campi obbligatori evidenziati in rosso.',
+            cannotCreateOrder: "Impossibile creare l'ordine. Riprova tra poco.",
+            offline: 'Offline',
+            offlineOrderSaved: 'Ordine salvato in locale',
+          },
+    [language, deliveryFee]
+  );
+
+  const appliedDeliveryFee = orderType === 'delivery' ? deliveryFee : 0;
+  const checkoutTotal = totalAmount + appliedDeliveryFee;
+  const isDelivery = orderType === 'delivery';
+
+  useEffect(() => {
+    if (isDelivery && paymentProvider === 'terminal') {
+      setPaymentProvider('stripe');
+    }
+  }, [isDelivery, paymentProvider]);
 
   // Customer Details
   const [name, setName] = useState('');
@@ -82,8 +198,8 @@ export default function CheckoutScreen() {
       if (hasError) {
         setErrors(newErrors);
         Alert.alert(
-          '⚠️ Campi Mancanti',
-          'Per favore compila tutti i campi obbligatori evidenziati in rosso.',
+          i18n.missingFields,
+          i18n.missingFieldsSubtitle,
           [{ text: 'OK' }]
         );
         return;
@@ -109,7 +225,7 @@ export default function CheckoutScreen() {
       if (!isOnline) {
         await addToQueue({
           items,
-          notes: `Metodo di pagamento: ${paymentProvider}`,
+          notes: `Metodo di pagamento: ${paymentProvider}${appliedDeliveryFee > 0 ? ` | Delivery fee: €${appliedDeliveryFee.toFixed(2)}` : ''}`,
           orderType,
           customerName: name,
           customerPhone: phone,
@@ -120,8 +236,8 @@ export default function CheckoutScreen() {
 
         clearCart();
         Alert.alert(
-          'Ordine salvato',
-          'Il tuo ordine è stato salvato e verrà inviato quando la connessione sarà ripristinata.',
+          i18n.orderSaved,
+          i18n.orderSavedSubtitle,
           [{ text: 'OK', onPress: () => router.replace('/') }]
         );
         return;
@@ -129,7 +245,7 @@ export default function CheckoutScreen() {
 
       const result = await createOrder.mutateAsync({
         items,
-        notes: `Metodo di pagamento: ${paymentProvider}`,
+        notes: `Metodo di pagamento: ${paymentProvider}${appliedDeliveryFee > 0 ? ` | Delivery fee: €${appliedDeliveryFee.toFixed(2)}` : ''}`,
         orderType,
         customerName: name,
         customerPhone: phone,
@@ -156,7 +272,7 @@ export default function CheckoutScreen() {
       } else {
         Alert.alert(
           'Errore',
-          'Impossibile creare l\'ordine. Riprova tra poco.',
+          i18n.cannotCreateOrder,
           [{ text: 'OK' }]
         );
       }
@@ -167,9 +283,9 @@ export default function CheckoutScreen() {
   const renderOrderTypeSelection = () => (
     <ScrollView className="flex-1" contentContainerClassName="p-6">
       <View className="flex-1 justify-center">
-        <Text className="text-2xl font-black text-center mb-2">Review Your Order</Text>
+        <Text className="text-2xl font-black text-center mb-2">{i18n.reviewTitle}</Text>
         <Text className="text-sm text-gray-600 text-center mb-8">
-          Finishing up your artisanal experience.
+          {i18n.reviewSubtitle}
         </Text>
 
         <View className="gap-4 mb-6">
@@ -180,9 +296,9 @@ export default function CheckoutScreen() {
             }`}
             onPress={() => setOrderType('eat_in')}
           >
-            <Text className="text-5xl">🍽️</Text>
-            <Text className="text-lg font-bold text-center">Mangio Qui</Text>
-            <Text className="text-muted-foreground text-sm text-center">Al tavolo, servizio completo</Text>
+            <FontAwesome name="cutlery" size={28} color={orderType === 'eat_in' ? '#d4451a' : '#6b7280'} />
+            <Text className="text-lg font-bold text-center">{i18n.dineInTitle}</Text>
+            <Text className="text-muted-foreground text-sm text-center">{i18n.dineInSubtitle}</Text>
           </Pressable>
 
           {/* Da Asporto */}
@@ -192,9 +308,9 @@ export default function CheckoutScreen() {
             }`}
             onPress={() => setOrderType('take_away')}
           >
-            <Text className="text-5xl">🛍️</Text>
-            <Text className="text-lg font-bold text-center">Da Asporto</Text>
-            <Text className="text-muted-foreground text-sm text-center">Ritira in negozio</Text>
+            <FontAwesome name="shopping-bag" size={28} color={orderType === 'take_away' ? '#d4451a' : '#6b7280'} />
+            <Text className="text-lg font-bold text-center">{i18n.takeawayTitle}</Text>
+            <Text className="text-muted-foreground text-sm text-center">{i18n.takeawaySubtitle}</Text>
           </Pressable>
 
           {/* Delivery */}
@@ -204,14 +320,14 @@ export default function CheckoutScreen() {
             }`}
             onPress={() => setOrderType('delivery')}
           >
-            <Text className="text-5xl">🛵</Text>
-            <Text className="text-lg font-bold text-center">Delivery</Text>
-            <Text className="text-muted-foreground text-sm text-center">A domicilio (+€2)</Text>
+            <FontAwesome name="motorcycle" size={28} color={orderType === 'delivery' ? '#d4451a' : '#6b7280'} />
+            <Text className="text-lg font-bold text-center">{i18n.deliveryTitle}</Text>
+            <Text className="text-muted-foreground text-sm text-center">{i18n.deliverySubtitle}</Text>
           </Pressable>
         </View>
 
         <Button
-          title="Continua"
+          title={i18n.continue}
           onPress={handleNextStep}
           size="lg"
         />
@@ -222,24 +338,25 @@ export default function CheckoutScreen() {
   const renderDetailsForm = () => (
     <ScrollView className="flex-1" contentContainerClassName="p-6">
       <View className="flex-1 justify-center gap-4">
-        <Text className="text-2xl font-bold text-center mb-2">I Tuoi Dati</Text>
+        <Text className="text-2xl font-bold text-center mb-2">{i18n.detailsTitle}</Text>
 
         {/* Nome */}
         <View>
-          <Text className="text-sm font-medium mb-2">{orderType === 'eat_in' ? 'Nome (Opzionale)' : 'Nome *'}</Text>
+          <Text className="text-sm font-medium mb-2">
+            {orderType === 'eat_in' ? i18n.nameLabelOptional : i18n.nameLabelRequired}
+          </Text>
           <TextInput
             className={`bg-background border rounded-xl px-4 py-3 text-base min-h-[56px] ${
               errors.name ? 'border-red-500 bg-red-50' : 'border-border'
             }`}
-            placeholder="Il tuo nome"
+            placeholder={i18n.namePlaceholder}
             value={name}
             onChangeText={setName}
             autoCapitalize="words"
           />
           {errors.name && (
-            <Text className="text-red-500 text-xs mt-1 flex-row items-center gap-1">
-              <Text>⚠️</Text>
-              <Text>{errors.name}</Text>
+            <Text className="text-red-500 text-xs mt-1">
+              {errors.name}
             </Text>
           )}
         </View>
@@ -247,21 +364,20 @@ export default function CheckoutScreen() {
         {/* Tavolo */}
         {orderType === 'eat_in' && (
           <View>
-            <Text className="text-sm font-medium mb-2">Numero Tavolo *</Text>
+            <Text className="text-sm font-medium mb-2">{i18n.tableLabel}</Text>
             <TextInput
               className={`bg-background border rounded-xl px-4 py-3 text-base min-h-[56px] ${
                 errors.tableNumber ? 'border-red-500 bg-red-50' : 'border-border'
               }`}
-              placeholder="Es: 5"
+              placeholder={i18n.tablePlaceholder}
               keyboardType="number-pad"
               value={tableNumber}
               onChangeText={(text) => setTableNumber(text.replaceAll(/\D/g, ''))}
               maxLength={3}
             />
             {errors.tableNumber && (
-              <Text className="text-red-500 text-xs mt-1 flex-row items-center gap-1">
-                <Text>⚠️</Text>
-                <Text>{errors.tableNumber}</Text>
+              <Text className="text-red-500 text-xs mt-1">
+                {errors.tableNumber}
               </Text>
             )}
           </View>
@@ -270,20 +386,19 @@ export default function CheckoutScreen() {
         {/* Telefono */}
         {(orderType === 'take_away' || orderType === 'delivery') && (
           <View>
-            <Text className="text-sm font-medium mb-2">Telefono *</Text>
+            <Text className="text-sm font-medium mb-2">{i18n.phoneLabel}</Text>
             <TextInput
               className={`bg-background border rounded-xl px-4 py-3 text-base min-h-[56px] ${
                 errors.phone ? 'border-red-500 bg-red-50' : 'border-border'
               }`}
-              placeholder="Il tuo numero"
+              placeholder={i18n.phonePlaceholder}
               keyboardType="phone-pad"
               value={phone}
               onChangeText={setPhone}
             />
             {errors.phone && (
-              <Text className="text-red-500 text-xs mt-1 flex-row items-center gap-1">
-                <Text>⚠️</Text>
-                <Text>{errors.phone}</Text>
+              <Text className="text-red-500 text-xs mt-1">
+                {errors.phone}
               </Text>
             )}
           </View>
@@ -292,20 +407,19 @@ export default function CheckoutScreen() {
         {/* Indirizzo */}
         {orderType === 'delivery' && (
           <View>
-            <Text className="text-sm font-medium mb-2">Indirizzo *</Text>
+            <Text className="text-sm font-medium mb-2">{i18n.addressLabel}</Text>
             <TextInput
               className={`bg-background border rounded-xl px-4 py-3 text-base min-h-[80px] ${
                 errors.address ? 'border-red-500 bg-red-50' : 'border-border'
               }`}
-              placeholder="Via, Civico, Città"
+              placeholder={i18n.addressPlaceholder}
               multiline
               value={address}
               onChangeText={setAddress}
             />
             {errors.address && (
-              <Text className="text-red-500 text-xs mt-1 flex-row items-center gap-1">
-                <Text>⚠️</Text>
-                <Text>{errors.address}</Text>
+              <Text className="text-red-500 text-xs mt-1">
+                {errors.address}
               </Text>
             )}
           </View>
@@ -314,14 +428,14 @@ export default function CheckoutScreen() {
         {/* Buttons */}
         <View className="flex-row gap-3 mt-4">
           <Button
-            title="Indietro"
+            title={i18n.back}
             variant="outline"
             onPress={handleBackStep}
             className="flex-1"
             size="lg"
           />
           <Button
-            title="Continua"
+            title={i18n.continue}
             onPress={handleNextStep}
             className="flex-1"
             size="lg"
@@ -336,16 +450,16 @@ export default function CheckoutScreen() {
       {/* Order Summary - MOBILE OPTIMIZED (no sidebar) */}
       <View className="bg-card rounded-xl p-4 mb-4 border border-orange-100">
         <Text className="text-base font-extrabold mb-3">
-          Order Summary ({orderType === 'eat_in' ? 'Tavolo' : orderType === 'take_away' ? 'Asporto' : 'Consegna'})
+          {i18n.summaryTitle} ({orderType === 'eat_in' ? i18n.table : orderType === 'take_away' ? i18n.pickup : i18n.delivery})
         </Text>
 
         {/* Offline indicator - Compact */}
         {!isOnline && (
           <View className="bg-amber-100 border border-amber-300 rounded-lg p-3 mb-3 flex-row items-center gap-2">
-            <Text className="text-xl">📡</Text>
+            <FontAwesome name="wifi" size={18} color="#92400e" />
             <View>
-              <Text className="font-bold text-amber-800 text-sm">Offline</Text>
-              <Text className="text-amber-700 text-xs">Ordine salvato in locale</Text>
+              <Text className="font-bold text-amber-800 text-sm">{i18n.offline}</Text>
+              <Text className="text-amber-700 text-xs">{i18n.offlineOrderSaved}</Text>
             </View>
           </View>
         )}
@@ -358,21 +472,35 @@ export default function CheckoutScreen() {
                 <Text className="text-sm font-medium" numberOfLines={1}>{item.product.name}</Text>
                 <Text className="text-xs text-muted-foreground">x{item.quantity}</Text>
               </View>
-              <Text className="text-sm font-bold">${(item.product.price * item.quantity).toFixed(2)}</Text>
+              <Text className="text-sm font-bold">€{(item.product.price * item.quantity).toFixed(2)}</Text>
             </View>
           ))}
         </View>
 
+        {/* Totals */}
+        <View className="pt-3 border-t border-border gap-2">
+          <View className="flex-row justify-between items-center">
+            <Text className="text-sm text-gray-600">{i18n.subtotal}</Text>
+            <Text className="text-sm font-bold text-gray-900">€{totalAmount.toFixed(2)}</Text>
+          </View>
+          {appliedDeliveryFee > 0 && (
+            <View className="flex-row justify-between items-center">
+              <Text className="text-sm text-gray-600">{i18n.deliveryFee}</Text>
+              <Text className="text-sm font-bold text-gray-900">€{appliedDeliveryFee.toFixed(2)}</Text>
+            </View>
+          )}
+        </View>
+
         {/* Total */}
         <View className="flex-row justify-between items-center pt-3 border-t border-border">
-          <Text className="text-base font-bold">Totale</Text>
-          <Text className="text-2xl font-bold text-primary">${totalAmount.toFixed(2)}</Text>
+          <Text className="text-base font-bold">{i18n.total}</Text>
+          <Text className="text-2xl font-bold text-primary">€{checkoutTotal.toFixed(2)}</Text>
         </View>
       </View>
 
       {orderType === 'delivery' && (
         <View className="bg-card rounded-xl p-4 mb-4 border border-orange-100">
-          <Text className="text-base font-extrabold mb-2">Delivery Destination</Text>
+          <Text className="text-base font-extrabold mb-2">{language === 'en' ? 'Delivery destination' : 'Indirizzo di consegna'}</Text>
           <View className="bg-orange-50 border border-orange-200 rounded-xl p-3">
             <Text className="text-sm font-bold text-gray-900">
               {name || 'The Greenwich Loft'}
@@ -386,7 +514,7 @@ export default function CheckoutScreen() {
 
       {/* Payment Methods */}
       <View className="mb-4">
-        <Text className="text-lg font-bold mb-3">Metodo di Pagamento</Text>
+        <Text className="text-lg font-bold mb-3">{i18n.paymentMethod}</Text>
         
         <View className="gap-3">
           <Pressable
@@ -396,26 +524,28 @@ export default function CheckoutScreen() {
             onPress={() => setPaymentProvider('stripe')}
             disabled={isProcessing}
           >
-            <Text className="text-3xl">💳</Text>
+            <FontAwesome name="credit-card" size={22} color="#374151" />
             <View className="flex-1">
-              <Text className="font-bold text-base">Carta di Credito</Text>
-              <Text className="text-muted-foreground text-xs">Visa, Mastercard, Amex</Text>
+              <Text className="font-bold text-base">{i18n.card}</Text>
+              <Text className="text-muted-foreground text-xs">{i18n.cardSubtitle}</Text>
             </View>
           </Pressable>
 
-          <Pressable
-            className={`p-4 rounded-xl border-2 flex-row items-center gap-3 ${
-              paymentProvider === 'terminal' ? 'bg-orange-50 border-[#d4451a]' : 'bg-card border-border'
-            }`}
-            onPress={() => setPaymentProvider('terminal')}
-            disabled={isProcessing}
-          >
-            <Text className="text-3xl">🏪</Text>
-            <View className="flex-1">
-              <Text className="font-bold text-base">POS in Cassa</Text>
-              <Text className="text-muted-foreground text-xs">Terminale fisico</Text>
-            </View>
-          </Pressable>
+          {!isDelivery && (
+            <Pressable
+              className={`p-4 rounded-xl border-2 flex-row items-center gap-3 ${
+                paymentProvider === 'terminal' ? 'bg-orange-50 border-[#d4451a]' : 'bg-card border-border'
+              }`}
+              onPress={() => setPaymentProvider('terminal')}
+              disabled={isProcessing}
+            >
+              <FontAwesome name="building-o" size={22} color="#374151" />
+              <View className="flex-1">
+                <Text className="font-bold text-base">{i18n.terminal}</Text>
+                <Text className="text-muted-foreground text-xs">{i18n.terminalSubtitle}</Text>
+              </View>
+            </Pressable>
+          )}
 
           <Pressable
             className={`p-4 rounded-xl border-2 flex-row items-center gap-3 ${
@@ -424,10 +554,12 @@ export default function CheckoutScreen() {
             onPress={() => setPaymentProvider('cash')}
             disabled={isProcessing}
           >
-            <Text className="text-3xl">💶</Text>
+            <FontAwesome name="money" size={22} color="#374151" />
             <View className="flex-1">
-              <Text className="font-bold text-base">Contanti</Text>
-              <Text className="text-muted-foreground text-xs">Paga alla cassa</Text>
+              <Text className="font-bold text-base">{i18n.cash}</Text>
+              <Text className="text-muted-foreground text-xs">
+                {isDelivery ? i18n.cashDeliverySubtitle : i18n.cashSubtitle}
+              </Text>
             </View>
           </Pressable>
         </View>
@@ -435,14 +567,14 @@ export default function CheckoutScreen() {
         {/* Footer Buttons */}
         <View className="gap-3 mt-4">
           <Button
-            title="Indietro"
+            title={i18n.back}
             variant="outline"
             onPress={handleBackStep}
             disabled={isProcessing}
             size="lg"
           />
           <Button
-            title={isProcessing ? 'Elaborazione...' : (isOnline ? 'Conferma Ordine' : 'Salva Ordine')}
+            title={isProcessing ? '...' : (isOnline ? i18n.confirmOrder : i18n.saveOrder)}
             onPress={handlePayment}
             disabled={isProcessing}
             size="lg"
@@ -465,7 +597,7 @@ export default function CheckoutScreen() {
               <FontAwesome name="arrow-left" size={20} color="#000" />
             </Pressable>
             <Text className="text-xl font-bold flex-1 text-center">
-              {step === 'type' ? 'Review Order' : step === 'details' ? 'Delivery Destination' : 'Pagamento'}
+              {step === 'type' ? i18n.reviewTitle : step === 'details' ? i18n.detailsTitle : i18n.paymentTitle}
             </Text>
             <View className="w-10" />
           </View>
@@ -488,9 +620,13 @@ export default function CheckoutScreen() {
         >
           <View className="flex-1 bg-black/45 items-center justify-center p-6">
             <View className="w-full max-w-[360px] bg-white rounded-2xl border border-orange-100 p-5">
-              <Text className="text-3xl text-center mb-2">✅</Text>
+              <View className="items-center mb-2">
+                <View className="w-12 h-12 rounded-full bg-emerald-100 items-center justify-center">
+                  <FontAwesome name="check" size={20} color="#047857" />
+                </View>
+              </View>
               <Text className="text-xl font-extrabold text-center text-gray-900">
-                Ordine confermato
+                {i18n.orderConfirmed}
               </Text>
               <Text className="text-sm text-gray-600 text-center mt-2">
                 Il tuo ordine #{(confirmedOrderId || 'N/A').slice(0, 8).toUpperCase()} e stato ricevuto.
@@ -504,7 +640,7 @@ export default function CheckoutScreen() {
                   );
                 }}
               >
-                <Text className="text-white font-bold">Vai al riepilogo ordine</Text>
+                <Text className="text-white font-bold">{i18n.openSummary}</Text>
               </Pressable>
             </View>
           </View>

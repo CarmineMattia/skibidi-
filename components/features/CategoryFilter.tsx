@@ -6,6 +6,7 @@
 import { useAuth } from '@/lib/stores/AuthContext';
 import { cn } from '@/lib/utils/cn';
 import type { Category } from '@/types';
+import { FontAwesome } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
@@ -15,33 +16,33 @@ interface CategoryFilterProps {
   readonly onSelectCategory: (categoryId: string | null) => void;
 }
 
-// Helper function to get emoji for category
+// Helper function to get vector icon for category
 function getCategoryIcon(categoryName: string): string {
   const name = categoryName.toLowerCase();
 
   if (name.includes('panin') || name.includes('burger') || name.includes('sandwich')) {
-    return '🍔';
+    return 'square';
   }
   if (name.includes('bevand') || name.includes('drink') || name.includes('bibita')) {
-    return '🥤';
+    return 'glass';
   }
   if (name.includes('dolc') || name.includes('dessert') || name.includes('gelat')) {
-    return '🍰';
+    return 'birthday-cake';
   }
   if (name.includes('pizz')) {
-    return '🍕';
+    return 'circle';
   }
   if (name.includes('pasta') || name.includes('primi')) {
-    return '🍝';
+    return 'spoon';
   }
   if (name.includes('insalat') || name.includes('salad')) {
-    return '🥗';
+    return 'leaf';
   }
   if (name.includes('antipast') || name.includes('starter')) {
-    return '🥙';
+    return 'star-o';
   }
 
-  return '🍽️';
+  return 'cutlery';
 }
 
 export function CategoryFilter({
@@ -69,7 +70,9 @@ export function CategoryFilter({
           )}
           onPress={() => onSelectCategory(null)}
         >
-          <Text className="text-3xl mb-1">✨</Text>
+          <View className="w-8 h-8 rounded-full bg-white/70 items-center justify-center mb-1">
+            <FontAwesome name="th-large" size={13} color={selectedCategoryId === null ? '#c2410c' : '#374151'} />
+          </View>
           <Text
             className={cn(
               'text-xs font-bold text-center',
@@ -98,7 +101,9 @@ export function CategoryFilter({
               )}
               onPress={() => onSelectCategory(category.id)}
             >
-              <Text className="text-3xl mb-1">{icon}</Text>
+              <View className="w-8 h-8 rounded-full bg-white/70 items-center justify-center mb-1">
+                <FontAwesome name={icon as any} size={13} color={isSelected ? '#c2410c' : '#374151'} />
+              </View>
               <Text
                 className={cn(
                   'text-xs font-bold text-center px-1',
@@ -122,7 +127,9 @@ export function CategoryFilter({
             className="bg-orange-500 rounded-xl py-3 px-2 active:opacity-80"
             onPress={() => router.push('/login')}
           >
-            <Text className="text-2xl text-center mb-1">👤</Text>
+            <View className="items-center mb-1">
+              <FontAwesome name="user" size={16} color="#ffffff" />
+            </View>
             <Text className="text-white font-bold text-xs text-center leading-tight">
               Accedi o{'\n'}Registrati
             </Text>
@@ -135,9 +142,11 @@ export function CategoryFilter({
         <View className="p-3 border-t border-orange-100 bg-white gap-2">
           <View className="items-center">
             <View className="w-12 h-12 rounded-full bg-orange-100 items-center justify-center mb-2">
-              <Text className="text-2xl">
-                {profile?.full_name ? profile.full_name.charAt(0).toUpperCase() : '👤'}
-              </Text>
+              {profile?.full_name ? (
+                <Text className="text-2xl">{profile.full_name.charAt(0).toUpperCase()}</Text>
+              ) : (
+                <FontAwesome name="user" size={16} color="#c2410c" />
+              )}
             </View>
             <Text className="text-foreground font-semibold text-xs text-center" numberOfLines={2}>
               {profile?.full_name || 'Utente'}
@@ -158,7 +167,7 @@ export function CategoryFilter({
               }
             }}
           >
-            <Text className="text-xs">🚪</Text>
+            <FontAwesome name="sign-out" size={11} color="#dc2626" />
             <Text className="text-destructive font-bold text-xs">Esci</Text>
           </Pressable>
         </View>

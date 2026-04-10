@@ -14,28 +14,28 @@ interface ProductCardProps {
   readonly onEditPress?: () => void;
 }
 
-// Helper function to get emoji icon based on product name
+// Helper function to get icon name based on product name
 function getProductIcon(product: Product): string {
   const name = product.name.toLowerCase();
 
   // Product name-based icons
-  if (name.includes('hamburger') || name.includes('burger') || name.includes('panino')) return '🍔';
-  if (name.includes('pizza')) return '🍕';
-  if (name.includes('pasta') || name.includes('spaghetti')) return '🍝';
-  if (name.includes('insalata') || name.includes('salad')) return '🥗';
-  if (name.includes('caffe') || name.includes('coffee')) return '☕';
-  if (name.includes('acqua') || name.includes('water')) return '💧';
-  if (name.includes('coca') || name.includes('cola') || name.includes('bibita')) return '🥤';
-  if (name.includes('birra') || name.includes('beer')) return '🍺';
-  if (name.includes('vino') || name.includes('wine')) return '🍷';
-  if (name.includes('patatine') || name.includes('fries')) return '🍟';
-  if (name.includes('gelato') || name.includes('ice cream')) return '🍦';
-  if (name.includes('tiramisu')) return '🍮';
-  if (name.includes('torta') || name.includes('cake')) return '🍰';
-  if (name.includes('dolce') || name.includes('dessert')) return '🧁';
+  if (name.includes('hamburger') || name.includes('burger') || name.includes('panino')) return 'square';
+  if (name.includes('pizza')) return 'circle';
+  if (name.includes('pasta') || name.includes('spaghetti')) return 'spoon';
+  if (name.includes('insalata') || name.includes('salad')) return 'leaf';
+  if (name.includes('caffe') || name.includes('coffee')) return 'coffee';
+  if (name.includes('acqua') || name.includes('water')) return 'tint';
+  if (name.includes('coca') || name.includes('cola') || name.includes('bibita')) return 'glass';
+  if (name.includes('birra') || name.includes('beer')) return 'beer';
+  if (name.includes('vino') || name.includes('wine')) return 'glass';
+  if (name.includes('patatine') || name.includes('fries')) return 'bookmark';
+  if (name.includes('gelato') || name.includes('ice cream')) return 'snowflake-o';
+  if (name.includes('tiramisu')) return 'star-o';
+  if (name.includes('torta') || name.includes('cake')) return 'birthday-cake';
+  if (name.includes('dolce') || name.includes('dessert')) return 'heart-o';
 
   // Default icon
-  return '🍽️';
+  return 'cutlery';
 }
 
 export function ProductCard({ product, onAddToCart, onEditPress }: ProductCardProps) {
@@ -50,7 +50,7 @@ export function ProductCard({ product, onAddToCart, onEditPress }: ProductCardPr
   }, [product.id, onAddToCart]);
 
   const icon = getProductIcon(product);
-  const formattedPrice = `$${product.price.toFixed(2)}`;
+  const formattedPrice = `€${product.price.toFixed(2)}`;
 
   return (
     <View className="flex-1 rounded-3xl overflow-hidden bg-white border border-[#ead8c7] shadow-sm relative">
@@ -63,7 +63,11 @@ export function ProductCard({ product, onAddToCart, onEditPress }: ProductCardPr
           />
         ) : (
           <View className="w-full h-full items-center justify-center bg-[#f7efe3]">
-            <Text className={`${isMobile ? 'text-5xl' : 'text-6xl md:text-8xl'}`}>{icon}</Text>
+            <FontAwesome
+              name={icon as any}
+              size={isMobile ? 46 : 62}
+              color="#9ca3af"
+            />
           </View>
         )}
       </View>

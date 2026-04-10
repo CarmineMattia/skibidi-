@@ -3,10 +3,10 @@ import type { HomeRecentOrder } from '@/components/features/home/types';
 import { Pressable, Text, View } from 'react-native';
 
 interface HomeHistoryPreviewProps {
-  orders: HomeRecentOrder[];
-  onOpenAll: () => void;
-  onOpenOrder: (orderId: string) => void;
-  onReorder: (orderId: string) => void;
+  readonly orders: HomeRecentOrder[];
+  readonly onOpenAll: () => void;
+  readonly onOpenOrder: (orderId: string) => void;
+  readonly onReorder: (orderId: string) => void;
 }
 
 export function HomeHistoryPreview({
@@ -18,7 +18,10 @@ export function HomeHistoryPreview({
   return (
     <View>
       <View className="flex-row justify-between items-center mb-2">
-        <Text className="text-lg font-extrabold text-gray-900">📦 Storico Rapido</Text>
+        <View className="flex-row items-center gap-2">
+          <FontAwesome name="archive" size={14} color="#4b5563" />
+          <Text className="text-lg font-extrabold text-gray-900">Storico Rapido</Text>
+        </View>
         <Pressable onPress={onOpenAll}>
           <Text className="text-orange-600 text-xs font-bold">Tutti →</Text>
         </Pressable>

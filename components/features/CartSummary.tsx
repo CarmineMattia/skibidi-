@@ -4,6 +4,7 @@
  */
 
 import { useCart } from '@/lib/stores/CartContext';
+import { FontAwesome } from '@expo/vector-icons';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { CartItem } from './CartItem';
 
@@ -23,7 +24,7 @@ export function CartSummary({ onCheckout, isCheckingOut = false }: CartSummaryPr
       <View className="p-5 border-b border-orange-100 bg-[#fff7ed]">
         <View className="flex-row justify-between items-center">
           <View className="flex-row items-center gap-2">
-            <Text className="text-4xl">🛒</Text>
+            <FontAwesome name="shopping-cart" size={22} color="#111827" />
             <Text className="text-gray-900 font-extrabold text-2xl">
               Carrello
             </Text>
@@ -46,7 +47,7 @@ export function CartSummary({ onCheckout, isCheckingOut = false }: CartSummaryPr
       {isEmpty ? (
         <View className="flex-1 items-center justify-center p-8">
           <View className="bg-orange-50 rounded-3xl p-12 items-center border border-orange-100">
-            <Text className="text-8xl mb-4">🛒</Text>
+            <FontAwesome name="shopping-cart" size={48} color="#9ca3af" style={{ marginBottom: 14 }} />
             <Text className="text-gray-900 font-extrabold text-2xl text-center mb-2">
               Il carrello è vuoto
             </Text>
@@ -95,7 +96,7 @@ export function CartSummary({ onCheckout, isCheckingOut = false }: CartSummaryPr
                 <Text className="text-white font-extrabold text-xl">
                   {isCheckingOut ? 'Elaborazione...' : 'Procedi al Pagamento'}
                 </Text>
-                {!isCheckingOut && <Text className="text-white text-3xl">→</Text>}
+                {!isCheckingOut && <FontAwesome name="arrow-right" size={16} color="#ffffff" />}
               </View>
             </Pressable>
           </View>

@@ -42,7 +42,7 @@ export default function KitchenScreen() {
   if (error) {
     return (
       <View className="flex-1 bg-background items-center justify-center p-8">
-        <Text className="text-6xl mb-4">⚠️</Text>
+        <FontAwesome name="exclamation-triangle" size={44} color="#f59e0b" style={{ marginBottom: 12 }} />
         <Text className="text-foreground font-bold text-xl text-center mb-2">
           Errore nel caricamento
         </Text>
@@ -66,7 +66,7 @@ export default function KitchenScreen() {
         {isMobile ? (
           <View className="gap-2 mb-2">
             <View className="flex-row items-center gap-2">
-              <Text className={isUltraCompact ? 'text-xl' : 'text-2xl'}>👨‍🍳</Text>
+              <FontAwesome name="fire" size={isUltraCompact ? 16 : 18} color="#111827" />
               <Text className={`text-foreground font-extrabold tracking-tight ${isUltraCompact ? 'text-lg' : 'text-xl'}`}>
                 Cucina
               </Text>
@@ -93,7 +93,7 @@ export default function KitchenScreen() {
         ) : (
           <View className="flex-row flex-wrap items-center justify-between gap-3 mb-3">
             <View className="flex-row items-center gap-2 md:gap-3">
-              <Text className="text-3xl md:text-4xl">👨‍🍳</Text>
+              <FontAwesome name="fire" size={24} color="#111827" />
               <Text className="text-foreground font-extrabold tracking-tight text-2xl md:text-3xl">
                 Cucina
               </Text>
@@ -157,7 +157,7 @@ export default function KitchenScreen() {
         </View>
       ) : orders.length === 0 ? (
         <View className="flex-1 items-center justify-center p-8">
-          <Text className="text-8xl mb-4">✅</Text>
+          <FontAwesome name="check-circle" size={60} color="#10b981" style={{ marginBottom: 12 }} />
           <Text className="text-foreground font-extrabold text-2xl text-center mb-2">
             Nessun ordine
           </Text>

@@ -1,4 +1,5 @@
 import type { HomeTrendingPizza } from '@/components/features/home/types';
+import { FontAwesome } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useMemo } from 'react';
 import { ImageBackground, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
@@ -32,7 +33,10 @@ export function HomeTrendingSection({
   return (
     <View>
       <View className="flex-row justify-between items-center mb-3">
-        <Text className="text-2xl font-extrabold text-gray-900">{title}</Text>
+        <View className="flex-row items-center gap-2">
+          <FontAwesome name="fire" size={15} color="#ea580c" />
+          <Text className="text-2xl font-extrabold text-gray-900">{title}</Text>
+        </View>
         <Pressable onPress={onOpenAll}>
           <Text className="text-orange-600 text-sm font-bold">Vedi →</Text>
         </Pressable>
@@ -79,7 +83,7 @@ export function HomeTrendingSection({
                 </Text>
                 <View className="flex-row items-center justify-between mt-1">
                   <Text className="text-orange-300 font-extrabold text-lg">€{pizza.price.toFixed(2)}</Text>
-                  <Text className="text-xl">{pizza.image}</Text>
+                  <FontAwesome name="clock-o" size={13} color="#d4d4d8" />
                 </View>
               </LinearGradient>
             </ImageBackground>
@@ -96,7 +100,7 @@ export function HomeTrendingSection({
                     accessibilityRole="button"
                     accessibilityLabel={`Aggiungi ${pizza.name} al carrello`}
                   >
-                    <Text className="text-white text-sm font-extrabold leading-none">+</Text>
+                    <FontAwesome name="plus" size={11} color="#ffffff" />
                   </Pressable>
                 ) : (
                   <Text className="text-xs font-bold text-orange-600">Aggiungi →</Text>

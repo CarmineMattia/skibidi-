@@ -18,13 +18,13 @@ const ROLE_OPTIONS: { value: UserRole; label: string; description: string; icon:
     value: 'admin',
     label: 'Admin / Cassa',
     description: 'Accesso completo a tutte le funzionalità',
-    icon: '👨‍💼',
+    icon: 'briefcase',
   },
   {
     value: 'customer',
     label: 'Cliente',
     description: 'Visualizza menu e ordini personali',
-    icon: '👤',
+    icon: 'user',
   },
 ];
 
@@ -197,7 +197,9 @@ export default function LoginScreen() {
       <View className="flex-1 justify-center px-8">
         {/* Logo/Title */}
         <View className="items-center mb-8">
-          <Text className="text-6xl mb-3">🍟</Text>
+          <View className="w-16 h-16 rounded-full bg-orange-100 border border-orange-200 items-center justify-center mb-3">
+            <FontAwesome name="cutlery" size={28} color="#c2410c" />
+          </View>
           <Text className="text-foreground font-bold text-4xl mb-2">
             SKIBIDI ORDERS
           </Text>
@@ -375,7 +377,9 @@ export default function LoginScreen() {
                     disabled={isLoading}
                   >
                     <View className="flex-row items-center gap-3">
-                      <Text className="text-2xl">{option.icon}</Text>
+                      <View className="w-8 h-8 rounded-full bg-orange-100 items-center justify-center">
+                        <FontAwesome name={option.icon as any} size={14} color="#c2410c" />
+                      </View>
                       <View className="flex-1">
                         <Text
                           className={`font-bold text-base ${selectedRole === option.value
@@ -430,7 +434,7 @@ export default function LoginScreen() {
         >
           <View className="items-center">
             <View className="flex-row items-center gap-2 mb-1">
-              <Text className="text-2xl">👤</Text>
+              <FontAwesome name="user-o" size={18} color="#4b5563" />
               <Text className="text-foreground font-semibold text-lg">
                 Entra come ospite
               </Text>

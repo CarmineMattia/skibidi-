@@ -9,6 +9,7 @@ import 'react-native-reanimated';
 import { useColorScheme } from '@/components/useColorScheme';
 import { QueryProvider } from '@/lib/api/QueryProvider';
 import { CartProvider } from '@/lib/stores/CartContext';
+import { AppSettingsProvider } from '@/lib/stores/AppSettingsContext';
 import { AuthProvider, useAuth } from '@/lib/stores/AuthContext';
 import { FiscalProvider } from '@/lib/stores/FiscalContext';
 import { TenantProvider } from '@/lib/stores/TenantContext';
@@ -59,28 +60,30 @@ function RootLayoutNav() {
 
   return (
     <QueryProvider>
-      <TenantProvider>
-        <FiscalProvider>
-          <OfflineQueueProvider>
-            <AuthProvider>
-              <CartProvider>
-                <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-                  <AuthGuard>
-                    <Stack>
-                      <Stack.Screen name="login" options={{ headerShown: false }} />
-                      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                      <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-                      <Stack.Screen name="order-success" options={{ headerShown: false }} />
-                      <Stack.Screen name="order-tracking" options={{ headerShown: false }} />
-                      <Stack.Screen name="rewards" options={{ headerShown: false }} />
-                    </Stack>
-                  </AuthGuard>
-                </ThemeProvider>
-              </CartProvider>
-            </AuthProvider>
-          </OfflineQueueProvider>
-        </FiscalProvider>
-      </TenantProvider>
+      <AppSettingsProvider>
+        <TenantProvider>
+          <FiscalProvider>
+            <OfflineQueueProvider>
+              <AuthProvider>
+                <CartProvider>
+                  <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+                    <AuthGuard>
+                      <Stack>
+                        <Stack.Screen name="login" options={{ headerShown: false }} />
+                        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                        <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+                        <Stack.Screen name="order-success" options={{ headerShown: false }} />
+                        <Stack.Screen name="order-tracking" options={{ headerShown: false }} />
+                        <Stack.Screen name="rewards" options={{ headerShown: false }} />
+                      </Stack>
+                    </AuthGuard>
+                  </ThemeProvider>
+                </CartProvider>
+              </AuthProvider>
+            </OfflineQueueProvider>
+          </FiscalProvider>
+        </TenantProvider>
+      </AppSettingsProvider>
     </QueryProvider>
   );
 }

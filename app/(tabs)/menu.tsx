@@ -19,9 +19,21 @@ import type { Product } from '@/types';
 import { FontAwesome } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Alert, Dimensions, FlatList, Modal, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+function isDrinkCategoryName(categoryName: string): boolean {
+  const normalized = categoryName.toLowerCase();
+  return (
+    normalized.includes('bevand') ||
+    normalized.includes('drink') ||
+    normalized.includes('bibit') ||
+    normalized.includes('cocktail') ||
+    normalized.includes('birr') ||
+    normalized.includes('vino')
+  );
+}
 
 export default function MenuScreen() {
   const { width } = useWindowDimensions();
@@ -42,6 +54,7 @@ export default function MenuScreen() {
   const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
   const [isCartVisible, setIsCartVisible] = useState(false);
   const [isMobileCategoriesOpen, setIsMobileCategoriesOpen] = useState(false);
+  const [showContinueWithoutDrinks, setShowContinueWithoutDrinks] = useState(false);
   const insets = useSafeAreaInsets();
 
   const { data: categories = [], isLoading: categoriesLoading } = useCategories();
@@ -50,18 +63,41 @@ export default function MenuScreen() {
   );
   const { items, totalItems, totalAmount } = useCart();
   const { isAuthenticated, profile, signOut, isGuest, exitGuestMode, isAdmin } = useAuth();
-  const showDesktopSidebars = isDesktop && isAdmin;
+  const showDesktopSidebars = isDesktop;
   const createOrder = useCreateOrder();
   const router = useRouter();
   const queryClient = useQueryClient();
-  const selectedCategoryName = categories.find((category) => category.id === selectedCategoryId)?.name || 'Pizzas';
-  const featuredProduct = products[0];
+  const selectedCategoryName = categories.find((category) => category.id === selectedCategoryId)?.name || 'Cibo';
+  const drinkCategories = useMemo(
+    () => categories.filter((category) => isDrinkCategoryName(category.name)),
+    [categories]
+  );
+  const drinkCategoryIds = useMemo(
+    () => new Set(drinkCategories.map((category) => category.id)),
+    [drinkCategories]
+  );
+  const firstDrinkCategoryId = drinkCategories[0]?.id;
+  const displayProducts = useMemo(() => {
+    // Default menu mode: show only food, unless user explicitly selects a drinks category.
+    if (selectedCategoryId === null) {
+      return products.filter((product) => !drinkCategoryIds.has(product.category_id));
+    }
+    return products;
+  }, [products, selectedCategoryId, drinkCategoryIds]);
+  const featuredProduct = displayProducts[0];
 
   useEffect(() => {
     if (!isMobile) {
       setIsMobileCategoriesOpen(false);
     }
   }, [isMobile]);
+
+  useEffect(() => {
+    const cartHasDrinks = items.some((item) => drinkCategoryIds.has(item.product.category_id));
+    if (cartHasDrinks) {
+      setShowContinueWithoutDrinks(false);
+    }
+  }, [items, drinkCategoryIds]);
 
   const handleProductPress = (productId: string) => {
     const product = products.find(p => p.id === productId);
@@ -80,6 +116,15 @@ export default function MenuScreen() {
       Alert.alert('Carrello vuoto', 'Aggiungi prodotti prima di procedere.');
       return;
     }
+    const cartHasDrinks = items.some((item) => drinkCategoryIds.has(item.product.category_id));
+    const isCurrentlyOnDrinks = selectedCategoryId ? drinkCategoryIds.has(selectedCategoryId) : false;
+    if (!cartHasDrinks && !isCurrentlyOnDrinks && firstDrinkCategoryId) {
+      setSelectedCategoryId(firstDrinkCategoryId);
+      setShowContinueWithoutDrinks(true);
+      return;
+    }
+
+    setShowContinueWithoutDrinks(false);
     router.push('/modal');
   };
 
@@ -110,7 +155,7 @@ export default function MenuScreen() {
         className={`${isMobile ? (isUltraCompactMobile ? 'px-3 py-2' : 'px-3 py-2.5') : 'px-8 py-4'} border-b border-orange-100 flex-row items-center justify-between bg-white/95 z-10`}
       >
         <View className={`flex-row items-center ${isMobile ? 'gap-1.5' : 'gap-3'}`}>
-          {isMobile && (
+          {!showDesktopSidebars && (
             <Pressable
               onPress={() => setIsMobileCategoriesOpen(prev => !prev)}
               className={`bg-orange-50 border border-orange-200 rounded-lg items-center justify-center active:opacity-80 ${isUltraCompactMobile ? 'p-1.5 w-8 h-8' : 'p-2 w-9 h-9'}`}
@@ -122,7 +167,9 @@ export default function MenuScreen() {
             <View className="w-9 h-9" />
           )}
 
-          <Text className={isMobile ? (isUltraCompactMobile ? 'text-lg' : 'text-xl') : 'text-2xl'}>🍕</Text>
+          <View className={`${isMobile ? 'w-8 h-8' : 'w-10 h-10'} rounded-full bg-orange-50 border border-orange-200 items-center justify-center`}>
+            <FontAwesome name="cutlery" size={isMobile ? 14 : 16} color="#c2410c" />
+          </View>
           <Text
             className={`text-gray-900 font-extrabold tracking-tight ${isMobile ? (isUltraCompactMobile ? 'text-sm' : 'text-base') : 'text-lg'}`}
             numberOfLines={1}
@@ -134,19 +181,21 @@ export default function MenuScreen() {
         <View className={`flex-row items-center ${isMobile ? 'gap-2' : 'gap-3'}`}>
           {/* User Info - Compact */}
           <View className={`bg-orange-50 border border-orange-200 rounded-full ${isMobile ? 'px-2 py-1' : 'px-3 py-1.5'}`}>
-            <Text className={`text-orange-700 font-semibold ${isMobile ? 'text-xs' : 'text-sm'}`}>
-              {isAuthenticated && profile
-                ? `👤 ${profile.full_name?.split(' ')[0] || profile.email.split('@')[0]}`
-                : '👤 Guest'}
-            </Text>
+            <View className="flex-row items-center gap-1.5">
+              <FontAwesome name="user" size={isMobile ? 10 : 11} color="#c2410c" />
+              <Text className={`text-orange-700 font-semibold ${isMobile ? 'text-xs' : 'text-sm'}`}>
+                {isAuthenticated && profile
+                  ? `${profile.full_name?.split(' ')[0] || profile.email.split('@')[0]}`
+                  : 'Guest'}
+              </Text>
+            </View>
           </View>
 
           {/* Order Counter Badge - Compact */}
           {totalItems > 0 && (
             <View className={`bg-orange-500 rounded-full flex-row items-center ${isMobile ? 'px-3 py-1 gap-1' : 'px-4 py-1.5 gap-1.5'}`}>
-              <Text className={`text-white font-bold ${isMobile ? 'text-xs' : 'text-sm'}`}>
-                🛒 {totalItems}
-              </Text>
+              <FontAwesome name="shopping-cart" size={isMobile ? 10 : 11} color="#ffffff" />
+              <Text className={`text-white font-bold ${isMobile ? 'text-xs' : 'text-sm'}`}>{totalItems}</Text>
             </View>
           )}
 
@@ -157,6 +206,15 @@ export default function MenuScreen() {
               onPress={handleLogout}
             >
               <FontAwesome name="sign-out" size={isMobile ? 14 : 18} color="#ef4444" />
+            </Pressable>
+          )}
+
+          {!isAuthenticated && (
+            <Pressable
+              className={`${isMobile ? 'px-2 py-1' : 'px-3 py-1.5'} bg-orange-500 rounded-full active:opacity-80`}
+              onPress={() => router.push('/login')}
+            >
+              <Text className={`text-white font-bold ${isMobile ? 'text-xs' : 'text-sm'}`}>Accedi</Text>
             </Pressable>
           )}
         </View>
@@ -178,6 +236,44 @@ export default function MenuScreen() {
           {/* Offline Indicator */}
           <OfflineIndicator />
 
+          {showContinueWithoutDrinks && selectedCategoryId && drinkCategoryIds.has(selectedCategoryId) && (
+            <View className="mx-3 mt-3 bg-white border border-orange-200 rounded-2xl p-4 shadow-sm">
+              <View className="flex-row items-start gap-2">
+                <FontAwesome name="glass" size={16} color="#c2410c" style={{ marginTop: 2 }} />
+                <View className="flex-1">
+                  <Text className="text-base font-extrabold text-gray-900">Aggiungi una bevanda?</Text>
+                  <Text className="text-sm text-gray-600 mt-1">
+                    Se hai gia finito, puoi completare subito l&apos;ordine.
+                  </Text>
+                </View>
+              </View>
+
+              <Pressable
+                className="mt-3 h-11 bg-orange-500 rounded-xl items-center justify-center active:opacity-90"
+                onPress={() => {
+                  setShowContinueWithoutDrinks(false);
+                  router.push('/modal');
+                }}
+              >
+                <Text className="text-white font-bold text-sm">Completa ordine senza bevande</Text>
+              </Pressable>
+            </View>
+          )}
+ 
+          {showContinueWithoutDrinks && selectedCategoryId && !drinkCategoryIds.has(selectedCategoryId) && (
+            <View className="mx-3 mt-2">
+              <Pressable
+                className="h-10 rounded-xl border border-orange-200 bg-white items-center justify-center active:opacity-90"
+                onPress={() => {
+                  setShowContinueWithoutDrinks(false);
+                  router.push('/modal');
+                }}
+              >
+                <Text className="text-orange-700 font-semibold text-sm">Completa ordine senza bevande</Text>
+              </Pressable>
+            </View>
+          )}
+
           {productsLoading ? (
             <FlatList
               data={Array.from({ length: 6 })}
@@ -194,16 +290,16 @@ export default function MenuScreen() {
                 </View>
               )}
             />
-          ) : products.length === 0 ? (
+          ) : displayProducts.length === 0 ? (
             <View className="flex-1 items-center justify-center p-8">
-              <Text className="text-6xl mb-4 opacity-50">🍽️</Text>
+              <FontAwesome name="cutlery" size={44} color="#9ca3af" style={{ marginBottom: 12 }} />
               <Text className="text-muted-foreground text-xl font-medium">
                 Nessun prodotto in questa categoria
               </Text>
             </View>
           ) : (
             <FlatList
-              data={products}
+              data={displayProducts}
               keyExtractor={(item) => item.id}
               numColumns={effectiveProductColumns}
               key={`products-${effectiveProductColumns}`}
@@ -216,26 +312,45 @@ export default function MenuScreen() {
                 queryClient.invalidateQueries({ queryKey: ['products'] });
               }}
               ListHeaderComponent={
-                isMobile ? (
+                !showDesktopSidebars ? (
                   <View className="mb-3 gap-3">
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-2 pr-2">
-                      {['Pizzas', 'Pasta', 'Sides', 'Drinks', 'Desserts'].map((label) => (
+                      <Pressable
+                        key="food-only"
+                        onPress={() => setSelectedCategoryId(null)}
+                        className={`px-3 py-1.5 rounded-full border ${
+                          selectedCategoryId === null
+                            ? 'bg-[#d4451a] border-[#d4451a]'
+                            : 'bg-white border-orange-200'
+                        }`}
+                      >
+                        <Text
+                          className={`text-xs font-bold ${
+                            selectedCategoryId === null ? 'text-white' : 'text-orange-700'
+                          }`}
+                        >
+                          Solo mangiare
+                        </Text>
+                      </Pressable>
+
+                      {categories.map((category) => (
                         <Pressable
-                          key={label}
+                          key={category.id}
+                          onPress={() => setSelectedCategoryId(category.id)}
                           className={`px-3 py-1.5 rounded-full border ${
-                            selectedCategoryName.toLowerCase().includes(label.toLowerCase().slice(0, 4))
+                            selectedCategoryId === category.id
                               ? 'bg-[#d4451a] border-[#d4451a]'
                               : 'bg-white border-orange-200'
                           }`}
                         >
                           <Text
                             className={`text-xs font-bold ${
-                              selectedCategoryName.toLowerCase().includes(label.toLowerCase().slice(0, 4))
+                              selectedCategoryId === category.id
                                 ? 'text-white'
                                 : 'text-orange-700'
                             }`}
                           >
-                            {label}
+                            {category.name}
                           </Text>
                         </Pressable>
                       ))}
@@ -274,7 +389,7 @@ export default function MenuScreen() {
                           {item.description || item.ingredients?.join(', ') || 'Artisanal recipe'}
                         </Text>
                         <Text className="text-lg font-extrabold text-[#d4451a] mt-2">
-                          ${item.price.toFixed(0)}
+                          €{item.price.toFixed(2)}
                         </Text>
                       </View>
                       <Pressable
@@ -318,7 +433,7 @@ export default function MenuScreen() {
             className="bg-orange-500 rounded-2xl p-4 shadow-xl flex-row items-center justify-between active:opacity-80"
           >
             <View className="flex-row items-center gap-2">
-              <Text className="text-white text-3xl">🛒</Text>
+              <FontAwesome name="shopping-cart" size={20} color="#ffffff" />
               <View>
                 <Text className="text-white font-bold text-lg">
                   Your Order
@@ -329,17 +444,17 @@ export default function MenuScreen() {
               </View>
             </View>
             <Text className="text-white font-extrabold text-2xl">
-              ${totalAmount.toFixed(2)}
+              €{totalAmount.toFixed(2)}
             </Text>
           </Pressable>
         </View>
       )}
 
-      {/* Mobile Cart Modal */}
+      {/* Categories Modal (mobile/tablet when sidebar is hidden) */}
       <Modal
         transparent
         animationType="fade"
-        visible={!showDesktopSidebars && isMobile && isMobileCategoriesOpen}
+        visible={!showDesktopSidebars && isMobileCategoriesOpen}
         onRequestClose={() => setIsMobileCategoriesOpen(false)}
       >
         <View className="flex-1 bg-black/35 justify-start" style={{ paddingTop: insets.top + 60 }}>
@@ -378,6 +493,17 @@ export default function MenuScreen() {
                 })}
               </View>
             </ScrollView>
+            {!isAuthenticated && (
+              <Pressable
+                className="mt-3 bg-orange-500 rounded-xl px-4 py-3 items-center active:opacity-80"
+                onPress={() => {
+                  setIsMobileCategoriesOpen(false);
+                  router.push('/login');
+                }}
+              >
+                <Text className="text-white font-bold">Accedi o Registrati</Text>
+              </Pressable>
+            )}
           </View>
         </View>
       </Modal>
@@ -390,7 +516,10 @@ export default function MenuScreen() {
       >
         <View className="flex-1 bg-[#f8f5f1]" style={{ paddingTop: insets.top }}>
           <View className="flex-row items-center justify-between p-4 border-b border-orange-100 bg-white">
-            <Text className="text-gray-900 font-extrabold text-2xl">🛒 Carrello</Text>
+            <View className="flex-row items-center gap-2">
+              <FontAwesome name="shopping-cart" size={17} color="#111827" />
+              <Text className="text-gray-900 font-extrabold text-2xl">Carrello</Text>
+            </View>
             <Pressable
               onPress={() => setIsCartVisible(false)}
               className="bg-orange-50 border border-orange-200 rounded-full p-2 w-10 h-10 items-center justify-center active:opacity-80"

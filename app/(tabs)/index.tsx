@@ -51,7 +51,7 @@ export default function HomeScreen() {
       description: 'Pomodoro San Marzano, bufala, basilico',
       price: 12.5,
       badge: 'Best seller',
-      image: '🍕',
+      image: '',
       imageUrl:
         'https://images.unsplash.com/photo-1600628421066-f6bda6a7b976?auto=format&fit=crop&w=900&q=80',
     },
@@ -61,7 +61,7 @@ export default function HomeScreen() {
       description: 'Salame piccante, mozzarella, olio al peperoncino',
       price: 13.5,
       badge: 'Piccante',
-      image: '🌶️🍕',
+      image: '',
       imageUrl:
         'https://images.unsplash.com/photo-1548365328-9f547fb0953b?auto=format&fit=crop&w=900&q=80',
     },
@@ -71,18 +71,18 @@ export default function HomeScreen() {
       description: 'Prosciutto cotto, funghi, carciofi, olive',
       price: 14,
       badge: 'Consigliata',
-      image: '🍄🍕',
+      image: '',
       imageUrl:
         'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=900&q=80',
     },
   ];
 
   const categories: HomeCategory[] = [
-    { id: 1, name: 'Pizze', icon: '🍕', color: 'bg-orange-100' },
-    { id: 2, name: 'Burger', icon: '🍔', color: 'bg-red-100' },
-    { id: 3, name: 'Insalate', icon: '🥗', color: 'bg-green-100' },
-    { id: 4, name: 'Dolci', icon: '🍦', color: 'bg-pink-100' },
-    { id: 5, name: 'Bevande', icon: '🥤', color: 'bg-blue-100' },
+    { id: 1, name: 'Pizze', icon: '', color: 'bg-orange-100' },
+    { id: 2, name: 'Burger', icon: '', color: 'bg-red-100' },
+    { id: 3, name: 'Insalate', icon: '', color: 'bg-green-100' },
+    { id: 4, name: 'Dolci', icon: '', color: 'bg-pink-100' },
+    { id: 5, name: 'Bevande', icon: '', color: 'bg-blue-100' },
   ];
 
   const recentOrders: HomeRecentOrder[] = [
@@ -108,7 +108,7 @@ export default function HomeScreen() {
         description: product.description || 'Ricetta artigianale del giorno',
         price: product.price,
         badge,
-        image: '🍕',
+        image: '',
         imageUrl: product.image_url,
       };
     });
@@ -131,14 +131,14 @@ export default function HomeScreen() {
 
   const handleReorder = (orderId: string) => {
     Alert.alert(
-      '🛒 Riordina',
+      'Riordina',
       'Vuoi ordinare di nuovo questo ordine?',
       [
         { text: 'Annulla', style: 'cancel' },
         {
           text: 'Sì, Riordina',
           onPress: () => {
-            Alert.alert('✅ Aggiunto!', 'Articoli aggiunti al carrello');
+            Alert.alert('Aggiunto', 'Articoli aggiunti al carrello');
             router.push('/(tabs)/menu');
           },
         },
@@ -165,7 +165,7 @@ export default function HomeScreen() {
       />
 
       <HomeTrendingSection
-        title="🔥 In Voga Oggi"
+        title="In Voga Oggi"
         pizzas={guestTrendingPizzas}
         onOpenAll={() => router.push('/(tabs)/menu')}
         onOpenPizza={() => router.push('/(tabs)/menu')}
@@ -203,7 +203,7 @@ export default function HomeScreen() {
       />
 
       <HomeTrendingSection
-        title="🔥 In Voga Oggi"
+        title="In Voga Oggi"
         pizzas={trendingPizzas}
         onOpenAll={() => router.push('/(tabs)/menu')}
         onOpenPizza={() => router.push('/(tabs)/menu')}

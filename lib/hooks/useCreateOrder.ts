@@ -5,6 +5,7 @@
 
 import { supabase } from '@/lib/api/supabase';
 import type { CartItem } from '@/lib/stores/CartContext';
+import { useAppSettings } from '@/lib/stores/AppSettingsContext';
 import { useTenant } from '@/lib/stores/TenantContext';
 import type { Database } from '@/types/database.types';
 import type { FiscalOrderData, FiscalProviderResult, PaymentMethod } from '@/types/fiscal.types';
@@ -37,8 +38,8 @@ interface CreateOrderResult {
 /**
  * Helper to convert cart items to fiscal order items
  */
-function cartToFiscalItems(items: CartItem[]): FiscalOrderData['items'] {
-  return items.map(item => ({
+function cartToFiscalItems(items: CartItem[], deliveryFee: number, orderType: CreateOrderInput['orderType']): FiscalOrderData['items'] {
+  const fiscalItems = items.map(item => ({
     product_id: item.product.id,
     name: item.product.name,
     quantity: item.quantity,
@@ -47,22 +48,36 @@ function cartToFiscalItems(items: CartItem[]): FiscalOrderData['items'] {
     vat_rate: 22, // Default VAT rate (22% for food)
     category: item.product.category,
   }));
+
+  if (orderType === 'delivery' && deliveryFee > 0) {
+    fiscalItems.push({
+      product_id: 'delivery-fee',
+      name: 'Delivery Fee',
+      quantity: 1,
+      unit_price: Math.round(deliveryFee * 100),
+      total_price: Math.round(deliveryFee * 100),
+      vat_rate: 22,
+      category: 'service',
+    });
+  }
+
+  return fiscalItems;
 }
 
 /**
  * Helper to calculate total amount in cents
  */
-function calculateTotalCents(items: CartItem[]): number {
-  return Math.round(
-    items.reduce((sum, item) => sum + item.product.price * item.quantity, 0) * 100,
-  );
+function calculateTotalCents(items: CartItem[], deliveryFee: number, orderType: CreateOrderInput['orderType']): number {
+  const itemsTotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+  const total = itemsTotal + (orderType === 'delivery' ? deliveryFee : 0);
+  return Math.round(total * 100);
 }
 
 /**
  * Helper to calculate total VAT in cents
  */
-function calculateVatCents(items: CartItem[]): number {
-  const totalCents = calculateTotalCents(items);
+function calculateVatCents(items: CartItem[], deliveryFee: number, orderType: CreateOrderInput['orderType']): number {
+  const totalCents = calculateTotalCents(items, deliveryFee, orderType);
   return Math.round((totalCents * 22) / 122); // VAT = total * 22 / 122
 }
 
@@ -70,6 +85,7 @@ export function useCreateOrder() {
   const queryClient = useQueryClient();
   const fiscalService = getFiscalService();
   const { companyId } = useTenant();
+  const { deliveryFee } = useAppSettings();
 
   return useMutation({
     mutationFn: async ({
@@ -87,10 +103,12 @@ export function useCreateOrder() {
       const { data: { user } } = await supabase.auth.getUser();
 
       // 2. Calculate totals
-      const totalAmount = items.reduce(
+      const itemsTotalAmount = items.reduce(
         (sum, item) => sum + item.product.price * item.quantity,
         0
       );
+      const appliedDeliveryFee = orderType === 'delivery' ? deliveryFee : 0;
+      const totalAmount = itemsTotalAmount + appliedDeliveryFee;
 
       // 3. Create order record
       const orderData: OrderInsert = {
@@ -159,9 +177,9 @@ export function useCreateOrder() {
           const fiscalData: FiscalOrderData = {
             order_id: order.id,
             customer_name: customerName,
-            items: cartToFiscalItems(items),
-            total_amount: calculateTotalCents(items),
-            total_vat: calculateVatCents(items),
+            items: cartToFiscalItems(items, appliedDeliveryFee, orderType),
+            total_amount: calculateTotalCents(items, appliedDeliveryFee, orderType),
+            total_vat: calculateVatCents(items, appliedDeliveryFee, orderType),
             payment_method: paymentMethod,
             timestamp: new Date().toISOString(),
           };

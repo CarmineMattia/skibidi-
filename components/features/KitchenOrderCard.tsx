@@ -6,6 +6,7 @@
 import type { KitchenOrder } from '@/lib/hooks/useKitchenOrders';
 import { useUpdateOrderStatus } from '@/lib/hooks/useUpdateOrderStatus';
 import type { Database } from '@/types/database.types.generated';
+import { FontAwesome } from '@expo/vector-icons';
 import { Alert, Pressable, Text, View } from 'react-native';
 
 type OrderStatus = Database['public']['Enums']['order_status'];
@@ -92,7 +93,7 @@ export function KitchenOrderCard({ order }: KitchenOrderCardProps) {
             <Text className="text-foreground font-extrabold text-2xl">
               #{order.id.slice(0, 8).toUpperCase()}
             </Text>
-            {isUrgent && <Text className="text-3xl">⚠️</Text>}
+            {isUrgent && <FontAwesome name="exclamation-triangle" size={16} color="#dc2626" />}
           </View>
           <Text className="text-muted-foreground text-sm">
             {orderAge < 1 ? 'Appena arrivato' : `${orderAge} min fa`}
@@ -113,7 +114,7 @@ export function KitchenOrderCard({ order }: KitchenOrderCardProps) {
               onPress={handleCancelOrder}
               disabled={updateStatus.isPending}
             >
-              <Text className="text-destructive font-bold text-xs">✕</Text>
+              <FontAwesome name="times" size={12} color="#dc2626" />
             </Pressable>
           )}
         </View>
@@ -129,9 +130,10 @@ export function KitchenOrderCard({ order }: KitchenOrderCardProps) {
                   {item.quantity}x {item.product.name}
                 </Text>
                 {item.notes && (
-                  <Text className="text-muted-foreground text-sm mt-1">
-                    📝 {item.notes}
-                  </Text>
+                  <View className="flex-row items-center gap-1 mt-1">
+                    <FontAwesome name="sticky-note-o" size={11} color="#6b7280" />
+                    <Text className="text-muted-foreground text-sm">{item.notes}</Text>
+                  </View>
                 )}
               </View>
               <Text className="text-foreground font-semibold text-base ml-2">
@@ -145,9 +147,10 @@ export function KitchenOrderCard({ order }: KitchenOrderCardProps) {
       {/* Order Notes */}
       {order.notes && (
         <View className="bg-yellow-50 border border-yellow-200 rounded-xl p-3 mb-4">
-          <Text className="text-yellow-800 text-sm">
-            💬 {order.notes}
-          </Text>
+          <View className="flex-row items-center gap-1">
+            <FontAwesome name="comment-o" size={11} color="#854d0e" />
+            <Text className="text-yellow-800 text-sm">{order.notes}</Text>
+          </View>
         </View>
       )}
 
@@ -171,8 +174,8 @@ export function KitchenOrderCard({ order }: KitchenOrderCardProps) {
             <Text className="text-primary-foreground font-bold text-lg">
               {updateStatus.isPending ? 'Aggiornamento...' :
                 order.status === 'pending' ? '▶ Inizia Preparazione' :
-                  order.status === 'preparing' ? '✓ Segna come Pronto' :
-                    order.status === 'ready' ? '📦 Segna come Consegnato' : 'Avanti'}
+                  order.status === 'preparing' ? 'Segna come Pronto' :
+                    order.status === 'ready' ? 'Segna come Consegnato' : 'Avanti'}
             </Text>
           </Pressable>
         )}

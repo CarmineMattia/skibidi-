@@ -74,7 +74,10 @@ export default function OrderTrackingScreen() {
             <Text className="text-[46px] leading-[48px] font-black text-gray-900">12:45</Text>
             <Text className="text-gray-600 text-sm leading-5">{summaryText}</Text>
             <View className="self-start bg-orange-100 rounded-full px-3 py-1.5">
-              <Text className="text-orange-700 text-xs font-bold">🔥 In the Hearth</Text>
+              <View className="flex-row items-center gap-1.5">
+                <FontAwesome name="fire" size={11} color="#c2410c" />
+                <Text className="text-orange-700 text-xs font-bold">In the Hearth</Text>
+              </View>
             </View>
           </View>
 
@@ -117,11 +120,13 @@ export default function OrderTrackingScreen() {
               <Text className="text-xl font-extrabold text-gray-900">{supportTitle}</Text>
               <Text className="text-sm text-gray-600">{supportDescription}</Text>
               <View className="flex-row gap-2">
-                <Pressable className="flex-1 h-11 rounded-xl bg-[#d4451a] items-center justify-center active:opacity-90">
-                  <Text className="text-white font-bold">📞 Call</Text>
+                <Pressable className="flex-1 h-11 rounded-xl bg-[#d4451a] items-center justify-center active:opacity-90 flex-row gap-1.5">
+                  <FontAwesome name="phone" size={13} color="#ffffff" />
+                  <Text className="text-white font-bold">Call</Text>
                 </Pressable>
-                <Pressable className="flex-1 h-11 rounded-xl bg-orange-100 items-center justify-center active:opacity-90">
-                  <Text className="text-orange-700 font-bold">💬 Chat</Text>
+                <Pressable className="flex-1 h-11 rounded-xl bg-orange-100 items-center justify-center active:opacity-90 flex-row gap-1.5">
+                  <FontAwesome name="comment" size={13} color="#c2410c" />
+                  <Text className="text-orange-700 font-bold">Chat</Text>
                 </Pressable>
               </View>
             </View>
