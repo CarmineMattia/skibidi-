@@ -23,6 +23,8 @@ interface CreateOrderInput {
   customerPhone?: string;
   deliveryAddress?: string;
   tableNumber?: string;
+  fulfillmentMode?: 'asap' | 'scheduled';
+  fulfillmentAt?: string;
   paymentMethod?: PaymentMethod; // For fiscalization
   skipFiscal?: boolean; // Option to skip fiscalization for testing
 }
@@ -96,6 +98,8 @@ export function useCreateOrder() {
       customerPhone,
       deliveryAddress,
       tableNumber,
+      fulfillmentMode,
+      fulfillmentAt,
       paymentMethod = 'cash',
       skipFiscal = false,
     }: CreateOrderInput): Promise<CreateOrderResult> => {
@@ -109,6 +113,11 @@ export function useCreateOrder() {
       );
       const appliedDeliveryFee = orderType === 'delivery' ? deliveryFee : 0;
       const totalAmount = itemsTotalAmount + appliedDeliveryFee;
+      const normalizedNotes =
+        notes ??
+        (fulfillmentAt
+          ? `Fulfillment mode: ${fulfillmentMode || 'asap'} | Fulfillment at: ${fulfillmentAt}`
+          : undefined);
 
       // 3. Create order record
       const orderData: OrderInsert = {
@@ -116,7 +125,7 @@ export function useCreateOrder() {
         status: 'pending',
         total_amount: totalAmount,
         fiscal_status: 'pending',
-        notes: notes,
+        notes: normalizedNotes,
         order_type: orderType,
         customer_name: customerName,
         customer_phone: customerPhone,

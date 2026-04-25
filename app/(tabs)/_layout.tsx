@@ -28,8 +28,9 @@ export default function TabLayout() {
 
   // Role-based tab visibility
   // Kiosk/Guest/Customer: Home + Menu + Account
-  // Admin: Dashboard + Menu + Kitchen + Orders + Account
+  // Admin: Home + Dashboard + Menu + Kitchen + Orders + Account
   const showHome = true;
+  const showAdminDashboard = userRole === 'admin';
   const showKitchen = userRole === 'admin';
   const showOrders = userRole === 'admin' || userRole === 'customer';
   const showAccount = true;
@@ -46,9 +47,17 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: userRole === 'admin' ? 'Dashboard' : 'Home',
+          title: 'Home',
           tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} size={tabIconSize} />,
           href: showHome ? '/(tabs)' : null,
+        }}
+      />
+      <Tabs.Screen
+        name="admin-dashboard"
+        options={{
+          title: 'Dashboard',
+          tabBarIcon: ({ color }) => <TabBarIcon name="line-chart" color={color} size={tabIconSize} />,
+          href: showAdminDashboard ? '/(tabs)/admin-dashboard' : null,
         }}
       />
       <Tabs.Screen

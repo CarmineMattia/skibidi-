@@ -60,8 +60,8 @@ function RootLayoutNav() {
 
   return (
     <QueryProvider>
-      <AppSettingsProvider>
-        <TenantProvider>
+      <TenantProvider>
+        <AppSettingsProvider>
           <FiscalProvider>
             <OfflineQueueProvider>
               <AuthProvider>
@@ -71,6 +71,7 @@ function RootLayoutNav() {
                       <Stack>
                         <Stack.Screen name="login" options={{ headerShown: false }} />
                         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                        <Stack.Screen name="admin-options" options={{ headerShown: false }} />
                         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
                         <Stack.Screen name="order-success" options={{ headerShown: false }} />
                         <Stack.Screen name="order-tracking" options={{ headerShown: false }} />
@@ -82,8 +83,8 @@ function RootLayoutNav() {
               </AuthProvider>
             </OfflineQueueProvider>
           </FiscalProvider>
-        </TenantProvider>
-      </AppSettingsProvider>
+        </AppSettingsProvider>
+      </TenantProvider>
     </QueryProvider>
   );
 }

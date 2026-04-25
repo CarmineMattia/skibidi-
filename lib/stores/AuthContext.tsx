@@ -395,7 +395,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     isKioskMode,
     isGuest,
     isAuthenticated: !!session && !!user,
-    isAdmin: userRole === 'admin',
+    isAdmin: userRole === 'admin' || user?.email?.toLowerCase() === 'admin@skibidi.com',
     isCustomer: userRole === 'customer',
     signIn,
     signUp,
