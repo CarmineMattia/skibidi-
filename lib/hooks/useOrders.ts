@@ -18,10 +18,11 @@ export interface OrderWithItems extends Order {
 interface UseOrdersOptions {
   status?: Order['status'];
   limit?: number;
+  enabled?: boolean;
 }
 
 export function useOrders(options: UseOrdersOptions = {}) {
-  const { status, limit = 50 } = options;
+  const { status, limit = 50, enabled = true } = options;
 
   return useQuery({
     queryKey: ['orders', { status, limit }],
@@ -65,6 +66,7 @@ export function useOrders(options: UseOrdersOptions = {}) {
     // Orders change frequently, refresh every 30 seconds
     staleTime: 30 * 1000,
     gcTime: 5 * 60 * 1000, // 5 minutes
+    enabled,
   });
 }
 
