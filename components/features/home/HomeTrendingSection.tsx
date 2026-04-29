@@ -1,7 +1,7 @@
 import type { HomeTrendingPizza } from '@/components/features/home/types';
 import { FontAwesome } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { FlatList, ImageBackground, Pressable, Text, View, useWindowDimensions } from 'react-native';
 
 const ITEM_GAP = 12;
@@ -22,6 +22,8 @@ export function HomeTrendingSection({
   onQuickAddPizza,
 }: HomeTrendingSectionProps) {
   const { width } = useWindowDimensions();
+  const flatListRef = useRef<FlatList<HomeTrendingPizza>>(null);
+  const isRecenteringRef = useRef(false);
 
   const cardHeight = useMemo(() => {
     if (width < 430) return 182;
@@ -31,13 +33,52 @@ export function HomeTrendingSection({
   const carouselHeight = cardHeight * 3 + 24;
   const mediaHeight = cardHeight - 46;
   const initialIndex = pizzas.length > 1 ? 1 : 0;
+  const supportsInfiniteLoop = pizzas.length > 1;
+  const loopedPizzas = useMemo(() => {
+    if (!supportsInfiniteLoop) return pizzas;
+    return [...pizzas, ...pizzas, ...pizzas, ...pizzas, ...pizzas, ...pizzas, ...pizzas];
+  }, [pizzas, supportsInfiniteLoop]);
+  const centerBlockStart = supportsInfiniteLoop ? pizzas.length * 3 : 0;
+  const initialScrollIndex = centerBlockStart + initialIndex;
   const initialSelectedIndex = Math.max(0, Math.min(pizzas.length - 1, initialIndex + 1));
   const [selectedIndex, setSelectedIndex] = useState(initialSelectedIndex);
+
+  const normalizeLoopIndex = (index: number) => {
+    if (!supportsInfiniteLoop || pizzas.length === 0) return Math.max(0, Math.min(pizzas.length - 1, index));
+    return ((index % pizzas.length) + pizzas.length) % pizzas.length;
+  };
+
+  const recenterIfNeeded = (offset: number) => {
+    if (!supportsInfiniteLoop || pizzas.length === 0) return offset;
+    if (isRecenteringRef.current) return offset;
+
+    const itemSpan = cardHeight + ITEM_GAP;
+    const rawIndex = Math.round(offset / itemSpan);
+    const normalizedIndex = normalizeLoopIndex(rawIndex);
+    const minSafeIndex = pizzas.length * 1.5;
+    const maxSafeIndex = pizzas.length * 5.5;
+
+    if (rawIndex <= minSafeIndex || rawIndex >= maxSafeIndex) {
+      const recenteredIndex = centerBlockStart + normalizedIndex;
+      const recenteredOffset = recenteredIndex * itemSpan;
+      isRecenteringRef.current = true;
+      flatListRef.current?.scrollToOffset({
+        offset: recenteredOffset,
+        animated: false,
+      });
+      requestAnimationFrame(() => {
+        isRecenteringRef.current = false;
+      });
+      return recenteredOffset;
+    }
+
+    return offset;
+  };
 
   const getFocusIndex = (offset: number) => {
     const baseIndex = Math.round(offset / (cardHeight + ITEM_GAP));
     const shiftedIndex = baseIndex + 1;
-    return Math.max(0, Math.min(pizzas.length - 1, shiftedIndex));
+    return normalizeLoopIndex(shiftedIndex);
   };
 
   return (
@@ -55,10 +96,11 @@ export function HomeTrendingSection({
 
       <View className="relative" style={{ height: carouselHeight }}>
         <FlatList
-          data={pizzas}
-          keyExtractor={(item) => item.id}
+          ref={flatListRef}
+          data={loopedPizzas}
+          keyExtractor={(item, index) => `${item.id}-${index}`}
           nestedScrollEnabled
-          initialScrollIndex={initialIndex}
+          initialScrollIndex={initialScrollIndex}
           getItemLayout={(_, index) => ({
             length: cardHeight + ITEM_GAP,
             offset: (cardHeight + ITEM_GAP) * index,
@@ -69,12 +111,14 @@ export function HomeTrendingSection({
           snapToAlignment="start"
           onMomentumScrollEnd={(event) => {
             const offset = event.nativeEvent.contentOffset.y;
-            const boundedIndex = getFocusIndex(offset);
+            const effectiveOffset = recenterIfNeeded(offset);
+            const boundedIndex = getFocusIndex(effectiveOffset);
             setSelectedIndex(boundedIndex);
           }}
           onScroll={(event) => {
             const offset = event.nativeEvent.contentOffset.y;
-            const boundedIndex = getFocusIndex(offset);
+            const effectiveOffset = recenterIfNeeded(offset);
+            const boundedIndex = getFocusIndex(effectiveOffset);
             if (boundedIndex !== selectedIndex) {
               setSelectedIndex(boundedIndex);
             }
@@ -83,7 +127,8 @@ export function HomeTrendingSection({
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ gap: ITEM_GAP, paddingBottom: 4 }}
           renderItem={({ item: pizza, index }) => {
-            const isFeatured = index === selectedIndex;
+            const sourceIndex = normalizeLoopIndex(index);
+            const isFeatured = sourceIndex === selectedIndex;
             return (
             <Pressable
               key={pizza.id}
@@ -96,7 +141,7 @@ export function HomeTrendingSection({
                 isFeatured ? 'border-2 border-orange-500 shadow-xl' : 'border border-[#e7d8c8] shadow-sm'
               }`}
               onPress={() => {
-                setSelectedIndex(index);
+                setSelectedIndex(sourceIndex);
                 onOpenPizza(pizza);
               }}
             >
