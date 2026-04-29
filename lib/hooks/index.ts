@@ -12,3 +12,4 @@ export * from './useUpdateOrderStatus';
 export * from './useDashboardStats';
 export * from './useOfflineQueue';
 export * from './usePayment';
+export * from './useOrderAssistantChat';
