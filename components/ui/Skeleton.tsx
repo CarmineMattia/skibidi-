@@ -4,6 +4,7 @@
  */
 
 import type { ReactNode } from 'react';
+import type { DimensionValue } from 'react-native';
 import { View, Text } from 'react-native';
 
 // ============================================================================
@@ -11,8 +12,8 @@ import { View, Text } from 'react-native';
 // ============================================================================
 
 interface SkeletonProps {
-  width?: number | string;
-  height?: number | string;
+  width?: DimensionValue;
+  height?: DimensionValue;
   borderRadius?: number;
   className?: string;
 }

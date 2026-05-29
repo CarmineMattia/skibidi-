@@ -4,7 +4,7 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { LoginPage } from '../fixtures/page-objects';
+import { LoginPage } from './fixtures/page-objects';
 
 test.describe('Admin Panel Access', () => {
   test('should restrict admin features to admin users', async ({ page }) => {

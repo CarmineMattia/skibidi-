@@ -48,7 +48,6 @@ function cartToFiscalItems(items: CartItem[], deliveryFee: number, orderType: Cr
     unit_price: Math.round(item.product.price * 100), // Convert to cents
     total_price: Math.round(item.product.price * item.quantity * 100),
     vat_rate: 22, // Default VAT rate (22% for food)
-    category: item.product.category,
   }));
 
   if (orderType === 'delivery' && deliveryFee > 0) {
@@ -59,7 +58,6 @@ function cartToFiscalItems(items: CartItem[], deliveryFee: number, orderType: Cr
       unit_price: Math.round(deliveryFee * 100),
       total_price: Math.round(deliveryFee * 100),
       vat_rate: 22,
-      category: 'service',
     });
   }
 

@@ -33,6 +33,7 @@ export abstract class CloudFiscalProvider implements IFiscalProvider {
             timeout: 30000,
             ...config,
         };
+        this.provider = config.provider;
     }
 
     /**
@@ -78,7 +79,7 @@ export abstract class CloudFiscalProvider implements IFiscalProvider {
      */
     async voidReceipt(externalId: string): Promise<FiscalProviderResult> {
         try {
-            const response = await this.apiRequest(`/receipts/${externalId}/void`, 'POST');
+            const response = await this.apiRequest<{ receipt_number?: string }>(`/receipts/${externalId}/void`, 'POST');
             return {
                 success: true,
                 external_id: externalId,

@@ -43,7 +43,7 @@ export function HomeCategoryGrid({
             onPress={() => onOpenCategory(cat.id)}
           >
             <View className="w-8 h-8 rounded-full bg-white/70 items-center justify-center mb-1">
-              <FontAwesome name={getCategoryIconName(cat.name)} size={14} color="#374151" />
+              <FontAwesome name={getCategoryIconName(cat.name) as any} size={14} color="#374151" />
             </View>
             <Text className="text-[11px] font-extrabold text-center text-gray-900">{cat.name}</Text>
           </Pressable>

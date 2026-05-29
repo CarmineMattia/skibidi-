@@ -41,7 +41,7 @@ export function HomeQuickActions({
 
     return (
       <Pressable className={`${baseClass} ${variantClass}`} onPress={onPress}>
-        <FontAwesome name={icon} size={14} color={iconColor} />
+        <FontAwesome name={icon as any} size={14} color={iconColor} />
         <Text className={`${textClass} font-bold text-sm`}>{title}</Text>
       </Pressable>
     );

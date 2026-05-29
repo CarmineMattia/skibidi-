@@ -10,7 +10,26 @@ import { useQuery } from '@tanstack/react-query';
 import { FontAwesome } from '@expo/vector-icons';
 import { Linking, Modal, Pressable, ScrollView, Share, Text, View } from 'react-native';
 
-type Order = Database['public']['Tables']['orders']['Row'];
+type ReceiptOrderItem = {
+    quantity: number;
+    unit_price: number;
+    total_price: number;
+    notes: string | null;
+    products: {
+        name: string;
+        price: number;
+    } | null;
+};
+type ReceiptOrder = {
+    id: string;
+    created_at: string;
+    customer_name: string | null;
+    total_amount: number | null;
+    fiscal_status: Database['public']['Enums']['fiscal_status'] | null;
+    fiscal_external_id: string | null;
+    pdf_url: string | null;
+    order_items?: ReceiptOrderItem[];
+};
 
 interface DigitalReceiptProps {
     visible: boolean;
@@ -34,8 +53,7 @@ export function DigitalReceipt({ visible, orderId, onClose }: DigitalReceiptProp
                         notes,
                         products!inner (
                             name,
-                            price,
-                            category
+                            price
                         )
                     )
                 `)
@@ -80,7 +98,7 @@ export function DigitalReceipt({ visible, orderId, onClose }: DigitalReceiptProp
         }
     };
 
-    const formatReceiptText = (orderData: Order): string => {
+    const formatReceiptText = (orderData: ReceiptOrder): string => {
         const date = new Date(orderData.created_at).toLocaleString('it-IT');
         const items = orderData.order_items || [];
 
@@ -95,10 +113,10 @@ export function DigitalReceipt({ visible, orderId, onClose }: DigitalReceiptProp
             text += `---------------------------------\n\n`;
         }
 
-        items.forEach((item, index) => {
+        items.forEach((item: ReceiptOrderItem, index: number) => {
             const price = item.unit_price?.toFixed(2) || '0.00';
             const total = item.total_price?.toFixed(2) || '0.00';
-            text += `${index + 1}. ${item.product?.name || 'Product'}\n`;
+            text += `${index + 1}. ${item.products?.name || 'Product'}\n`;
             text += `   ${item.quantity} x €${price} = €${total}\n`;
             if (item.notes) {
                 text += `   (${item.notes})\n`;
@@ -228,7 +246,7 @@ export function DigitalReceipt({ visible, orderId, onClose }: DigitalReceiptProp
                                             >
                                                 <View className="flex-1">
                                                     <Text className="text-card-foreground font-medium">
-                                                        {item.product?.name || 'Product'}
+                                                        {item.products?.name || 'Product'}
                                                     </Text>
                                                     {item.notes && (
                                                         <Text className="text-muted-foreground text-xs mt-1">
@@ -299,7 +317,7 @@ export function DigitalReceipt({ visible, orderId, onClose }: DigitalReceiptProp
                                             ) : order.fiscal_status === 'error' ? (
                                                 <FontAwesome name="exclamation-circle" size={20} color="#ef4444" />
                                             ) : (
-                                                <FontAwesome name="clock" size={20} color="#f59e0b" />
+                                                <FontAwesome name="clock-o" size={20} color="#f59e0b" />
                                             )}
                                             <Text
                                                 className={`ml-2 font-semibold ${

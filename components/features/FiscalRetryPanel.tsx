@@ -96,7 +96,7 @@ export function FiscalRetryPanel({ visible, onClose }: FiscalRetryPanelProps) {
                 customer_name: order.customer_name || undefined,
                 items: (order.order_items || []).map(item => ({
                     product_id: item.product_id,
-                    name: item.product?.name || 'Product',
+                    name: item.products?.name || 'Product',
                     quantity: item.quantity,
                     unit_price: Math.round(item.unit_price * 100),
                     total_price: Math.round(item.total_price * 100),

@@ -6,6 +6,18 @@ type JsonResponse = {
   body: OrderAssistantResponse | { error: string };
 };
 
+type AssistantStep = {
+  type: string;
+  message?: { text?: string };
+};
+
+type AgentConversationTurn = {
+  type: string;
+  turn: {
+    steps: AssistantStep[];
+  };
+};
+
 const API_KEY = process.env.CURSOR_API_KEY || '';
 const LOCAL_WORKDIR = process.env.CURSOR_AGENT_CWD || process.cwd();
 
@@ -44,10 +56,10 @@ async function resolveAssistantText(run: any) {
     const turns = await run.conversation();
     const extracted: string[] = [];
 
-    turns.forEach((turnEntry) => {
+    turns.forEach((turnEntry: AgentConversationTurn) => {
       if (turnEntry.type !== 'agentConversationTurn') return;
-      turnEntry.turn.steps.forEach((step) => {
-        if (step.type === 'assistantMessage' && typeof step.message.text === 'string') {
+      turnEntry.turn.steps.forEach((step: AssistantStep) => {
+        if (step.type === 'assistantMessage' && typeof step.message?.text === 'string') {
           const text = step.message.text.trim();
           if (text) extracted.push(text);
         }

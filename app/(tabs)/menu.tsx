@@ -212,7 +212,7 @@ export default function MenuScreen() {
               <FontAwesome name="user" size={isMobile ? 10 : 11} color="#c2410c" />
               <Text className={`text-orange-700 font-semibold ${isMobile ? 'text-xs' : 'text-sm'}`}>
                 {isAuthenticated && profile
-                  ? `${profile.full_name?.split(' ')[0] || profile.email.split('@')[0]}`
+                  ? `${profile.full_name?.split(' ')[0] || profile.email?.split('@')[0] || 'utente'}`
                   : i18n.guest}
               </Text>
             </View>

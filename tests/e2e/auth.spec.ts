@@ -5,7 +5,6 @@
 
 import { test, expect } from '@playwright/test';
 import { LoginPage } from '../fixtures/page-objects';
-import { TEST_USERS } from '../fixtures/test-data';
 
 test.describe('Authentication', () => {
   let loginPage: LoginPage;
@@ -54,7 +53,7 @@ test.describe('Authentication', () => {
     await loginPage.expectError(/6 caratteri/i);
   });
 
-  test('should allow guest mode login without authentication', async () => {
+  test('should allow guest mode login without authentication', async ({ page }) => {
     await loginPage.enterGuestMode();
     await expect(page).toHaveURL(/\(tabs\)\/menu/);
   });
@@ -67,7 +66,7 @@ test.describe('Authentication', () => {
     await expect(page.getByText('👤 ospite123')).toBeVisible();
   });
 
-  test('should display error for invalid credentials', async () => {
+  test('should display error for invalid credentials', async ({ page }) => {
     await loginPage.emailInput.fill('nonexistent@example.com');
     await loginPage.passwordInput.fill('wrongpassword');
     await loginPage.loginButton.click();

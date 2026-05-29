@@ -56,7 +56,7 @@ export class LoginPage {
     await this.page.waitForURL(/\(tabs\)\/menu/);
   }
 
-  async expectError(message: string) {
+  async expectError(message: string | RegExp) {
     await expect(this.errorMessage).toContainText(message);
   }
 }

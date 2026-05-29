@@ -8,6 +8,7 @@ import { PaymentSelection } from '@/components/features/PaymentSelection';
 import { Button } from '@/components/ui/Button';
 import { useCreateOrder } from '@/lib/hooks/useCreateOrder';
 import { useOfflineQueue } from '@/lib/hooks/useOfflineQueue';
+import type { PaymentProvider } from '@/lib/hooks/usePayment';
 import { useAuth } from '@/lib/stores/AuthContext';
 import { useCart } from '@/lib/stores/CartContext';
 import { FontAwesome } from '@expo/vector-icons';
@@ -43,6 +44,7 @@ export default function CheckoutScreen() {
   const [step, setStep] = useState<CheckoutStep>('type');
   const [orderType, setOrderType] = useState<OrderType>('eat_in');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [selectedProvider, setSelectedProvider] = useState<PaymentProvider>('cash');
 
   // Customer Details
   const [name, setName] = useState('');
@@ -312,12 +314,12 @@ export default function CheckoutScreen() {
       {/* Order Summary */}
       <View className="bg-card rounded-2xl p-4 mb-6 border border-border">
         <Text className="text-lg font-bold mb-4">Riepilogo Ordine</Text>
-        {items.map((item) => (
+        {items.map((item, index) => (
           <CartItem
             key={item.product.id}
             item={item}
-            onUpdateQuantity={(delta) => updateQuantity(item.product.id, delta)}
-            onRemove={() => removeItem(item.product.id)}
+            onUpdateQuantity={(delta) => updateQuantity(index, delta)}
+            onRemove={() => removeItem(index)}
           />
         ))}
         <View className="border-t border-border mt-4 pt-4 flex-row justify-between items-center">
@@ -329,7 +331,14 @@ export default function CheckoutScreen() {
       </View>
 
       {/* Payment Selection */}
-      <PaymentSelection />
+      <PaymentSelection
+        amount={Math.round(totalAmount * 100)}
+        items={items}
+        selectedProvider={selectedProvider}
+        onSelectProvider={setSelectedProvider}
+        onPaymentComplete={() => {}}
+        disabled={isProcessing}
+      />
     </ScrollView>
   );
 
