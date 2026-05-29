@@ -275,6 +275,9 @@ export type Database = {
           customer_id: string | null
           customer_name: string | null
           customer_phone: string | null
+          decline_reason_note: string | null
+          decline_reason_preset: string | null
+          declined_at: string | null
           delivery_address: string | null
           fiscal_external_id: string | null
           fiscal_status: Database["public"]["Enums"]["fiscal_status"]
@@ -293,6 +296,9 @@ export type Database = {
           customer_id?: string | null
           customer_name?: string | null
           customer_phone?: string | null
+          decline_reason_note?: string | null
+          decline_reason_preset?: string | null
+          declined_at?: string | null
           delivery_address?: string | null
           fiscal_external_id?: string | null
           fiscal_status?: Database["public"]["Enums"]["fiscal_status"]
@@ -311,6 +317,9 @@ export type Database = {
           customer_id?: string | null
           customer_name?: string | null
           customer_phone?: string | null
+          decline_reason_note?: string | null
+          decline_reason_preset?: string | null
+          declined_at?: string | null
           delivery_address?: string | null
           fiscal_external_id?: string | null
           fiscal_status?: Database["public"]["Enums"]["fiscal_status"]

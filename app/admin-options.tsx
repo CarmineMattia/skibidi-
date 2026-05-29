@@ -1,8 +1,11 @@
 import { Button } from '@/components/ui/Button';
+import { supabase } from '@/lib/api/supabase';
 import { TimeWheelModal } from '@/components/ui/TimeWheelModal';
 import { WEEKDAY_LABELS, useAppSettings, type AppLanguage } from '@/lib/stores/AppSettingsContext';
 import { useAuth } from '@/lib/stores/AuthContext';
 import { FontAwesome } from '@expo/vector-icons';
+import { Audio } from 'expo-av';
+import * as DocumentPicker from 'expo-document-picker';
 import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
@@ -21,6 +24,7 @@ export default function AdminOptionsScreen() {
     deliveryOrderWindowMinutes,
     disabledTimeSlots,
     businessHours,
+    alertSounds,
     setLanguage,
     setDeliveryFee,
     setAcceptingOrders,
@@ -35,6 +39,9 @@ export default function AdminOptionsScreen() {
     clearDisabledTimeSlots,
     setBusinessDayEnabled,
     setBusinessDayIntervals,
+    setAlertSoundsEnabled,
+    setNewOrderSoundUrl,
+    setOrderReadySoundUrl,
   } = useAppSettings();
   const router = useRouter();
   const [pauseMinutesInput, setPauseMinutesInput] = useState('30');
@@ -42,6 +49,7 @@ export default function AdminOptionsScreen() {
   const [showPausePicker, setShowPausePicker] = useState(false);
   const [showSlotPicker, setShowSlotPicker] = useState(false);
   const [showBusinessIntervalPicker, setShowBusinessIntervalPicker] = useState(false);
+  const [isUploadingSound, setIsUploadingSound] = useState(false);
   const [businessPickerDayIndex, setBusinessPickerDayIndex] = useState<number>(1);
   const [businessPickerPhase, setBusinessPickerPhase] = useState<'start' | 'end'>('start');
   const [businessPickerStart, setBusinessPickerStart] = useState<{ hour: number; minute: number }>({ hour: 12, minute: 0 });
@@ -190,6 +198,76 @@ export default function AdminOptionsScreen() {
     { label: 'Solo Sera', intervals: [{ start: '18:00', end: '01:00' }] },
   ];
   const DISPLAY_DAY_ORDER = [1, 2, 3, 4, 5, 6, 0];
+
+  const validateAudioFile = (name: string): boolean => {
+    const lowered = name.toLowerCase();
+    return lowered.endsWith('.mp3') || lowered.endsWith('.wav') || lowered.endsWith('.m4a') || lowered.endsWith('.ogg');
+  };
+
+  const uploadSoundForType = async (type: 'newOrder' | 'readyOrder') => {
+    try {
+      setIsUploadingSound(true);
+      const picked = await DocumentPicker.getDocumentAsync({
+        type: ['audio/*'],
+        multiple: false,
+        copyToCacheDirectory: true,
+      });
+      if (picked.canceled || picked.assets.length === 0) {
+        return;
+      }
+
+      const asset = picked.assets[0];
+      if (!validateAudioFile(asset.name)) {
+        Alert.alert('Formato non supportato', 'Usa MP3, WAV, M4A oppure OGG.');
+        return;
+      }
+      if (!asset.uri) {
+        Alert.alert('Errore', 'File audio non valido.');
+        return;
+      }
+
+      const response = await fetch(asset.uri);
+      const blob = await response.blob();
+      const extension = asset.name.split('.').pop() || 'mp3';
+      const fileName = `${type}-${Date.now()}.${extension}`;
+      const bucket = 'alert-sounds';
+
+      const { error } = await supabase.storage.from(bucket).upload(fileName, blob, {
+        contentType: asset.mimeType || 'audio/mpeg',
+        upsert: true,
+      });
+      if (error) {
+        throw error;
+      }
+
+      const { data } = supabase.storage.from(bucket).getPublicUrl(fileName);
+      if (type === 'newOrder') {
+        setNewOrderSoundUrl(data.publicUrl);
+      } else {
+        setOrderReadySoundUrl(data.publicUrl);
+      }
+      Alert.alert('Successo', 'Suono caricato correttamente.');
+    } catch (error: any) {
+      Alert.alert(
+        'Upload fallito',
+        error?.message || 'Impossibile caricare il suono. Verifica bucket "alert-sounds" e permessi storage.'
+      );
+    } finally {
+      setIsUploadingSound(false);
+    }
+  };
+
+  const testSound = async (url: string | null) => {
+    if (!url) {
+      Alert.alert('Nessun suono', 'Carica prima un file audio.');
+      return;
+    }
+    const { sound } = await Audio.Sound.createAsync({ uri: url }, { shouldPlay: true, volume: 1 });
+    sound.setOnPlaybackStatusUpdate((status) => {
+      if (!status.isLoaded || !status.didJustFinish) return;
+      void sound.unloadAsync();
+    });
+  };
 
   return (
     <ScrollView className="flex-1 bg-background" contentContainerClassName="p-8 pb-16">
@@ -597,6 +675,62 @@ export default function AdminOptionsScreen() {
             </View>
           </View>
         )}
+      </View>
+
+      <View className="bg-card rounded-2xl p-6 border border-border shadow-lg mt-6">
+        <Text className="text-card-foreground font-semibold text-xl mb-2">
+          Notifiche audio ordini
+        </Text>
+        <Text className="text-muted-foreground mb-4">
+          Carica suoni personalizzati per nuovi ordini e ordini pronti.
+        </Text>
+
+        <View className="flex-row gap-2 mb-4">
+          <Pressable
+            className={`flex-1 rounded-xl py-3 items-center ${alertSounds.enabled ? 'bg-emerald-600' : 'bg-secondary'}`}
+            onPress={() => setAlertSoundsEnabled(true)}
+          >
+            <Text className={`${alertSounds.enabled ? 'text-white' : 'text-foreground'} font-bold`}>
+              Suoni attivi
+            </Text>
+          </Pressable>
+          <Pressable
+            className={`flex-1 rounded-xl py-3 items-center ${!alertSounds.enabled ? 'bg-red-600' : 'bg-secondary'}`}
+            onPress={() => setAlertSoundsEnabled(false)}
+          >
+            <Text className={`${!alertSounds.enabled ? 'text-white' : 'text-foreground'} font-bold`}>
+              Suoni disattivi
+            </Text>
+          </Pressable>
+        </View>
+
+        <View className="rounded-xl border border-border p-3 mb-3">
+          <Text className="font-bold text-foreground mb-1">Nuovo ordine arrivato</Text>
+          <Text className="text-xs text-muted-foreground mb-2">{alertSounds.newOrderSoundUrl || 'Nessun suono caricato'}</Text>
+          <View className="flex-row gap-2">
+            <Button
+              title={isUploadingSound ? 'Upload...' : 'Carica audio'}
+              onPress={() => void uploadSoundForType('newOrder')}
+              variant="outline"
+              className="flex-1"
+            />
+            <Button title="Test" onPress={() => void testSound(alertSounds.newOrderSoundUrl)} className="flex-1" />
+          </View>
+        </View>
+
+        <View className="rounded-xl border border-border p-3">
+          <Text className="font-bold text-foreground mb-1">Ordine pronto</Text>
+          <Text className="text-xs text-muted-foreground mb-2">{alertSounds.orderReadySoundUrl || 'Nessun suono caricato'}</Text>
+          <View className="flex-row gap-2">
+            <Button
+              title={isUploadingSound ? 'Upload...' : 'Carica audio'}
+              onPress={() => void uploadSoundForType('readyOrder')}
+              variant="outline"
+              className="flex-1"
+            />
+            <Button title="Test" onPress={() => void testSound(alertSounds.orderReadySoundUrl)} className="flex-1" />
+          </View>
+        </View>
       </View>
 
       <View className="mt-2">

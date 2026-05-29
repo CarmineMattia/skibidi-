@@ -188,6 +188,8 @@ export default function CheckoutScreen() {
             scheduleLabel: 'Choose time',
             selectTimePlaceholder: 'Select time slot',
             pickTimeWithWheel: 'Pick time with wheel',
+            preferredTimeLabel: 'Preferred time (optional)',
+            preferredTimeSelected: 'Preferred time selected',
             unavailableRestaurantClosed: 'This restaurant is not taking orders right now. Please try later.',
             unavailableOutsideWorkingHours: 'The restaurant is currently closed based on working hours.',
             unavailablePausedUntil: 'Orders are paused until',
@@ -254,6 +256,8 @@ export default function CheckoutScreen() {
             scheduleLabel: 'Scegli orario',
             selectTimePlaceholder: 'Seleziona fascia oraria',
             pickTimeWithWheel: 'Scegli orario con ruota',
+            preferredTimeLabel: 'Orario preferito (opzionale)',
+            preferredTimeSelected: 'Orario preferito selezionato',
             unavailableRestaurantClosed: 'Questo ristorante non sta accettando ordini al momento. Riprova più tardi.',
             unavailableOutsideWorkingHours: 'Il ristorante è chiuso in base agli orari di apertura.',
             unavailablePausedUntil: 'Ordini in pausa fino alle',
@@ -806,21 +810,11 @@ export default function CheckoutScreen() {
       setIsProcessing(false);
     } catch (error) {
       console.error('❌ Order creation failed:', error);
-      const message = error instanceof Error ? error.message : String(error);
-      const isRlsError = message.toLowerCase().includes('row-level security');
-
-      if (isRlsError) {
-        const fallbackOrderId = `AMB-${Date.now().toString().slice(-4)}`;
-        clearCart();
-        setConfirmedOrderId(fallbackOrderId);
-        setShowConfirmationModal(true);
-      } else {
-        Alert.alert(
-          'Errore',
-          i18n.cannotCreateOrder,
-          [{ text: 'OK' }]
-        );
-      }
+      Alert.alert(
+        'Errore',
+        i18n.cannotCreateOrder,
+        [{ text: 'OK' }]
+      );
       setIsProcessing(false);
     }
   };
@@ -893,60 +887,6 @@ export default function CheckoutScreen() {
     <ScrollView className="flex-1" contentContainerClassName="p-6">
       <View className="flex-1 justify-center gap-4">
         <Text className="text-2xl font-bold text-center mb-2">{i18n.detailsTitle}</Text>
-
-        <View className="bg-card border border-border rounded-xl p-4 gap-3">
-          <Text className="text-sm font-semibold">{i18n.fulfillmentTitle}</Text>
-          <View className="flex-row gap-2">
-            <Pressable
-              className={`flex-1 h-11 rounded-lg items-center justify-center border ${
-                fulfillmentMode === 'asap' ? 'bg-orange-50 border-[#d4451a]' : 'bg-background border-border'
-              }`}
-              onPress={() => setFulfillmentMode('asap')}
-            >
-              <Text className="font-semibold">{i18n.asapLabel}</Text>
-            </Pressable>
-            <Pressable
-              className={`flex-1 h-11 rounded-lg items-center justify-center border ${
-                fulfillmentMode === 'scheduled' ? 'bg-orange-50 border-[#d4451a]' : 'bg-background border-border'
-              }`}
-              onPress={() => setFulfillmentMode('scheduled')}
-            >
-              <Text className="font-semibold">{i18n.scheduleLabel}</Text>
-            </Pressable>
-          </View>
-          {fulfillmentMode === 'scheduled' && (
-            <View className="gap-2">
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-2 pr-2">
-                {availableTimeSlots.map((slot) => (
-                  <Pressable
-                    key={slot.iso}
-                    className={`h-10 px-3 rounded-lg border items-center justify-center ${
-                      selectedFulfillmentTimeIso === slot.iso ? 'bg-orange-50 border-[#d4451a]' : 'bg-background border-border'
-                    }`}
-                    onPress={() => setSelectedFulfillmentTimeIso(slot.iso)}
-                  >
-                    <Text className="text-sm font-medium">{slot.label}</Text>
-                  </Pressable>
-                ))}
-              </ScrollView>
-              <Button
-                title={i18n.pickTimeWithWheel}
-                variant="outline"
-                onPress={() => setShowFulfillmentPicker(true)}
-              />
-            </View>
-          )}
-          {(isRestaurantTemporarilyClosed || availabilityError) && (
-            <View className="bg-red-50 border border-red-200 rounded-lg p-3">
-              <Text className="text-xs text-red-700">
-                {availabilityError || i18n.unavailableRestaurantClosed}
-              </Text>
-            </View>
-          )}
-          {isCheckingAvailability && (
-            <Text className="text-xs text-amber-700">{i18n.checkingAvailability}</Text>
-          )}
-        </View>
 
         {/* Nome */}
         <View>
@@ -1055,6 +995,56 @@ export default function CheckoutScreen() {
             )}
           </View>
         )}
+
+        <View className="bg-card border border-border rounded-xl p-4 gap-3">
+          <Text className="text-sm font-semibold">{i18n.fulfillmentTitle}</Text>
+          <View className="h-11 rounded-lg items-center justify-center border bg-orange-50 border-[#d4451a]">
+            <Text className="font-semibold">{i18n.asapLabel}</Text>
+          </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-2 pr-2">
+            {availableTimeSlots.map((slot) => {
+              const isSelectedAsap = fulfillmentMode === 'asap' && asapFulfillmentTimeIso === slot.iso;
+              const isSelectedScheduled = fulfillmentMode === 'scheduled' && selectedFulfillmentTimeIso === slot.iso;
+              return (
+                <Pressable
+                  key={slot.iso}
+                  className={`h-10 px-3 rounded-lg border items-center justify-center ${
+                    isSelectedAsap || isSelectedScheduled ? 'bg-orange-50 border-[#d4451a]' : 'bg-background border-border'
+                  }`}
+                  onPress={() => {
+                    setFulfillmentMode('asap');
+                    setAsapFulfillmentTimeIso(slot.iso);
+                  }}
+                >
+                  <Text className="text-sm font-medium">{slot.label}</Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+          <View className="gap-2">
+            <Text className="text-xs text-muted-foreground">{i18n.preferredTimeLabel}</Text>
+            <Button
+              title={i18n.pickTimeWithWheel}
+              variant="outline"
+              onPress={() => setShowFulfillmentPicker(true)}
+            />
+            {fulfillmentMode === 'scheduled' && selectedFulfillmentTimeIso && (
+              <Text className="text-xs text-emerald-700">
+                {i18n.preferredTimeSelected}: {formatLocalHourMinute(new Date(selectedFulfillmentTimeIso))}
+              </Text>
+            )}
+          </View>
+          {(isRestaurantTemporarilyClosed || availabilityError) && (
+            <View className="bg-red-50 border border-red-200 rounded-lg p-3">
+              <Text className="text-xs text-red-700">
+                {availabilityError || i18n.unavailableRestaurantClosed}
+              </Text>
+            </View>
+          )}
+          {isCheckingAvailability && (
+            <Text className="text-xs text-amber-700">{i18n.checkingAvailability}</Text>
+          )}
+        </View>
 
         {/* Buttons */}
         <View className="flex-row gap-3 mt-4">

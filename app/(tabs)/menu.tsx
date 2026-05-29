@@ -14,6 +14,7 @@ import { useCreateOrder } from '@/lib/hooks/useCreateOrder';
 import { OfflineIndicator } from '@/lib/hooks/useOfflineQueue';
 import { useProducts } from '@/lib/hooks/useProducts';
 import { useAuth } from '@/lib/stores/AuthContext';
+import { useAppSettings } from '@/lib/stores/AppSettingsContext';
 import { useCart } from '@/lib/stores/CartContext';
 import type { Product } from '@/types';
 import { FontAwesome } from '@expo/vector-icons';
@@ -63,6 +64,7 @@ export default function MenuScreen() {
   );
   const { items, totalItems, totalAmount } = useCart();
   const { isAuthenticated, profile, signOut, isGuest, exitGuestMode, isAdmin } = useAuth();
+  const { language } = useAppSettings();
   const showDesktopSidebars = isDesktop;
   const createOrder = useCreateOrder();
   const router = useRouter();
@@ -85,6 +87,31 @@ export default function MenuScreen() {
     return products;
   }, [products, selectedCategoryId, drinkCategoryIds]);
   const featuredProduct = displayProducts[0];
+  const i18n = useMemo(
+    () =>
+      language === 'en'
+        ? {
+            appTitle: 'AMBROSIA - Artisanal Menu',
+            guest: 'Guest',
+            featuredBadge: "Chef's Choice",
+            featuredTitle: 'The Truffle Hearth',
+            featuredDescription: 'Wild mushrooms, black truffle oil, fresh fior di latte and aged parmesan.',
+            artisanalRecipe: 'Artisanal recipe',
+            yourOrder: 'Your Order',
+            itemsLabel: 'items',
+          }
+        : {
+            appTitle: 'AMBROSIA - Menu Artigianale',
+            guest: 'Ospite',
+            featuredBadge: 'Scelta dello chef',
+            featuredTitle: 'La Fiamma al Tartufo',
+            featuredDescription: 'Funghi di bosco, olio al tartufo nero, fior di latte fresco e parmigiano stagionato.',
+            artisanalRecipe: 'Ricetta artigianale',
+            yourOrder: 'Il tuo ordine',
+            itemsLabel: 'articoli',
+          },
+    [language]
+  );
 
   useEffect(() => {
     if (!isMobile) {
@@ -174,7 +201,7 @@ export default function MenuScreen() {
             className={`text-gray-900 font-extrabold tracking-tight ${isMobile ? (isUltraCompactMobile ? 'text-sm' : 'text-base') : 'text-lg'}`}
             numberOfLines={1}
           >
-            AMBROSIA - Artisanal Menu
+            {i18n.appTitle}
           </Text>
         </View>
 
@@ -186,7 +213,7 @@ export default function MenuScreen() {
               <Text className={`text-orange-700 font-semibold ${isMobile ? 'text-xs' : 'text-sm'}`}>
                 {isAuthenticated && profile
                   ? `${profile.full_name?.split(' ')[0] || profile.email.split('@')[0]}`
-                  : 'Guest'}
+                  : i18n.guest}
               </Text>
             </View>
           </View>
@@ -361,10 +388,10 @@ export default function MenuScreen() {
                         onPress={() => handleProductPress(featuredProduct.id)}
                         className="bg-white rounded-2xl border border-orange-100 p-4 active:opacity-90"
                       >
-                        <Text className="text-xs font-bold text-orange-700 uppercase">Chef's Choice</Text>
-                        <Text className="text-xl font-extrabold text-gray-900 mt-1">The Truffle Hearth</Text>
+                        <Text className="text-xs font-bold text-orange-700 uppercase">{i18n.featuredBadge}</Text>
+                        <Text className="text-xl font-extrabold text-gray-900 mt-1">{i18n.featuredTitle}</Text>
                         <Text className="text-xs text-gray-600 mt-1">
-                          Wild mushrooms, black truffle oil, fresh fior di latte and aged parmesan.
+                          {i18n.featuredDescription}
                         </Text>
                       </Pressable>
                     )}
@@ -386,7 +413,7 @@ export default function MenuScreen() {
                           {item.name}
                         </Text>
                         <Text className="text-xs text-gray-600 mt-1" numberOfLines={2}>
-                          {item.description || item.ingredients?.join(', ') || 'Artisanal recipe'}
+                          {item.description || item.ingredients?.join(', ') || i18n.artisanalRecipe}
                         </Text>
                         <Text className="text-lg font-extrabold text-[#d4451a] mt-2">
                           €{item.price.toFixed(2)}
@@ -436,10 +463,10 @@ export default function MenuScreen() {
               <FontAwesome name="shopping-cart" size={20} color="#ffffff" />
               <View>
                 <Text className="text-white font-bold text-lg">
-                  Your Order
+                  {i18n.yourOrder}
                 </Text>
                 <Text className="text-orange-100 text-sm">
-                  {totalItems} items
+                  {totalItems} {i18n.itemsLabel}
                 </Text>
               </View>
             </View>

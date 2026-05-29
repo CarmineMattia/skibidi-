@@ -14,6 +14,7 @@ import type { Database } from '@/types/database.types.generated';
 import { FontAwesome } from '@expo/vector-icons';
 import { useAppSettings } from '@/lib/stores/AppSettingsContext';
 import { useAuth } from '@/lib/stores/AuthContext';
+import { useOrderAlertSound } from '@/lib/hooks/useOrderAlertSound';
 import { useRouter } from 'expo-router';
 import { getNextOpening, isOpenAt } from '@/lib/utils/businessHours';
 
@@ -42,6 +43,7 @@ export default function KitchenScreen() {
   const [deviceNow, setDeviceNow] = useState(() => new Date());
   const router = useRouter();
   const { isAdmin } = useAuth();
+  const { playAlert } = useOrderAlertSound();
   const { acceptingOrders, ordersPausedUntil, pauseOrdersForMinutes, resumeOrders, businessHours } = useAppSettings();
   const selectedFilter = FILTER_OPTIONS[selectedFilterIndex];
   const pausedUntilDate =
@@ -75,6 +77,15 @@ export default function KitchenScreen() {
 
   const { data: orders = [], isLoading, error, refetch } = useKitchenOrders({
     statuses: selectedFilter.statuses,
+    onOrderEvent: (event) => {
+      if (event.type === 'new-order') {
+        void playAlert('new-order', event.orderId);
+        return;
+      }
+      if (event.type === 'order-ready') {
+        void playAlert('order-ready', event.orderId);
+      }
+    },
   });
 
   if (error) {

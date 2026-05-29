@@ -7,10 +7,12 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
+    "chat:server": "node server/order-assistant-server.mjs",
     "lint": "eslint . --ext .ts,.tsx,.js,.jsx",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@cursor/sdk": "^1.0.8",
     "@expo/vector-icons": "^15.0.3",
     "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-native-community/netinfo": "^11.5.2",
@@ -22,7 +24,9 @@
     "countries-list": "^3.3.0",
     "dotenv": "^17.2.3",
     "expo": "~54.0.31",
+    "expo-av": "^16.0.8",
     "expo-constants": "~18.0.13",
+    "expo-document-picker": "^55.0.13",
     "expo-file-system": "^19.0.21",
     "expo-font": "~14.0.10",
     "expo-image-picker": "^17.0.10",

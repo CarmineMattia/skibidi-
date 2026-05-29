@@ -1,5 +1,9 @@
 import { FontAwesome } from '@expo/vector-icons';
+import { supabase } from '@/lib/api/supabase';
+import { useOrderAlertSound } from '@/lib/hooks/useOrderAlertSound';
+import { useOrder } from '@/lib/hooks/useOrders';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect, useRef } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -18,8 +22,15 @@ export default function OrderTrackingScreen() {
     orderId?: string;
   }>();
   const orderType = normalizeOrderType(rawOrderType);
+  const orderIdParam = typeof orderId === 'string' ? orderId : undefined;
+  const { data: orderData } = useOrder(orderIdParam ?? '');
+  const { playAlert } = useOrderAlertSound();
+  const lastStatusRef = useRef<string | null>(null);
   const estimatedLabel = orderType === 'delivery' ? 'Estimated Arrival' : 'Estimated Ready';
-  const orderRef = (orderId || 'AMB-9821').slice(0, 8).toUpperCase();
+  const orderRef = (orderIdParam || 'AMB-9821').slice(0, 8).toUpperCase();
+  const trackedStatus = orderData?.status ?? null;
+  const trackedDeclinePreset = orderData?.decline_reason_preset ?? null;
+  const trackedDeclineNote = orderData?.decline_reason_note ?? null;
   let supportTitle = 'Live Tracking';
   let supportDescription = '4.2 miles away';
   if (orderType === 'eat_in') {
@@ -31,12 +42,15 @@ export default function OrderTrackingScreen() {
   }
 
   let summaryText = `Order #${orderRef} is being prepared with care.`;
+  if (trackedStatus === 'cancelled') {
+    summaryText = `Order #${orderRef} e stato rifiutato dal ristorante.`;
+  }
   if (orderType === 'eat_in') {
     summaryText = `Order #${orderRef} is being prepared with care for table service.`;
   } else if (orderType === 'take_away') {
     summaryText = `Order #${orderRef} is being prepared for pickup.`;
   }
-  let trackingSteps: { key: string; label: string; icon: 'check-circle' | 'cutlery' | 'bell' | 'shopping-bag' | 'motorcycle' | 'home'; done: boolean }[];
+  let trackingSteps: { key: string; label: string; icon: 'check-circle' | 'cutlery' | 'bell' | 'shopping-bag' | 'motorcycle' | 'home' | 'times-circle'; done: boolean }[];
   if (orderType === 'eat_in') {
     trackingSteps = [
       { key: 'confirmed', label: 'Confirmed', icon: 'check-circle', done: true },
@@ -49,6 +63,11 @@ export default function OrderTrackingScreen() {
       { key: 'preparing', label: 'Preparing', icon: 'cutlery', done: true },
       { key: 'pickup', label: 'Ready for Pickup', icon: 'shopping-bag', done: false },
     ];
+  } else if (trackedStatus === 'cancelled') {
+    trackingSteps = [
+      { key: 'confirmed', label: 'Confermato', icon: 'check-circle', done: true },
+      { key: 'cancelled', label: 'Rifiutato', icon: 'times-circle', done: true },
+    ];
   } else {
     trackingSteps = [
       { key: 'confirmed', label: 'Confirmed', icon: 'check-circle', done: true },
@@ -57,6 +76,42 @@ export default function OrderTrackingScreen() {
       { key: 'delivered', label: 'Delivered', icon: 'home', done: false },
     ];
   }
+
+  useEffect(() => {
+    if (!orderIdParam) return;
+
+    const channel = supabase
+      .channel(`order-tracking-${orderIdParam}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'orders',
+          filter: `id=eq.${orderIdParam}`,
+        },
+        (payload) => {
+          const nextStatus = (payload.new as { status?: string } | null)?.status ?? null;
+          const prevStatus = (payload.old as { status?: string } | null)?.status ?? null;
+          if (nextStatus === 'ready' && prevStatus !== 'ready') {
+            void playAlert('order-ready', orderIdParam);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [orderIdParam, playAlert]);
+
+  useEffect(() => {
+    if (!orderData?.status) return;
+    if (orderData.status === 'ready' && lastStatusRef.current !== 'ready') {
+      void playAlert('order-ready', orderData.id);
+    }
+    lastStatusRef.current = orderData.status;
+  }, [orderData?.id, orderData?.status, playAlert]);
 
   return (
     <>
@@ -114,6 +169,20 @@ export default function OrderTrackingScreen() {
               );
             })}
           </View>
+
+          {trackedStatus === 'cancelled' ? (
+            <View className="bg-red-50 rounded-2xl border border-red-200 p-4 gap-1.5">
+              <Text className="text-xs font-bold uppercase tracking-wider text-red-700">
+                Motivo rifiuto
+              </Text>
+              <Text className="text-base font-bold text-red-800">
+                {trackedDeclinePreset || 'Ordine rifiutato'}
+              </Text>
+              {trackedDeclineNote ? (
+                <Text className="text-sm text-red-700">{trackedDeclineNote}</Text>
+              ) : null}
+            </View>
+          ) : null}
 
           {orderType === 'delivery' ? (
             <View className="bg-white rounded-2xl border border-orange-100 p-4 gap-3">

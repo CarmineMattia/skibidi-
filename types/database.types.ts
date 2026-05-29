@@ -70,6 +70,9 @@ export interface Order {
   delivery_address?: string;
   table_number?: string;
   company_id: string;
+  decline_reason_preset?: string | null;
+  decline_reason_note?: string | null;
+  declined_at?: string | null;
 }
 
 export interface OrderItem {
@@ -157,7 +160,7 @@ export interface Database {
       };
       orders: {
         Row: Order;
-        Insert: Omit<Order, 'id' | 'created_at' | 'updated_at'>;
+        Insert: { id?: string } & Omit<Order, 'id' | 'created_at' | 'updated_at'>;
         Update: Partial<Omit<Order, 'id' | 'created_at' | 'updated_at'>>;
       };
       order_items: {

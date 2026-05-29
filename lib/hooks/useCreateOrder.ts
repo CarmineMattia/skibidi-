@@ -119,8 +119,11 @@ export function useCreateOrder() {
           ? `Fulfillment mode: ${fulfillmentMode || 'asap'} | Fulfillment at: ${fulfillmentAt}`
           : undefined);
 
-      // 3. Create order record
+      // 3. Create order record — UUID generated client-side so we never need
+      //    a SELECT after insert (which RLS would block for unauthenticated guests).
+      const orderId = crypto.randomUUID();
       const orderData: OrderInsert = {
+        id: orderId,
         customer_id: user?.id,
         status: 'pending',
         total_amount: totalAmount,
@@ -134,16 +137,16 @@ export function useCreateOrder() {
         company_id: companyId!,
       };
 
-      const { data: order, error: orderError } = await supabase
+      const { error: orderError } = await supabase
         .from('orders')
-        .insert(orderData)
-        .select('id, total_amount, fiscal_status')
-        .single();
+        .insert(orderData);
 
       if (orderError) {
         console.error('Order creation error:', orderError);
         throw new Error(`Errore nella creazione dell'ordine: ${orderError.message}`);
       }
+
+      const order = { id: orderId, total_amount: totalAmount, fiscal_status: 'pending' as const };
 
       // 4. Create order items (bulk insert)
       const orderItems: OrderItemInsert[] = items.map((item) => {

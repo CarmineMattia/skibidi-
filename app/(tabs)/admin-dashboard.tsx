@@ -1,4 +1,7 @@
 import { supabase } from '@/lib/api/supabase';
+import { DeclineReasonModal } from '@/components/features/orders/DeclineReasonModal';
+import { useOrderAlertSound } from '@/lib/hooks/useOrderAlertSound';
+import { useUpdateOrderStatus } from '@/lib/hooks/useUpdateOrderStatus';
 import { useAppSettings } from '@/lib/stores/AppSettingsContext';
 import { useAuth } from '@/lib/stores/AuthContext';
 import { useTenant } from '@/lib/stores/TenantContext';
@@ -6,7 +9,7 @@ import { FontAwesome } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import type { ComponentProps } from 'react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -31,6 +34,16 @@ type DashboardStats = {
   statusBreakdown: Array<{ label: string; value: number; color: string }>;
 };
 
+type ActionableOrder = {
+  id: string;
+  created_at: string;
+  status: 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
+  total_amount: number;
+  customer_name: string | null;
+  decline_reason_preset: string | null;
+  decline_reason_note: string | null;
+};
+
 export default function AdminDashboardScreen() {
   const { isAdmin } = useAuth();
   const { companyId } = useTenant();
@@ -45,6 +58,9 @@ export default function AdminDashboardScreen() {
   const [timeRange, setTimeRange] = useState<TimeRangeKey>('today');
   const [selectedMetric, setSelectedMetric] = useState<MetricKey>('orders');
   const [selectedHourLabel, setSelectedHourLabel] = useState<string | null>(null);
+  const [declineOrderId, setDeclineOrderId] = useState<string | null>(null);
+  const updateOrderStatus = useUpdateOrderStatus();
+  const { playAlert } = useOrderAlertSound();
 
   const { data, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['admin-dashboard-stats', companyId],
@@ -151,6 +167,23 @@ export default function AdminDashboardScreen() {
           { label: 'Annullati', value: statusCounts.cancelled, color: '#ef4444' },
         ],
       };
+    },
+  });
+
+  const { data: actionableOrders = [] } = useQuery({
+    queryKey: ['admin-actionable-orders', companyId],
+    enabled: Boolean(companyId) && isAdmin,
+    queryFn: async (): Promise<ActionableOrder[]> => {
+      const { data, error } = await supabase
+        .from('orders')
+        .select('id, created_at, status, total_amount, customer_name, decline_reason_preset, decline_reason_note')
+        .eq('company_id', companyId!)
+        .in('status', ['pending', 'preparing', 'ready', 'cancelled'])
+        .order('created_at', { ascending: false })
+        .limit(12);
+
+      if (error) throw error;
+      return (data ?? []) as ActionableOrder[];
     },
   });
 
@@ -263,6 +296,59 @@ export default function AdminDashboardScreen() {
     }
     return forecasts;
   }, [data?.orders, deliveryMaxOrdersPerWindow, maxOrdersPerWindow]);
+
+  useEffect(() => {
+    if (!companyId) return;
+    const channel = supabase
+      .channel(`admin-dashboard-orders-${companyId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'orders',
+          filter: `company_id=eq.${companyId}`,
+        },
+        (payload) => {
+          const nextStatus = (payload.new as { status?: string; id?: string } | null)?.status;
+          const nextId = (payload.new as { status?: string; id?: string } | null)?.id;
+          const prevStatus = (payload.old as { status?: string } | null)?.status;
+          if (payload.eventType === 'INSERT' && nextStatus === 'pending' && nextId) {
+            void playAlert('new-order', nextId);
+          }
+          if (payload.eventType === 'UPDATE' && nextStatus === 'ready' && prevStatus !== 'ready' && nextId) {
+            void playAlert('order-ready', nextId);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [companyId, playAlert]);
+
+  const getNextStatus = (status: ActionableOrder['status']): ActionableOrder['status'] | null => {
+    if (status === 'pending') return 'preparing';
+    if (status === 'preparing') return 'ready';
+    if (status === 'ready') return 'delivered';
+    return null;
+  };
+
+  const handleDeclineOrder = (payload: { preset: string; note: string }) => {
+    if (!declineOrderId) return;
+    updateOrderStatus.mutate(
+      {
+        orderId: declineOrderId,
+        status: 'cancelled',
+        declineReasonPreset: payload.preset,
+        declineReasonNote: payload.note || null,
+      },
+      {
+        onSuccess: () => setDeclineOrderId(null),
+      }
+    );
+  };
 
   return (
     <ScrollView
@@ -473,9 +559,78 @@ export default function AdminDashboardScreen() {
                 ))}
               </View>
             </View>
+
+            <View className="bg-white rounded-2xl border border-orange-100 p-4">
+              <Text className="text-sm text-gray-500 uppercase font-bold">Gestione ordini rapida</Text>
+              <View className="gap-2 mt-3">
+                {actionableOrders.length === 0 ? (
+                  <Text className="text-sm text-gray-500">Nessun ordine attivo da gestire.</Text>
+                ) : (
+                  actionableOrders.map((order) => {
+                    const nextStatus = getNextStatus(order.status);
+                    return (
+                      <View key={order.id} className="rounded-xl border border-gray-200 bg-gray-50 p-3">
+                        <View className="flex-row items-center justify-between">
+                          <View>
+                            <Text className="font-extrabold text-gray-900">#{order.id.slice(0, 8).toUpperCase()}</Text>
+                            <Text className="text-xs text-gray-500">
+                              {order.customer_name || 'Cliente'} • €{order.total_amount.toFixed(2)}
+                            </Text>
+                          </View>
+                          <Text className="text-[11px] font-bold uppercase text-orange-700">{order.status}</Text>
+                        </View>
+                        {(order.decline_reason_preset || order.decline_reason_note) && (
+                          <View className="mt-2 rounded-lg border border-red-200 bg-red-50 p-2">
+                            <Text className="text-[10px] text-red-700 font-bold uppercase">{order.decline_reason_preset || 'Rifiutato'}</Text>
+                            {order.decline_reason_note ? <Text className="text-[11px] text-red-700">{order.decline_reason_note}</Text> : null}
+                          </View>
+                        )}
+                        {(nextStatus || order.status !== 'cancelled') ? (
+                          <View className="flex-row gap-2 mt-3">
+                            {nextStatus ? (
+                              <Pressable
+                                className="flex-1 h-9 rounded-lg bg-emerald-600 items-center justify-center"
+                                onPress={() =>
+                                  updateOrderStatus.mutate({
+                                    orderId: order.id,
+                                    status: nextStatus,
+                                  })
+                                }
+                              >
+                                <Text className="text-white text-xs font-bold">
+                                  {order.status === 'pending'
+                                    ? 'Accetta'
+                                    : order.status === 'preparing'
+                                    ? 'Segna pronto'
+                                    : 'Segna consegnato'}
+                                </Text>
+                              </Pressable>
+                            ) : null}
+                            {order.status !== 'cancelled' && order.status !== 'delivered' ? (
+                              <Pressable
+                                className="flex-1 h-9 rounded-lg bg-red-600 items-center justify-center"
+                                onPress={() => setDeclineOrderId(order.id)}
+                              >
+                                <Text className="text-white text-xs font-bold">Rifiuta</Text>
+                              </Pressable>
+                            ) : null}
+                          </View>
+                        ) : null}
+                      </View>
+                    );
+                  })
+                )}
+              </View>
+            </View>
           </View>
         )}
       </View>
+      <DeclineReasonModal
+        visible={Boolean(declineOrderId)}
+        onClose={() => setDeclineOrderId(null)}
+        onConfirm={handleDeclineOrder}
+        isSubmitting={updateOrderStatus.isPending}
+      />
     </ScrollView>
   );
 }

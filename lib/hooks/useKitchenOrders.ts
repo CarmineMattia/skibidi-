@@ -19,10 +19,11 @@ export interface KitchenOrder extends Order {
 
 interface UseKitchenOrdersOptions {
   statuses?: Order['status'][];
+  onOrderEvent?: (event: { type: 'new-order' | 'order-ready'; orderId: string }) => void;
 }
 
 export function useKitchenOrders(options: UseKitchenOrdersOptions = {}) {
-  const { statuses = ['pending', 'preparing', 'ready'] } = options;
+  const { statuses = ['pending', 'preparing', 'ready'], onOrderEvent } = options;
   const { companyId } = useTenant();
   const queryClient = useQueryClient();
 
@@ -74,7 +75,23 @@ export function useKitchenOrders(options: UseKitchenOrdersOptions = {}) {
           table: 'orders',
           filter: `company_id=eq.${companyId}`,
         },
-        () => {
+        (payload) => {
+          const nextOrder = payload.new as { id?: string; status?: Order['status'] } | null;
+          const prevOrder = payload.old as { status?: Order['status'] } | null;
+
+          if (payload.eventType === 'INSERT' && nextOrder?.id && nextOrder.status === 'pending') {
+            onOrderEvent?.({ type: 'new-order', orderId: nextOrder.id });
+          }
+
+          if (
+            payload.eventType === 'UPDATE' &&
+            nextOrder?.id &&
+            nextOrder.status === 'ready' &&
+            prevOrder?.status !== 'ready'
+          ) {
+            onOrderEvent?.({ type: 'order-ready', orderId: nextOrder.id });
+          }
+
           queryClient.invalidateQueries({ queryKey: ['kitchen-orders', companyId] });
         }
       )
@@ -83,7 +100,7 @@ export function useKitchenOrders(options: UseKitchenOrdersOptions = {}) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [companyId, queryClient]);
+  }, [companyId, onOrderEvent, queryClient]);
 
   return query;
 }

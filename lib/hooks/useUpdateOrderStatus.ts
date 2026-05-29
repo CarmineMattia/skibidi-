@@ -12,18 +12,27 @@ type OrderStatus = Database['public']['Enums']['order_status'];
 interface UpdateOrderStatusInput {
   orderId: string;
   status: OrderStatus;
+  declineReasonPreset?: string | null;
+  declineReasonNote?: string | null;
 }
 
 export function useUpdateOrderStatus() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ orderId, status }: UpdateOrderStatusInput) => {
+    mutationFn: async ({ orderId, status, declineReasonPreset = null, declineReasonNote = null }: UpdateOrderStatusInput) => {
+      const isDeclined = status === 'cancelled';
       const { data, error } = await supabase
         .from('orders')
-        .update({ status, updated_at: new Date().toISOString() })
+        .update({
+          status,
+          updated_at: new Date().toISOString(),
+          decline_reason_preset: isDeclined ? declineReasonPreset : null,
+          decline_reason_note: isDeclined ? declineReasonNote : null,
+          declined_at: isDeclined ? new Date().toISOString() : null,
+        })
         .eq('id', orderId)
-        .select('id, status')
+        .select('id, status, decline_reason_preset, decline_reason_note')
         .single();
 
       if (error) {

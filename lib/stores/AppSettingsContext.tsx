@@ -18,6 +18,12 @@ interface OrderCapacitySettings {
   businessHours: WeeklyBusinessHours;
 }
 
+interface AlertSoundSettings {
+  enabled: boolean;
+  newOrderSoundUrl: string | null;
+  orderReadySoundUrl: string | null;
+}
+
 interface AppSettingsContextType {
   language: AppLanguage;
   deliveryFee: number;
@@ -29,6 +35,7 @@ interface AppSettingsContextType {
   deliveryOrderWindowMinutes: number;
   disabledTimeSlots: string[];
   businessHours: WeeklyBusinessHours;
+  alertSounds: AlertSoundSettings;
   setLanguage: (language: AppLanguage) => void;
   setDeliveryFee: (fee: number) => void;
   setAcceptingOrders: (value: boolean) => void;
@@ -43,11 +50,15 @@ interface AppSettingsContextType {
   clearDisabledTimeSlots: () => void;
   setBusinessDayEnabled: (dayIndex: number, enabled: boolean) => void;
   setBusinessDayIntervals: (dayIndex: number, intervals: BusinessHoursInterval[]) => void;
+  setAlertSoundsEnabled: (value: boolean) => void;
+  setNewOrderSoundUrl: (url: string | null) => void;
+  setOrderReadySoundUrl: (url: string | null) => void;
 }
 
 const LANGUAGE_KEY = 'skibidi_admin_language';
 const DELIVERY_FEE_KEY = 'skibidi_delivery_fee_eur';
 const ORDER_SETTINGS_KEY = 'skibidi_order_capacity_settings';
+const ALERT_SOUND_SETTINGS_KEY = 'skibidi_alert_sound_settings';
 export const WEEKDAY_LABELS = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'] as const;
 
 function buildDefaultBusinessHours(): WeeklyBusinessHours {
@@ -66,6 +77,12 @@ const DEFAULT_ORDER_SETTINGS: OrderCapacitySettings = {
   deliveryOrderWindowMinutes: 10,
   disabledTimeSlots: [],
   businessHours: buildDefaultBusinessHours(),
+};
+
+const DEFAULT_ALERT_SOUND_SETTINGS: AlertSoundSettings = {
+  enabled: true,
+  newOrderSoundUrl: null,
+  orderReadySoundUrl: null,
 };
 
 const AppSettingsContext = createContext<AppSettingsContextType | undefined>(undefined);
@@ -173,6 +190,22 @@ function parseOrderSettings(raw: unknown): OrderCapacitySettings {
   };
 }
 
+function parseAlertSoundSettings(raw: unknown): AlertSoundSettings {
+  if (!raw || typeof raw !== 'object') return DEFAULT_ALERT_SOUND_SETTINGS;
+  const source = raw as Partial<AlertSoundSettings>;
+  return {
+    enabled: typeof source.enabled === 'boolean' ? source.enabled : DEFAULT_ALERT_SOUND_SETTINGS.enabled,
+    newOrderSoundUrl:
+      typeof source.newOrderSoundUrl === 'string' && source.newOrderSoundUrl.trim().length > 0
+        ? source.newOrderSoundUrl
+        : null,
+    orderReadySoundUrl:
+      typeof source.orderReadySoundUrl === 'string' && source.orderReadySoundUrl.trim().length > 0
+        ? source.orderReadySoundUrl
+        : null,
+  };
+}
+
 function asCompanySettingsJson(value: Record<string, unknown>): JsonValue {
   return value as unknown as JsonValue;
 }
@@ -182,6 +215,7 @@ export function AppSettingsProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<AppLanguage>('it');
   const [deliveryFee, setDeliveryFeeState] = useState(2);
   const [orderSettings, setOrderSettings] = useState<OrderCapacitySettings>(DEFAULT_ORDER_SETTINGS);
+  const [alertSounds, setAlertSounds] = useState<AlertSoundSettings>(DEFAULT_ALERT_SOUND_SETTINGS);
 
   useEffect(() => {
     const storage = getStorage();
@@ -210,6 +244,15 @@ export function AppSettingsProvider({ children }: { children: ReactNode }) {
         setOrderSettings(DEFAULT_ORDER_SETTINGS);
       }
     }
+    const savedAlertSettings = storage.getItem(ALERT_SOUND_SETTINGS_KEY);
+    if (savedAlertSettings) {
+      try {
+        const parsed = JSON.parse(savedAlertSettings);
+        setAlertSounds(parseAlertSoundSettings(parsed));
+      } catch {
+        setAlertSounds(DEFAULT_ALERT_SOUND_SETTINGS);
+      }
+    }
   }, []);
 
   useEffect(() => {
@@ -228,6 +271,7 @@ export function AppSettingsProvider({ children }: { children: ReactNode }) {
           checkoutLanguage?: AppLanguage;
           deliveryFeeEur?: number;
           orderCapacity?: OrderCapacitySettings;
+          alerts?: AlertSoundSettings;
         };
 
         if (rawSettings.checkoutLanguage === 'it' || rawSettings.checkoutLanguage === 'en') {
@@ -238,6 +282,9 @@ export function AppSettingsProvider({ children }: { children: ReactNode }) {
         }
         if (rawSettings.orderCapacity) {
           setOrderSettings(parseOrderSettings(rawSettings.orderCapacity));
+        }
+        if (rawSettings.alerts) {
+          setAlertSounds(parseAlertSoundSettings(rawSettings.alerts));
         }
       } catch {
         // Ignore remote sync failures and keep local settings.
@@ -270,6 +317,38 @@ export function AppSettingsProvider({ children }: { children: ReactNode }) {
       const mergedSettings = {
         ...previousSettings,
         orderCapacity: nextSettings,
+      };
+
+      await supabase
+        .from('companies')
+        .update({ settings: asCompanySettingsJson(mergedSettings) })
+        .eq('id', companyId);
+    })();
+  };
+
+  const persistAlertSoundSettings = (nextSettings: AlertSoundSettings, source: UpdateSource) => {
+    setAlertSounds(nextSettings);
+    const storage = getStorage();
+    if (storage) {
+      storage.setItem(ALERT_SOUND_SETTINGS_KEY, JSON.stringify(nextSettings));
+    }
+    if (source === 'remote' || !companyId) return;
+
+    void (async () => {
+      const { data } = await supabase
+        .from('companies')
+        .select('settings')
+        .eq('id', companyId)
+        .single();
+
+      const previousSettings =
+        data && typeof data.settings === 'object' && data.settings !== null
+          ? (data.settings as Record<string, unknown>)
+          : {};
+
+      const mergedSettings = {
+        ...previousSettings,
+        alerts: nextSettings,
       };
 
       await supabase
@@ -482,6 +561,36 @@ export function AppSettingsProvider({ children }: { children: ReactNode }) {
     );
   };
 
+  const setAlertSoundsEnabled = (value: boolean) => {
+    persistAlertSoundSettings(
+      {
+        ...alertSounds,
+        enabled: value,
+      },
+      'local'
+    );
+  };
+
+  const setNewOrderSoundUrl = (url: string | null) => {
+    persistAlertSoundSettings(
+      {
+        ...alertSounds,
+        newOrderSoundUrl: url,
+      },
+      'local'
+    );
+  };
+
+  const setOrderReadySoundUrl = (url: string | null) => {
+    persistAlertSoundSettings(
+      {
+        ...alertSounds,
+        orderReadySoundUrl: url,
+      },
+      'local'
+    );
+  };
+
   const value = useMemo(
     () => ({
       language,
@@ -494,6 +603,7 @@ export function AppSettingsProvider({ children }: { children: ReactNode }) {
       deliveryOrderWindowMinutes: orderSettings.deliveryOrderWindowMinutes,
       disabledTimeSlots: orderSettings.disabledTimeSlots,
       businessHours: orderSettings.businessHours,
+      alertSounds,
       setLanguage,
       setDeliveryFee,
       setAcceptingOrders,
@@ -508,8 +618,11 @@ export function AppSettingsProvider({ children }: { children: ReactNode }) {
       clearDisabledTimeSlots,
       setBusinessDayEnabled,
       setBusinessDayIntervals,
+      setAlertSoundsEnabled,
+      setNewOrderSoundUrl,
+      setOrderReadySoundUrl,
     }),
-    [language, deliveryFee, orderSettings]
+    [language, deliveryFee, orderSettings, alertSounds]
   );
 
   return <AppSettingsContext.Provider value={value}>{children}</AppSettingsContext.Provider>;

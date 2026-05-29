@@ -4,6 +4,7 @@
  */
 
 import type { Product } from '@/types/database.types';
+import { useAppSettings } from '@/lib/stores/AppSettingsContext';
 import { FontAwesome } from '@expo/vector-icons';
 import { useCallback } from 'react';
 import { Image, Pressable, Text, View, useWindowDimensions } from 'react-native';
@@ -40,6 +41,7 @@ function getProductIcon(product: Product): string {
 
 export function ProductCard({ product, onAddToCart, onEditPress }: ProductCardProps) {
   const { width } = useWindowDimensions();
+  const { language } = useAppSettings();
   const isMobile = width < 768;
 
   // Only show edit button if onEditPress is provided (which implies admin check in parent)
@@ -117,10 +119,14 @@ export function ProductCard({ product, onAddToCart, onEditPress }: ProductCardPr
             }`}
             onPress={handleAddToCart}
             accessibilityRole="button"
-            accessibilityLabel={`Aggiungi ${product.name} al carrello`}
+            accessibilityLabel={
+              language === 'en'
+                ? `Add ${product.name} to cart`
+                : `Aggiungi ${product.name} al carrello`
+            }
           >
             <Text className={`text-white font-extrabold ${isMobile ? 'text-sm' : 'text-base'}`}>
-              add
+              {language === 'en' ? 'Add' : 'Aggiungi'}
             </Text>
           </Pressable>
         </View>
