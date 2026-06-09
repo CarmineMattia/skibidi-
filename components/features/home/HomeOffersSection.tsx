@@ -48,12 +48,12 @@ export function HomeOffersSection({ offers, onOpenOffer }: HomeOffersSectionProp
     <View className="bg-white/80 border border-[#ead8c7] rounded-3xl p-3.5 shadow-sm gap-2">
       <View className="flex-row items-center justify-between gap-2">
         <View className="flex-row items-center gap-2">
-          <FontAwesome name="tags" size={14} color="#ea580c" />
+          <FontAwesome name="tags" size={14} color="#8d171e" />
           <Text className="text-[26px] font-black text-gray-900">Offerte del giorno</Text>
         </View>
         <View className="flex-row items-center gap-1">
-          <Text className="text-orange-600 text-sm font-extrabold">Scorri giu</Text>
-          <FontAwesome name="long-arrow-down" size={14} color="#ea580c" />
+          <Text className="text-[#8d171e] text-sm font-extrabold">Scorri giu</Text>
+          <FontAwesome name="long-arrow-down" size={14} color="#8d171e" />
         </View>
       </View>
 
@@ -98,7 +98,7 @@ export function HomeOffersSection({ offers, onOpenOffer }: HomeOffersSectionProp
                 opacity: isFeatured ? 1 : 0.65,
               }}
               className={`rounded-[22px] overflow-hidden bg-[#efe3d4] active:opacity-90 ${
-                isFeatured ? 'border-2 border-orange-500 shadow-xl' : 'border border-[#e7d8c8] shadow-sm'
+                isFeatured ? 'border-2 border-[#8d171e] shadow-xl' : 'border border-[#e1a255] shadow-sm'
               }`}
               onPressIn={() => setSelectedIndex(index)}
             >
@@ -119,18 +119,18 @@ export function HomeOffersSection({ offers, onOpenOffer }: HomeOffersSectionProp
                   </View>
                   {isFeatured ? (
                     <View className="bg-white/90 self-start rounded-full px-2.5 py-1 mb-1.5">
-                      <Text className="text-orange-700 text-[10px] font-extrabold">Offerta principale</Text>
+                      <Text className="text-[#8d171e] text-[10px] font-extrabold">Offerta principale</Text>
                     </View>
                   ) : null}
                   {isFeatured ? (
-                    <View className="bg-orange-500/90 self-start rounded-full px-2.5 py-1 mb-1.5">
+                    <View className="bg-[#f9ecdd]0/90 self-start rounded-full px-2.5 py-1 mb-1.5">
                       <Text className="text-white text-[10px] font-extrabold">SELEZIONATA</Text>
                     </View>
                   ) : null}
                   <Text className="text-white text-[24px] font-black" numberOfLines={1}>
                     {offer.title}
                   </Text>
-                  <Text className="text-orange-100 text-xs mt-0.5" numberOfLines={2}>
+                  <Text className="text-[#f3dabb] text-xs mt-0.5" numberOfLines={2}>
                     {offer.subtitle}
                   </Text>
                 </LinearGradient>
@@ -138,8 +138,8 @@ export function HomeOffersSection({ offers, onOpenOffer }: HomeOffersSectionProp
               <View className="bg-white border-t border-[#f2e4d6] min-h-[46px] px-3.5 py-3 justify-center">
                 <View className="flex-row items-center gap-1.5 mb-1.5">
                   {offer.includes.map((item) => (
-                    <View key={item} className="bg-orange-50 border border-orange-100 rounded-full px-2 py-0.5">
-                      <Text className="text-[10px] font-bold text-orange-700">{item}</Text>
+                    <View key={item} className="bg-[#f9ecdd] border border-[#e1a255]/40 rounded-full px-2 py-0.5">
+                      <Text className="text-[10px] font-bold text-[#8d171e]">{item}</Text>
                     </View>
                   ))}
                 </View>
@@ -150,13 +150,13 @@ export function HomeOffersSection({ offers, onOpenOffer }: HomeOffersSectionProp
                         key={`${offer.id}-preview-${idx}`}
                         source={{ uri: previewImage }}
                         resizeMode="cover"
-                        className="w-7 h-7 rounded-full overflow-hidden border border-orange-100"
+                        className="w-7 h-7 rounded-full overflow-hidden border border-[#e1a255]/40"
                       />
                     ))}
                     <Text className="text-[10px] text-gray-500 font-semibold">Nel combo</Text>
                   </View>
                 ) : null}
-                <Text className="text-orange-700 font-extrabold">{offer.cta} →</Text>
+                <Text className="text-[#8d171e] font-extrabold">{offer.cta} →</Text>
               </View>
             </Pressable>
             );
@@ -164,12 +164,12 @@ export function HomeOffersSection({ offers, onOpenOffer }: HomeOffersSectionProp
         />
         <LinearGradient
           pointerEvents="none"
-          colors={['#fdf9f3', 'rgba(253,249,243,0)']}
+          colors={['#f9ecdd', 'rgba(253,249,243,0)']}
           className="absolute left-0 right-0 top-0 h-7 rounded-t-2xl"
         />
         <LinearGradient
           pointerEvents="none"
-          colors={['rgba(253,249,243,0)', '#fdf9f3']}
+          colors={['rgba(253,249,243,0)', '#f9ecdd']}
           className="absolute left-0 right-0 bottom-0 h-7 rounded-b-2xl"
         />
       </View>

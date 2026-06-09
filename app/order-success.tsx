@@ -54,7 +54,7 @@ export default function OrderSuccessScreen() {
 
                     <View className="w-full gap-3 mb-6">
                         <Pressable
-                            className="bg-[#d4451a] w-full py-4 sm:py-5 rounded-xl items-center active:opacity-90 min-h-[56px]"
+                            className="bg-[#8d171e] w-full py-4 sm:py-5 rounded-xl items-center active:opacity-90 min-h-[56px]"
                             onPress={() =>
                                 router.push(
                                     `/order-tracking?orderType=${encodeURIComponent(orderType || 'delivery')}&orderId=${encodeURIComponent(orderId || '')}`

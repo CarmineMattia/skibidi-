@@ -352,12 +352,12 @@ export default function AdminDashboardScreen() {
 
   return (
     <ScrollView
-      className="flex-1 bg-[#fdf9f3]"
+      className="flex-1 bg-[#f9ecdd]"
       contentContainerStyle={{ paddingTop: insets.top + 12, paddingBottom: insets.bottom + 96 }}
       refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={() => void refetch()} />}
     >
       <View className="px-4 gap-4">
-        <View className="bg-white rounded-2xl border border-orange-100 p-5">
+        <View className="bg-white rounded-2xl border border-[#e1a255]/40 p-5">
           <Text className="text-2xl font-black text-gray-900">Dashboard Admin</Text>
           <Text className="text-sm text-gray-600 mt-1">Panoramica operativa in tempo reale del ristorante.</Text>
           <View className="flex-row gap-2 mt-3">
@@ -368,13 +368,13 @@ export default function AdminDashboardScreen() {
             ].map((item) => (
               <Pressable
                 key={item.key}
-                className={`px-3 py-2 rounded-lg border ${timeRange === item.key ? 'bg-orange-50 border-orange-200' : 'bg-gray-50 border-gray-200'}`}
+                className={`px-3 py-2 rounded-lg border ${timeRange === item.key ? 'bg-[#f9ecdd] border-[#e1a255]/60' : 'bg-gray-50 border-gray-200'}`}
                 onPress={() => {
                   setTimeRange(item.key as TimeRangeKey);
                   setSelectedHourLabel(null);
                 }}
               >
-                <Text className={`text-xs font-bold ${timeRange === item.key ? 'text-orange-700' : 'text-gray-700'}`}>
+                <Text className={`text-xs font-bold ${timeRange === item.key ? 'text-[#8d171e]' : 'text-gray-700'}`}>
                   {item.label}
                 </Text>
               </Pressable>
@@ -397,7 +397,7 @@ export default function AdminDashboardScreen() {
         </View>
 
         {isLoading && !data ? (
-          <View className="bg-white rounded-2xl border border-orange-100 p-6 items-center">
+          <View className="bg-white rounded-2xl border border-[#e1a255]/40 p-6 items-center">
             <ActivityIndicator size="small" color="#d97706" />
             <Text className="text-sm text-gray-600 mt-2">Caricamento metriche...</Text>
           </View>
@@ -439,7 +439,7 @@ export default function AdminDashboardScreen() {
               onPress={() => setSelectedMetric('products')}
             />
 
-            <View className="bg-white rounded-2xl border border-orange-100 p-4">
+            <View className="bg-white rounded-2xl border border-[#e1a255]/40 p-4">
               <Text className="text-sm text-gray-500 uppercase font-bold">Deep Dive</Text>
               <Text className="text-lg font-extrabold text-gray-900 mt-1">
                 {selectedMetric === 'orders' && 'Andamento ordini per ora'}
@@ -457,7 +457,7 @@ export default function AdminDashboardScreen() {
                       const isSelected = selectedHourLabel === item.label;
                       return (
                         <Pressable key={item.label} className="flex-1 items-center" onPress={() => setSelectedHourLabel(item.label)}>
-                          <View className={`w-full max-w-[14px] rounded-t ${isSelected ? 'bg-orange-600' : 'bg-orange-300'}`} style={{ height: h }} />
+                          <View className={`w-full max-w-[14px] rounded-t ${isSelected ? 'bg-[#8d171e]' : 'bg-orange-300'}`} style={{ height: h }} />
                         </Pressable>
                       );
                     })}
@@ -495,7 +495,7 @@ export default function AdminDashboardScreen() {
               )}
             </View>
 
-            <View className="bg-white rounded-2xl border border-orange-100 p-4">
+            <View className="bg-white rounded-2xl border border-[#e1a255]/40 p-4">
               <Text className="text-sm text-gray-500 uppercase font-bold">Ordini ultimi 7 giorni</Text>
               <View className="mt-4 flex-row items-end justify-between gap-2">
                 {(data?.last7DaysOrders ?? []).map((item) => {
@@ -503,7 +503,7 @@ export default function AdminDashboardScreen() {
                   return (
                     <View key={item.dayLabel} className="flex-1 items-center">
                       <Text className="text-[11px] font-bold text-gray-700 mb-1">{item.count}</Text>
-                      <View className="w-full max-w-[32px] rounded-t-md bg-orange-400" style={{ height: barHeight }} />
+                      <View className="w-full max-w-[32px] rounded-t-md bg-[#e7b577]" style={{ height: barHeight }} />
                       <Text className="text-[10px] text-gray-500 mt-1">{item.dayLabel}</Text>
                     </View>
                   );
@@ -511,7 +511,7 @@ export default function AdminDashboardScreen() {
               </View>
             </View>
 
-            <View className="bg-white rounded-2xl border border-orange-100 p-4">
+            <View className="bg-white rounded-2xl border border-[#e1a255]/40 p-4">
               <Text className="text-sm text-gray-500 uppercase font-bold">Distribuzione stati (7 giorni)</Text>
               <View className="mt-3 gap-2">
                 {(data?.statusBreakdown ?? []).map((item) => {
@@ -531,7 +531,7 @@ export default function AdminDashboardScreen() {
               </View>
             </View>
 
-            <View className="bg-white rounded-2xl border border-orange-100 p-4">
+            <View className="bg-white rounded-2xl border border-[#e1a255]/40 p-4">
               <Text className="text-sm text-gray-500 uppercase font-bold">Previsione prossime 2 ore</Text>
               <View className="gap-2 mt-3">
                 {nextTwoHoursForecast.map((slot) => (
@@ -560,7 +560,7 @@ export default function AdminDashboardScreen() {
               </View>
             </View>
 
-            <View className="bg-white rounded-2xl border border-orange-100 p-4">
+            <View className="bg-white rounded-2xl border border-[#e1a255]/40 p-4">
               <Text className="text-sm text-gray-500 uppercase font-bold">Gestione ordini rapida</Text>
               <View className="gap-2 mt-3">
                 {actionableOrders.length === 0 ? (
@@ -577,7 +577,7 @@ export default function AdminDashboardScreen() {
                               {order.customer_name || 'Cliente'} • €{order.total_amount.toFixed(2)}
                             </Text>
                           </View>
-                          <Text className="text-[11px] font-bold uppercase text-orange-700">{order.status}</Text>
+                          <Text className="text-[11px] font-bold uppercase text-[#8d171e]">{order.status}</Text>
                         </View>
                         {(order.decline_reason_preset || order.decline_reason_note) && (
                           <View className="mt-2 rounded-lg border border-red-200 bg-red-50 p-2">
@@ -650,15 +650,15 @@ function MetricCard({
 }) {
   return (
     <Pressable
-      className={`rounded-2xl border p-4 flex-row items-center justify-between ${selected ? 'bg-orange-50 border-orange-200' : 'bg-white border-orange-100'}`}
+      className={`rounded-2xl border p-4 flex-row items-center justify-between ${selected ? 'bg-[#f9ecdd] border-[#e1a255]/60' : 'bg-white border-[#e1a255]/40'}`}
       onPress={onPress}
     >
       <View className="flex-1">
         <Text className="text-xs text-gray-500 uppercase font-bold">{title}</Text>
         <Text className="text-2xl font-black text-gray-900 mt-1">{value}</Text>
       </View>
-      <View className={`w-10 h-10 rounded-full items-center justify-center ${selected ? 'bg-orange-200' : 'bg-orange-100'}`}>
-        <FontAwesome name={icon} size={16} color="#c2410c" />
+      <View className={`w-10 h-10 rounded-full items-center justify-center ${selected ? 'bg-[#e7b577]/50' : 'bg-[#f3dabb]'}`}>
+        <FontAwesome name={icon} size={16} color="#8d171e" />
       </View>
     </Pressable>
   );

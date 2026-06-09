@@ -11,7 +11,7 @@ export function HomePrimaryActions({ onOrderNow, onViewMenu }: HomePrimaryAction
     <View className="bg-white border border-[#ead8c7] rounded-2xl p-3 gap-2 shadow-sm">
       <Pressable
         onPress={onOrderNow}
-        className="bg-[#d4451a] rounded-xl h-12 items-center justify-center active:opacity-90"
+        className="bg-[#8d171e] rounded-xl h-12 items-center justify-center active:opacity-90"
       >
         <View className="flex-row items-center gap-2">
           <FontAwesome name="shopping-bag" size={13} color="#ffffff" />
@@ -20,11 +20,11 @@ export function HomePrimaryActions({ onOrderNow, onViewMenu }: HomePrimaryAction
       </Pressable>
       <Pressable
         onPress={onViewMenu}
-        className="bg-white border border-orange-200 rounded-xl h-12 items-center justify-center active:opacity-90"
+        className="bg-white border border-[#e1a255]/60 rounded-xl h-12 items-center justify-center active:opacity-90"
       >
         <View className="flex-row items-center gap-2">
-          <FontAwesome name="cutlery" size={13} color="#c2410c" />
-          <Text className="text-orange-700 font-bold text-base">Vedi menu</Text>
+          <FontAwesome name="cutlery" size={13} color="#8d171e" />
+          <Text className="text-[#8d171e] font-bold text-base">Vedi menu</Text>
         </View>
       </Pressable>
     </View>

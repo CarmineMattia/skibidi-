@@ -1,19 +1,20 @@
-const tintColorLight = '#2f95dc';
-const tintColorDark = '#fff';
+// Pizzeria Ambrosia / Matildica brand colors
+const tintColorLight = '#8d171e'; // deep crimson
+const tintColorDark = '#e7b577';  // golden amber
 
 export default {
   light: {
-    text: '#000',
-    background: '#fff',
+    text: '#343a40',
+    background: '#f9ecdd',
     tint: tintColorLight,
-    tabIconDefault: '#ccc',
+    tabIconDefault: '#c4a882',
     tabIconSelected: tintColorLight,
   },
   dark: {
-    text: '#fff',
-    background: '#000',
+    text: '#f9ecdd',
+    background: '#1c0a0c',
     tint: tintColorDark,
-    tabIconDefault: '#ccc',
+    tabIconDefault: '#7a5c3a',
     tabIconSelected: tintColorDark,
   },
 };

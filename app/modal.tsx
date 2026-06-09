@@ -831,11 +831,11 @@ export default function CheckoutScreen() {
           {/* Mangio Qui */}
           <Pressable
             className={`p-6 rounded-2xl border-2 items-center gap-3 shadow-sm active:scale-98 transition-transform ${
-              orderType === 'eat_in' ? 'border-[#d4451a] bg-orange-50' : 'border-border'
+              orderType === 'eat_in' ? 'border-[#8d171e] bg-[#f9ecdd]' : 'border-border'
             }`}
             onPress={() => setOrderType('eat_in')}
           >
-            <FontAwesome name="cutlery" size={28} color={orderType === 'eat_in' ? '#d4451a' : '#6b7280'} />
+            <FontAwesome name="cutlery" size={28} color={orderType === 'eat_in' ? '#8d171e' : '#6b7280'} />
             <Text className="text-lg font-bold text-center">{i18n.dineInTitle}</Text>
             <Text className="text-muted-foreground text-sm text-center">{i18n.dineInSubtitle}</Text>
           </Pressable>
@@ -843,11 +843,11 @@ export default function CheckoutScreen() {
           {/* Da Asporto */}
           <Pressable
             className={`p-6 rounded-2xl border-2 items-center gap-3 shadow-sm active:scale-98 transition-transform ${
-              orderType === 'take_away' ? 'border-[#d4451a] bg-orange-50' : 'border-border'
+              orderType === 'take_away' ? 'border-[#8d171e] bg-[#f9ecdd]' : 'border-border'
             }`}
             onPress={() => setOrderType('take_away')}
           >
-            <FontAwesome name="shopping-bag" size={28} color={orderType === 'take_away' ? '#d4451a' : '#6b7280'} />
+            <FontAwesome name="shopping-bag" size={28} color={orderType === 'take_away' ? '#8d171e' : '#6b7280'} />
             <Text className="text-lg font-bold text-center">{i18n.takeawayTitle}</Text>
             <Text className="text-muted-foreground text-sm text-center">{i18n.takeawaySubtitle}</Text>
           </Pressable>
@@ -855,11 +855,11 @@ export default function CheckoutScreen() {
           {/* Delivery */}
           <Pressable
             className={`p-6 rounded-2xl border-2 items-center gap-3 shadow-sm active:scale-98 transition-transform ${
-              orderType === 'delivery' ? 'border-[#d4451a] bg-orange-50' : 'border-border'
+              orderType === 'delivery' ? 'border-[#8d171e] bg-[#f9ecdd]' : 'border-border'
             }`}
             onPress={() => setOrderType('delivery')}
           >
-            <FontAwesome name="motorcycle" size={28} color={orderType === 'delivery' ? '#d4451a' : '#6b7280'} />
+            <FontAwesome name="motorcycle" size={28} color={orderType === 'delivery' ? '#8d171e' : '#6b7280'} />
             <Text className="text-lg font-bold text-center">{i18n.deliveryTitle}</Text>
             <Text className="text-muted-foreground text-sm text-center">{i18n.deliverySubtitle}</Text>
           </Pressable>
@@ -998,7 +998,7 @@ export default function CheckoutScreen() {
 
         <View className="bg-card border border-border rounded-xl p-4 gap-3">
           <Text className="text-sm font-semibold">{i18n.fulfillmentTitle}</Text>
-          <View className="h-11 rounded-lg items-center justify-center border bg-orange-50 border-[#d4451a]">
+          <View className="h-11 rounded-lg items-center justify-center border bg-[#f9ecdd] border-[#8d171e]">
             <Text className="font-semibold">{i18n.asapLabel}</Text>
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-2 pr-2">
@@ -1009,7 +1009,7 @@ export default function CheckoutScreen() {
                 <Pressable
                   key={slot.iso}
                   className={`h-10 px-3 rounded-lg border items-center justify-center ${
-                    isSelectedAsap || isSelectedScheduled ? 'bg-orange-50 border-[#d4451a]' : 'bg-background border-border'
+                    isSelectedAsap || isSelectedScheduled ? 'bg-[#f9ecdd] border-[#8d171e]' : 'bg-background border-border'
                   }`}
                   onPress={() => {
                     setFulfillmentMode('asap');
@@ -1069,7 +1069,7 @@ export default function CheckoutScreen() {
   const renderPayment = () => (
     <ScrollView className="flex-1" contentContainerClassName="p-4">
       {/* Order Summary - MOBILE OPTIMIZED (no sidebar) */}
-      <View className="bg-card rounded-xl p-4 mb-4 border border-orange-100">
+      <View className="bg-card rounded-xl p-4 mb-4 border border-[#e1a255]/40">
         <Text className="text-base font-extrabold mb-3">
           {i18n.summaryTitle} ({orderType === 'eat_in' ? i18n.table : orderType === 'take_away' ? i18n.pickup : i18n.delivery})
         </Text>
@@ -1120,9 +1120,9 @@ export default function CheckoutScreen() {
       </View>
 
       {orderType === 'delivery' && (
-        <View className="bg-card rounded-xl p-4 mb-4 border border-orange-100">
+        <View className="bg-card rounded-xl p-4 mb-4 border border-[#e1a255]/40">
           <Text className="text-base font-extrabold mb-2">{language === 'en' ? 'Delivery destination' : 'Indirizzo di consegna'}</Text>
-          <View className="bg-orange-50 border border-orange-200 rounded-xl p-3">
+          <View className="bg-[#f9ecdd] border border-[#e1a255]/60 rounded-xl p-3">
             <Text className="text-sm font-bold text-gray-900">
               {name || 'The Greenwich Loft'}
             </Text>
@@ -1140,7 +1140,7 @@ export default function CheckoutScreen() {
         <View className="gap-3">
           <Pressable
             className={`p-4 rounded-xl border-2 flex-row items-center gap-3 ${
-              paymentProvider === 'stripe' ? 'bg-orange-50 border-[#d4451a]' : 'bg-card border-border'
+              paymentProvider === 'stripe' ? 'bg-[#f9ecdd] border-[#8d171e]' : 'bg-card border-border'
             }`}
             onPress={() => setPaymentProvider('stripe')}
             disabled={isProcessing}
@@ -1155,7 +1155,7 @@ export default function CheckoutScreen() {
           {!isDelivery && (
             <Pressable
               className={`p-4 rounded-xl border-2 flex-row items-center gap-3 ${
-                paymentProvider === 'terminal' ? 'bg-orange-50 border-[#d4451a]' : 'bg-card border-border'
+                paymentProvider === 'terminal' ? 'bg-[#f9ecdd] border-[#8d171e]' : 'bg-card border-border'
               }`}
               onPress={() => setPaymentProvider('terminal')}
               disabled={isProcessing}
@@ -1170,7 +1170,7 @@ export default function CheckoutScreen() {
 
           <Pressable
             className={`p-4 rounded-xl border-2 flex-row items-center gap-3 ${
-              paymentProvider === 'cash' ? 'bg-orange-50 border-[#d4451a]' : 'bg-card border-border'
+              paymentProvider === 'cash' ? 'bg-[#f9ecdd] border-[#8d171e]' : 'bg-card border-border'
             }`}
             onPress={() => setPaymentProvider('cash')}
             disabled={isProcessing}
@@ -1210,9 +1210,9 @@ export default function CheckoutScreen() {
       {/* Hide Expo Router default header */}
       <Stack.Screen options={{ headerShown: false }} />
       
-      <View className="flex-1 bg-[#fdf9f3]">
+      <View className="flex-1 bg-[#f9ecdd]">
         {/* Custom Header with Back Button and Title */}
-        <View className="pt-4 pb-3 border-b border-orange-100 bg-white">
+        <View className="pt-4 pb-3 border-b border-[#e1a255]/40 bg-white">
           <View className="flex-row items-center justify-between px-4 mb-2">
             <Pressable onPress={handleBackStep} className="p-2">
               <FontAwesome name="arrow-left" size={20} color="#000" />
@@ -1240,7 +1240,7 @@ export default function CheckoutScreen() {
           onRequestClose={() => setShowPhonePrefixModal(false)}
         >
           <View className="flex-1 bg-black/35 justify-end">
-            <View className="bg-white rounded-t-2xl p-4 border-t border-orange-100">
+            <View className="bg-white rounded-t-2xl p-4 border-t border-[#e1a255]/40">
               <Text className="text-base font-bold mb-3">{i18n.phonePrefixLabel}</Text>
               <TextInput
                 className="bg-background border border-border rounded-xl px-4 py-3 text-base min-h-[52px] mb-3"
@@ -1255,7 +1255,7 @@ export default function CheckoutScreen() {
                   <Pressable
                     key={option.id}
                     className={`h-12 px-3 rounded-lg flex-row items-center justify-between mb-2 ${
-                      selectedPhoneOptionId === option.id ? 'bg-orange-50 border border-orange-200' : 'bg-gray-50'
+                      selectedPhoneOptionId === option.id ? 'bg-[#f9ecdd] border border-[#e1a255]/60' : 'bg-gray-50'
                     }`}
                     onPress={() => {
                       setSelectedPhoneOptionId(option.id);
@@ -1337,7 +1337,7 @@ export default function CheckoutScreen() {
           onRequestClose={() => setShowConfirmationModal(false)}
         >
           <View className="flex-1 bg-black/45 items-center justify-center p-6">
-            <View className="w-full max-w-[360px] bg-white rounded-2xl border border-orange-100 p-5">
+            <View className="w-full max-w-[360px] bg-white rounded-2xl border border-[#e1a255]/40 p-5">
               <View className="items-center mb-2">
                 <View className="w-12 h-12 rounded-full bg-emerald-100 items-center justify-center">
                   <FontAwesome name="check" size={20} color="#047857" />
@@ -1350,7 +1350,7 @@ export default function CheckoutScreen() {
                 Il tuo ordine #{(confirmedOrderId || 'N/A').slice(0, 8).toUpperCase()} e stato ricevuto.
               </Text>
               <Pressable
-                className="mt-4 h-12 rounded-xl bg-[#d4451a] items-center justify-center active:opacity-90"
+                className="mt-4 h-12 rounded-xl bg-[#8d171e] items-center justify-center active:opacity-90"
                 onPress={() => {
                   setShowConfirmationModal(false);
                   router.replace(

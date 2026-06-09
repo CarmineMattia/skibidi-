@@ -50,9 +50,9 @@ export function DeclineReasonModal({ visible, onClose, onConfirm, isSubmitting =
                 <Pressable
                   key={reason}
                   onPress={() => setSelectedPreset(reason)}
-                  className={`px-3 py-2 rounded-full border ${selected ? 'bg-orange-600 border-orange-700' : 'bg-orange-50 border-orange-100'}`}
+                  className={`px-3 py-2 rounded-full border ${selected ? 'bg-[#8d171e] border-[#8d171e]' : 'bg-[#f9ecdd] border-[#e1a255]/40'}`}
                 >
-                  <Text className={`text-xs font-bold ${selected ? 'text-white' : 'text-orange-700'}`}>{reason}</Text>
+                  <Text className={`text-xs font-bold ${selected ? 'text-white' : 'text-[#8d171e]'}`}>{reason}</Text>
                 </Pressable>
               );
             })}

@@ -22,11 +22,11 @@ export function OrderAssistantChat() {
   };
 
   return (
-    <View className="bg-white rounded-2xl border border-orange-100 p-4">
+    <View className="bg-white rounded-2xl border border-[#e1a255]/40 p-4">
       <View className="flex-row items-center justify-between">
         <View className="flex-row items-center gap-2">
-          <View className="w-9 h-9 rounded-full bg-orange-100 items-center justify-center">
-            <FontAwesome name="comments" size={15} color="#c2410c" />
+          <View className="w-9 h-9 rounded-full bg-[#f3dabb] items-center justify-center">
+            <FontAwesome name="comments" size={15} color="#8d171e" />
           </View>
           <View>
             <Text className="text-sm text-gray-500 uppercase font-bold">Assistente ordini</Text>
@@ -35,9 +35,9 @@ export function OrderAssistantChat() {
         </View>
         <Pressable
           onPress={() => setIsOpen((prev) => !prev)}
-          className="px-3 py-2 rounded-lg bg-orange-50 border border-orange-200"
+          className="px-3 py-2 rounded-lg bg-[#f9ecdd] border border-[#e1a255]/60"
         >
-          <Text className="text-xs font-bold text-orange-700">{isOpen ? 'Chiudi' : 'Apri chat'}</Text>
+          <Text className="text-xs font-bold text-[#8d171e]">{isOpen ? 'Chiudi' : 'Apri chat'}</Text>
         </Pressable>
       </View>
 
@@ -53,7 +53,7 @@ export function OrderAssistantChat() {
                 key={message.id}
                 className={`rounded-xl px-3 py-2 border ${
                   message.role === 'user'
-                    ? 'self-end bg-orange-50 border-orange-200'
+                    ? 'self-end bg-[#f9ecdd] border-[#e1a255]/60'
                     : message.isError
                     ? 'bg-red-50 border-red-200'
                     : 'bg-gray-50 border-gray-200'
@@ -81,9 +81,9 @@ export function OrderAssistantChat() {
               <Pressable
                 key={action.id}
                 onPress={() => void sendMessage(action.prompt)}
-                className="px-2.5 py-1.5 rounded-lg border border-orange-200 bg-orange-50"
+                className="px-2.5 py-1.5 rounded-lg border border-[#e1a255]/60 bg-[#f9ecdd]"
               >
-                <Text className="text-xs text-orange-700">{action.label}</Text>
+                <Text className="text-xs text-[#8d171e]">{action.label}</Text>
               </Pressable>
             ))}
           </View>
@@ -99,7 +99,7 @@ export function OrderAssistantChat() {
             <Pressable
               onPress={() => void handleSend()}
               disabled={isLoading || !canSend}
-              className={`px-3 py-2 rounded-xl ${isLoading || !canSend ? 'bg-gray-300' : 'bg-orange-600'}`}
+              className={`px-3 py-2 rounded-xl ${isLoading || !canSend ? 'bg-gray-300' : 'bg-[#8d171e]'}`}
             >
               <Text className="text-xs font-bold text-white">Invia</Text>
             </Pressable>

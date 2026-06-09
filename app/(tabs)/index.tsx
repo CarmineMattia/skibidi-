@@ -113,7 +113,7 @@ export default function HomeScreen() {
   ];
 
   const categories: HomeCategory[] = [
-    { id: 1, name: 'Pizze', icon: '', color: 'bg-orange-100' },
+    { id: 1, name: 'Pizze', icon: '', color: 'bg-[#f3dabb]' },
     { id: 2, name: 'Burger', icon: '', color: 'bg-red-100' },
     { id: 3, name: 'Insalate', icon: '', color: 'bg-green-100' },
     { id: 4, name: 'Dolci', icon: '', color: 'bg-pink-100' },
@@ -422,24 +422,24 @@ export default function HomeScreen() {
 
   return (
     <ScrollView
-      className="flex-1 bg-[#fdf9f3]"
+      className="flex-1 bg-[#f9ecdd]"
       contentContainerStyle={{ paddingBottom: insets.bottom + 96 }}
       refreshControl={
         <RefreshControl refreshing={false} onRefresh={() => {}} />
       }
     >
       {/* Compact Header */}
-      <View className={`bg-white/95 border-b border-[#ead8c7] ${isCompact ? 'px-3 py-2.5' : 'p-4 pb-3'}`}>
+      <View className={`bg-[#f9ecdd]/95 border-b border-[#e1a255]/40 ${isCompact ? 'px-3 py-2.5' : 'p-4 pb-3'}`}>
         <View className="w-full self-center max-w-[1120px] flex-row items-center gap-2">
           <View className="flex-1 min-w-0">
             <Text
               className={`font-extrabold text-gray-900 ${isCompact ? 'text-lg' : 'text-2xl'}`}
               numberOfLines={1}
             >
-              {isGuestExperience ? 'AMBROSIA' : 'SKIBIDI ORDERS'}
+              Pizzeria Matildica
             </Text>
-            <Text className={`text-orange-600 font-bold ${isCompact ? 'text-xs' : 'text-sm'}`}>
-              {isGuestExperience ? 'Pizzeria Artigianale' : 'Sistema POS'}
+            <Text className={`text-[#8d171e] font-bold ${isCompact ? 'text-xs' : 'text-sm'}`}>
+              {isGuestExperience ? 'Il Nettare degli Dei' : 'Sistema POS'}
             </Text>
           </View>
         </View>
@@ -448,9 +448,9 @@ export default function HomeScreen() {
       {isAuthenticated ? renderLoggedHome() : renderGuestHome()}
 
       {/* Footer */}
-      <View className="items-center py-4 border-t border-orange-100 mx-4">
+      <View className="items-center py-4 border-t border-[#e1a255]/40 mx-4">
         <Text className="text-gray-400 text-[10px]">
-          SKIBIDI ORDERS v1.0 {isAuthenticated ? '• Logged' : '• Guest'}
+          Pizzeria Matildica v1.0 {isAuthenticated ? '• Logged' : '• Guest'}
         </Text>
       </View>
     </ScrollView>

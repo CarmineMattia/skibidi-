@@ -95,7 +95,7 @@ export function TimeWheelModal({
       onRequestClose={onClose}
     >
       <View className="flex-1 bg-black/40 justify-end">
-        <View className="bg-white rounded-t-2xl p-4 border-t border-orange-100">
+        <View className="bg-white rounded-t-2xl p-4 border-t border-[#e1a255]/40">
           <Text className="text-base font-bold mb-3">{title}</Text>
 
           {manualMode ? (
@@ -131,7 +131,7 @@ export function TimeWheelModal({
                       <Pressable
                         key={value}
                         className={`h-10 rounded-lg items-center justify-center ${
-                          value === hour ? 'bg-orange-50 border border-orange-200' : 'bg-white'
+                          value === hour ? 'bg-[#f9ecdd] border border-[#e1a255]/60' : 'bg-white'
                         }`}
                         onPress={() => setHour(value)}
                       >
@@ -149,7 +149,7 @@ export function TimeWheelModal({
                       <Pressable
                         key={value}
                         className={`h-10 rounded-lg items-center justify-center ${
-                          value === minute ? 'bg-orange-50 border border-orange-200' : 'bg-white'
+                          value === minute ? 'bg-[#f9ecdd] border border-[#e1a255]/60' : 'bg-white'
                         }`}
                         onPress={() => setMinute(value)}
                       >

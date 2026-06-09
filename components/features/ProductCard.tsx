@@ -12,6 +12,7 @@ import { Image, Pressable, Text, View, useWindowDimensions } from 'react-native'
 interface ProductCardProps {
   readonly product: Product;
   readonly onAddToCart: (productId: string) => void;
+  readonly onPress?: (productId: string) => void;
   readonly onEditPress?: () => void;
 }
 
@@ -39,7 +40,7 @@ function getProductIcon(product: Product): string {
   return 'cutlery';
 }
 
-export function ProductCard({ product, onAddToCart, onEditPress }: ProductCardProps) {
+export function ProductCard({ product, onAddToCart, onPress, onEditPress }: ProductCardProps) {
   const { width } = useWindowDimensions();
   const { language } = useAppSettings();
   const isMobile = width < 768;
@@ -51,12 +52,26 @@ export function ProductCard({ product, onAddToCart, onEditPress }: ProductCardPr
     onAddToCart(product.id);
   }, [product.id, onAddToCart]);
 
+  const handlePress = useCallback(() => {
+    onPress?.(product.id);
+  }, [onPress, product.id]);
+
   const icon = getProductIcon(product);
   const formattedPrice = `€${product.price.toFixed(2)}`;
 
   return (
     <View className="flex-1 rounded-3xl overflow-hidden bg-white border border-[#ead8c7] shadow-sm relative">
-      <View className={isMobile ? 'h-[58%]' : 'h-[60%]'}>
+      <Pressable
+        className={isMobile ? 'h-[58%]' : 'h-[60%]'}
+        onPress={handlePress}
+        disabled={!onPress}
+        accessibilityRole="button"
+        accessibilityLabel={
+          language === 'en'
+            ? `Open ${product.name} details`
+            : `Apri dettagli ${product.name}`
+        }
+      >
         {product.image_url ? (
           <Image
             source={{ uri: product.image_url }}
@@ -64,7 +79,7 @@ export function ProductCard({ product, onAddToCart, onEditPress }: ProductCardPr
             resizeMode="cover"
           />
         ) : (
-          <View className="w-full h-full items-center justify-center bg-[#f7efe3]">
+          <View className="w-full h-full items-center justify-center bg-[#f0daca]">
             <FontAwesome
               name={icon as any}
               size={isMobile ? 46 : 62}
@@ -72,7 +87,7 @@ export function ProductCard({ product, onAddToCart, onEditPress }: ProductCardPr
             />
           </View>
         )}
-      </View>
+      </Pressable>
 
       {/* Admin Edit Button */}
       {showEditButton && (
@@ -90,31 +105,39 @@ export function ProductCard({ product, onAddToCart, onEditPress }: ProductCardPr
       )}
 
       <View className={isMobile ? 'flex-1 px-4 py-3' : 'flex-1 px-4 py-4'}>
-        <Text className="text-[11px] font-bold uppercase tracking-wide text-[#8f7068]">Classic</Text>
-        <Text
-          className={`text-gray-900 font-extrabold leading-tight ${
-            isMobile ? 'text-lg mt-0.5' : 'text-xl mt-1'
-          }`}
-          numberOfLines={1}
+        <Pressable
+          onPress={handlePress}
+          disabled={!onPress}
+          accessibilityRole="button"
         >
-          {product.name}
-        </Text>
-
-        {(product.description || product.ingredients) && (
+          <Text className="text-[11px] font-bold uppercase tracking-wide text-[#8f7068]">Classic</Text>
           <Text
-            className={`text-gray-600 ${isMobile ? 'text-xs mt-1' : 'text-sm mt-1.5'}`}
-            numberOfLines={2}
+            className={`text-gray-900 font-extrabold leading-tight ${
+              isMobile ? 'text-lg mt-0.5' : 'text-xl mt-1'
+            }`}
+            numberOfLines={1}
           >
-            {product.description || product.ingredients?.join(', ')}
+            {product.name}
           </Text>
-        )}
+
+          {(product.description || product.ingredients) && (
+            <Text
+              className={`text-gray-600 ${isMobile ? 'text-xs mt-1' : 'text-sm mt-1.5'}`}
+              numberOfLines={2}
+            >
+              {product.description || product.ingredients?.join(', ')}
+            </Text>
+          )}
+        </Pressable>
 
         <View className="mt-auto flex-row items-center justify-between">
-          <Text className={`${isMobile ? 'text-lg' : 'text-xl'} font-black text-[#d4451a]`}>
-            {formattedPrice}
-          </Text>
+          <Pressable onPress={handlePress} disabled={!onPress}>
+            <Text className={`${isMobile ? 'text-lg' : 'text-xl'} font-black text-[#8d171e]`}>
+              {formattedPrice}
+            </Text>
+          </Pressable>
           <Pressable
-            className={`bg-[#d4451a] rounded-full items-center justify-center active:opacity-90 ${
+            className={`bg-[#8d171e] rounded-full items-center justify-center active:opacity-90 ${
               isMobile ? 'h-10 px-4' : 'h-11 px-5'
             }`}
             onPress={handleAddToCart}

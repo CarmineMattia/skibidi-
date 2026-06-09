@@ -17,32 +17,32 @@ export default function RewardsScreen() {
     <>
       <Stack.Screen options={{ headerShown: false }} />
       <ScrollView
-        className="flex-1 bg-[#fdf9f3]"
+        className="flex-1 bg-[#f9ecdd]"
         contentContainerStyle={{ paddingTop: insets.top + 12, paddingBottom: insets.bottom + 24 }}
       >
         <View className="px-4 gap-4">
-          <View className="rounded-2xl border border-orange-200 bg-[#d4451a] p-5">
-            <Text className="text-orange-100 text-xs font-bold uppercase tracking-wider">
+          <View className="rounded-2xl border border-[#e1a255]/60 bg-[#8d171e] p-5">
+            <Text className="text-[#f3dabb] text-xs font-bold uppercase tracking-wider">
               Rewards & Loyalty
             </Text>
             <Text className="text-white text-2xl font-black mt-1">Ambrosia Club</Text>
-            <Text className="text-orange-100 mt-1">Punti attuali: {currentPoints}</Text>
+            <Text className="text-[#f3dabb] mt-1">Punti attuali: {currentPoints}</Text>
           </View>
 
-          <View className="bg-white rounded-2xl border border-orange-100 p-4 gap-3">
+          <View className="bg-white rounded-2xl border border-[#e1a255]/40 p-4 gap-3">
             <Text className="text-gray-900 font-extrabold">Progresso livello</Text>
-            <View className="h-3 bg-orange-100 rounded-full overflow-hidden">
-              <View className="h-3 w-3/4 bg-[#d4451a]" />
+            <View className="h-3 bg-[#f3dabb] rounded-full overflow-hidden">
+              <View className="h-3 w-3/4 bg-[#8d171e]" />
             </View>
             <Text className="text-xs text-gray-600">340 punti al prossimo premio premium.</Text>
           </View>
 
-          <View className="bg-white rounded-2xl border border-orange-100 p-4 gap-3">
+          <View className="bg-white rounded-2xl border border-[#e1a255]/40 p-4 gap-3">
             <Text className="text-gray-900 font-extrabold">Premi disponibili</Text>
             {REWARDS.map((reward) => (
               <View
                 key={reward.id}
-                className="rounded-xl border border-orange-100 bg-[#fffaf5] p-3 flex-row items-center justify-between"
+                className="rounded-xl border border-[#e1a255]/40 bg-[#fffaf5] p-3 flex-row items-center justify-between"
               >
                 <View>
                   <Text className="text-gray-900 font-bold">{reward.title}</Text>
@@ -50,12 +50,12 @@ export default function RewardsScreen() {
                 </View>
                 <View
                   className={`px-2.5 py-1 rounded-full ${
-                    reward.unlocked ? 'bg-emerald-100' : 'bg-orange-100'
+                    reward.unlocked ? 'bg-emerald-100' : 'bg-[#f3dabb]'
                   }`}
                 >
                   <Text
                     className={`text-xs font-bold ${
-                      reward.unlocked ? 'text-emerald-700' : 'text-orange-700'
+                      reward.unlocked ? 'text-emerald-700' : 'text-[#8d171e]'
                     }`}
                   >
                     {reward.unlocked ? 'Sbloccato' : 'Bloccato'}
@@ -67,7 +67,7 @@ export default function RewardsScreen() {
 
           <Pressable
             onPress={() => router.push('/(tabs)/menu')}
-            className="h-12 rounded-xl bg-[#d4451a] items-center justify-center active:opacity-90"
+            className="h-12 rounded-xl bg-[#8d171e] items-center justify-center active:opacity-90"
           >
             <Text className="text-white font-bold">Vai al menu</Text>
           </Pressable>

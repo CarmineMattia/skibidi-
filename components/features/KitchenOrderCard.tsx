@@ -114,7 +114,7 @@ export function KitchenOrderCard({ order }: KitchenOrderCardProps) {
   const isOld = orderAge > 5;
 
   return (
-    <View className={`bg-card rounded-2xl p-5 border-2 ${isUrgent ? 'border-red-500' : isOld ? 'border-orange-400' : statusConfig.borderColor} shadow-lg`}>
+    <View className={`bg-card rounded-2xl p-5 border-2 ${isUrgent ? 'border-red-500' : isOld ? 'border-[#e7b577]' : statusConfig.borderColor} shadow-lg`}>
       {/* Header */}
       <View className="flex-row justify-between items-start mb-4">
         <View className="flex-1">

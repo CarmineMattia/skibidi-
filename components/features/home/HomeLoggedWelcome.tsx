@@ -19,15 +19,15 @@ export function HomeLoggedWelcome({
 }: HomeLoggedWelcomeProps) {
   return (
     <LinearGradient
-      colors={['#fdf9f3', '#f7efe3']}
+      colors={['#f9ecdd', '#f0daca']}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
-      className="rounded-2xl border border-orange-100 p-4 shadow-sm"
+      className="rounded-2xl border border-[#e1a255]/40 p-4 shadow-sm"
     >
       <View className="gap-3">
         <View className="flex-row items-center gap-2">
-          <FontAwesome name="user-circle" size={14} color="#b45309" />
-          <Text className="text-base font-semibold text-orange-700">Bentornato, {firstName}</Text>
+          <FontAwesome name="user-circle" size={14} color="#8d171e" />
+          <Text className="text-base font-semibold text-[#8d171e]">Bentornato, {firstName}</Text>
         </View>
         <Text className="text-2xl font-extrabold text-gray-900">Pronto per la tua prossima pizza?</Text>
         <Text className="text-gray-600 text-sm">
@@ -41,7 +41,7 @@ export function HomeLoggedWelcome({
             {showReorder && onReorderLast ? (
               <Pressable
                 onPress={onReorderLast}
-                className="bg-[#d4451a] rounded-xl h-12 items-center justify-center active:opacity-90"
+                className="bg-[#8d171e] rounded-xl h-12 items-center justify-center active:opacity-90"
               >
                 <View className="flex-row items-center gap-2">
                   <FontAwesome name="repeat" size={14} color="#ffffff" />
@@ -51,13 +51,13 @@ export function HomeLoggedWelcome({
             ) : null}
             <Pressable
               onPress={onContinueMenu}
-              className={`bg-white border border-orange-200 rounded-xl items-center justify-center active:opacity-90 ${
+              className={`bg-white border border-[#e1a255]/60 rounded-xl items-center justify-center active:opacity-90 ${
                 showReorder ? 'h-12' : 'h-14'
               }`}
             >
               <View className="flex-row items-center gap-2">
-                <FontAwesome name="cutlery" size={14} color="#c2410c" />
-                <Text className="text-orange-700 font-bold text-base">Vedi menu</Text>
+                <FontAwesome name="cutlery" size={14} color="#8d171e" />
+                <Text className="text-[#8d171e] font-bold text-base">Vedi menu</Text>
               </View>
             </Pressable>
           </View>

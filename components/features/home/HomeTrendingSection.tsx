@@ -85,12 +85,12 @@ export function HomeTrendingSection({
     <View className="bg-white/80 border border-[#ead8c7] rounded-3xl p-3.5 shadow-sm">
       <View className="flex-row justify-between items-center mb-3">
         <View className="flex-row items-center gap-2">
-          <FontAwesome name="fire" size={15} color="#ea580c" />
+          <FontAwesome name="fire" size={15} color="#8d171e" />
           <Text className="text-[28px] font-black text-gray-900">{title}</Text>
         </View>
         <View className="flex-row items-center gap-1">
-          <Text className="text-orange-600 text-sm font-extrabold">Scorri giu</Text>
-          <FontAwesome name="long-arrow-down" size={14} color="#ea580c" />
+          <Text className="text-[#8d171e] text-sm font-extrabold">Scorri giu</Text>
+          <FontAwesome name="long-arrow-down" size={14} color="#8d171e" />
         </View>
       </View>
 
@@ -138,7 +138,7 @@ export function HomeTrendingSection({
                 opacity: isFeatured ? 1 : 0.65,
               }}
               className={`rounded-[22px] overflow-hidden active:scale-98 bg-[#efe3d4] ${
-                isFeatured ? 'border-2 border-orange-500 shadow-xl' : 'border border-[#e7d8c8] shadow-sm'
+                isFeatured ? 'border-2 border-[#8d171e] shadow-xl' : 'border border-[#e1a255] shadow-sm'
               }`}
               onPress={() => {
                 setSelectedIndex(sourceIndex);
@@ -161,27 +161,27 @@ export function HomeTrendingSection({
                   end={{ x: 0.5, y: 1 }}
                   className="px-4 py-3"
                 >
-                  <View className="bg-orange-500 self-start rounded-full px-2.5 py-1 mb-1">
+                  <View className="bg-[#f9ecdd]0 self-start rounded-full px-2.5 py-1 mb-1">
                     <Text className="text-white text-[10px] font-bold">{pizza.badge}</Text>
                   </View>
                   {isFeatured ? (
                     <View className="bg-white/90 self-start rounded-full px-2.5 py-1 mb-1">
-                      <Text className="text-orange-700 text-[10px] font-extrabold">In evidenza</Text>
+                      <Text className="text-[#8d171e] text-[10px] font-extrabold">In evidenza</Text>
                     </View>
                   ) : null}
                   {isFeatured ? (
-                    <View className="bg-orange-500/90 self-start rounded-full px-2.5 py-1 mb-1">
+                    <View className="bg-[#f9ecdd]0/90 self-start rounded-full px-2.5 py-1 mb-1">
                       <Text className="text-white text-[10px] font-extrabold">SELEZIONATA</Text>
                     </View>
                   ) : null}
                   <Text className="font-black text-white text-[23px]" numberOfLines={1}>
                     {pizza.name}
                   </Text>
-                  <Text className="text-orange-50 text-xs mt-0.5" numberOfLines={2}>
+                  <Text className="text-[#f9ecdd] text-xs mt-0.5" numberOfLines={2}>
                     {pizza.description}
                   </Text>
                   <View className="flex-row items-center justify-between mt-2">
-                    <Text className="text-orange-100 font-black text-2xl">€{pizza.price.toFixed(2)}</Text>
+                    <Text className="text-[#f3dabb] font-black text-2xl">€{pizza.price.toFixed(2)}</Text>
                     <View className="bg-black/30 rounded-full px-2.5 py-1 flex-row items-center gap-1">
                       <FontAwesome name="clock-o" size={13} color="#f4f4f5" />
                       <Text className="text-zinc-100 text-[11px] font-semibold">15-20 min</Text>
@@ -198,14 +198,14 @@ export function HomeTrendingSection({
                         event.stopPropagation();
                         onQuickAddPizza(pizza.id);
                       }}
-                      className="w-8 h-8 rounded-full bg-orange-500 items-center justify-center"
+                      className="w-8 h-8 rounded-full bg-[#f9ecdd]0 items-center justify-center"
                       accessibilityRole="button"
                       accessibilityLabel={`Aggiungi ${pizza.name} al carrello`}
                     >
                       <FontAwesome name="plus" size={12} color="#ffffff" />
                     </Pressable>
                   ) : (
-                    <Text className="text-xs font-bold text-orange-600">Aggiungi →</Text>
+                    <Text className="text-xs font-bold text-[#8d171e]">Aggiungi →</Text>
                   )}
                 </View>
               </View>
@@ -215,12 +215,12 @@ export function HomeTrendingSection({
         />
         <LinearGradient
           pointerEvents="none"
-          colors={['#fdf9f3', 'rgba(253,249,243,0)']}
+          colors={['#f9ecdd', 'rgba(253,249,243,0)']}
           className="absolute left-0 right-0 top-0 h-7 rounded-t-2xl"
         />
         <LinearGradient
           pointerEvents="none"
-          colors={['rgba(253,249,243,0)', '#fdf9f3']}
+          colors={['rgba(253,249,243,0)', '#f9ecdd']}
           className="absolute left-0 right-0 bottom-0 h-7 rounded-b-2xl"
         />
       </View>

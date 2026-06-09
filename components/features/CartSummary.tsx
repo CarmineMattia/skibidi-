@@ -19,9 +19,9 @@ export function CartSummary({ onCheckout, isCheckingOut = false }: CartSummaryPr
   const isEmpty = items.length === 0;
 
   return (
-    <View className="flex-1 bg-white border-l border-orange-100 shadow-2xl">
+    <View className="flex-1 bg-white border-l border-[#e1a255]/40 shadow-2xl">
       {/* Header */}
-      <View className="p-5 border-b border-orange-100 bg-[#fff7ed]">
+      <View className="p-5 border-b border-[#e1a255]/40 bg-[#f9ecdd]">
         <View className="flex-row justify-between items-center">
           <View className="flex-row items-center gap-2">
             <FontAwesome name="shopping-cart" size={22} color="#111827" />
@@ -38,7 +38,7 @@ export function CartSummary({ onCheckout, isCheckingOut = false }: CartSummaryPr
             </Pressable>
           )}
         </View>
-        <Text className="text-orange-600 font-extrabold text-lg mt-2">
+        <Text className="text-[#8d171e] font-extrabold text-lg mt-2">
           {totalItems} {totalItems === 1 ? 'prodotto' : 'prodotti'}
         </Text>
       </View>
@@ -46,7 +46,7 @@ export function CartSummary({ onCheckout, isCheckingOut = false }: CartSummaryPr
       {/* Cart Items */}
       {isEmpty ? (
         <View className="flex-1 items-center justify-center p-8">
-          <View className="bg-orange-50 rounded-3xl p-12 items-center border border-orange-100">
+          <View className="bg-[#f9ecdd] rounded-3xl p-12 items-center border border-[#e1a255]/40">
             <FontAwesome name="shopping-cart" size={48} color="#9ca3af" style={{ marginBottom: 14 }} />
             <Text className="text-gray-900 font-extrabold text-2xl text-center mb-2">
               Il carrello è vuoto
@@ -70,14 +70,14 @@ export function CartSummary({ onCheckout, isCheckingOut = false }: CartSummaryPr
           </ScrollView>
 
           {/* Footer with Total & Checkout */}
-          <View className="p-5 border-t border-orange-100 bg-[#fff7ed] shadow-2xl">
+          <View className="p-5 border-t border-[#e1a255]/40 bg-[#f9ecdd] shadow-2xl">
             {/* Total */}
-            <View className="bg-orange-100 rounded-2xl p-5 mb-4 border border-orange-200">
+            <View className="bg-[#f3dabb] rounded-2xl p-5 mb-4 border border-[#e1a255]/60">
               <View className="flex-row justify-between items-center">
                 <Text className="text-gray-900 font-extrabold text-2xl">
                   Totale
                 </Text>
-                <Text className="text-orange-700 font-extrabold text-4xl">
+                <Text className="text-[#8d171e] font-extrabold text-4xl">
                   €{totalAmount.toFixed(2)}
                 </Text>
               </View>
@@ -85,7 +85,7 @@ export function CartSummary({ onCheckout, isCheckingOut = false }: CartSummaryPr
 
             {/* Checkout Button */}
             <Pressable
-              className="bg-orange-500 rounded-2xl p-5 shadow-xl items-center border border-orange-500"
+              className="bg-[#f9ecdd]0 rounded-2xl p-5 shadow-xl items-center border border-[#8d171e]"
               style={{
                 opacity: isCheckingOut ? 0.5 : 1,
               }}

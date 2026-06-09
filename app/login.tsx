@@ -197,14 +197,14 @@ export default function LoginScreen() {
       <View className="flex-1 justify-center px-8">
         {/* Logo/Title */}
         <View className="items-center mb-8">
-          <View className="w-16 h-16 rounded-full bg-orange-100 border border-orange-200 items-center justify-center mb-3">
-            <FontAwesome name="cutlery" size={28} color="#c2410c" />
+          <View className="w-16 h-16 rounded-full bg-[#f3dabb] border border-[#e1a255]/60 items-center justify-center mb-3">
+            <FontAwesome name="cutlery" size={28} color="#8d171e" />
           </View>
           <Text className="text-foreground font-bold text-4xl mb-2">
-            SKIBIDI ORDERS
+            Pizzeria Matildica
           </Text>
           <Text className="text-muted-foreground text-lg">
-            Sistema POS per Ristorazione
+            Il Nettare degli Dei
           </Text>
         </View>
 
@@ -377,8 +377,8 @@ export default function LoginScreen() {
                     disabled={isLoading}
                   >
                     <View className="flex-row items-center gap-3">
-                      <View className="w-8 h-8 rounded-full bg-orange-100 items-center justify-center">
-                        <FontAwesome name={option.icon as any} size={14} color="#c2410c" />
+                      <View className="w-8 h-8 rounded-full bg-[#f3dabb] items-center justify-center">
+                        <FontAwesome name={option.icon as any} size={14} color="#8d171e" />
                       </View>
                       <View className="flex-1">
                         <Text

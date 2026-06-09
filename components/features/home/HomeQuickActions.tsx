@@ -32,11 +32,11 @@ export function HomeQuickActions({
     const baseClass = 'h-11 rounded-xl px-3 flex-row items-center justify-center gap-2 active:opacity-90';
     const variantClass =
       tone === 'primary'
-        ? 'bg-[#d4451a]'
+        ? 'bg-[#8d171e]'
         : tone === 'ghost'
-          ? 'bg-white border border-orange-100'
+          ? 'bg-white border border-[#e1a255]/40'
           : 'bg-white border border-gray-200';
-    const iconColor = tone === 'primary' ? '#ffffff' : '#c2410c';
+    const iconColor = tone === 'primary' ? '#ffffff' : '#8d171e';
     const textClass = tone === 'primary' ? 'text-white' : tone === 'ghost' ? 'text-gray-600' : 'text-gray-800';
 
     return (

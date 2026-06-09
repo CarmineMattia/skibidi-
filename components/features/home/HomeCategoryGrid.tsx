@@ -31,7 +31,7 @@ export function HomeCategoryGrid({
           <Text className="text-lg font-extrabold text-gray-900">Categorie</Text>
         </View>
         <Pressable onPress={onOpenAll}>
-          <Text className="text-orange-600 text-xs font-bold">Vedi →</Text>
+          <Text className="text-[#8d171e] text-xs font-bold">Vedi →</Text>
         </Pressable>
       </View>
 

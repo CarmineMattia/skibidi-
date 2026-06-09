@@ -23,7 +23,7 @@ export function HomeHistoryPreview({
           <Text className="text-lg font-extrabold text-gray-900">Storico Rapido</Text>
         </View>
         <Pressable onPress={onOpenAll}>
-          <Text className="text-orange-600 text-xs font-bold">Tutti →</Text>
+          <Text className="text-[#8d171e] text-xs font-bold">Tutti →</Text>
         </Pressable>
       </View>
 
@@ -43,16 +43,16 @@ export function HomeHistoryPreview({
                 <Text className="text-green-600 text-[10px] font-bold bg-green-100 px-2 py-0.5 rounded-full">
                   {order.status}
                 </Text>
-                <Text className="text-orange-600 font-bold text-sm">€{order.total.toFixed(2)}</Text>
+                <Text className="text-[#8d171e] font-bold text-sm">€{order.total.toFixed(2)}</Text>
               </View>
             </View>
             <View className="flex-row gap-2 mt-2 pt-2 border-t border-gray-200">
               <Pressable
-                className="flex-1 bg-orange-100 rounded py-1.5 flex-row items-center justify-center gap-1"
+                className="flex-1 bg-[#f3dabb] rounded py-1.5 flex-row items-center justify-center gap-1"
                 onPress={() => onReorder(order.id)}
               >
                 <FontAwesome name="repeat" size={12} color="#f97316" />
-                <Text className="text-orange-600 text-[10px] font-bold">Riordina</Text>
+                <Text className="text-[#8d171e] text-[10px] font-bold">Riordina</Text>
               </Pressable>
             </View>
           </Pressable>

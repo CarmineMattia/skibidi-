@@ -53,18 +53,18 @@ export default function OrdersPage() {
       <>
         <Stack.Screen options={{ headerShown: false }} />
         <ScrollView
-          className="flex-1 bg-[#fdf9f3]"
+          className="flex-1 bg-[#f9ecdd]"
           contentContainerStyle={{ paddingTop: insets.top + 12, paddingBottom: insets.bottom + 24 }}
         >
           <View className="px-4 gap-4">
-            <View className="bg-white rounded-2xl border border-orange-100 p-5 gap-3">
+            <View className="bg-white rounded-2xl border border-[#e1a255]/40 p-5 gap-3">
               <Text className="text-2xl font-black text-gray-900">Recent Orders</Text>
               <Text className="text-sm text-gray-600">
                 Accedi per vedere i tuoi ordini, tracciare la consegna e riordinare in un tap.
               </Text>
               <Pressable
                 onPress={() => router.push('/login')}
-                className="h-12 rounded-xl bg-[#d4451a] items-center justify-center active:opacity-90"
+                className="h-12 rounded-xl bg-[#8d171e] items-center justify-center active:opacity-90"
               >
                 <Text className="text-white font-bold">Accedi</Text>
               </Pressable>
@@ -79,12 +79,12 @@ export default function OrdersPage() {
     <>
       <Stack.Screen options={{ headerShown: false }} />
       <ScrollView
-        className="flex-1 bg-[#fdf9f3]"
+        className="flex-1 bg-[#f9ecdd]"
         contentContainerStyle={{ paddingTop: insets.top + 12, paddingBottom: insets.bottom + 24 }}
       >
         <View className="px-4 gap-4">
-          <View className="bg-white rounded-2xl border border-orange-100 p-4 gap-1">
-            <Text className="text-xs font-bold uppercase tracking-wider text-orange-700">
+          <View className="bg-white rounded-2xl border border-[#e1a255]/40 p-4 gap-1">
+            <Text className="text-xs font-bold uppercase tracking-wider text-[#8d171e]">
               Bentornato
             </Text>
             <Text className="text-2xl font-black text-gray-900">
@@ -93,16 +93,16 @@ export default function OrdersPage() {
             <Text className="text-gray-600 text-sm">I tuoi ultimi ordini artigianali.</Text>
           </View>
 
-          <View className="bg-white rounded-2xl border border-orange-100 p-4 gap-3">
+          <View className="bg-white rounded-2xl border border-[#e1a255]/40 p-4 gap-3">
             <View className="flex-row items-center justify-between">
               <Text className="text-lg font-extrabold text-gray-900">Ordini recenti</Text>
               <Pressable onPress={() => router.push('/order-tracking')}>
-                <Text className="text-orange-700 text-xs font-bold">Tracking live →</Text>
+                <Text className="text-[#8d171e] text-xs font-bold">Tracking live →</Text>
               </Pressable>
             </View>
 
             {mockOrders.map((order) => (
-              <View key={order.id} className="rounded-xl bg-[#fffaf5] border border-orange-100 p-3 gap-2">
+              <View key={order.id} className="rounded-xl bg-[#fffaf5] border border-[#e1a255]/40 p-3 gap-2">
                 <View className="flex-row items-start justify-between">
                   <View>
                     <Text className="font-bold text-gray-900">{order.id}</Text>
@@ -126,13 +126,13 @@ export default function OrdersPage() {
                 <Text className="text-xs text-gray-600">{order.items.join(' • ')}</Text>
 
                 <View className="flex-row items-center justify-between">
-                  <Text className="text-lg font-extrabold text-[#d4451a]">€{order.total.toFixed(2)}</Text>
+                  <Text className="text-lg font-extrabold text-[#8d171e]">€{order.total.toFixed(2)}</Text>
                   <View className="flex-row gap-2">
                     <Pressable
                       onPress={() => handleReorder(order)}
-                      className="h-9 px-3 rounded-lg bg-orange-100 items-center justify-center active:opacity-90"
+                      className="h-9 px-3 rounded-lg bg-[#f3dabb] items-center justify-center active:opacity-90"
                     >
-                      <Text className="text-xs font-bold text-orange-700">Riordina</Text>
+                      <Text className="text-xs font-bold text-[#8d171e]">Riordina</Text>
                     </Pressable>
                     <Pressable
                       onPress={() => router.push('/order-tracking')}

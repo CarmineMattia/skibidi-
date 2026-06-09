@@ -176,16 +176,16 @@ export default function MenuScreen() {
   }
 
   return (
-    <View className="flex-1 bg-[#fdf9f3]" style={{ paddingTop: insets.top }}>
+    <View className="flex-1 bg-[#f9ecdd]" style={{ paddingTop: insets.top }}>
       {/* Top Bar - Minimal */}
       <View
-        className={`${isMobile ? (isUltraCompactMobile ? 'px-3 py-2' : 'px-3 py-2.5') : 'px-8 py-4'} border-b border-orange-100 flex-row items-center justify-between bg-white/95 z-10`}
+        className={`${isMobile ? (isUltraCompactMobile ? 'px-3 py-2' : 'px-3 py-2.5') : 'px-8 py-4'} border-b border-[#e1a255]/40 flex-row items-center justify-between bg-white/95 z-10`}
       >
         <View className={`flex-row items-center ${isMobile ? 'gap-1.5' : 'gap-3'}`}>
           {!showDesktopSidebars && (
             <Pressable
               onPress={() => setIsMobileCategoriesOpen(prev => !prev)}
-              className={`bg-orange-50 border border-orange-200 rounded-lg items-center justify-center active:opacity-80 ${isUltraCompactMobile ? 'p-1.5 w-8 h-8' : 'p-2 w-9 h-9'}`}
+              className={`bg-[#f9ecdd] border border-[#e1a255]/60 rounded-lg items-center justify-center active:opacity-80 ${isUltraCompactMobile ? 'p-1.5 w-8 h-8' : 'p-2 w-9 h-9'}`}
             >
               <FontAwesome name={isMobileCategoriesOpen ? 'close' : 'bars'} size={isUltraCompactMobile ? 14 : 16} color="black" />
             </Pressable>
@@ -194,8 +194,8 @@ export default function MenuScreen() {
             <View className="w-9 h-9" />
           )}
 
-          <View className={`${isMobile ? 'w-8 h-8' : 'w-10 h-10'} rounded-full bg-orange-50 border border-orange-200 items-center justify-center`}>
-            <FontAwesome name="cutlery" size={isMobile ? 14 : 16} color="#c2410c" />
+          <View className={`${isMobile ? 'w-8 h-8' : 'w-10 h-10'} rounded-full bg-[#f9ecdd] border border-[#e1a255]/60 items-center justify-center`}>
+            <FontAwesome name="cutlery" size={isMobile ? 14 : 16} color="#8d171e" />
           </View>
           <Text
             className={`text-gray-900 font-extrabold tracking-tight ${isMobile ? (isUltraCompactMobile ? 'text-sm' : 'text-base') : 'text-lg'}`}
@@ -207,10 +207,10 @@ export default function MenuScreen() {
 
         <View className={`flex-row items-center ${isMobile ? 'gap-2' : 'gap-3'}`}>
           {/* User Info - Compact */}
-          <View className={`bg-orange-50 border border-orange-200 rounded-full ${isMobile ? 'px-2 py-1' : 'px-3 py-1.5'}`}>
+          <View className={`bg-[#f9ecdd] border border-[#e1a255]/60 rounded-full ${isMobile ? 'px-2 py-1' : 'px-3 py-1.5'}`}>
             <View className="flex-row items-center gap-1.5">
-              <FontAwesome name="user" size={isMobile ? 10 : 11} color="#c2410c" />
-              <Text className={`text-orange-700 font-semibold ${isMobile ? 'text-xs' : 'text-sm'}`}>
+              <FontAwesome name="user" size={isMobile ? 10 : 11} color="#8d171e" />
+              <Text className={`text-[#8d171e] font-semibold ${isMobile ? 'text-xs' : 'text-sm'}`}>
                 {isAuthenticated && profile
                   ? `${profile.full_name?.split(' ')[0] || profile.email?.split('@')[0] || 'utente'}`
                   : i18n.guest}
@@ -220,7 +220,7 @@ export default function MenuScreen() {
 
           {/* Order Counter Badge - Compact */}
           {totalItems > 0 && (
-            <View className={`bg-orange-500 rounded-full flex-row items-center ${isMobile ? 'px-3 py-1 gap-1' : 'px-4 py-1.5 gap-1.5'}`}>
+            <View className={`bg-[#f9ecdd]0 rounded-full flex-row items-center ${isMobile ? 'px-3 py-1 gap-1' : 'px-4 py-1.5 gap-1.5'}`}>
               <FontAwesome name="shopping-cart" size={isMobile ? 10 : 11} color="#ffffff" />
               <Text className={`text-white font-bold ${isMobile ? 'text-xs' : 'text-sm'}`}>{totalItems}</Text>
             </View>
@@ -238,7 +238,7 @@ export default function MenuScreen() {
 
           {!isAuthenticated && (
             <Pressable
-              className={`${isMobile ? 'px-2 py-1' : 'px-3 py-1.5'} bg-orange-500 rounded-full active:opacity-80`}
+              className={`${isMobile ? 'px-2 py-1' : 'px-3 py-1.5'} bg-[#f9ecdd]0 rounded-full active:opacity-80`}
               onPress={() => router.push('/login')}
             >
               <Text className={`text-white font-bold ${isMobile ? 'text-xs' : 'text-sm'}`}>Accedi</Text>
@@ -259,14 +259,14 @@ export default function MenuScreen() {
         )}
 
         {/* Center - Product Grid */}
-        <View className="flex-1 bg-[#fdf9f3]">
+        <View className="flex-1 bg-[#f9ecdd]">
           {/* Offline Indicator */}
           <OfflineIndicator />
 
           {showContinueWithoutDrinks && selectedCategoryId && drinkCategoryIds.has(selectedCategoryId) && (
-            <View className="mx-3 mt-3 bg-white border border-orange-200 rounded-2xl p-4 shadow-sm">
+            <View className="mx-3 mt-3 bg-white border border-[#e1a255]/60 rounded-2xl p-4 shadow-sm">
               <View className="flex-row items-start gap-2">
-                <FontAwesome name="glass" size={16} color="#c2410c" style={{ marginTop: 2 }} />
+                <FontAwesome name="glass" size={16} color="#8d171e" style={{ marginTop: 2 }} />
                 <View className="flex-1">
                   <Text className="text-base font-extrabold text-gray-900">Aggiungi una bevanda?</Text>
                   <Text className="text-sm text-gray-600 mt-1">
@@ -276,7 +276,7 @@ export default function MenuScreen() {
               </View>
 
               <Pressable
-                className="mt-3 h-11 bg-orange-500 rounded-xl items-center justify-center active:opacity-90"
+                className="mt-3 h-11 bg-[#f9ecdd]0 rounded-xl items-center justify-center active:opacity-90"
                 onPress={() => {
                   setShowContinueWithoutDrinks(false);
                   router.push('/modal');
@@ -290,13 +290,13 @@ export default function MenuScreen() {
           {showContinueWithoutDrinks && selectedCategoryId && !drinkCategoryIds.has(selectedCategoryId) && (
             <View className="mx-3 mt-2">
               <Pressable
-                className="h-10 rounded-xl border border-orange-200 bg-white items-center justify-center active:opacity-90"
+                className="h-10 rounded-xl border border-[#e1a255]/60 bg-white items-center justify-center active:opacity-90"
                 onPress={() => {
                   setShowContinueWithoutDrinks(false);
                   router.push('/modal');
                 }}
               >
-                <Text className="text-orange-700 font-semibold text-sm">Completa ordine senza bevande</Text>
+                <Text className="text-[#8d171e] font-semibold text-sm">Completa ordine senza bevande</Text>
               </Pressable>
             </View>
           )}
@@ -347,13 +347,13 @@ export default function MenuScreen() {
                         onPress={() => setSelectedCategoryId(null)}
                         className={`px-3 py-1.5 rounded-full border ${
                           selectedCategoryId === null
-                            ? 'bg-[#d4451a] border-[#d4451a]'
-                            : 'bg-white border-orange-200'
+                            ? 'bg-[#8d171e] border-[#8d171e]'
+                            : 'bg-white border-[#e1a255]/60'
                         }`}
                       >
                         <Text
                           className={`text-xs font-bold ${
-                            selectedCategoryId === null ? 'text-white' : 'text-orange-700'
+                            selectedCategoryId === null ? 'text-white' : 'text-[#8d171e]'
                           }`}
                         >
                           Solo mangiare
@@ -366,15 +366,15 @@ export default function MenuScreen() {
                           onPress={() => setSelectedCategoryId(category.id)}
                           className={`px-3 py-1.5 rounded-full border ${
                             selectedCategoryId === category.id
-                              ? 'bg-[#d4451a] border-[#d4451a]'
-                              : 'bg-white border-orange-200'
+                              ? 'bg-[#8d171e] border-[#8d171e]'
+                              : 'bg-white border-[#e1a255]/60'
                           }`}
                         >
                           <Text
                             className={`text-xs font-bold ${
                               selectedCategoryId === category.id
                                 ? 'text-white'
-                                : 'text-orange-700'
+                                : 'text-[#8d171e]'
                             }`}
                           >
                             {category.name}
@@ -386,9 +386,9 @@ export default function MenuScreen() {
                     {featuredProduct && (
                       <Pressable
                         onPress={() => handleProductPress(featuredProduct.id)}
-                        className="bg-white rounded-2xl border border-orange-100 p-4 active:opacity-90"
+                        className="bg-white rounded-2xl border border-[#e1a255]/40 p-4 active:opacity-90"
                       >
-                        <Text className="text-xs font-bold text-orange-700 uppercase">{i18n.featuredBadge}</Text>
+                        <Text className="text-xs font-bold text-[#8d171e] uppercase">{i18n.featuredBadge}</Text>
                         <Text className="text-xl font-extrabold text-gray-900 mt-1">{i18n.featuredTitle}</Text>
                         <Text className="text-xs text-gray-600 mt-1">
                           {i18n.featuredDescription}
@@ -402,7 +402,7 @@ export default function MenuScreen() {
                 isMobile ? (
                   <Pressable
                     onPress={() => handleProductPress(item.id)}
-                    className="bg-white rounded-2xl border border-orange-100 p-4 active:opacity-90"
+                    className="bg-white rounded-2xl border border-[#e1a255]/40 p-4 active:opacity-90"
                   >
                     <View className="flex-row items-start justify-between gap-3">
                       <View className="flex-1">
@@ -415,13 +415,13 @@ export default function MenuScreen() {
                         <Text className="text-xs text-gray-600 mt-1" numberOfLines={2}>
                           {item.description || item.ingredients?.join(', ') || i18n.artisanalRecipe}
                         </Text>
-                        <Text className="text-lg font-extrabold text-[#d4451a] mt-2">
+                        <Text className="text-lg font-extrabold text-[#8d171e] mt-2">
                           €{item.price.toFixed(2)}
                         </Text>
                       </View>
                       <Pressable
                         onPress={() => handleProductPress(item.id)}
-                        className="w-8 h-8 rounded-full bg-orange-500 items-center justify-center"
+                        className="w-8 h-8 rounded-full bg-[#f9ecdd]0 items-center justify-center"
                       >
                         <Text className="text-white text-lg font-bold leading-none">+</Text>
                       </Pressable>
@@ -431,6 +431,7 @@ export default function MenuScreen() {
                   <View className={`flex-1 ${effectiveProductColumns > 1 ? 'h-[450px]' : 'h-[380px]'} max-w-[500px]`}>
                     <ProductCard
                       product={item}
+                      onPress={handleProductPress}
                       onAddToCart={handleProductPress}
                       onEditPress={isAdmin ? () => handleEditPress(item) : undefined}
                     />
@@ -443,7 +444,7 @@ export default function MenuScreen() {
 
         {/* Right Sidebar - Cart Summary (Desktop/Tablet only) */}
         {showDesktopSidebars && (
-          <View className="w-[350px] border-l border-orange-100 bg-white shadow-[-5px_0_15px_rgba(0,0,0,0.02)]">
+          <View className="w-[350px] border-l border-[#e1a255]/40 bg-white shadow-[-5px_0_15px_rgba(0,0,0,0.02)]">
             <CartSummary onCheckout={handleCheckout} isCheckingOut={createOrder.isPending} />
           </View>
         )}
@@ -452,12 +453,12 @@ export default function MenuScreen() {
       {/* Mobile Cart Button (Fixed at bottom) */}
       {!showDesktopSidebars && totalItems > 0 && (
         <View
-          className="absolute bottom-0 left-0 right-0 p-4 bg-white/95 border-t border-orange-100"
+          className="absolute bottom-0 left-0 right-0 p-4 bg-white/95 border-t border-[#e1a255]/40"
           style={{ paddingBottom: insets.bottom + 16 }}
         >
           <Pressable
             onPress={() => setIsCartVisible(true)}
-            className="bg-orange-500 rounded-2xl p-4 shadow-xl flex-row items-center justify-between active:opacity-80"
+            className="bg-[#f9ecdd]0 rounded-2xl p-4 shadow-xl flex-row items-center justify-between active:opacity-80"
           >
             <View className="flex-row items-center gap-2">
               <FontAwesome name="shopping-cart" size={20} color="#ffffff" />
@@ -465,7 +466,7 @@ export default function MenuScreen() {
                 <Text className="text-white font-bold text-lg">
                   {i18n.yourOrder}
                 </Text>
-                <Text className="text-orange-100 text-sm">
+                <Text className="text-[#f3dabb] text-sm">
                   {totalItems} {i18n.itemsLabel}
                 </Text>
               </View>
@@ -486,18 +487,18 @@ export default function MenuScreen() {
       >
         <View className="flex-1 bg-black/35 justify-start" style={{ paddingTop: insets.top + 60 }}>
           <Pressable className="absolute inset-0" onPress={() => setIsMobileCategoriesOpen(false)} />
-          <View className="mx-3 rounded-2xl bg-white border border-orange-100 p-3 max-h-[55%]">
+          <View className="mx-3 rounded-2xl bg-white border border-[#e1a255]/40 p-3 max-h-[55%]">
             <Text className="text-gray-900 font-bold text-base mb-3">Categorie</Text>
             <ScrollView showsVerticalScrollIndicator={false}>
               <View className="gap-2 pb-1">
                 <Pressable
-                    className={`rounded-xl px-4 py-3 min-h-[44px] items-center justify-center ${selectedCategoryId === null ? 'bg-orange-500' : 'bg-orange-50 border border-orange-200'}`}
+                    className={`rounded-xl px-4 py-3 min-h-[44px] items-center justify-center ${selectedCategoryId === null ? 'bg-[#f9ecdd]0' : 'bg-[#f9ecdd] border border-[#e1a255]/60'}`}
                   onPress={() => {
                     setSelectedCategoryId(null);
                     setIsMobileCategoriesOpen(false);
                   }}
                 >
-                  <Text className={`${selectedCategoryId === null ? 'text-white' : 'text-orange-700'} font-semibold text-sm`}>
+                  <Text className={`${selectedCategoryId === null ? 'text-white' : 'text-[#8d171e]'} font-semibold text-sm`}>
                     Tutti
                   </Text>
                 </Pressable>
@@ -506,13 +507,13 @@ export default function MenuScreen() {
                   return (
                     <Pressable
                       key={category.id}
-                      className={`rounded-xl px-4 py-3 min-h-[44px] items-center justify-center ${isSelected ? 'bg-orange-500' : 'bg-orange-50 border border-orange-200'}`}
+                      className={`rounded-xl px-4 py-3 min-h-[44px] items-center justify-center ${isSelected ? 'bg-[#f9ecdd]0' : 'bg-[#f9ecdd] border border-[#e1a255]/60'}`}
                       onPress={() => {
                         setSelectedCategoryId(category.id);
                         setIsMobileCategoriesOpen(false);
                       }}
                     >
-                      <Text className={`${isSelected ? 'text-white' : 'text-orange-700'} font-semibold text-sm`}>
+                      <Text className={`${isSelected ? 'text-white' : 'text-[#8d171e]'} font-semibold text-sm`}>
                         {category.name}
                       </Text>
                     </Pressable>
@@ -522,7 +523,7 @@ export default function MenuScreen() {
             </ScrollView>
             {!isAuthenticated && (
               <Pressable
-                className="mt-3 bg-orange-500 rounded-xl px-4 py-3 items-center active:opacity-80"
+                className="mt-3 bg-[#f9ecdd]0 rounded-xl px-4 py-3 items-center active:opacity-80"
                 onPress={() => {
                   setIsMobileCategoriesOpen(false);
                   router.push('/login');
@@ -542,14 +543,14 @@ export default function MenuScreen() {
         onRequestClose={() => setIsCartVisible(false)}
       >
         <View className="flex-1 bg-[#f8f5f1]" style={{ paddingTop: insets.top }}>
-          <View className="flex-row items-center justify-between p-4 border-b border-orange-100 bg-white">
+          <View className="flex-row items-center justify-between p-4 border-b border-[#e1a255]/40 bg-white">
             <View className="flex-row items-center gap-2">
               <FontAwesome name="shopping-cart" size={17} color="#111827" />
               <Text className="text-gray-900 font-extrabold text-2xl">Carrello</Text>
             </View>
             <Pressable
               onPress={() => setIsCartVisible(false)}
-              className="bg-orange-50 border border-orange-200 rounded-full p-2 w-10 h-10 items-center justify-center active:opacity-80"
+              className="bg-[#f9ecdd] border border-[#e1a255]/60 rounded-full p-2 w-10 h-10 items-center justify-center active:opacity-80"
             >
               <FontAwesome name="close" size={20} color="black" />
             </Pressable>
@@ -567,6 +568,7 @@ export default function MenuScreen() {
           visible={!!selectedProduct}
           onClose={() => setSelectedProduct(null)}
           product={selectedProduct}
+          categoryName={categories.find((category) => category.id === selectedProduct.category_id)?.name}
         />
       )}
 

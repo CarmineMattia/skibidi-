@@ -117,26 +117,26 @@ export default function OrderTrackingScreen() {
     <>
       <Stack.Screen options={{ headerShown: false }} />
       <ScrollView
-        className="flex-1 bg-[#fdf9f3]"
+        className="flex-1 bg-[#f9ecdd]"
         contentContainerStyle={{ paddingTop: insets.top + 12, paddingBottom: insets.bottom + 24 }}
       >
         <View className="px-4 gap-3.5">
-          <View className="bg-white rounded-2xl border border-orange-100 px-4 py-3.5 gap-2.5">
-            <Text className="text-xs font-bold uppercase tracking-wider text-orange-700">
+          <View className="bg-white rounded-2xl border border-[#e1a255]/40 px-4 py-3.5 gap-2.5">
+            <Text className="text-xs font-bold uppercase tracking-wider text-[#8d171e]">
               Ambrosia | Track your order
             </Text>
             <Text className="text-gray-900 text-[13px]">{estimatedLabel}</Text>
             <Text className="text-[46px] leading-[48px] font-black text-gray-900">12:45</Text>
             <Text className="text-gray-600 text-sm leading-5">{summaryText}</Text>
-            <View className="self-start bg-orange-100 rounded-full px-3 py-1.5">
+            <View className="self-start bg-[#f3dabb] rounded-full px-3 py-1.5">
               <View className="flex-row items-center gap-1.5">
-                <FontAwesome name="fire" size={11} color="#c2410c" />
-                <Text className="text-orange-700 text-xs font-bold">In the Hearth</Text>
+                <FontAwesome name="fire" size={11} color="#8d171e" />
+                <Text className="text-[#8d171e] text-xs font-bold">In the Hearth</Text>
               </View>
             </View>
           </View>
 
-          <View className="bg-white rounded-2xl border border-orange-100 p-4 gap-2.5">
+          <View className="bg-white rounded-2xl border border-[#e1a255]/40 p-4 gap-2.5">
             {trackingSteps.map((step, index) => {
               const isLast = index === trackingSteps.length - 1;
               return (
@@ -144,7 +144,7 @@ export default function OrderTrackingScreen() {
                   <View className="items-center">
                     <View
                       className={`w-9 h-9 rounded-full items-center justify-center ${
-                        step.done ? 'bg-[#d4451a]' : 'bg-orange-100'
+                        step.done ? 'bg-[#8d171e]' : 'bg-[#f3dabb]'
                       }`}
                     >
                       <FontAwesome
@@ -155,7 +155,7 @@ export default function OrderTrackingScreen() {
                     </View>
                     {!isLast && (
                       <View
-                        className={`w-[2px] h-10 ${step.done ? 'bg-[#d4451a]' : 'bg-orange-200'}`}
+                        className={`w-[2px] h-10 ${step.done ? 'bg-[#8d171e]' : 'bg-[#e7b577]/50'}`}
                       />
                     )}
                   </View>
@@ -185,22 +185,22 @@ export default function OrderTrackingScreen() {
           ) : null}
 
           {orderType === 'delivery' ? (
-            <View className="bg-white rounded-2xl border border-orange-100 p-4 gap-3">
+            <View className="bg-white rounded-2xl border border-[#e1a255]/40 p-4 gap-3">
               <Text className="text-xl font-extrabold text-gray-900">{supportTitle}</Text>
               <Text className="text-sm text-gray-600">{supportDescription}</Text>
               <View className="flex-row gap-2">
-                <Pressable className="flex-1 h-11 rounded-xl bg-[#d4451a] items-center justify-center active:opacity-90 flex-row gap-1.5">
+                <Pressable className="flex-1 h-11 rounded-xl bg-[#8d171e] items-center justify-center active:opacity-90 flex-row gap-1.5">
                   <FontAwesome name="phone" size={13} color="#ffffff" />
                   <Text className="text-white font-bold">Call</Text>
                 </Pressable>
-                <Pressable className="flex-1 h-11 rounded-xl bg-orange-100 items-center justify-center active:opacity-90 flex-row gap-1.5">
-                  <FontAwesome name="comment" size={13} color="#c2410c" />
-                  <Text className="text-orange-700 font-bold">Chat</Text>
+                <Pressable className="flex-1 h-11 rounded-xl bg-[#f3dabb] items-center justify-center active:opacity-90 flex-row gap-1.5">
+                  <FontAwesome name="comment" size={13} color="#8d171e" />
+                  <Text className="text-[#8d171e] font-bold">Chat</Text>
                 </Pressable>
               </View>
             </View>
           ) : (
-            <View className="bg-white rounded-2xl border border-orange-100 p-4 gap-2">
+            <View className="bg-white rounded-2xl border border-[#e1a255]/40 p-4 gap-2">
               <Text className="text-xl font-extrabold text-gray-900">{supportTitle}</Text>
               <Text className="text-sm text-gray-600">{supportDescription}</Text>
             </View>

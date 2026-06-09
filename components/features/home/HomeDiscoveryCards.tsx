@@ -10,7 +10,7 @@ export function HomeDiscoveryCards({ onOpenChef, onOpenNearby }: HomeDiscoveryCa
   return (
     <View className="flex-row gap-2">
       <Pressable
-        className="flex-1 bg-[#f7f3ed] border border-orange-100 rounded-xl p-3 active:opacity-90"
+        className="flex-1 bg-[#f9ecdd] border border-[#e1a255]/40 rounded-xl p-3 active:opacity-90"
         onPress={onOpenChef}
       >
         <View className="flex-row items-center gap-2">
@@ -20,7 +20,7 @@ export function HomeDiscoveryCards({ onOpenChef, onOpenNearby }: HomeDiscoveryCa
         <Text className="text-[11px] text-gray-600 mt-1">Le creazioni artigianali della settimana.</Text>
       </Pressable>
       <Pressable
-        className="flex-1 bg-[#fff7ee] border border-orange-100 rounded-xl p-3 active:opacity-90"
+        className="flex-1 bg-[#f0daca] border border-[#e1a255]/40 rounded-xl p-3 active:opacity-90"
         onPress={onOpenNearby}
       >
         <View className="flex-row items-center gap-2">

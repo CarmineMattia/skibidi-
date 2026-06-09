@@ -2,63 +2,58 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Design System CSS Variables (Modern POS Theme) */
+/* Design System CSS Variables — Pizzeria Ambrosia / Matildica */
 :root {
-  /* Kiosk Minimal Theme (McDonald's inspired) */
-  --background: 0 0% 100%; /* Pure White */
-  --foreground: 0 0% 10%; /* Near Black */
-  
-  --card: 0 0% 98%; /* Very light gray for cards */
-  --card-foreground: 0 0% 10%;
-  
-  --popover: 0 0% 100%;
-  --popover-foreground: 0 0% 10%;
-  
-  --primary: 45 90% 50%; /* Golden Yellow (McDonald's-ish) - or keep user's purple if preferred, but let's go with a safe "Brand" color. Let's stick to a bold dark color for primary actions to contrast with white. */
-  /* Actually, let's use a bold Orange/Red as requested in previous conversations or a neutral dark. 
-     The user asked for "McDonald's style". McDonald's is often white background, black text, yellow/red accents.
-     Let's use a warm Yellow/Gold for accents and Dark Gray for primary buttons to look clean.
-  */
-  --primary: 35 90% 50%; /* Warm Gold/Yellow */
-  --primary-foreground: 0 0% 10%; /* Black text on yellow */
-  
-  --secondary: 0 0% 96%; /* Light Gray */
-  --secondary-foreground: 0 0% 10%;
-  
-  --muted: 0 0% 96%;
-  --muted-foreground: 0 0% 40%;
-  
-  --accent: 35 90% 50%;
-  --accent-foreground: 0 0% 10%;
-  
-  --destructive: 0 84.2% 60.2%;
+  /* Warm cream background, deep crimson primary, golden amber accents */
+  --background: 32 70% 92%;        /* #f9ecdd warm cream */
+  --foreground: 211 10% 23%;       /* #343a40 charcoal */
+
+  --card: 25 56% 87%;              /* #f0daca light parchment */
+  --card-foreground: 211 10% 23%;
+
+  --popover: 32 70% 92%;
+  --popover-foreground: 211 10% 23%;
+
+  --primary: 356 72% 32%;          /* #8d171e deep crimson */
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 33 70% 69%;         /* #e7b577 golden amber */
+  --secondary-foreground: 211 10% 23%;
+
+  --muted: 33 50% 88%;             /* #f3dabb light beige */
+  --muted-foreground: 211 10% 42%;
+
+  --accent: 33 71% 60%;            /* #e1a255 amber */
+  --accent-foreground: 0 0% 100%;
+
+  --destructive: 0 75% 68%;        /* #e96f6f coral */
   --destructive-foreground: 0 0% 100%;
-  
-  --border: 0 0% 90%;
-  --input: 0 0% 90%;
-  --ring: 35 90% 50%;
-  
-  --radius: 1rem; /* Rounded corners */
+
+  --border: 33 40% 82%;
+  --input: 33 40% 82%;
+  --ring: 356 72% 32%;
+
+  --radius: 0.75rem;
 }
 
 .dark {
-  --background: 222.2 84% 4.9%;
-  --foreground: 210 40% 98%;
-  --card: 222.2 84% 4.9%;
-  --card-foreground: 210 40% 98%;
-  --popover: 222.2 84% 4.9%;
-  --popover-foreground: 210 40% 98%;
-  --primary: 210 40% 98%;
-  --primary-foreground: 222.2 47.4% 11.2%;
-  --secondary: 217.2 32.6% 17.5%;
-  --secondary-foreground: 210 40% 98%;
-  --muted: 217.2 32.6% 17.5%;
-  --muted-foreground: 215 20.2% 65.1%;
-  --accent: 217.2 32.6% 17.5%;
-  --accent-foreground: 210 40% 98%;
+  --background: 356 40% 10%;       /* very dark crimson */
+  --foreground: 32 70% 92%;        /* warm cream text */
+  --card: 356 35% 15%;
+  --card-foreground: 32 70% 92%;
+  --popover: 356 40% 10%;
+  --popover-foreground: 32 70% 92%;
+  --primary: 33 70% 69%;           /* amber as primary in dark mode */
+  --primary-foreground: 211 10% 23%;
+  --secondary: 356 30% 20%;
+  --secondary-foreground: 32 70% 92%;
+  --muted: 356 30% 20%;
+  --muted-foreground: 33 30% 62%;
+  --accent: 356 30% 24%;
+  --accent-foreground: 32 70% 92%;
   --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 210 40% 98%;
-  --border: 217.2 32.6% 17.5%;
-  --input: 217.2 32.6% 17.5%;
-  --ring: 212.7 26.8% 83.9%;
+  --destructive-foreground: 32 70% 92%;
+  --border: 356 30% 22%;
+  --input: 356 30% 22%;
+  --ring: 33 70% 69%;
 }
