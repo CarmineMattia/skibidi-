@@ -202,7 +202,7 @@ export function ProductDetailsModal({ visible, onClose, product, categoryName }:
                                                     <View className="w-24 items-center">
                                                         {status !== 'standard' && (
                                                             <View className="flex-row items-center gap-1">
-                                                                <FontAwesome name={getStatusIcon(status) as any} size={12} color={status === 'no' ? '#dc2626' : '#ea580c'} />
+                                                                <FontAwesome name={getStatusIcon(status) as any} size={12} color={status === 'no' ? '#dc2626' : '#8d171e'} />
                                                                 <Text className="text-sm font-bold">
                                                                     {status === 'no' ? 'No' : 'Extra'}
                                                                 </Text>
@@ -227,8 +227,7 @@ export function ProductDetailsModal({ visible, onClose, product, categoryName }:
 
                         {showCookingOptions && (
                             <View className="mb-6">
-                                <Text className="font-bold text-lg mb-3">Cotture</Text>
-                                <Text className="text-muted-foreground text-sm mb-3">Cottere</Text>
+                                <Text className="font-bold text-lg mb-3">Cottura</Text>
                                 <View className="flex-row gap-3">
                                     {COOKING_OPTIONS.map((option) => {
                                         const isSelected = cookingLevel === option.id;
