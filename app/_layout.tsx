@@ -74,7 +74,6 @@ function RootLayoutNav() {
                         <Stack.Screen name="admin-options" options={{ headerShown: false }} />
                         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
                         <Stack.Screen name="order-success" options={{ headerShown: false }} />
-                        <Stack.Screen name="order-tracking" options={{ headerShown: false }} />
                         <Stack.Screen name="rewards" options={{ headerShown: false }} />
                       </Stack>
                     </AuthGuard>

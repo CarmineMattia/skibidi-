@@ -34,6 +34,7 @@ import { useAuth } from '@/lib/stores/AuthContext';
 import { useProducts } from '@/lib/hooks/useProducts';
 import { useOrders } from '@/lib/hooks/useOrders';
 import { useCart } from '@/lib/stores/CartContext';
+import { getOrderStatusLabel, normalizeOrderType } from '@/lib/utils/orderTracking';
 import { useMemo } from 'react';
 
 export default function HomeScreen() {
@@ -159,14 +160,33 @@ export default function HomeScreen() {
 
       return {
         id: `ORD-${order.id.slice(0, 6).toUpperCase()}`,
+        orderId: order.id,
+        orderType: order.order_type,
         date,
         total: order.total_amount,
-        status: order.status === 'delivered' ? 'Completato' : 'In corso',
+        status: getOrderStatusLabel(order.status),
       };
     });
   }, [isAuthenticated, orders]);
 
   const hasRecentOrders = recentOrders.length > 0;
+
+  const activeOrder = useMemo(
+    () => orders.find((order) => order.status !== 'delivered' && order.status !== 'cancelled'),
+    [orders]
+  );
+
+  const openActiveOrderTracking = () => {
+    if (!activeOrder) {
+      router.push('/(tabs)/two');
+      return;
+    }
+
+    const orderType = normalizeOrderType(activeOrder.order_type);
+    router.push(
+      `/order-tracking?orderType=${encodeURIComponent(orderType)}&orderId=${encodeURIComponent(activeOrder.id)}`
+    );
+  };
 
   const offerCards = useMemo<HomeOfferCard[]>(
     () => [
@@ -356,7 +376,7 @@ export default function HomeScreen() {
         isAdmin={false}
         onOpenMenu={() => router.push('/(tabs)/menu')}
         onOpenKitchen={() => router.push('/(tabs)/kitchen')}
-        onOpenTracking={() => router.push('/order-tracking')}
+        onOpenTracking={openActiveOrderTracking}
         onOpenRewards={() => router.push('/rewards')}
         onLogout={handleLogout}
       />
@@ -393,7 +413,18 @@ export default function HomeScreen() {
         <HomeHistoryPreview
           orders={recentOrders}
           onOpenAll={() => router.push('/(tabs)/two')}
-          onOpenOrder={() => router.push('/(tabs)/two')}
+          onOpenOrder={(orderId) => {
+            const order = recentOrders.find((item) => item.orderId === orderId);
+            if (!order) {
+              router.push('/(tabs)/two');
+              return;
+            }
+
+            const orderType = normalizeOrderType(order.orderType);
+            router.push(
+              `/order-tracking?orderType=${encodeURIComponent(orderType)}&orderId=${encodeURIComponent(order.orderId)}`
+            );
+          }}
           onReorder={handleReorder}
         />
       ) : null}
@@ -413,7 +444,7 @@ export default function HomeScreen() {
         isAdmin={isAdmin}
         onOpenMenu={() => router.push('/(tabs)/menu')}
         onOpenKitchen={() => router.push('/(tabs)/kitchen')}
-        onOpenTracking={() => router.push('/order-tracking')}
+        onOpenTracking={openActiveOrderTracking}
         onOpenRewards={() => router.push('/rewards')}
         onLogout={handleLogout}
       />

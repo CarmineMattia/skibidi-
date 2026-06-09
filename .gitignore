@@ -47,3 +47,18 @@ nul
 
 # local testing credentials (never commit)
 TEST-CREDENTIALS.local.md
+
+# test env / credentials
+.env.test
+
+# IDE config
+.cursor/
+
+# test artifacts
+test-results/
+
+# lock files
+.claude/scheduled_tasks.lock
+
+# root memory file (managed outside git)
+memory.md

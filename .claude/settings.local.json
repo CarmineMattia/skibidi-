@@ -32,7 +32,17 @@
       "mcp__supabase__apply_migration",
       "Bash(xargs -I {} sh -c 'echo \"\"=== {} ===\"\" && head -30 {}')",
       "mcp__supabase__get_advisors",
-      "Bash(npx playwright install:*)"
+      "Bash(npx playwright install:*)",
+      "mcp__Claude_in_Chrome__tabs_context_mcp",
+      "Bash(grep -v \"^$\")",
+      "mcp__chrome-devtools__new_page",
+      "mcp__chrome-devtools__select_page",
+      "mcp__chrome-devtools__fill",
+      "Bash(gh repo *)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:github.com)",
+      "Bash(Copy-Item \"C:\\\\Users\\\\Administrator\\\\.claude\\\\projects\\\\C--Users-Administrator-Desktop-skibidi\\\\63cd3c8d-a842-47af-9499-743bf46053f4\\\\tool-results\\\\webfetch-1781000456623-uckeq8.png\" \"C:\\\\Users\\\\Administrator\\\\Desktop\\\\skibidi\\\\assets\\\\images\\\\logo-pizzeria-ambrosia.png\")",
+      "Bash(git add *)"
     ]
   },
   "enableAllProjectMcpServers": true,

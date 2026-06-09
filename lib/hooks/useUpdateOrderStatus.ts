@@ -22,7 +22,7 @@ export function useUpdateOrderStatus() {
   return useMutation({
     mutationFn: async ({ orderId, status, declineReasonPreset = null, declineReasonNote = null }: UpdateOrderStatusInput) => {
       const isDeclined = status === 'cancelled';
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('orders')
         .update({
           status,
@@ -31,25 +31,24 @@ export function useUpdateOrderStatus() {
           decline_reason_note: isDeclined ? declineReasonNote : null,
           declined_at: isDeclined ? new Date().toISOString() : null,
         })
-        .eq('id', orderId)
-        .select('id, status, decline_reason_preset, decline_reason_note')
-        .single();
+        .eq('id', orderId);
 
       if (error) {
         console.error('Order status update error:', error);
         throw new Error(`Errore nell'aggiornamento dello stato: ${error.message}`);
       }
 
-      return data;
+      return { id: orderId, status, decline_reason_preset: declineReasonPreset, decline_reason_note: declineReasonNote };
     },
 
     onSuccess: (data) => {
       console.log('✅ Order status updated:', data.id, '→', data.status);
 
-      // Invalidate kitchen orders cache
       queryClient.invalidateQueries({ queryKey: ['kitchen-orders'] });
-
-      // Also invalidate individual order cache if it exists
+      queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-actionable-orders'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-dashboard-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
       queryClient.invalidateQueries({ queryKey: ['orders', data.id] });
     },
 

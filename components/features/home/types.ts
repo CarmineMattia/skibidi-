@@ -17,6 +17,8 @@ export interface HomeTrendingPizza {
 
 export interface HomeRecentOrder {
   id: string;
+  orderId: string;
+  orderType?: string | null;
   date: string;
   total: number;
   status: string;

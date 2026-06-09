@@ -8,7 +8,7 @@ import { DeclineReasonModal } from '@/components/features/orders/DeclineReasonMo
 import { useUpdateOrderStatus } from '@/lib/hooks/useUpdateOrderStatus';
 import type { Database } from '@/types/database.types.generated';
 import { FontAwesome } from '@expo/vector-icons';
-import { Pressable, Text, View } from 'react-native';
+import { Alert, Pressable, Text, View } from 'react-native';
 import { useState } from 'react';
 
 type OrderStatus = Database['public']['Enums']['order_status'];
@@ -86,12 +86,22 @@ export function KitchenOrderCard({ order }: KitchenOrderCardProps) {
   const statusConfig = STATUS_CONFIG[order.status];
 
   const handleNextStatus = () => {
-    if (statusConfig.nextStatus) {
-      updateStatus.mutate({
+    if (!statusConfig.nextStatus) return;
+
+    updateStatus.mutate(
+      {
         orderId: order.id,
         status: statusConfig.nextStatus,
-      });
-    }
+      },
+      {
+        onError: (error) => {
+          Alert.alert(
+            'Aggiornamento fallito',
+            error instanceof Error ? error.message : 'Impossibile aggiornare lo stato dell\'ordine.'
+          );
+        },
+      }
+    );
   };
 
   const handleDeclineOrder = (payload: { preset: string; note: string }) => {

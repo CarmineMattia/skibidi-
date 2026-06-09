@@ -93,6 +93,12 @@ export default function TabLayout() {
           href: showAccount ? '/(tabs)/account' : null,
         }}
       />
+      <Tabs.Screen
+        name="order-tracking"
+        options={{
+          href: null,
+        }}
+      />
     </Tabs>
   );
 }

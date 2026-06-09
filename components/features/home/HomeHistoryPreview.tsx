@@ -32,7 +32,7 @@ export function HomeHistoryPreview({
           <Pressable
             key={order.id}
             className="bg-white rounded-lg border border-gray-200 p-3 active:bg-gray-50"
-            onPress={() => onOpenOrder(order.id)}
+            onPress={() => onOpenOrder(order.orderId)}
           >
             <View className="flex-row justify-between items-center">
               <View>

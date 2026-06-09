@@ -1,26 +1,46 @@
 import { Button } from '@/components/ui/Button';
 import { useCart } from '@/lib/stores/CartContext';
+import { cn } from '@/lib/utils/cn';
 import type { Product } from '@/types';
 import { FontAwesome } from '@expo/vector-icons';
-import { useState } from 'react';
-import { Image, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Image, Modal, Pressable, ScrollView, Text, View } from 'react-native';
+
+type CookingLevel = 'poco_cotta' | 'ben_cotta';
+
+const COOKING_OPTIONS: { id: CookingLevel; label: string }[] = [
+    { id: 'poco_cotta', label: 'Poco cotta' },
+    { id: 'ben_cotta', label: 'Ben cotta' },
+];
+
+function isPizzaCategoryName(categoryName?: string): boolean {
+    if (!categoryName) return false;
+    return categoryName.toLowerCase().includes('pizz');
+}
 
 interface ProductDetailsModalProps {
     visible: boolean;
     onClose: () => void;
     product: Product;
+    categoryName?: string;
 }
 
-// Mock ingredients removed - using product.ingredients from DB
-
-export function ProductDetailsModal({ visible, onClose, product }: ProductDetailsModalProps) {
+export function ProductDetailsModal({ visible, onClose, product, categoryName }: ProductDetailsModalProps) {
     const [quantity, setQuantity] = useState(1);
-    const [notes, setNotes] = useState('');
+    const [cookingLevel, setCookingLevel] = useState<CookingLevel | null>(null);
 
     // Map of ingredient modifications: 'no' | 'standard' | 'extra'
     const [modifications, setModifications] = useState<Record<string, 'no' | 'standard' | 'extra'>>({});
 
     const { addItem } = useCart();
+    const showCookingOptions = isPizzaCategoryName(categoryName);
+
+    useEffect(() => {
+        if (!visible) return;
+        setQuantity(1);
+        setModifications({});
+        setCookingLevel(null);
+    }, [product.id, visible]);
 
     const handleAddToCart = () => {
         // Convert modifications map to string array for cart
@@ -34,13 +54,20 @@ export function ProductDetailsModal({ visible, onClose, product }: ProductDetail
             }
         });
 
-        addItem(product, quantity, notes, modifiers);
+        if (cookingLevel) {
+            const cookingLabel = COOKING_OPTIONS.find((option) => option.id === cookingLevel)?.label;
+            if (cookingLabel) {
+                modifiers.push(`Cottura: ${cookingLabel}`);
+            }
+        }
+
+        addItem(product, quantity, '', modifiers);
         onClose();
 
         // Reset state
         setQuantity(1);
-        setNotes('');
         setModifications({});
+        setCookingLevel(null);
     };
 
     const updateModification = (ingredient: string, change: -1 | 1) => {
@@ -198,17 +225,38 @@ export function ProductDetailsModal({ visible, onClose, product }: ProductDetail
                             </View>
                         )}
 
-                        {/* Notes */}
-                        <Text className="font-bold text-lg mb-3">Note per la cucina</Text>
-                        <TextInput
-                            className="bg-background border border-border rounded-xl p-4 min-h-[100px] text-foreground mb-6"
-                            placeholder="Es. Allergie, cottura, ecc..."
-                            placeholderTextColor="#9ca3af"
-                            multiline
-                            textAlignVertical="top"
-                            value={notes}
-                            onChangeText={setNotes}
-                        />
+                        {showCookingOptions && (
+                            <View className="mb-6">
+                                <Text className="font-bold text-lg mb-3">Cotture</Text>
+                                <Text className="text-muted-foreground text-sm mb-3">Cottere</Text>
+                                <View className="flex-row gap-3">
+                                    {COOKING_OPTIONS.map((option) => {
+                                        const isSelected = cookingLevel === option.id;
+                                        return (
+                                            <Pressable
+                                                key={option.id}
+                                                onPress={() => setCookingLevel(isSelected ? null : option.id)}
+                                                className={cn(
+                                                    'flex-1 items-center justify-center rounded-xl border px-4 py-3 active:scale-[0.98]',
+                                                    isSelected
+                                                        ? 'bg-primary border-primary'
+                                                        : 'bg-card border-border'
+                                                )}
+                                            >
+                                                <Text
+                                                    className={cn(
+                                                        'font-semibold text-base text-center',
+                                                        isSelected ? 'text-primary-foreground' : 'text-foreground'
+                                                    )}
+                                                >
+                                                    {option.label}
+                                                </Text>
+                                            </Pressable>
+                                        );
+                                    })}
+                                </View>
+                            </View>
+                        )}
                     </ScrollView>
 
                     {/* Footer Action */}
