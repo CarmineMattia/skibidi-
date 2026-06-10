@@ -68,6 +68,12 @@ export function PaymentSelection({
       subtitle: 'Visa, Mastercard, American Express',
     },
     {
+      id: 'satispay',
+      icon: 'qrcode',
+      title: 'Satispay',
+      subtitle: "Paga con l'app Satispay",
+    },
+    {
       id: 'terminal',
       icon: 'mobile',
       title: 'POS Fisico',
@@ -143,6 +149,15 @@ export function PaymentSelection({
           <FontAwesome name="lock" size={16} color="#10B981" />
           <Text className="text-muted-foreground text-sm flex-1">
             Pagamento sicuro crittografato con Stripe
+          </Text>
+        </View>
+      )}
+
+      {selectedProvider === 'satispay' && (
+        <View className="bg-secondary/20 rounded-xl p-4 flex-row items-center gap-3">
+          <FontAwesome name="lock" size={16} color="#10B981" />
+          <Text className="text-muted-foreground text-sm flex-1">
+            Conferma il pagamento dall'app Satispay sul tuo telefono
           </Text>
         </View>
       )}

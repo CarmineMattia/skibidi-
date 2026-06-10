@@ -10,7 +10,23 @@ import { useMutation } from '@tanstack/react-query';
 // TYPES
 // ============================================================================
 
-export type PaymentProvider = 'stripe' | 'cash' | 'terminal';
+export type PaymentProvider = 'stripe' | 'satispay' | 'cash' | 'terminal';
+
+/**
+ * Maps the UI payment provider to the fiscal payment method
+ * required by Italian fiscal receipts.
+ */
+export function paymentProviderToMethod(provider: PaymentProvider): 'cash' | 'card' | 'digital' {
+  switch (provider) {
+    case 'cash':
+      return 'cash';
+    case 'satispay':
+      return 'digital';
+    case 'stripe':
+    case 'terminal':
+      return 'card';
+  }
+}
 
 export type PaymentStatus = 'idle' | 'processing' | 'success' | 'error' | 'cancelled';
 
@@ -82,6 +98,34 @@ async function createPaymentIntent(
 }
 
 /**
+ * Mock function to process a Satispay payment.
+ * In production, this would call the Satispay Business API
+ * (create payment -> redirect/app-to-app -> poll status).
+ */
+async function processSatispayPayment(amount: number): Promise<ProcessPaymentResult> {
+  // Simulate the user confirming in the Satispay app
+  await new Promise((resolve) => setTimeout(resolve, 1500));
+
+  const isSuccess = Math.random() > 0.05;
+  const paymentId = `satispay_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+
+  if (isSuccess) {
+    return {
+      success: true,
+      paymentIntentId: paymentId,
+      transactionId: `txn_${paymentId}`,
+      receiptUrl: `https://online.satispay.com/receipts/${paymentId}`,
+    };
+  }
+
+  return {
+    success: false,
+    paymentIntentId: paymentId,
+    error: 'Pagamento Satispay annullato o non confermato',
+  };
+}
+
+/**
  * Mock function to process a payment
  * In production, this would confirm the payment intent on Stripe
  */
@@ -135,6 +179,10 @@ export function usePayment(options: UsePaymentOptions = {}) {
 
   return useMutation({
     mutationFn: async (input: ProcessPaymentInput): Promise<ProcessPaymentResult> => {
+      if (input.provider === 'satispay') {
+        return processSatispayPayment(input.amount);
+      }
+
       // Step 1: Create payment intent
       const paymentIntent = await createPaymentIntent(input.amount, input.currency);
 

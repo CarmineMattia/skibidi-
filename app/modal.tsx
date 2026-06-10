@@ -9,7 +9,7 @@ import { useAppSettings } from '@/lib/stores/AppSettingsContext';
 import { useCart } from '@/lib/stores/CartContext';
 import { useTenant } from '@/lib/stores/TenantContext';
 import { getNextOpening, isOpenAt } from '@/lib/utils/businessHours';
-import type { PaymentProvider } from '@/lib/hooks/usePayment';
+import { paymentProviderToMethod, type PaymentProvider } from '@/lib/hooks/usePayment';
 import { FontAwesome } from '@expo/vector-icons';
 import { countries } from 'countries-list';
 import { useRouter, Stack } from 'expo-router';
@@ -216,6 +216,8 @@ export default function CheckoutScreen() {
             paymentMethod: 'Payment method',
             card: 'Credit card',
             cardSubtitle: 'Visa, Mastercard, Amex',
+            satispay: 'Satispay',
+            satispaySubtitle: 'Pay with the Satispay app',
             terminal: 'POS at counter',
             terminalSubtitle: 'Physical terminal',
             cash: 'Cash',
@@ -286,6 +288,8 @@ export default function CheckoutScreen() {
             paymentMethod: 'Metodo di pagamento',
             card: 'Carta di credito',
             cardSubtitle: 'Visa, Mastercard, Amex',
+            satispay: 'Satispay',
+            satispaySubtitle: "Paga con l'app Satispay",
             terminal: 'POS in cassa',
             terminalSubtitle: 'Terminale fisico',
             cash: 'Contanti',
@@ -783,7 +787,7 @@ export default function CheckoutScreen() {
           customerPhone: fullPhoneNumber,
           deliveryAddress: address,
           tableNumber: tableNumber,
-          paymentMethod: paymentProvider === 'cash' ? 'cash' : 'card',
+          paymentMethod: paymentProviderToMethod(paymentProvider),
         });
 
         clearCart();
@@ -805,6 +809,7 @@ export default function CheckoutScreen() {
         tableNumber: tableNumber,
         fulfillmentMode,
         fulfillmentAt: selectedFulfillmentIso,
+        paymentMethod: paymentProviderToMethod(paymentProvider),
       });
 
       console.log('✅ Order created successfully:', result.orderId);
@@ -1147,6 +1152,20 @@ export default function CheckoutScreen() {
             <View className="flex-1">
               <Text className="font-bold text-base">{i18n.card}</Text>
               <Text className="text-muted-foreground text-xs">{i18n.cardSubtitle}</Text>
+            </View>
+          </Pressable>
+
+          <Pressable
+            className={`p-4 rounded-xl border-2 flex-row items-center gap-3 ${
+              paymentProvider === 'satispay' ? 'bg-[#f9ecdd] border-[#8d171e]' : 'bg-card border-border'
+            }`}
+            onPress={() => setPaymentProvider('satispay')}
+            disabled={isProcessing}
+          >
+            <FontAwesome name="qrcode" size={22} color="#f94c43" />
+            <View className="flex-1">
+              <Text className="font-bold text-base">{i18n.satispay}</Text>
+              <Text className="text-muted-foreground text-xs">{i18n.satispaySubtitle}</Text>
             </View>
           </Pressable>
 
