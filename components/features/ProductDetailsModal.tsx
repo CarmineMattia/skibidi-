@@ -1,21 +1,36 @@
 import { Button } from '@/components/ui/Button';
+import {
+    categorizeIngredient,
+    detectPizzaBase,
+    getCategoryInfo,
+    getIngredientSuggestions,
+    INGREDIENT_CATALOG,
+    INGREDIENT_CATEGORIES,
+} from '@/lib/data/ingredients';
+import type { IngredientCategoryId } from '@/lib/data/ingredients';
 import { useCart } from '@/lib/stores/CartContext';
 import { cn } from '@/lib/utils/cn';
 import type { Product } from '@/types';
 import { FontAwesome } from '@expo/vector-icons';
-import { useEffect, useState } from 'react';
-import { Image, Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { Image, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 
-type CookingLevel = 'poco_cotta' | 'ben_cotta';
+type CookingLevel = 'poco_cotta' | 'normale' | 'ben_cotta';
 
 const COOKING_OPTIONS: { id: CookingLevel; label: string }[] = [
     { id: 'poco_cotta', label: 'Poco cotta' },
+    { id: 'normale', label: 'Normale' },
     { id: 'ben_cotta', label: 'Ben cotta' },
 ];
 
 function isPizzaCategoryName(categoryName?: string): boolean {
     if (!categoryName) return false;
     return categoryName.toLowerCase().includes('pizz');
+}
+
+function isDrinkCategoryName(categoryName?: string): boolean {
+    if (!categoryName) return false;
+    return categoryName.toLowerCase().includes('bevand');
 }
 
 interface ProductDetailsModalProps {
@@ -27,20 +42,65 @@ interface ProductDetailsModalProps {
 
 export function ProductDetailsModal({ visible, onClose, product, categoryName }: ProductDetailsModalProps) {
     const [quantity, setQuantity] = useState(1);
-    const [cookingLevel, setCookingLevel] = useState<CookingLevel | null>(null);
+    const [cookingLevel, setCookingLevel] = useState<CookingLevel>('normale');
 
     // Map of ingredient modifications: 'no' | 'standard' | 'extra'
     const [modifications, setModifications] = useState<Record<string, 'no' | 'standard' | 'extra'>>({});
 
+    // Ingredienti aggiunti (da suggerimenti o ricerca)
+    const [extraIngredients, setExtraIngredients] = useState<string[]>([]);
+    const [ingredientSearch, setIngredientSearch] = useState('');
+    const [activeCategory, setActiveCategory] = useState<IngredientCategoryId | 'all'>('all');
+
+    // Note personalizzate per la cucina
+    const [notes, setNotes] = useState('');
+
     const { addItem } = useCart();
     const showCookingOptions = isPizzaCategoryName(categoryName);
+    const isPizza = isPizzaCategoryName(categoryName);
+    const showIngredientTools = !isDrinkCategoryName(categoryName) && (isPizza || (product.ingredients?.length ?? 0) > 0);
 
     useEffect(() => {
         if (!visible) return;
         setQuantity(1);
         setModifications({});
-        setCookingLevel(null);
+        setCookingLevel('normale');
+        setExtraIngredients([]);
+        setIngredientSearch('');
+        setActiveCategory('all');
+        setNotes('');
     }, [product.id, visible]);
+
+    const pizzaBase = useMemo(
+        () => detectPizzaBase(product.ingredients, product.description),
+        [product.ingredients, product.description]
+    );
+
+    const suggestions = useMemo(() => {
+        if (!isPizza) return [];
+        return getIngredientSuggestions([...(product.ingredients ?? []), ...extraIngredients], pizzaBase, 6);
+    }, [isPizza, product.ingredients, extraIngredients, pizzaBase]);
+
+    const searchableIngredients = useMemo(() => {
+        const query = ingredientSearch.trim().toLowerCase();
+        const baseIngredients = (product.ingredients ?? []).map((ingredient) => ingredient.toLowerCase());
+
+        return INGREDIENT_CATALOG.filter((entry) => {
+            // Già sulla pizza di serie: si gestisce dalla lista ingredienti sopra
+            if (baseIngredients.some((base) => base.includes(entry.name.toLowerCase()) || entry.name.toLowerCase().includes(base))) {
+                return false;
+            }
+            if (activeCategory !== 'all' && entry.category !== activeCategory) return false;
+            if (query && !entry.name.toLowerCase().includes(query)) return false;
+            return true;
+        });
+    }, [product.ingredients, ingredientSearch, activeCategory]);
+
+    const toggleExtraIngredient = (name: string) => {
+        setExtraIngredients((current) =>
+            current.includes(name) ? current.filter((item) => item !== name) : [...current, name]
+        );
+    };
 
     const handleAddToCart = () => {
         // Convert modifications map to string array for cart
@@ -54,20 +114,28 @@ export function ProductDetailsModal({ visible, onClose, product, categoryName }:
             }
         });
 
-        if (cookingLevel) {
+        extraIngredients.forEach((ingredient) => {
+            modifiers.push(`+ ${ingredient}`);
+        });
+
+        if (cookingLevel !== 'normale') {
             const cookingLabel = COOKING_OPTIONS.find((option) => option.id === cookingLevel)?.label;
             if (cookingLabel) {
                 modifiers.push(`Cottura: ${cookingLabel}`);
             }
         }
 
-        addItem(product, quantity, '', modifiers);
+        addItem(product, quantity, notes.trim(), modifiers);
         onClose();
 
         // Reset state
         setQuantity(1);
         setModifications({});
-        setCookingLevel(null);
+        setCookingLevel('normale');
+        setExtraIngredients([]);
+        setIngredientSearch('');
+        setActiveCategory('all');
+        setNotes('');
     };
 
     const updateModification = (ingredient: string, change: -1 | 1) => {
@@ -181,10 +249,11 @@ export function ProductDetailsModal({ visible, onClose, product, categoryName }:
                                 <View className="gap-3">
                                     {product.ingredients.map((ingredient) => {
                                         const status = modifications[ingredient] || 'standard';
+                                        const categoryInfo = getCategoryInfo(categorizeIngredient(ingredient));
                                         return (
                                             <View key={ingredient} className="flex-row items-center justify-between bg-card border border-border rounded-xl p-3">
                                                 <View className="flex-row items-center flex-1 mr-2">
-                                                    <Text className="text-primary mr-2">•</Text>
+                                                    <View className={cn('w-2.5 h-2.5 rounded-full mr-2', categoryInfo.dotClass)} />
                                                     <Text className={`font-medium text-lg flex-1 ${getStatusColor(status)}`}>
                                                         {ingredient}
                                                     </Text>
@@ -225,6 +294,163 @@ export function ProductDetailsModal({ visible, onClose, product, categoryName }:
                             </View>
                         )}
 
+                        {/* Aggiunte selezionate */}
+                        {extraIngredients.length > 0 && (
+                            <View className="mb-6">
+                                <Text className="font-bold text-lg mb-3">Le tue aggiunte</Text>
+                                <View className="flex-row flex-wrap gap-2">
+                                    {extraIngredients.map((ingredient) => {
+                                        const categoryInfo = getCategoryInfo(categorizeIngredient(ingredient));
+                                        return (
+                                            <Pressable
+                                                key={ingredient}
+                                                onPress={() => toggleExtraIngredient(ingredient)}
+                                                className={cn(
+                                                    'flex-row items-center gap-2 rounded-full border px-3 py-2 active:scale-95',
+                                                    categoryInfo.chipClass
+                                                )}
+                                            >
+                                                <View className={cn('w-2 h-2 rounded-full', categoryInfo.dotClass)} />
+                                                <Text className={cn('text-sm font-semibold', categoryInfo.textClass)}>
+                                                    + {ingredient}
+                                                </Text>
+                                                <FontAwesome name="times-circle" size={14} color="#6b7280" />
+                                            </Pressable>
+                                        );
+                                    })}
+                                </View>
+                            </View>
+                        )}
+
+                        {/* Il pizzaiolo consiglia */}
+                        {isPizza && suggestions.length > 0 && (
+                            <View className="mb-6">
+                                <View className="flex-row items-center gap-2 mb-1">
+                                    <FontAwesome name="magic" size={16} color="#8d171e" />
+                                    <Text className="font-bold text-lg">Il pizzaiolo consiglia</Text>
+                                </View>
+                                <Text className="text-xs text-muted-foreground mb-3">
+                                    {pizzaBase === 'bianca'
+                                        ? 'Abbinamenti pensati per la base bianca'
+                                        : 'Abbinamenti pensati per la base rossa'}
+                                </Text>
+                                <View className="flex-row flex-wrap gap-2">
+                                    {suggestions.map((suggestion) => {
+                                        const categoryInfo = getCategoryInfo(suggestion.category);
+                                        return (
+                                            <Pressable
+                                                key={suggestion.name}
+                                                onPress={() => toggleExtraIngredient(suggestion.name)}
+                                                className={cn(
+                                                    'flex-row items-center gap-2 rounded-full border px-3 py-2 active:scale-95',
+                                                    categoryInfo.chipClass
+                                                )}
+                                            >
+                                                <View className={cn('w-2 h-2 rounded-full', categoryInfo.dotClass)} />
+                                                <Text className={cn('text-sm font-semibold', categoryInfo.textClass)}>
+                                                    {suggestion.name}
+                                                </Text>
+                                                <FontAwesome name="plus" size={12} color="#8d171e" />
+                                            </Pressable>
+                                        );
+                                    })}
+                                </View>
+                            </View>
+                        )}
+
+                        {/* Cerca e aggiungi ingredienti */}
+                        {showIngredientTools && (
+                            <View className="mb-6">
+                                <Text className="font-bold text-lg mb-3">Aggiungi ingredienti</Text>
+
+                                {/* Search bar */}
+                                <View className="flex-row items-center bg-background border border-border rounded-xl px-3 mb-3">
+                                    <FontAwesome name="search" size={16} color="#9ca3af" />
+                                    <TextInput
+                                        className="flex-1 px-3 py-3 text-base text-foreground min-h-[48px]"
+                                        placeholder="Cerca un ingrediente..."
+                                        value={ingredientSearch}
+                                        onChangeText={setIngredientSearch}
+                                        autoCapitalize="none"
+                                        autoCorrect={false}
+                                    />
+                                    {ingredientSearch.length > 0 && (
+                                        <Pressable onPress={() => setIngredientSearch('')} hitSlop={8}>
+                                            <FontAwesome name="times-circle" size={16} color="#9ca3af" />
+                                        </Pressable>
+                                    )}
+                                </View>
+
+                                {/* Category filter chips */}
+                                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-2 pb-3">
+                                    <Pressable
+                                        onPress={() => setActiveCategory('all')}
+                                        className={cn(
+                                            'rounded-full border px-3 py-2',
+                                            activeCategory === 'all' ? 'bg-primary border-primary' : 'bg-card border-border'
+                                        )}
+                                    >
+                                        <Text className={cn('text-sm font-semibold', activeCategory === 'all' ? 'text-primary-foreground' : 'text-foreground')}>
+                                            Tutti
+                                        </Text>
+                                    </Pressable>
+                                    {INGREDIENT_CATEGORIES.map((category) => {
+                                        const isActive = activeCategory === category.id;
+                                        return (
+                                            <Pressable
+                                                key={category.id}
+                                                onPress={() => setActiveCategory(isActive ? 'all' : category.id)}
+                                                className={cn(
+                                                    'flex-row items-center gap-1.5 rounded-full border px-3 py-2',
+                                                    category.chipClass,
+                                                    isActive && 'border-primary'
+                                                )}
+                                            >
+                                                <Text className="text-sm">{category.emoji}</Text>
+                                                <Text className={cn('text-sm font-semibold', category.textClass)}>
+                                                    {category.label}
+                                                </Text>
+                                            </Pressable>
+                                        );
+                                    })}
+                                </ScrollView>
+
+                                {/* Ingredient chips */}
+                                <View className="flex-row flex-wrap gap-2">
+                                    {searchableIngredients.map((entry) => {
+                                        const categoryInfo = getCategoryInfo(entry.category);
+                                        const isSelected = extraIngredients.includes(entry.name);
+                                        return (
+                                            <Pressable
+                                                key={entry.name}
+                                                onPress={() => toggleExtraIngredient(entry.name)}
+                                                className={cn(
+                                                    'flex-row items-center gap-2 rounded-full border px-3 py-2 active:scale-95',
+                                                    categoryInfo.chipClass,
+                                                    isSelected && 'border-primary border-2'
+                                                )}
+                                            >
+                                                <View className={cn('w-2 h-2 rounded-full', categoryInfo.dotClass)} />
+                                                <Text className={cn('text-sm font-semibold', categoryInfo.textClass)}>
+                                                    {entry.name}
+                                                </Text>
+                                                <FontAwesome
+                                                    name={isSelected ? 'check-circle' : 'plus'}
+                                                    size={isSelected ? 14 : 12}
+                                                    color={isSelected ? '#8d171e' : '#9ca3af'}
+                                                />
+                                            </Pressable>
+                                        );
+                                    })}
+                                    {searchableIngredients.length === 0 && (
+                                        <Text className="text-sm text-muted-foreground py-2">
+                                            Nessun ingrediente trovato.
+                                        </Text>
+                                    )}
+                                </View>
+                            </View>
+                        )}
+
                         {showCookingOptions && (
                             <View className="mb-6">
                                 <Text className="font-bold text-lg mb-3">Cottura</Text>
@@ -234,9 +460,9 @@ export function ProductDetailsModal({ visible, onClose, product, categoryName }:
                                         return (
                                             <Pressable
                                                 key={option.id}
-                                                onPress={() => setCookingLevel(isSelected ? null : option.id)}
+                                                onPress={() => setCookingLevel(option.id)}
                                                 className={cn(
-                                                    'flex-1 items-center justify-center rounded-xl border px-4 py-3 active:scale-[0.98]',
+                                                    'flex-1 items-center justify-center rounded-xl border px-2 py-3 active:scale-[0.98]',
                                                     isSelected
                                                         ? 'bg-primary border-primary'
                                                         : 'bg-card border-border'
@@ -256,6 +482,19 @@ export function ProductDetailsModal({ visible, onClose, product, categoryName }:
                                 </View>
                             </View>
                         )}
+
+                        {/* Note per la cucina */}
+                        <View className="mb-6">
+                            <Text className="font-bold text-lg mb-3">Note per la cucina</Text>
+                            <TextInput
+                                className="bg-background border border-border rounded-xl p-4 min-h-[100px] text-foreground"
+                                placeholder="Es. allergie, intolleranze, richieste particolari..."
+                                multiline
+                                textAlignVertical="top"
+                                value={notes}
+                                onChangeText={setNotes}
+                            />
+                        </View>
                     </ScrollView>
 
                     {/* Footer Action */}
