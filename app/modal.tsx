@@ -3,7 +3,9 @@ import { Button } from '@/components/ui/Button';
 import { TimeWheelModal } from '@/components/ui/TimeWheelModal';
 import { supabase } from '@/lib/api/supabase';
 import { useCreateOrder } from '@/lib/hooks/useCreateOrder';
+import { useCustomerLookup, type CustomerLookupOrder } from '@/lib/hooks/useCustomerLookup';
 import { useOfflineQueue } from '@/lib/hooks/useOfflineQueue';
+import { classifyItalianPhone } from '@/lib/utils/phone';
 import { useAuth } from '@/lib/stores/AuthContext';
 import { useAppSettings } from '@/lib/stores/AppSettingsContext';
 import { getCartItemUnitPrice, useCart } from '@/lib/stores/CartContext';
@@ -128,7 +130,7 @@ function formatSlotKey(date: Date): string {
 }
 
 export default function CheckoutScreen() {
-  const { items, totalAmount, clearCart } = useCart();
+  const { items, totalAmount, clearCart, addItem } = useCart();
   const { profile, isAuthenticated, isGuest } = useAuth();
   const {
     language,
@@ -237,6 +239,13 @@ export default function CheckoutScreen() {
             cannotCreateOrder: 'Unable to create order now. Please try again.',
             offline: 'Offline',
             offlineOrderSaved: 'Order saved locally',
+            customerRecognized: 'Customer recognized',
+            customerRegistered: 'registered',
+            useCustomerData: 'Use customer data',
+            recentOrders: 'Recent orders',
+            reorder: 'Reorder',
+            reorderDone: 'Items added to cart. You can edit them before confirming.',
+            reorderEmpty: 'Products from this order are no longer available.',
           }
         : {
             reviewTitle: 'Riepilogo ordine',
@@ -309,6 +318,13 @@ export default function CheckoutScreen() {
             cannotCreateOrder: "Impossibile creare l'ordine. Riprova tra poco.",
             offline: 'Offline',
             offlineOrderSaved: 'Ordine salvato in locale',
+            customerRecognized: 'Cliente riconosciuto',
+            customerRegistered: 'registrato',
+            useCustomerData: 'Usa dati cliente',
+            recentOrders: 'Ordini recenti',
+            reorder: 'Riordina',
+            reorderDone: 'Prodotti aggiunti al carrello. Puoi modificarli prima di confermare.',
+            reorderEmpty: 'I prodotti di questo ordine non sono più disponibili.',
           },
     [language, deliveryFee]
   );
@@ -332,6 +348,35 @@ export default function CheckoutScreen() {
   const [errors, setErrors] = useState<{name?: string; phone?: string; address?: string; tableNumber?: string}>({});
   const selectedPhonePrefix = PHONE_PREFIX_OPTIONS.find((option) => option.id === selectedPhoneOptionId) ?? DEFAULT_PHONE_OPTION;
   const fullPhoneNumber = `${selectedPhonePrefix.dialCode}${phoneNumber}`;
+
+  // Ordini telefonici: riconoscimento cliente dal numero (fisso o cellulare).
+  // Solo per admin/cassa, per non esporre dati di altri clienti.
+  const isAdminUser = profile?.role === 'admin';
+  const phoneClassification = classifyItalianPhone(phoneNumber);
+  const isLookupEnabled =
+    isAdminUser &&
+    (orderType === 'take_away' || orderType === 'delivery') &&
+    phoneNumber.length >= 6;
+  const customerLookup = useCustomerLookup(fullPhoneNumber, isLookupEnabled);
+  const recognizedCustomer = customerLookup.data?.customer ?? null;
+  const recognizedOrders = customerLookup.data?.orders ?? [];
+
+  const applyCustomerData = () => {
+    if (!recognizedCustomer) return;
+    if (recognizedCustomer.name) setName(recognizedCustomer.name);
+    if (recognizedCustomer.address) setAddress(recognizedCustomer.address);
+  };
+
+  const handleReorder = (pastOrder: CustomerLookupOrder) => {
+    let addedCount = 0;
+    pastOrder.items.forEach((item) => {
+      if (item.product) {
+        addItem(item.product, item.quantity, item.notes ?? '');
+        addedCount += item.quantity;
+      }
+    });
+    Alert.alert(i18n.reorder, addedCount > 0 ? i18n.reorderDone : i18n.reorderEmpty, [{ text: 'OK' }]);
+  };
   const filteredPhonePrefixOptions = useMemo(() => {
     const query = phonePrefixSearch.trim().toLowerCase();
     if (!query) return PHONE_PREFIX_OPTIONS;
@@ -944,7 +989,16 @@ export default function CheckoutScreen() {
         {/* Telefono */}
         {(orderType === 'take_away' || orderType === 'delivery') && (
           <View>
-            <Text className="text-sm font-medium mb-2">{i18n.phoneLabel}</Text>
+            <View className="flex-row items-center gap-2 mb-2">
+              <Text className="text-sm font-medium">{i18n.phoneLabel}</Text>
+              {phoneClassification.kind !== 'unknown' && (
+                <View className="bg-[#f9ecdd] border border-[#e1a255]/60 px-2 py-0.5 rounded-md">
+                  <Text className="text-[10px] font-bold text-[#8d171e] uppercase">
+                    {phoneClassification.label}
+                  </Text>
+                </View>
+              )}
+            </View>
             <View className="flex-row gap-2">
               <Pressable
                 className={`min-h-[56px] min-w-[108px] rounded-xl border px-3 flex-row items-center justify-between ${
@@ -981,6 +1035,73 @@ export default function CheckoutScreen() {
               <Text className="text-red-500 text-xs mt-1">
                 {errors.phone}
               </Text>
+            )}
+          </View>
+        )}
+
+        {/* Cliente riconosciuto dal numero (solo admin/cassa) */}
+        {isLookupEnabled && (recognizedCustomer || recognizedOrders.length > 0) && (
+          <View className="bg-card border border-[#e1a255]/60 rounded-xl p-4 gap-2">
+            <View className="flex-row items-center gap-2">
+              <FontAwesome name="user-circle" size={16} color="#8d171e" />
+              <Text className="font-bold text-base flex-1">{i18n.customerRecognized}</Text>
+              {recognizedCustomer?.isRegistered && (
+                <View className="bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
+                  <Text className="text-[10px] font-bold text-emerald-700 uppercase">
+                    {i18n.customerRegistered}
+                  </Text>
+                </View>
+              )}
+            </View>
+
+            {recognizedCustomer && (
+              <View>
+                {recognizedCustomer.name && (
+                  <Text className="text-sm font-semibold">{recognizedCustomer.name}</Text>
+                )}
+                {recognizedCustomer.address && (
+                  <Text className="text-xs text-muted-foreground">{recognizedCustomer.address}</Text>
+                )}
+              </View>
+            )}
+
+            {recognizedCustomer && (
+              <Button
+                title={i18n.useCustomerData}
+                variant="outline"
+                onPress={applyCustomerData}
+              />
+            )}
+
+            {recognizedOrders.length > 0 && (
+              <View className="gap-2 mt-1">
+                <Text className="text-xs font-bold text-muted-foreground uppercase">
+                  {i18n.recentOrders}
+                </Text>
+                {recognizedOrders.slice(0, 3).map((pastOrder) => (
+                  <View
+                    key={pastOrder.id}
+                    className="flex-row items-center justify-between bg-background border border-border rounded-lg p-2"
+                  >
+                    <View className="flex-1 mr-2">
+                      <Text className="text-xs font-semibold">
+                        {new Date(pastOrder.created_at).toLocaleDateString('it-IT')} · €{pastOrder.total_amount.toFixed(2)}
+                      </Text>
+                      <Text className="text-xs text-muted-foreground" numberOfLines={1}>
+                        {pastOrder.items
+                          .map((item) => `${item.quantity}x ${item.product?.name ?? '—'}`)
+                          .join(', ')}
+                      </Text>
+                    </View>
+                    <Pressable
+                      className="bg-primary px-3 py-2 rounded-lg active:opacity-80"
+                      onPress={() => handleReorder(pastOrder)}
+                    >
+                      <Text className="text-white text-xs font-bold">{i18n.reorder}</Text>
+                    </Pressable>
+                  </View>
+                ))}
+              </View>
             )}
           </View>
         )}
