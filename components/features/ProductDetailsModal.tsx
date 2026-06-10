@@ -8,6 +8,9 @@ import {
     INGREDIENT_CATEGORIES,
 } from '@/lib/data/ingredients';
 import type { IngredientCategoryId } from '@/lib/data/ingredients';
+import { useCategories } from '@/lib/hooks/useCategories';
+import { useProducts } from '@/lib/hooks/useProducts';
+import { BUILDER_PRODUCT_NAME } from '@/lib/data/pizzaBuilder';
 import { useCart } from '@/lib/stores/CartContext';
 import { cn } from '@/lib/utils/cn';
 import type { Product } from '@/types';
@@ -33,6 +36,24 @@ function isDrinkCategoryName(categoryName?: string): boolean {
     return categoryName.toLowerCase().includes('bevand');
 }
 
+function isMetroCategoryName(categoryName?: string): boolean {
+    if (!categoryName) return false;
+    return categoryName.toLowerCase().includes('metro');
+}
+
+/**
+ * Quanti gusti si possono scegliere per le pizze al metro,
+ * dedotto dal nome del prodotto (Metà = 1, Due Terzi = 2, Farcita = 3).
+ */
+function getMaxGustiForProduct(productName: string, categoryName?: string): number {
+    if (!isMetroCategoryName(categoryName)) return 0;
+    const normalized = productName.toLowerCase();
+    if (normalized.includes('metà') || normalized.includes('meta ')) return 1;
+    if (normalized.includes('due terzi')) return 2;
+    if (normalized.includes('farcita')) return 3;
+    return 0;
+}
+
 interface ProductDetailsModalProps {
     visible: boolean;
     onClose: () => void;
@@ -52,13 +73,35 @@ export function ProductDetailsModal({ visible, onClose, product, categoryName }:
     const [ingredientSearch, setIngredientSearch] = useState('');
     const [activeCategory, setActiveCategory] = useState<IngredientCategoryId | 'all'>('all');
 
+    // Gusti scelti per le pizze al metro
+    const [selectedGusti, setSelectedGusti] = useState<string[]>([]);
+
     // Note personalizzate per la cucina
     const [notes, setNotes] = useState('');
 
     const { addItem } = useCart();
-    const showCookingOptions = isPizzaCategoryName(categoryName);
-    const isPizza = isPizzaCategoryName(categoryName);
+    const { data: allProducts } = useProducts();
+    const { data: allCategories } = useCategories();
+    const showCookingOptions = isPizzaCategoryName(categoryName) || isMetroCategoryName(categoryName);
+    const isPizza = isPizzaCategoryName(categoryName) || isMetroCategoryName(categoryName);
     const showIngredientTools = !isDrinkCategoryName(categoryName) && (isPizza || (product.ingredients?.length ?? 0) > 0);
+    const maxGusti = getMaxGustiForProduct(product.name, categoryName);
+
+    // Gusti disponibili: le pizze del menu (escluse quelle al metro e i formati)
+    const availableGusti = useMemo(() => {
+        if (maxGusti === 0 || !allProducts || !allCategories) return [];
+        const pizzaCategoryIds = new Set(
+            allCategories
+                .filter((category) => isPizzaCategoryName(category.name) && !isMetroCategoryName(category.name))
+                .map((category) => category.id)
+        );
+        return allProducts.filter(
+            (candidate) =>
+                pizzaCategoryIds.has(candidate.category_id ?? '') &&
+                candidate.name !== 'Piccola' &&
+                candidate.name !== BUILDER_PRODUCT_NAME
+        );
+    }, [maxGusti, allProducts, allCategories]);
 
     useEffect(() => {
         if (!visible) return;
@@ -68,6 +111,7 @@ export function ProductDetailsModal({ visible, onClose, product, categoryName }:
         setExtraIngredients([]);
         setIngredientSearch('');
         setActiveCategory('all');
+        setSelectedGusti([]);
         setNotes('');
     }, [product.id, visible]);
 
@@ -102,9 +146,23 @@ export function ProductDetailsModal({ visible, onClose, product, categoryName }:
         );
     };
 
+    const toggleGusto = (name: string) => {
+        setSelectedGusti((current) => {
+            if (current.includes(name)) {
+                return current.filter((item) => item !== name);
+            }
+            if (current.length >= maxGusti) return current;
+            return [...current, name];
+        });
+    };
+
     const handleAddToCart = () => {
         // Convert modifications map to string array for cart
         const modifiers: string[] = [];
+
+        selectedGusti.forEach((gusto, index) => {
+            modifiers.push(maxGusti > 1 ? `Gusto ${index + 1}: ${gusto}` : `Gusto: ${gusto}`);
+        });
 
         Object.entries(modifications).forEach(([ingredient, status]) => {
             if (status === 'no') {
@@ -135,6 +193,7 @@ export function ProductDetailsModal({ visible, onClose, product, categoryName }:
         setExtraIngredients([]);
         setIngredientSearch('');
         setActiveCategory('all');
+        setSelectedGusti([]);
         setNotes('');
     };
 
@@ -241,6 +300,55 @@ export function ProductDetailsModal({ visible, onClose, product, categoryName }:
                                 <FontAwesome name="plus" size={20} color="white" />
                             </Pressable>
                         </View>
+
+                        {/* Gusti per pizze al metro */}
+                        {maxGusti > 0 && (
+                            <View className="mb-6">
+                                <View className="flex-row items-center justify-between mb-1">
+                                    <Text className="font-bold text-lg">Scegli i gusti</Text>
+                                    <Text className={cn(
+                                        'text-sm font-bold',
+                                        selectedGusti.length === maxGusti ? 'text-emerald-700' : 'text-muted-foreground'
+                                    )}>
+                                        {selectedGusti.length}/{maxGusti}
+                                    </Text>
+                                </View>
+                                <Text className="text-xs text-muted-foreground mb-3">
+                                    Componi il metro con i gusti delle pizze del nostro menu.
+                                </Text>
+                                <View className="flex-row flex-wrap gap-2">
+                                    {availableGusti.map((gusto) => {
+                                        const isSelected = selectedGusti.includes(gusto.name);
+                                        const isDisabled = !isSelected && selectedGusti.length >= maxGusti;
+                                        return (
+                                            <Pressable
+                                                key={gusto.id}
+                                                onPress={() => toggleGusto(gusto.name)}
+                                                disabled={isDisabled}
+                                                className={cn(
+                                                    'flex-row items-center gap-2 rounded-full border px-3 py-2 active:scale-95',
+                                                    isSelected ? 'bg-primary border-primary' : 'bg-card border-border',
+                                                    isDisabled && 'opacity-40'
+                                                )}
+                                            >
+                                                <Text className={cn(
+                                                    'text-sm font-semibold',
+                                                    isSelected ? 'text-primary-foreground' : 'text-foreground'
+                                                )}>
+                                                    {gusto.name}
+                                                </Text>
+                                                {isSelected && <FontAwesome name="check" size={12} color="#fff" />}
+                                            </Pressable>
+                                        );
+                                    })}
+                                    {availableGusti.length === 0 && (
+                                        <Text className="text-sm text-muted-foreground py-2">
+                                            Caricamento gusti...
+                                        </Text>
+                                    )}
+                                </View>
+                            </View>
+                        )}
 
                         {/* Ingredients / Modifiers */}
                         {product.ingredients && product.ingredients.length > 0 && (

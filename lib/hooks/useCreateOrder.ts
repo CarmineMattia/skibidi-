@@ -4,7 +4,7 @@
  */
 
 import { supabase } from '@/lib/api/supabase';
-import type { CartItem } from '@/lib/stores/CartContext';
+import { getCartItemUnitPrice, type CartItem } from '@/lib/stores/CartContext';
 import { useAppSettings } from '@/lib/stores/AppSettingsContext';
 import { useTenant } from '@/lib/stores/TenantContext';
 import type { Database } from '@/types/database.types';
@@ -45,8 +45,8 @@ function cartToFiscalItems(items: CartItem[], deliveryFee: number, orderType: Cr
     product_id: item.product.id,
     name: item.product.name,
     quantity: item.quantity,
-    unit_price: Math.round(item.product.price * 100), // Convert to cents
-    total_price: Math.round(item.product.price * item.quantity * 100),
+    unit_price: Math.round(getCartItemUnitPrice(item) * 100), // Convert to cents
+    total_price: Math.round(getCartItemUnitPrice(item) * item.quantity * 100),
     vat_rate: 22, // Default VAT rate (22% for food)
   }));
 
@@ -68,7 +68,7 @@ function cartToFiscalItems(items: CartItem[], deliveryFee: number, orderType: Cr
  * Helper to calculate total amount in cents
  */
 function calculateTotalCents(items: CartItem[], deliveryFee: number, orderType: CreateOrderInput['orderType']): number {
-  const itemsTotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+  const itemsTotal = items.reduce((sum, item) => sum + getCartItemUnitPrice(item) * item.quantity, 0);
   const total = itemsTotal + (orderType === 'delivery' ? deliveryFee : 0);
   return Math.round(total * 100);
 }
@@ -106,7 +106,7 @@ export function useCreateOrder() {
 
       // 2. Calculate totals
       const itemsTotalAmount = items.reduce(
-        (sum, item) => sum + item.product.price * item.quantity,
+        (sum, item) => sum + getCartItemUnitPrice(item) * item.quantity,
         0
       );
       const appliedDeliveryFee = orderType === 'delivery' ? deliveryFee : 0;
@@ -155,12 +155,13 @@ export function useCreateOrder() {
           finalNotes = finalNotes ? `${finalNotes} | ${modifiersString}` : modifiersString;
         }
 
+        const unitPrice = getCartItemUnitPrice(item);
         return {
           order_id: order.id,
           product_id: item.product.id,
           quantity: item.quantity,
-          unit_price: item.product.price,
-          total_price: item.product.price * item.quantity,
+          unit_price: unitPrice,
+          total_price: unitPrice * item.quantity,
           notes: finalNotes || undefined,
         };
       });

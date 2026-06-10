@@ -6,9 +6,11 @@
 import { CartSummary } from '@/components/features/CartSummary';
 import { CategoryFilter } from '@/components/features/CategoryFilter';
 import { EditProductModal } from '@/components/features/EditProductModal';
+import { PizzaBuilderModal } from '@/components/features/PizzaBuilderModal';
 import { ProductCard } from '@/components/features/ProductCard';
 import { ProductDetailsModal } from '@/components/features/ProductDetailsModal';
 import { SkeletonProductCard, FullPageLoading } from '@/components/ui/Skeleton';
+import { BUILDER_PRODUCT_NAME } from '@/lib/data/pizzaBuilder';
 import { useCategories } from '@/lib/hooks/useCategories';
 import { useCreateOrder } from '@/lib/hooks/useCreateOrder';
 import { OfflineIndicator } from '@/lib/hooks/useOfflineQueue';
@@ -562,14 +564,22 @@ export default function MenuScreen() {
         </View>
       </Modal>
 
-      {/* Product Details Modal */}
+      {/* Product Details Modal / Pizza Builder */}
       {selectedProduct && !isEditModalVisible && (
-        <ProductDetailsModal
-          visible={!!selectedProduct}
-          onClose={() => setSelectedProduct(null)}
-          product={selectedProduct}
-          categoryName={categories.find((category) => category.id === selectedProduct.category_id)?.name}
-        />
+        selectedProduct.name === BUILDER_PRODUCT_NAME ? (
+          <PizzaBuilderModal
+            visible={!!selectedProduct}
+            onClose={() => setSelectedProduct(null)}
+            product={selectedProduct}
+          />
+        ) : (
+          <ProductDetailsModal
+            visible={!!selectedProduct}
+            onClose={() => setSelectedProduct(null)}
+            product={selectedProduct}
+            categoryName={categories.find((category) => category.id === selectedProduct.category_id)?.name}
+          />
+        )
       )}
 
       {/* Edit Modal */}

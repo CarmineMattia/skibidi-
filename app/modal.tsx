@@ -6,7 +6,7 @@ import { useCreateOrder } from '@/lib/hooks/useCreateOrder';
 import { useOfflineQueue } from '@/lib/hooks/useOfflineQueue';
 import { useAuth } from '@/lib/stores/AuthContext';
 import { useAppSettings } from '@/lib/stores/AppSettingsContext';
-import { useCart } from '@/lib/stores/CartContext';
+import { getCartItemUnitPrice, useCart } from '@/lib/stores/CartContext';
 import { useTenant } from '@/lib/stores/TenantContext';
 import { getNextOpening, isOpenAt } from '@/lib/utils/businessHours';
 import { paymentProviderToMethod, type PaymentProvider } from '@/lib/hooks/usePayment';
@@ -1096,7 +1096,7 @@ export default function CheckoutScreen() {
                 <Text className="text-sm font-medium" numberOfLines={1}>{item.product.name}</Text>
                 <Text className="text-xs text-muted-foreground">x{item.quantity}</Text>
               </View>
-              <Text className="text-sm font-bold">€{(item.product.price * item.quantity).toFixed(2)}</Text>
+              <Text className="text-sm font-bold">€{(getCartItemUnitPrice(item) * item.quantity).toFixed(2)}</Text>
             </View>
           ))}
         </View>

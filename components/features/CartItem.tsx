@@ -1,4 +1,4 @@
-import type { CartItem as CartItemType } from '@/lib/stores/CartContext';
+import { getCartItemUnitPrice, type CartItem as CartItemType } from '@/lib/stores/CartContext';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeInRight, FadeOutLeft, Layout } from 'react-native-reanimated';
 
@@ -10,7 +10,8 @@ interface CartItemProps {
 
 export function CartItem({ item, onUpdateQuantity, onRemove }: CartItemProps) {
   const { product, quantity, notes, modifiers } = item;
-  const subtotal = product.price * quantity;
+  const unitPrice = getCartItemUnitPrice(item);
+  const subtotal = unitPrice * quantity;
 
   return (
     <Animated.View
@@ -26,7 +27,7 @@ export function CartItem({ item, onUpdateQuantity, onRemove }: CartItemProps) {
             {product.name}
           </Text>
           <Text className="text-muted-foreground text-sm mt-1">
-            €{product.price.toFixed(2)} cad.
+            €{unitPrice.toFixed(2)} cad.
           </Text>
 
           {/* Modifiers & Notes */}

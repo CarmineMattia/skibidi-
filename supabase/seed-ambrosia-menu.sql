@@ -108,6 +108,17 @@ INSERT INTO products (id, category_id, name, description, price, active, display
   (gen_random_uuid(), (SELECT id FROM cat), 'Vino rosso (calice)',   'Vino rosso della casa',                     3.00, true, 8),
   (gen_random_uuid(), (SELECT id FROM cat), 'Vino bianco (calice)',  'Vino bianco della casa',                    3.00, true, 9);
 
+-- ----------------------------------------
+-- 8. Categoria e prodotto "Componi la tua pizza"
+--    (apre il pizza builder nell'app; prezzo = base "a partire da")
+-- ----------------------------------------
+INSERT INTO categories (id, name, description, display_order, active) VALUES
+  (gen_random_uuid(), 'Crea la tua pizza', 'Componi la tua pizza su misura', 0, true);
+
+WITH cat AS (SELECT id FROM categories WHERE name = 'Crea la tua pizza')
+INSERT INTO products (id, category_id, name, description, price, active, display_order) VALUES
+  (gen_random_uuid(), (SELECT id FROM cat), 'Componi la tua pizza', 'Scegli taglia (piccola, media o mezzo metro), impasto, base e tutti gli ingredienti che vuoi. Prezzo a partire da 4 euro.', 4.00, true, 1);
+
 COMMIT;
 
 -- Verify
