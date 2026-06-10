@@ -20,6 +20,7 @@ import type {
   HomeTrendingPizza,
 } from '@/components/features/home/types';
 import { BRAND, BRAND_LOGO } from '@/lib/data/brand';
+import { BUILDER_PRODUCT_NAME } from '@/lib/data/pizzaBuilder';
 import { useRouter } from 'expo-router';
 import {
   Alert,
@@ -312,7 +313,8 @@ export default function HomeScreen() {
 
   const handleAddSuggestedPizza = (pizzaId: string) => {
     const product = products.find((item) => item.id === pizzaId);
-    if (!product) {
+    // Il prodotto builder va composto nella sua scheda, mai aggiunto al volo
+    if (!product || product.name === BUILDER_PRODUCT_NAME) {
       router.push('/(tabs)/menu');
       return;
     }
@@ -329,7 +331,7 @@ export default function HomeScreen() {
       return idMatch || nameMatch;
     });
 
-    if (product) {
+    if (product && product.name !== BUILDER_PRODUCT_NAME) {
       addItem(product, 1);
       router.push('/(tabs)/menu');
       return;

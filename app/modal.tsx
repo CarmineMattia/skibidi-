@@ -61,8 +61,9 @@ function buildPhonePrefixOptions(): PhonePrefixOption[] {
       countryCode,
       countryName: details.name,
       flag: getFlagEmoji(countryCode),
-      minDigits: countryCode === 'IT' ? 9 : 6,
-      maxDigits: countryCode === 'IT' ? 10 : 15,
+      // IT: cellulari 9-10 cifre, fissi 6-11 (es. 0522 1717681)
+      minDigits: countryCode === 'IT' ? 6 : 6,
+      maxDigits: countryCode === 'IT' ? 11 : 15,
     }))
   );
 

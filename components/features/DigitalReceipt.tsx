@@ -17,7 +17,7 @@ type ReceiptOrderItem = {
     unit_price: number;
     total_price: number;
     notes: string | null;
-    products: {
+    product: {
         name: string;
         price: number;
     } | null;
@@ -40,34 +40,32 @@ interface DigitalReceiptProps {
 }
 
 export function DigitalReceipt({ visible, orderId, onClose }: DigitalReceiptProps) {
-    // Fetch order with items for receipt display
+    // Fetch order with items for receipt display.
+    // RPC get_order_tracking: funziona anche per ospiti non autenticati
+    // che conoscono l'UUID dell'ordine (la select diretta è bloccata da RLS).
     const { data: order, isLoading, error } = useQuery({
         queryKey: ['receipt', orderId],
         queryFn: async () => {
-            const { data, error } = await supabase
-                .from('orders')
-                .select(`
-                    *,
-                    order_items (
-                        quantity,
-                        unit_price,
-                        total_price,
-                        notes,
-                        products!inner (
-                            name,
-                            price
-                        )
-                    )
-                `)
-                .eq('id', orderId)
-                .single();
+            const { data, error } = await supabase.rpc('get_order_tracking', {
+                p_order_id: orderId,
+            });
 
             if (error) {
                 console.error('Failed to fetch receipt data:', error);
                 throw error;
             }
 
-            return data;
+            if (!data) {
+                throw new Error('Ordine non trovato');
+            }
+
+            return data as unknown as ReceiptOrder & {
+                order_type: string | null;
+                table_number: string | null;
+                customer_phone: string | null;
+                delivery_address: string | null;
+                notes: string | null;
+            };
         },
         enabled: visible && !!orderId,
     });
@@ -115,7 +113,7 @@ export function DigitalReceipt({ visible, orderId, onClose }: DigitalReceiptProp
             totalAmount: order.total_amount ?? 0,
             fiscalExternalId: order.fiscal_external_id,
             items: (order.order_items || []).map((item: ReceiptOrderItem) => ({
-                name: item.products?.name || 'Prodotto',
+                name: item.product?.name || 'Prodotto',
                 quantity: item.quantity,
                 unitPrice: item.unit_price,
                 totalPrice: item.total_price,
@@ -151,7 +149,7 @@ export function DigitalReceipt({ visible, orderId, onClose }: DigitalReceiptProp
         items.forEach((item: ReceiptOrderItem, index: number) => {
             const price = item.unit_price?.toFixed(2) || '0.00';
             const total = item.total_price?.toFixed(2) || '0.00';
-            text += `${index + 1}. ${item.products?.name || 'Product'}\n`;
+            text += `${index + 1}. ${item.product?.name || 'Product'}\n`;
             text += `   ${item.quantity} x €${price} = €${total}\n`;
             if (item.notes) {
                 text += `   (${item.notes})\n`;
@@ -284,7 +282,7 @@ export function DigitalReceipt({ visible, orderId, onClose }: DigitalReceiptProp
                                             >
                                                 <View className="flex-1">
                                                     <Text className="text-card-foreground font-medium">
-                                                        {item.products?.name || 'Product'}
+                                                        {item.product?.name || 'Product'}
                                                     </Text>
                                                     {item.notes && (
                                                         <Text className="text-muted-foreground text-xs mt-1">
