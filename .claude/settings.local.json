@@ -42,7 +42,16 @@
       "WebFetch(domain:raw.githubusercontent.com)",
       "WebFetch(domain:github.com)",
       "Bash(Copy-Item \"C:\\\\Users\\\\Administrator\\\\.claude\\\\projects\\\\C--Users-Administrator-Desktop-skibidi\\\\63cd3c8d-a842-47af-9499-743bf46053f4\\\\tool-results\\\\webfetch-1781000456623-uckeq8.png\" \"C:\\\\Users\\\\Administrator\\\\Desktop\\\\skibidi\\\\assets\\\\images\\\\logo-pizzeria-ambrosia.png\")",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git stash *)",
+      "PowerShell(Get-Process | Where-Object { $_.Name -match \"node\" } | Select-Object Id, Name, CPU | Format-Table)",
+      "PowerShell(Get-Process -Name \"node\" -ErrorAction SilentlyContinue)",
+      "PowerShell(Stop-Process -Force)",
+      "Bash(npx expo *)",
+      "WebFetch(domain:pizzeria-ambrosia.netlify.app)",
+      "WebFetch(domain:pizzeria-matildica.netlify.app)",
+      "Bash(git commit -m 'Fix ingredient customization modal — icon color and cottura label \\(TASK135\\) tests: non eseguiti, verifica manuale +/- ingredienti su pizza nel modal *)",
+      "Bash(git commit -m 'Fix ingredient modal icon color and cottura label \\(TASK135\\) tests: non eseguiti, verifica manuale *)"
     ]
   },
   "enableAllProjectMcpServers": true,

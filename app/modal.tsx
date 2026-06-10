@@ -1,3 +1,4 @@
+import { DeliveryAddressField } from '@/components/features/DeliveryAddressField';
 import { Button } from '@/components/ui/Button';
 import { TimeWheelModal } from '@/components/ui/TimeWheelModal';
 import { supabase } from '@/lib/api/supabase';
@@ -203,6 +204,8 @@ export default function CheckoutScreen() {
             tablePlaceholder: 'e.g. 5',
             phonePlaceholder: 'e.g. 3331234567',
             addressPlaceholder: 'Street, number, city',
+            addressMapHint: 'Tap the map or drag the pin to set your delivery location.',
+            addressSearching: 'Searching addresses...',
             summaryTitle: 'Order summary',
             table: 'Table',
             pickup: 'Take away',
@@ -271,6 +274,8 @@ export default function CheckoutScreen() {
             tablePlaceholder: 'Es: 5',
             phonePlaceholder: 'Es: 3331234567',
             addressPlaceholder: 'Via, civico, citta',
+            addressMapHint: 'Tocca la mappa o trascina il segnaposto per impostare il punto di consegna.',
+            addressSearching: 'Ricerca indirizzi...',
             summaryTitle: 'Riepilogo ordine',
             table: 'Tavolo',
             pickup: 'Asporto',
@@ -977,23 +982,16 @@ export default function CheckoutScreen() {
 
         {/* Indirizzo */}
         {orderType === 'delivery' && (
-          <View>
-            <Text className="text-sm font-medium mb-2">{i18n.addressLabel}</Text>
-            <TextInput
-              className={`bg-background border rounded-xl px-4 py-3 text-base min-h-[80px] ${
-                errors.address ? 'border-red-500 bg-red-50' : 'border-border'
-              }`}
-              placeholder={i18n.addressPlaceholder}
-              multiline
-              value={address}
-              onChangeText={setAddress}
-            />
-            {errors.address && (
-              <Text className="text-red-500 text-xs mt-1">
-                {errors.address}
-              </Text>
-            )}
-          </View>
+          <DeliveryAddressField
+            label={i18n.addressLabel}
+            placeholder={i18n.addressPlaceholder}
+            address={address}
+            onAddressChange={setAddress}
+            error={errors.address}
+            hasError={Boolean(errors.address)}
+            mapHint={i18n.addressMapHint}
+            searchingLabel={i18n.addressSearching}
+          />
         )}
 
         <View className="bg-card border border-border rounded-xl p-4 gap-3">
