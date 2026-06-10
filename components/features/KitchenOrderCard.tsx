@@ -6,10 +6,33 @@
 import type { KitchenOrder } from '@/lib/hooks/useKitchenOrders';
 import { DeclineReasonModal } from '@/components/features/orders/DeclineReasonModal';
 import { useUpdateOrderStatus } from '@/lib/hooks/useUpdateOrderStatus';
+import { printComanda, printDocumentoCommerciale, type PrintOrderData } from '@/lib/print/orderPrint';
 import type { Database } from '@/types/database.types.generated';
 import { FontAwesome } from '@expo/vector-icons';
 import { Alert, Pressable, Text, View } from 'react-native';
 import { useState } from 'react';
+
+function kitchenOrderToPrintData(order: KitchenOrder): PrintOrderData {
+  return {
+    id: order.id,
+    createdAt: order.created_at,
+    orderType: order.order_type,
+    tableNumber: order.table_number,
+    customerName: order.customer_name,
+    customerPhone: order.customer_phone,
+    deliveryAddress: order.delivery_address,
+    notes: order.notes,
+    totalAmount: order.total_amount,
+    fiscalExternalId: order.fiscal_external_id,
+    items: order.order_items.map((item) => ({
+      name: item.product.name,
+      quantity: item.quantity,
+      unitPrice: item.unit_price,
+      totalPrice: item.total_price,
+      notes: item.notes,
+    })),
+  };
+}
 
 type OrderStatus = Database['public']['Enums']['order_status'];
 
@@ -104,6 +127,24 @@ export function KitchenOrderCard({ order }: KitchenOrderCardProps) {
     );
   };
 
+  const handlePrintComanda = async () => {
+    try {
+      await printComanda(kitchenOrderToPrintData(order));
+    } catch (error) {
+      console.error('Stampa comanda fallita:', error);
+      Alert.alert('Stampa', 'Impossibile stampare la comanda. Riprova.');
+    }
+  };
+
+  const handlePrintPreConto = async () => {
+    try {
+      await printDocumentoCommerciale(kitchenOrderToPrintData(order));
+    } catch (error) {
+      console.error('Stampa pre-conto fallita:', error);
+      Alert.alert('Stampa', 'Impossibile stampare il pre-conto. Riprova.');
+    }
+  };
+
   const handleDeclineOrder = (payload: { preset: string; note: string }) => {
     updateStatus.mutate(
       {
@@ -145,6 +186,24 @@ export function KitchenOrderCard({ order }: KitchenOrderCardProps) {
               {statusConfig.label}
             </Text>
           </View>
+
+          {/* Stampa comanda cucina */}
+          <Pressable
+            className="bg-secondary/40 p-2 rounded-xl border border-border active:bg-secondary/60"
+            onPress={handlePrintComanda}
+            accessibilityLabel="Stampa comanda"
+          >
+            <FontAwesome name="print" size={12} color="#374151" />
+          </Pressable>
+
+          {/* Stampa pre-conto (documento commerciale di cortesia) */}
+          <Pressable
+            className="bg-secondary/40 p-2 rounded-xl border border-border active:bg-secondary/60"
+            onPress={handlePrintPreConto}
+            accessibilityLabel="Stampa pre-conto"
+          >
+            <FontAwesome name="file-text-o" size={12} color="#374151" />
+          </Pressable>
 
           {/* Cancel Button - Moved to top right */}
           {order.status !== 'cancelled' && order.status !== 'delivered' && (

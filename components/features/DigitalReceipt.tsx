@@ -5,10 +5,12 @@
 
 import { Button } from '@/components/ui/Button';
 import { supabase } from '@/lib/api/supabase';
+import { BRAND } from '@/lib/data/brand';
+import { printDocumentoCommerciale, type PrintOrderData } from '@/lib/print/orderPrint';
 import type { Database } from '@/types/database.types';
 import { useQuery } from '@tanstack/react-query';
 import { FontAwesome } from '@expo/vector-icons';
-import { Linking, Modal, Pressable, ScrollView, Share, Text, View } from 'react-native';
+import { Alert, Linking, Modal, Pressable, ScrollView, Share, Text, View } from 'react-native';
 
 type ReceiptOrderItem = {
     quantity: number;
@@ -98,11 +100,44 @@ export function DigitalReceipt({ visible, orderId, onClose }: DigitalReceiptProp
         }
     };
 
+    const handlePrintReceipt = async (): Promise<void> => {
+        if (!order) return;
+
+        const printData: PrintOrderData = {
+            id: order.id,
+            createdAt: order.created_at,
+            orderType: order.order_type,
+            tableNumber: order.table_number,
+            customerName: order.customer_name,
+            customerPhone: order.customer_phone,
+            deliveryAddress: order.delivery_address,
+            notes: order.notes,
+            totalAmount: order.total_amount ?? 0,
+            fiscalExternalId: order.fiscal_external_id,
+            items: (order.order_items || []).map((item: ReceiptOrderItem) => ({
+                name: item.products?.name || 'Prodotto',
+                quantity: item.quantity,
+                unitPrice: item.unit_price,
+                totalPrice: item.total_price,
+                notes: item.notes,
+            })),
+        };
+
+        try {
+            await printDocumentoCommerciale(printData);
+        } catch (error) {
+            console.error('Stampa scontrino fallita:', error);
+            Alert.alert('Stampa', 'Impossibile stampare il documento. Riprova.');
+        }
+    };
+
     const formatReceiptText = (orderData: ReceiptOrder): string => {
         const date = new Date(orderData.created_at).toLocaleString('it-IT');
         const items = orderData.order_items || [];
 
-        let text = `SKIBIDI ORDERS - SCONTRINO\n`;
+        let text = `${BRAND.name.toUpperCase()} - SCONTRINO\n`;
+        text += `${BRAND.address}\n`;
+        text += `Tel. ${BRAND.phone} - ${BRAND.vatNumber}\n`;
         text += `=================================\n`;
         text += `Data: ${date}\n`;
         text += `Ordine: #${orderData.id.slice(0, 8)}\n`;
@@ -128,7 +163,7 @@ export function DigitalReceipt({ visible, orderId, onClose }: DigitalReceiptProp
         text += `TOTALE: €${orderData.total_amount?.toFixed(2) || '0.00'}\n`;
 
         if (orderData.fiscal_status === 'success') {
-            text += `IVA: €${((orderData.total_amount || 0) * 0.22).toFixed(2)}\n`;
+            text += `di cui IVA (22%): €${(((orderData.total_amount || 0) * 22) / 122).toFixed(2)}\n`;
             text += `Scontrino #${orderData.fiscal_external_id || 'N/A'}\n`;
         } else if (orderData.fiscal_status === 'error') {
             text += `⚠️ ERRORE FISCALIZZAZIONE\n`;
@@ -178,11 +213,14 @@ export function DigitalReceipt({ visible, orderId, onClose }: DigitalReceiptProp
                                 <View className="p-4">
                                     {/* Receipt Header */}
                                     <View className="border border-border rounded-lg p-4 mb-4 bg-background">
-                                        <Text className="text-center text-card-foreground font-bold mb-2">
-                                            SKIBIDI ORDERS
+                                        <Text className="text-center text-card-foreground font-bold mb-1">
+                                            {BRAND.name.toUpperCase()}
                                         </Text>
                                         <Text className="text-center text-muted-foreground text-xs">
-                                            Scontrino Fiscale
+                                            {BRAND.address}
+                                        </Text>
+                                        <Text className="text-center text-muted-foreground text-xs">
+                                            Tel. {BRAND.phone} · {BRAND.vatNumber}
                                         </Text>
                                     </View>
 
@@ -285,10 +323,10 @@ export function DigitalReceipt({ visible, orderId, onClose }: DigitalReceiptProp
                                         </View>
                                         <View className="flex-row justify-between items-center mb-2">
                                             <Text className="text-muted-foreground">
-                                                IVA (22%):
+                                                di cui IVA (22%):
                                             </Text>
                                             <Text className="text-card-foreground">
-                                                €{((order.total_amount || 0) * 0.18).toFixed(2)}
+                                                €{(((order.total_amount || 0) * 22) / 122).toFixed(2)}
                                             </Text>
                                         </View>
                                         <View className="flex-row justify-between items-center pt-2 border-t border-border">
@@ -359,16 +397,16 @@ export function DigitalReceipt({ visible, orderId, onClose }: DigitalReceiptProp
                         <View className="p-4 border-t border-border gap-3">
                             <View className="flex-row gap-3">
                                 <Button
-                                    title="Scarica PDF"
+                                    title="Stampa"
                                     variant="outline"
-                                    onPress={handleDownloadPdf}
-                                    disabled={!order?.pdf_url || order.fiscal_status !== 'success'}
+                                    onPress={handlePrintReceipt}
+                                    disabled={!order}
                                     className="flex-1"
                                 >
                                     <FontAwesome
-                                        name="download"
+                                        name="print"
                                         size={18}
-                                        color={order?.pdf_url ? '#3b82f6' : '#9ca3af'}
+                                        color="#374151"
                                         style={{ marginRight: 8 }}
                                     />
                                 </Button>
@@ -386,11 +424,28 @@ export function DigitalReceipt({ visible, orderId, onClose }: DigitalReceiptProp
                                     />
                                 </Button>
                             </View>
-                            <Button
-                                title="Chiudi"
-                                variant="default"
-                                onPress={onClose}
-                            />
+                            <View className="flex-row gap-3">
+                                <Button
+                                    title="Scarica PDF"
+                                    variant="outline"
+                                    onPress={handleDownloadPdf}
+                                    disabled={!order?.pdf_url || order.fiscal_status !== 'success'}
+                                    className="flex-1"
+                                >
+                                    <FontAwesome
+                                        name="download"
+                                        size={18}
+                                        color={order?.pdf_url ? '#3b82f6' : '#9ca3af'}
+                                        style={{ marginRight: 8 }}
+                                    />
+                                </Button>
+                                <Button
+                                    title="Chiudi"
+                                    variant="default"
+                                    onPress={onClose}
+                                    className="flex-1"
+                                />
+                            </View>
                         </View>
                     </View>
                 </View>
