@@ -71,33 +71,33 @@ export function useOrders(options: UseOrdersOptions = {}) {
 }
 
 /**
- * Hook to fetch a single order by ID
+ * Hook to fetch a single order by ID.
+ * Usa la RPC get_order_tracking (SECURITY DEFINER) così anche gli ospiti
+ * non autenticati possono tracciare il proprio ordine conoscendone l'UUID
+ * (magic link). Il polling compensa l'assenza di realtime per gli anonimi.
  */
 export function useOrder(orderId: string) {
   return useQuery({
     queryKey: ['orders', orderId],
     queryFn: async (): Promise<OrderWithItems> => {
-      const { data, error } = await supabase
-        .from('orders')
-        .select(`
-          *,
-          order_items (
-            *,
-            product:products (*)
-          )
-        `)
-        .eq('id', orderId)
-        .single();
+      const { data, error } = await supabase.rpc('get_order_tracking', {
+        p_order_id: orderId,
+      });
 
       if (error) {
         console.error('Order fetch error:', error);
         throw new Error(`Errore nel recupero dell'ordine: ${error.message}`);
       }
 
-      return data as OrderWithItems;
+      if (!data) {
+        throw new Error('Ordine non trovato');
+      }
+
+      return data as unknown as OrderWithItems;
     },
 
     enabled: !!orderId, // Only run if orderId is provided
-    staleTime: 30 * 1000,
+    staleTime: 10 * 1000,
+    refetchInterval: 15 * 1000,
   });
 }

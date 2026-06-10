@@ -460,7 +460,16 @@ export type Database = {
         }
         Returns: string
       }
+      get_capacity_snapshot: {
+        Args: { p_company: string; p_from: string; p_to: string }
+        Returns: {
+          created_at: string
+          fulfillment_token: string
+          order_type: string
+        }[]
+      }
       get_my_company_id: { Args: never; Returns: string }
+      get_order_tracking: { Args: { p_order_id: string }; Returns: Json }
       is_admin: { Args: never; Returns: boolean }
       log_fiscal_event: {
         Args: {

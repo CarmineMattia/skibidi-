@@ -111,16 +111,6 @@ function buildSchedulingToken(fulfillmentAtIso: string): string {
   return `${FULFILLMENT_NOTE_PREFIX}${fulfillmentAtIso}]`;
 }
 
-function parseSchedulingToken(notes: string | null): string | null {
-  if (!notes) return null;
-  const startIndex = notes.indexOf(FULFILLMENT_NOTE_PREFIX);
-  if (startIndex < 0) return null;
-  const valueStart = startIndex + FULFILLMENT_NOTE_PREFIX.length;
-  const endIndex = notes.indexOf(']', valueStart);
-  if (endIndex < 0) return null;
-  return notes.slice(valueStart, endIndex);
-}
-
 function formatLocalHourMinute(date: Date): string {
   return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
 }
@@ -555,14 +545,13 @@ export default function CheckoutScreen() {
         const rangeStart = new Date(selectedDate.getTime() - 24 * 60 * 60 * 1000).toISOString();
         const rangeEnd = new Date(selectedDate.getTime() + 24 * 60 * 60 * 1000).toISOString();
 
-        const { data, error } = await supabase
-          .from('orders')
-          .select('notes, created_at, status, order_type')
-          .eq('company_id', companyId)
-          .in('status', ['pending', 'preparing', 'ready'])
-          .gte('created_at', rangeStart)
-          .lte('created_at', rangeEnd)
-          .limit(500);
+        // RPC dedicata: consente il check capacità anche a ospiti/clienti
+        // senza esporre i dati degli ordini altrui (RLS stretta su orders).
+        const { data, error } = await supabase.rpc('get_capacity_snapshot', {
+          p_company: companyId,
+          p_from: rangeStart,
+          p_to: rangeEnd,
+        });
 
         if (isCancelled) return;
 
@@ -577,8 +566,9 @@ export default function CheckoutScreen() {
           const shouldCountOrder = orderType === 'delivery' ? isDeliveryOrder : !isDeliveryOrder;
           if (!shouldCountOrder) return false;
 
-          const tokenIso = parseSchedulingToken(order.notes);
-          const baseDate = tokenIso ? new Date(tokenIso) : new Date(order.created_at);
+          const baseDate = order.fulfillment_token
+            ? new Date(order.fulfillment_token)
+            : new Date(order.created_at);
           if (Number.isNaN(baseDate.getTime())) return false;
           const slotStart = floorToWindowStart(baseDate, activeOrderWindowMinutes).getTime();
           return slotStart === selectedSlotStart;
@@ -592,8 +582,9 @@ export default function CheckoutScreen() {
               const isDeliveryOrder = orderTypeValue === 'delivery';
               const shouldCountOrder = orderType === 'delivery' ? isDeliveryOrder : !isDeliveryOrder;
               if (!shouldCountOrder) return;
-              const tokenIso = parseSchedulingToken(order.notes);
-              const baseDate = tokenIso ? new Date(tokenIso) : new Date(order.created_at);
+              const baseDate = order.fulfillment_token
+                ? new Date(order.fulfillment_token)
+                : new Date(order.created_at);
               if (Number.isNaN(baseDate.getTime())) return;
               const slotStart = floorToWindowStart(baseDate, activeOrderWindowMinutes).getTime();
               slotCounts.set(slotStart, (slotCounts.get(slotStart) ?? 0) + 1);
