@@ -4,12 +4,13 @@
  */
 
 import { Button } from '@/components/ui/Button';
+import { BRAND, BRAND_LOGO } from '@/lib/data/brand';
 import { useAuth } from '@/lib/stores/AuthContext';
 import type { UserRole } from '@/types';
 import { FontAwesome } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
-import { KeyboardAvoidingView, Linking, Platform, Pressable, Text, TextInput, View } from 'react-native';
+import { Image, KeyboardAvoidingView, Linking, Platform, Pressable, Text, TextInput, View } from 'react-native';
 
 type AuthMode = 'login' | 'signup';
 
@@ -197,14 +198,17 @@ export default function LoginScreen() {
       <View className="flex-1 justify-center px-8">
         {/* Logo/Title */}
         <View className="items-center mb-8">
-          <View className="w-16 h-16 rounded-full bg-[#f3dabb] border border-[#e1a255]/60 items-center justify-center mb-3">
-            <FontAwesome name="cutlery" size={28} color="#8d171e" />
-          </View>
+          <Image
+            source={BRAND_LOGO}
+            className="w-48 h-24 mb-3"
+            resizeMode="contain"
+            accessibilityLabel={BRAND.name}
+          />
           <Text className="text-foreground font-bold text-4xl mb-2">
-            Pizzeria Matildica
+            {BRAND.name}
           </Text>
           <Text className="text-muted-foreground text-lg">
-            Il Nettare degli Dei
+            {BRAND.tagline}
           </Text>
         </View>
 

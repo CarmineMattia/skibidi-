@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "Pizzeria Matildica",
+    "name": "Pizzeria Ambrosia",
     "slug": "pizzeria-matildica",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "tempproject",
+    "scheme": "pizzeriaambrosia",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {

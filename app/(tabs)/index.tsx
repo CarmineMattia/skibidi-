@@ -19,10 +19,12 @@ import type {
   HomeRecentOrder,
   HomeTrendingPizza,
 } from '@/components/features/home/types';
+import { BRAND, BRAND_LOGO } from '@/lib/data/brand';
 import { useRouter } from 'expo-router';
 import {
   Alert,
   Dimensions,
+  Image,
   RefreshControl,
   ScrollView,
   Text,
@@ -461,16 +463,22 @@ export default function HomeScreen() {
     >
       {/* Compact Header */}
       <View className={`bg-[#f9ecdd]/95 border-b border-[#e1a255]/40 ${isCompact ? 'px-3 py-2.5' : 'p-4 pb-3'}`}>
-        <View className="w-full self-center max-w-[1120px] flex-row items-center gap-2">
+        <View className="w-full self-center max-w-[1120px] flex-row items-center gap-3">
+          <Image
+            source={BRAND_LOGO}
+            className={isCompact ? 'w-14 h-8' : 'w-20 h-11'}
+            resizeMode="contain"
+            accessibilityLabel={BRAND.name}
+          />
           <View className="flex-1 min-w-0">
             <Text
               className={`font-extrabold text-gray-900 ${isCompact ? 'text-lg' : 'text-2xl'}`}
               numberOfLines={1}
             >
-              Pizzeria Matildica
+              {BRAND.name}
             </Text>
             <Text className={`text-[#8d171e] font-bold ${isCompact ? 'text-xs' : 'text-sm'}`}>
-              {isGuestExperience ? 'Il Nettare degli Dei' : 'Sistema POS'}
+              {isGuestExperience ? BRAND.tagline : 'Sistema POS'}
             </Text>
           </View>
         </View>
@@ -481,7 +489,7 @@ export default function HomeScreen() {
       {/* Footer */}
       <View className="items-center py-4 border-t border-[#e1a255]/40 mx-4">
         <Text className="text-gray-400 text-[10px]">
-          Pizzeria Matildica v1.0 {isAuthenticated ? '• Logged' : '• Guest'}
+          {BRAND.name} v1.0 {isAuthenticated ? '• Logged' : '• Guest'}
         </Text>
       </View>
     </ScrollView>
