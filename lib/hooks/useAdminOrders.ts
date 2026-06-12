@@ -59,6 +59,7 @@ export function useAdminOrders(options: UseAdminOrdersOptions = {}) {
       return data as AdminOrder[];
     },
     staleTime: 10 * 1000,
+    refetchInterval: 30 * 1000, // Fallback poll if realtime drops
     enabled: enabled && !!companyId,
   });
 

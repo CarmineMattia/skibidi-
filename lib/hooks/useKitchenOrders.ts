@@ -4,7 +4,7 @@
  */
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { supabase } from '@/lib/api/supabase';
 import { useTenant } from '@/lib/stores/TenantContext';
 import type { Database } from '@/types/database.types.generated';
@@ -26,6 +26,10 @@ export function useKitchenOrders(options: UseKitchenOrdersOptions = {}) {
   const { statuses = ['pending', 'preparing', 'ready'], onOrderEvent } = options;
   const { companyId } = useTenant();
   const queryClient = useQueryClient();
+
+  // Keep ref current every render so the effect closure never goes stale
+  const onOrderEventRef = useRef(onOrderEvent);
+  onOrderEventRef.current = onOrderEvent;
 
   const query = useQuery({
     queryKey: ['kitchen-orders', companyId, { statuses }],
@@ -80,7 +84,7 @@ export function useKitchenOrders(options: UseKitchenOrdersOptions = {}) {
           const prevOrder = payload.old as { status?: Order['status'] } | null;
 
           if (payload.eventType === 'INSERT' && nextOrder?.id && nextOrder.status === 'pending') {
-            onOrderEvent?.({ type: 'new-order', orderId: nextOrder.id });
+            onOrderEventRef.current?.({ type: 'new-order', orderId: nextOrder.id });
           }
 
           if (
@@ -89,7 +93,7 @@ export function useKitchenOrders(options: UseKitchenOrdersOptions = {}) {
             nextOrder.status === 'ready' &&
             prevOrder?.status !== 'ready'
           ) {
-            onOrderEvent?.({ type: 'order-ready', orderId: nextOrder.id });
+            onOrderEventRef.current?.({ type: 'order-ready', orderId: nextOrder.id });
           }
 
           queryClient.invalidateQueries({ queryKey: ['kitchen-orders', companyId] });
@@ -100,7 +104,7 @@ export function useKitchenOrders(options: UseKitchenOrdersOptions = {}) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [companyId, onOrderEvent, queryClient]);
+  }, [companyId, queryClient]);
 
   return query;
 }

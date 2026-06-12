@@ -3,7 +3,8 @@
  * Query hook for fetching user orders with items
  */
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import { supabase } from '@/lib/api/supabase';
 import type { Database } from '@/types/database.types.generated';
 
@@ -23,19 +24,18 @@ interface UseOrdersOptions {
 
 export function useOrders(options: UseOrdersOptions = {}) {
   const { status, limit = 50, enabled = true } = options;
+  const queryClient = useQueryClient();
 
-  return useQuery({
+  const query = useQuery({
     queryKey: ['orders', { status, limit }],
     queryFn: async (): Promise<OrderWithItems[]> => {
-      // Get current user
       const { data: { user } } = await supabase.auth.getUser();
 
       if (!user) {
         throw new Error('User not authenticated');
       }
 
-      // Build query
-      let query = supabase
+      let queryBuilder = supabase
         .from('orders')
         .select(`
           *,
@@ -48,12 +48,11 @@ export function useOrders(options: UseOrdersOptions = {}) {
         .order('created_at', { ascending: false })
         .limit(limit);
 
-      // Apply status filter if provided
       if (status) {
-        query = query.eq('status', status);
+        queryBuilder = queryBuilder.eq('status', status);
       }
 
-      const { data, error } = await query;
+      const { data, error } = await queryBuilder;
 
       if (error) {
         console.error('Orders fetch error:', error);
@@ -63,11 +62,51 @@ export function useOrders(options: UseOrdersOptions = {}) {
       return data as OrderWithItems[];
     },
 
-    // Orders change frequently, refresh every 30 seconds
-    staleTime: 30 * 1000,
-    gcTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 15 * 1000,
+    refetchInterval: 15 * 1000, // Realtime fallback + immediate feedback
+    gcTime: 5 * 60 * 1000,
     enabled,
   });
+
+  // Realtime: invalidate immediately on any order change visible to this user
+  useEffect(() => {
+    if (!enabled) return;
+
+    let userId: string | null = null;
+
+    const setupChannel = async (): Promise<ReturnType<typeof supabase.channel> | null> => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+
+      userId = user.id;
+      const channel = supabase
+        .channel(`user-orders-${userId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'orders',
+            filter: `customer_id=eq.${userId}`,
+          },
+          () => {
+            queryClient.invalidateQueries({ queryKey: ['orders'] });
+          }
+        )
+        .subscribe();
+
+      return channel;
+    };
+
+    let channelRef: ReturnType<typeof supabase.channel> | null = null;
+    void setupChannel().then((ch) => { channelRef = ch; });
+
+    return () => {
+      if (channelRef) supabase.removeChannel(channelRef);
+    };
+  }, [enabled, queryClient]);
+
+  return query;
 }
 
 /**
