@@ -85,7 +85,7 @@ export function CartSummary({ onCheckout, isCheckingOut = false }: CartSummaryPr
 
             {/* Checkout Button */}
             <Pressable
-              className="bg-[#f9ecdd]0 rounded-2xl p-5 shadow-xl items-center border border-[#8d171e]"
+              className="bg-[#8d171e] rounded-2xl p-5 shadow-xl items-center border border-[#8d171e]"
               style={{
                 opacity: isCheckingOut ? 0.5 : 1,
               }}

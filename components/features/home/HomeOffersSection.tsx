@@ -123,7 +123,7 @@ export function HomeOffersSection({ offers, onOpenOffer }: HomeOffersSectionProp
                     </View>
                   ) : null}
                   {isFeatured ? (
-                    <View className="bg-[#f9ecdd]0/90 self-start rounded-full px-2.5 py-1 mb-1.5">
+                    <View className="bg-[#8d171e]/90 self-start rounded-full px-2.5 py-1 mb-1.5">
                       <Text className="text-white text-[10px] font-extrabold">SELEZIONATA</Text>
                     </View>
                   ) : null}

@@ -161,7 +161,7 @@ export function HomeTrendingSection({
                   end={{ x: 0.5, y: 1 }}
                   className="px-4 py-3"
                 >
-                  <View className="bg-[#f9ecdd]0 self-start rounded-full px-2.5 py-1 mb-1">
+                  <View className="bg-[#8d171e] self-start rounded-full px-2.5 py-1 mb-1">
                     <Text className="text-white text-[10px] font-bold">{pizza.badge}</Text>
                   </View>
                   {isFeatured ? (
@@ -170,7 +170,7 @@ export function HomeTrendingSection({
                     </View>
                   ) : null}
                   {isFeatured ? (
-                    <View className="bg-[#f9ecdd]0/90 self-start rounded-full px-2.5 py-1 mb-1">
+                    <View className="bg-[#8d171e]/90 self-start rounded-full px-2.5 py-1 mb-1">
                       <Text className="text-white text-[10px] font-extrabold">SELEZIONATA</Text>
                     </View>
                   ) : null}
@@ -198,7 +198,7 @@ export function HomeTrendingSection({
                         event.stopPropagation();
                         onQuickAddPizza(pizza.id);
                       }}
-                      className="w-8 h-8 rounded-full bg-[#f9ecdd]0 items-center justify-center"
+                      className="w-8 h-8 rounded-full bg-[#8d171e] items-center justify-center"
                       accessibilityRole="button"
                       accessibilityLabel={`Aggiungi ${pizza.name} al carrello`}
                     >

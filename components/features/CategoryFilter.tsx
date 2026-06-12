@@ -65,7 +65,7 @@ export function CategoryFilter({
           className={cn(
             'w-20 h-20 rounded-2xl items-center justify-center border',
             selectedCategoryId === null
-              ? 'bg-[#f9ecdd]0 border-[#8d171e] shadow-md'
+              ? 'bg-[#8d171e] border-[#8d171e] shadow-md'
               : 'bg-[#f9ecdd] border-[#e1a255]/40'
           )}
           onPress={() => onSelectCategory(null)}
@@ -96,7 +96,7 @@ export function CategoryFilter({
               className={cn(
                 'w-20 h-20 rounded-2xl items-center justify-center border',
                 isSelected
-                  ? 'bg-[#f9ecdd]0 border-[#8d171e] shadow-md'
+                  ? 'bg-[#8d171e] border-[#8d171e] shadow-md'
                   : 'bg-[#f9ecdd] border-[#e1a255]/40'
               )}
               onPress={() => onSelectCategory(category.id)}
@@ -124,7 +124,7 @@ export function CategoryFilter({
       {!isAuthenticated && (
         <View className="p-3 border-t border-[#e1a255]/40 bg-white">
           <Pressable
-            className="bg-[#f9ecdd]0 rounded-xl py-3 px-2 active:opacity-80"
+            className="bg-[#8d171e] rounded-xl py-3 px-2 active:opacity-80"
             onPress={() => router.push('/login')}
           >
             <View className="items-center mb-1">

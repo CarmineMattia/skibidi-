@@ -70,7 +70,7 @@ export default function AccountScreen() {
       {isAdmin && (
         <Pressable
           onPress={() => router.push('/admin-options')}
-          className="bg-[#f9ecdd]0 rounded-xl px-4 py-4 active:opacity-80 mb-3"
+          className="bg-[#8d171e] rounded-xl px-4 py-4 active:opacity-80 mb-3"
         >
           <Text className="text-white text-center font-bold text-base">
             Opzioni Admin

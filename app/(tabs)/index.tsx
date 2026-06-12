@@ -468,7 +468,7 @@ export default function HomeScreen() {
         <View className="w-full self-center max-w-[1120px] flex-row items-center gap-3">
           <Image
             source={BRAND_LOGO}
-            className={isCompact ? 'w-14 h-8' : 'w-20 h-11'}
+            style={isCompact ? { width: 56, height: 32 } : { width: 80, height: 44 }}
             resizeMode="contain"
             accessibilityLabel={BRAND.name}
           />

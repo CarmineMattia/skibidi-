@@ -10,7 +10,7 @@ import {
 import type { IngredientCategoryId } from '@/lib/data/ingredients';
 import { useCategories } from '@/lib/hooks/useCategories';
 import { useProducts } from '@/lib/hooks/useProducts';
-import { BUILDER_PRODUCT_NAME } from '@/lib/data/pizzaBuilder';
+import { BUILDER_INGREDIENT_PRICES, BUILDER_PRODUCT_NAME } from '@/lib/data/pizzaBuilder';
 import { useCart } from '@/lib/stores/CartContext';
 import { cn } from '@/lib/utils/cn';
 import type { Product } from '@/types';
@@ -183,7 +183,7 @@ export function ProductDetailsModal({ visible, onClose, product, categoryName }:
             }
         }
 
-        addItem(product, quantity, notes.trim(), modifiers);
+        addItem(product, quantity, notes.trim(), modifiers, product.price + extraIngredientsPrice);
         onClose();
 
         // Reset state
@@ -231,6 +231,13 @@ export function ProductDetailsModal({ visible, onClose, product, categoryName }:
             default: return 'check-circle';
         }
     };
+
+    const extraIngredientsPrice = useMemo(
+        () => extraIngredients.reduce((sum, name) => sum + BUILDER_INGREDIENT_PRICES[categorizeIngredient(name)], 0),
+        [extraIngredients]
+    );
+
+    const totalPrice = (product.price + extraIngredientsPrice) * quantity;
 
     const incrementQuantity = () => setQuantity(q => q + 1);
     const decrementQuantity = () => setQuantity(q => Math.max(1, q - 1));
@@ -608,7 +615,7 @@ export function ProductDetailsModal({ visible, onClose, product, categoryName }:
                     {/* Footer Action */}
                     <View className="p-4 border-t border-border bg-card sm:rounded-b-2xl">
                         <Button
-                            title={`Aggiungi al carrello • €${(product.price * quantity).toFixed(2)}`}
+                            title={`Aggiungi al carrello • €${totalPrice.toFixed(2)}`}
                             variant="default"
                             size="lg"
                             onPress={handleAddToCart}

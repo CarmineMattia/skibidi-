@@ -222,7 +222,7 @@ export default function MenuScreen() {
 
           {/* Order Counter Badge - Compact */}
           {totalItems > 0 && (
-            <View className={`bg-[#f9ecdd]0 rounded-full flex-row items-center ${isMobile ? 'px-3 py-1 gap-1' : 'px-4 py-1.5 gap-1.5'}`}>
+            <View className={`bg-[#8d171e] rounded-full flex-row items-center ${isMobile ? 'px-3 py-1 gap-1' : 'px-4 py-1.5 gap-1.5'}`}>
               <FontAwesome name="shopping-cart" size={isMobile ? 10 : 11} color="#ffffff" />
               <Text className={`text-white font-bold ${isMobile ? 'text-xs' : 'text-sm'}`}>{totalItems}</Text>
             </View>
@@ -240,7 +240,7 @@ export default function MenuScreen() {
 
           {!isAuthenticated && (
             <Pressable
-              className={`${isMobile ? 'px-2 py-1' : 'px-3 py-1.5'} bg-[#f9ecdd]0 rounded-full active:opacity-80`}
+              className={`${isMobile ? 'px-2 py-1' : 'px-3 py-1.5'} bg-[#8d171e] rounded-full active:opacity-80`}
               onPress={() => router.push('/login')}
             >
               <Text className={`text-white font-bold ${isMobile ? 'text-xs' : 'text-sm'}`}>Accedi</Text>
@@ -278,7 +278,7 @@ export default function MenuScreen() {
               </View>
 
               <Pressable
-                className="mt-3 h-11 bg-[#f9ecdd]0 rounded-xl items-center justify-center active:opacity-90"
+                className="mt-3 h-11 bg-[#8d171e] rounded-xl items-center justify-center active:opacity-90"
                 onPress={() => {
                   setShowContinueWithoutDrinks(false);
                   router.push('/modal');
@@ -423,7 +423,7 @@ export default function MenuScreen() {
                       </View>
                       <Pressable
                         onPress={() => handleProductPress(item.id)}
-                        className="w-8 h-8 rounded-full bg-[#f9ecdd]0 items-center justify-center"
+                        className="w-8 h-8 rounded-full bg-[#8d171e] items-center justify-center"
                       >
                         <Text className="text-white text-lg font-bold leading-none">+</Text>
                       </Pressable>
@@ -460,7 +460,7 @@ export default function MenuScreen() {
         >
           <Pressable
             onPress={() => setIsCartVisible(true)}
-            className="bg-[#f9ecdd]0 rounded-2xl p-4 shadow-xl flex-row items-center justify-between active:opacity-80"
+            className="bg-[#8d171e] rounded-2xl p-4 shadow-xl flex-row items-center justify-between active:opacity-80"
           >
             <View className="flex-row items-center gap-2">
               <FontAwesome name="shopping-cart" size={20} color="#ffffff" />
@@ -494,7 +494,7 @@ export default function MenuScreen() {
             <ScrollView showsVerticalScrollIndicator={false}>
               <View className="gap-2 pb-1">
                 <Pressable
-                    className={`rounded-xl px-4 py-3 min-h-[44px] items-center justify-center ${selectedCategoryId === null ? 'bg-[#f9ecdd]0' : 'bg-[#f9ecdd] border border-[#e1a255]/60'}`}
+                    className={`rounded-xl px-4 py-3 min-h-[44px] items-center justify-center ${selectedCategoryId === null ? 'bg-[#8d171e]' : 'bg-[#f9ecdd] border border-[#e1a255]/60'}`}
                   onPress={() => {
                     setSelectedCategoryId(null);
                     setIsMobileCategoriesOpen(false);
@@ -509,7 +509,7 @@ export default function MenuScreen() {
                   return (
                     <Pressable
                       key={category.id}
-                      className={`rounded-xl px-4 py-3 min-h-[44px] items-center justify-center ${isSelected ? 'bg-[#f9ecdd]0' : 'bg-[#f9ecdd] border border-[#e1a255]/60'}`}
+                      className={`rounded-xl px-4 py-3 min-h-[44px] items-center justify-center ${isSelected ? 'bg-[#8d171e]' : 'bg-[#f9ecdd] border border-[#e1a255]/60'}`}
                       onPress={() => {
                         setSelectedCategoryId(category.id);
                         setIsMobileCategoriesOpen(false);
@@ -525,7 +525,7 @@ export default function MenuScreen() {
             </ScrollView>
             {!isAuthenticated && (
               <Pressable
-                className="mt-3 bg-[#f9ecdd]0 rounded-xl px-4 py-3 items-center active:opacity-80"
+                className="mt-3 bg-[#8d171e] rounded-xl px-4 py-3 items-center active:opacity-80"
                 onPress={() => {
                   setIsMobileCategoriesOpen(false);
                   router.push('/login');
