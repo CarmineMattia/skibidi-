@@ -2,6 +2,7 @@ import { DeliveryAddressField } from '@/components/features/DeliveryAddressField
 import { Button } from '@/components/ui/Button';
 import { TimeWheelModal } from '@/components/ui/TimeWheelModal';
 import { supabase } from '@/lib/api/supabase';
+import { BRAND } from '@/lib/data/brand';
 import { useCreateOrder } from '@/lib/hooks/useCreateOrder';
 import { useCustomerLookup, type CustomerLookupOrder } from '@/lib/hooks/useCustomerLookup';
 import { useOfflineQueue } from '@/lib/hooks/useOfflineQueue';
@@ -11,6 +12,7 @@ import { useAppSettings } from '@/lib/stores/AppSettingsContext';
 import { getCartItemUnitPrice, useCart } from '@/lib/stores/CartContext';
 import { useTenant } from '@/lib/stores/TenantContext';
 import { getNextOpening, isOpenAt } from '@/lib/utils/businessHours';
+import { buildCapacityUnitsToken, sumCartPizzaCapacity } from '@/lib/utils/pizzaCapacity';
 import { paymentProviderToMethod, type PaymentProvider } from '@/lib/hooks/usePayment';
 import { FontAwesome } from '@expo/vector-icons';
 import { countries } from 'countries-list';
@@ -20,7 +22,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Image, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 
 type OrderType = 'eat_in' | 'take_away' | 'delivery';
-type CheckoutStep = 'type' | 'details' | 'payment' | 'processing' | 'success';
+type CheckoutStep = 'type' | 'time' | 'details' | 'payment';
 type FulfillmentMode = 'asap' | 'scheduled';
 type PhonePrefixOption = {
   id: string;
@@ -81,6 +83,26 @@ function getFlagImageUri(countryCode: string): string | null {
   return `https://flagcdn.com/48x36/${countryCode.toLowerCase()}.png`;
 }
 
+function formatDeliveryAddress(street: string, civico: string): string {
+  const trimmedStreet = street.trim();
+  const trimmedCivico = civico.trim();
+  if (!trimmedStreet) return trimmedCivico;
+  if (!trimmedCivico) return trimmedStreet;
+  return `${trimmedStreet}, ${trimmedCivico}`;
+}
+
+function splitAddressAndCivico(fullAddress: string): { street: string; civico: string } {
+  const trimmed = fullAddress.trim();
+  if (!trimmed) return { street: '', civico: '' };
+
+  const match = trimmed.match(/^(.*?)(?:,\s*|\s+)(\d+\s*[A-Za-z]?)$/);
+  if (match) {
+    return { street: match[1].trim(), civico: match[2].trim() };
+  }
+
+  return { street: trimmed, civico: '' };
+}
+
 function parsePhoneInput(rawPhone: string): { dialCode: string; nationalNumber: string } {
   const normalized = rawPhone.trim().replaceAll(/\s+/g, '');
   const sortedPrefixes = [...PHONE_PREFIX_OPTIONS].sort((a, b) => b.dialCode.length - a.dialCode.length);
@@ -120,6 +142,43 @@ function formatSlotKey(date: Date): string {
   return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
 
+type CapacitySnapshotRow = {
+  created_at: string;
+  fulfillment_token: string | null;
+  order_type: string;
+  capacity_units?: number | null;
+};
+
+function getOrderSlotStart(
+  order: CapacitySnapshotRow,
+  windowMinutes: number
+): number | null {
+  const baseDate = order.fulfillment_token
+    ? new Date(order.fulfillment_token)
+    : new Date(order.created_at);
+  if (Number.isNaN(baseDate.getTime())) return null;
+  return floorToWindowStart(baseDate, windowMinutes).getTime();
+}
+
+function sumSlotPizzaUnits(
+  orders: CapacitySnapshotRow[],
+  checkoutOrderType: OrderType,
+  slotStart: number,
+  windowMinutes: number
+): number {
+  return orders.reduce((sum, order) => {
+    const isDeliveryOrder = order.order_type === 'delivery';
+    const shouldCountOrder = checkoutOrderType === 'delivery' ? isDeliveryOrder : !isDeliveryOrder;
+    if (!shouldCountOrder) return sum;
+
+    const orderSlotStart = getOrderSlotStart(order, windowMinutes);
+    if (orderSlotStart !== slotStart) return sum;
+
+    const units = Number(order.capacity_units);
+    return sum + (Number.isFinite(units) && units >= 0 ? units : 1);
+  }, 0);
+}
+
 export default function CheckoutScreen() {
   const { items, totalAmount, clearCart, addItem } = useCart();
   const { profile, isAuthenticated, isGuest } = useAuth();
@@ -134,6 +193,8 @@ export default function CheckoutScreen() {
     deliveryOrderWindowMinutes,
     disabledTimeSlots,
     businessHours,
+    shiftDoughBallsTotal,
+    shiftStartedAt,
   } = useAppSettings();
   const { companyId } = useTenant();
   const { addToQueue, isOnline } = useOfflineQueue();
@@ -144,8 +205,6 @@ export default function CheckoutScreen() {
   const [orderType, setOrderType] = useState<OrderType>('eat_in');
   const [paymentProvider, setPaymentProvider] = useState<PaymentProvider>('stripe');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [confirmedOrderId, setConfirmedOrderId] = useState<string | null>(null);
-  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [showPhonePrefixModal, setShowPhonePrefixModal] = useState(false);
   const [phonePrefixSearch, setPhonePrefixSearch] = useState('');
   const [fulfillmentMode, setFulfillmentMode] = useState<FulfillmentMode>('asap');
@@ -160,8 +219,8 @@ export default function CheckoutScreen() {
     () =>
       language === 'en'
         ? {
-            reviewTitle: 'Review your order',
-            reviewSubtitle: 'Final step before payment.',
+            reviewTitle: 'How would you like to order?',
+            reviewSubtitle: 'Choose the option that is most convenient for you.',
             dineInTitle: 'Dine in',
             dineInSubtitle: 'Table service',
             takeawayTitle: 'Take away',
@@ -169,6 +228,11 @@ export default function CheckoutScreen() {
             deliveryTitle: 'Delivery',
             deliverySubtitle: `Home delivery (+€${deliveryFee.toFixed(2)})`,
             detailsTitle: 'Your details',
+            timeTitle: 'Choose a time',
+            timeSubtitle: 'Tell us when you would like your order to be ready.',
+            selectedService: 'Selected service',
+            scheduledTimesTitle: 'Or choose a specific time',
+            asapTimeHint: 'We will prepare your order at the earliest available time.',
             paymentTitle: 'Payment',
             nameLabelOptional: 'Name (optional)',
             nameLabelRequired: 'Name *',
@@ -177,26 +241,30 @@ export default function CheckoutScreen() {
             phonePrefixLabel: 'Prefix',
             phoneRequired: 'Please enter a phone number',
             addressLabel: 'Address *',
+            civicoLabel: 'House number *',
             fulfillmentTitle: 'When do you want your order?',
             asapLabel: 'As soon as possible',
             scheduleLabel: 'Choose time',
             selectTimePlaceholder: 'Select time slot',
-            pickTimeWithWheel: 'Pick time with wheel',
+            pickTimeWithWheel: 'Choose another time',
             preferredTimeLabel: 'Preferred time (optional)',
             preferredTimeSelected: 'Preferred time selected',
             unavailableRestaurantClosed: 'This restaurant is not taking orders right now. Please try later.',
             unavailableOutsideWorkingHours: 'The restaurant is currently closed based on working hours.',
             unavailablePausedUntil: 'Orders are paused until',
             unavailableSlotDisabled: 'This time slot is disabled by the restaurant.',
-            unavailableCapacity: 'This time slot is full. Please choose another time.',
-            unavailableDeliveryCapacity: 'This delivery time slot is full. Please choose another time.',
+            unavailableCapacity: 'Pizza capacity for this time slot is full. Please choose another time.',
+            unavailableDeliveryCapacity: 'Delivery pizza capacity for this time slot is full. Please choose another time.',
+            unavailableShiftDough: 'Not enough dough balls left for tonight. Please reduce your order or try later.',
+            unavailableShiftTracking: 'Dough capacity tracking is temporarily unavailable. Please try later.',
             checkingAvailability: 'Checking time availability...',
             queueAtNextOpeningPrompt: 'Do you want to queue this order for the next opening time at',
             queueAtNextOpeningAction: 'Queue order',
             namePlaceholder: 'Your name',
             tablePlaceholder: 'e.g. 5',
             phonePlaceholder: 'e.g. 3331234567',
-            addressPlaceholder: 'Street, number, city',
+            addressPlaceholder: 'Street, city',
+            civicoPlaceholder: 'e.g. 12',
             addressMapHint: 'Tap the map or drag the pin to set your delivery location.',
             addressSearching: 'Searching addresses...',
             summaryTitle: 'Order summary',
@@ -224,6 +292,8 @@ export default function CheckoutScreen() {
             openSummary: 'Open order summary',
             orderSaved: 'Order saved',
             orderSavedSubtitle: 'Your order will sync when connection is back.',
+            orderSendingTitle: 'Sending order',
+            orderSendingMessage: 'Il tuo ordine è in attesa di conferma. Non chiudere la pagina.',
             missingFields: 'Missing fields',
             missingFieldsSubtitle: 'Please complete all required fields highlighted in red.',
             invalidPhone: 'Please enter a valid phone number',
@@ -239,8 +309,8 @@ export default function CheckoutScreen() {
             reorderEmpty: 'Products from this order are no longer available.',
           }
         : {
-            reviewTitle: 'Riepilogo ordine',
-            reviewSubtitle: 'Ultimo passaggio prima del pagamento.',
+            reviewTitle: 'Come vuoi ordinare?',
+            reviewSubtitle: 'Scegli la modalità più comoda per te.',
             dineInTitle: 'Mangio qui',
             dineInSubtitle: 'Servizio al tavolo',
             takeawayTitle: 'Da asporto',
@@ -248,6 +318,11 @@ export default function CheckoutScreen() {
             deliveryTitle: 'Delivery',
             deliverySubtitle: `A domicilio (+€${deliveryFee.toFixed(2)})`,
             detailsTitle: 'I tuoi dati',
+            timeTitle: 'Scegli l’orario',
+            timeSubtitle: 'Dicci quando vuoi che il tuo ordine sia pronto.',
+            selectedService: 'Servizio scelto',
+            scheduledTimesTitle: 'Oppure scegli un orario preciso',
+            asapTimeHint: 'Prepareremo il tuo ordine al primo orario disponibile.',
             paymentTitle: 'Pagamento',
             nameLabelOptional: 'Nome (opzionale)',
             nameLabelRequired: 'Nome *',
@@ -256,26 +331,30 @@ export default function CheckoutScreen() {
             phonePrefixLabel: 'Prefisso',
             phoneRequired: 'Inserisci un numero di telefono',
             addressLabel: 'Indirizzo *',
+            civicoLabel: 'Numero civico *',
             fulfillmentTitle: 'Quando vuoi ricevere l ordine?',
             asapLabel: 'Il prima possibile',
             scheduleLabel: 'Scegli orario',
             selectTimePlaceholder: 'Seleziona fascia oraria',
-            pickTimeWithWheel: 'Scegli orario con ruota',
+            pickTimeWithWheel: 'Scegli un altro orario',
             preferredTimeLabel: 'Orario preferito (opzionale)',
             preferredTimeSelected: 'Orario preferito selezionato',
             unavailableRestaurantClosed: 'Questo ristorante non sta accettando ordini al momento. Riprova più tardi.',
             unavailableOutsideWorkingHours: 'Il ristorante è chiuso in base agli orari di apertura.',
             unavailablePausedUntil: 'Ordini in pausa fino alle',
             unavailableSlotDisabled: 'Questa fascia oraria è disattivata dal ristorante.',
-            unavailableCapacity: 'Questa fascia è piena. Scegli un altro orario.',
-            unavailableDeliveryCapacity: 'Questa fascia delivery è piena. Scegli un altro orario.',
+            unavailableCapacity: 'Capacità pizze esaurita per questa fascia. Scegli un altro orario.',
+            unavailableDeliveryCapacity: 'Capacità pizze delivery esaurita per questa fascia. Scegli un altro orario.',
+            unavailableShiftDough: 'Palline esaurite per questa serata. Riduci l ordine o riprova più tardi.',
+            unavailableShiftTracking: 'Tracking palline temporaneamente non disponibile. Riprova più tardi.',
             checkingAvailability: 'Controllo disponibilità orario...',
             queueAtNextOpeningPrompt: 'Vuoi mettere questo ordine in coda per la prossima apertura alle',
             queueAtNextOpeningAction: 'Metti in coda',
             namePlaceholder: 'Il tuo nome',
             tablePlaceholder: 'Es: 5',
             phonePlaceholder: 'Es: 3331234567',
-            addressPlaceholder: 'Via, civico, citta',
+            addressPlaceholder: 'Via, citta',
+            civicoPlaceholder: 'Es: 12',
             addressMapHint: 'Tocca la mappa o trascina il segnaposto per impostare il punto di consegna.',
             addressSearching: 'Ricerca indirizzi...',
             summaryTitle: 'Riepilogo ordine',
@@ -303,6 +382,8 @@ export default function CheckoutScreen() {
             openSummary: 'Vai al riepilogo ordine',
             orderSaved: 'Ordine salvato',
             orderSavedSubtitle: 'Il tuo ordine verra inviato quando la connessione sara ripristinata.',
+            orderSendingTitle: 'Invio ordine in corso',
+            orderSendingMessage: 'Il tuo ordine è in attesa di conferma. Non chiudere la pagina.',
             missingFields: 'Campi mancanti',
             missingFieldsSubtitle: 'Compila tutti i campi obbligatori evidenziati in rosso.',
             invalidPhone: 'Inserisci un numero di telefono valido',
@@ -335,10 +416,12 @@ export default function CheckoutScreen() {
   const [selectedPhoneOptionId, setSelectedPhoneOptionId] = useState(DEFAULT_PHONE_OPTION.id);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [address, setAddress] = useState('');
+  const [civico, setCivico] = useState('');
   const [tableNumber, setTableNumber] = useState('');
-  const [errors, setErrors] = useState<{name?: string; phone?: string; address?: string; tableNumber?: string}>({});
+  const [errors, setErrors] = useState<{name?: string; phone?: string; address?: string; civico?: string; tableNumber?: string}>({});
   const selectedPhonePrefix = PHONE_PREFIX_OPTIONS.find((option) => option.id === selectedPhoneOptionId) ?? DEFAULT_PHONE_OPTION;
   const fullPhoneNumber = `${selectedPhonePrefix.dialCode}${phoneNumber}`;
+  const fullDeliveryAddress = formatDeliveryAddress(address, civico);
 
   // Ordini telefonici: riconoscimento cliente dal numero (fisso o cellulare).
   // Solo per admin/cassa, per non esporre dati di altri clienti.
@@ -355,7 +438,11 @@ export default function CheckoutScreen() {
   const applyCustomerData = () => {
     if (!recognizedCustomer) return;
     if (recognizedCustomer.name) setName(recognizedCustomer.name);
-    if (recognizedCustomer.address) setAddress(recognizedCustomer.address);
+    if (recognizedCustomer.address) {
+      const parsedAddress = splitAddressAndCivico(recognizedCustomer.address);
+      setAddress(parsedAddress.street);
+      setCivico(parsedAddress.civico);
+    }
   };
 
   const handleReorder = (pastOrder: CustomerLookupOrder) => {
@@ -390,7 +477,10 @@ export default function CheckoutScreen() {
   const nextBusinessOpening = isClosedByBusinessHours ? getNextOpening(new Date(), businessHours) : null;
   const nextBusinessOpeningTimestamp = nextBusinessOpening?.getTime() ?? null;
   const activeOrderWindowMinutes = orderType === 'delivery' ? deliveryOrderWindowMinutes : orderWindowMinutes;
-  const activeMaxOrdersPerWindow = orderType === 'delivery' ? deliveryMaxOrdersPerWindow : maxOrdersPerWindow;
+  const activeMaxPizzaUnitsPerWindow = orderType === 'delivery' ? deliveryMaxOrdersPerWindow : maxOrdersPerWindow;
+  const cartPizzaUnits = useMemo(() => sumCartPizzaCapacity(items), [items]);
+  const isShiftDoughTrackingEnabled =
+    shiftDoughBallsTotal !== null && shiftDoughBallsTotal > 0 && !!shiftStartedAt;
   const schedulingBaseIso = useMemo(
     () =>
       floorToWindowStart(
@@ -546,13 +636,22 @@ export default function CheckoutScreen() {
         const rangeStart = new Date(selectedDate.getTime() - 24 * 60 * 60 * 1000).toISOString();
         const rangeEnd = new Date(selectedDate.getTime() + 24 * 60 * 60 * 1000).toISOString();
 
-        // RPC dedicata: consente il check capacità anche a ospiti/clienti
-        // senza esporre i dati degli ordini altrui (RLS stretta su orders).
-        const { data, error } = await supabase.rpc('get_capacity_snapshot', {
+        const capacityRequest = supabase.rpc('get_capacity_snapshot', {
           p_company: companyId,
           p_from: rangeStart,
           p_to: rangeEnd,
         });
+        const shiftRequest = isShiftDoughTrackingEnabled
+          ? supabase.rpc('get_shift_dough_usage', {
+              p_company: companyId,
+              p_since: shiftStartedAt!,
+            })
+          : Promise.resolve({ data: 0, error: null });
+
+        const [{ data, error }, shiftUsageResponse] = await Promise.all([
+          capacityRequest,
+          shiftRequest,
+        ]);
 
         if (isCancelled) return;
 
@@ -561,41 +660,27 @@ export default function CheckoutScreen() {
           return;
         }
 
-        const matchingOrders = (data ?? []).filter((order) => {
-          const orderTypeValue = order.order_type;
-          const isDeliveryOrder = orderTypeValue === 'delivery';
-          const shouldCountOrder = orderType === 'delivery' ? isDeliveryOrder : !isDeliveryOrder;
-          if (!shouldCountOrder) return false;
+        const snapshot = (data ?? []) as CapacitySnapshotRow[];
+        const usedPizzaUnits = sumSlotPizzaUnits(
+          snapshot,
+          orderType,
+          selectedSlotStart,
+          activeOrderWindowMinutes
+        );
+        const projectedPizzaUnits = usedPizzaUnits + cartPizzaUnits;
 
-          const baseDate = order.fulfillment_token
-            ? new Date(order.fulfillment_token)
-            : new Date(order.created_at);
-          if (Number.isNaN(baseDate.getTime())) return false;
-          const slotStart = floorToWindowStart(baseDate, activeOrderWindowMinutes).getTime();
-          return slotStart === selectedSlotStart;
-        });
-
-        if (matchingOrders.length >= activeMaxOrdersPerWindow) {
+        if (projectedPizzaUnits > activeMaxPizzaUnitsPerWindow) {
           if (fulfillmentMode === 'asap') {
-            const slotCounts = new Map<number, number>();
-            (data ?? []).forEach((order) => {
-              const orderTypeValue = order.order_type;
-              const isDeliveryOrder = orderTypeValue === 'delivery';
-              const shouldCountOrder = orderType === 'delivery' ? isDeliveryOrder : !isDeliveryOrder;
-              if (!shouldCountOrder) return;
-              const baseDate = order.fulfillment_token
-                ? new Date(order.fulfillment_token)
-                : new Date(order.created_at);
-              if (Number.isNaN(baseDate.getTime())) return;
-              const slotStart = floorToWindowStart(baseDate, activeOrderWindowMinutes).getTime();
-              slotCounts.set(slotStart, (slotCounts.get(slotStart) ?? 0) + 1);
-            });
-
             const fallbackSlot = availableTimeSlots.find((slot) => {
               if (disabledTimeSlots.includes(slot.key)) return false;
               const slotStart = floorToWindowStart(new Date(slot.iso), activeOrderWindowMinutes).getTime();
-              const usedCapacity = slotCounts.get(slotStart) ?? 0;
-              return usedCapacity < activeMaxOrdersPerWindow;
+              const slotUsedUnits = sumSlotPizzaUnits(
+                snapshot,
+                orderType,
+                slotStart,
+                activeOrderWindowMinutes
+              );
+              return slotUsedUnits + cartPizzaUnits <= activeMaxPizzaUnitsPerWindow;
             });
 
             if (fallbackSlot && fallbackSlot.iso !== selectedFulfillmentIso) {
@@ -606,9 +691,26 @@ export default function CheckoutScreen() {
           }
 
           setAvailabilityError(orderType === 'delivery' ? i18n.unavailableDeliveryCapacity : i18n.unavailableCapacity);
-        } else {
-          setAvailabilityError(null);
+          return;
         }
+
+        if (isShiftDoughTrackingEnabled) {
+          if (shiftUsageResponse.error) {
+            setAvailabilityError(i18n.unavailableShiftTracking);
+            return;
+          }
+
+          const shiftUsedUnits = Number(shiftUsageResponse.data);
+          const normalizedShiftUsed =
+            Number.isFinite(shiftUsedUnits) && shiftUsedUnits >= 0 ? shiftUsedUnits : 0;
+
+          if (normalizedShiftUsed + cartPizzaUnits > shiftDoughBallsTotal!) {
+            setAvailabilityError(i18n.unavailableShiftDough);
+            return;
+          }
+        }
+
+        setAvailabilityError(null);
       } catch {
         if (!isCancelled) {
           setAvailabilityError(null);
@@ -632,7 +734,9 @@ export default function CheckoutScreen() {
     companyId,
     selectedFulfillmentIso,
     activeOrderWindowMinutes,
-    activeMaxOrdersPerWindow,
+    activeMaxPizzaUnitsPerWindow,
+    cartPizzaUnits,
+    items,
     orderType,
     fulfillmentMode,
     availableTimeSlots,
@@ -642,10 +746,15 @@ export default function CheckoutScreen() {
     isRestaurantTemporarilyClosed,
     pausedUntilTimestamp,
     isOnline,
+    isShiftDoughTrackingEnabled,
+    shiftDoughBallsTotal,
+    shiftStartedAt,
     i18n.queueAtNextOpeningPrompt,
     i18n.unavailableOutsideWorkingHours,
     i18n.unavailableCapacity,
     i18n.unavailableDeliveryCapacity,
+    i18n.unavailableShiftDough,
+    i18n.unavailableShiftTracking,
     i18n.unavailablePausedUntil,
     i18n.unavailableRestaurantClosed,
     i18n.unavailableSlotDisabled,
@@ -659,7 +768,9 @@ export default function CheckoutScreen() {
       const matchedOption = PHONE_PREFIX_OPTIONS.find((option) => option.dialCode === parsed.dialCode);
       setSelectedPhoneOptionId(matchedOption?.id ?? DEFAULT_PHONE_OPTION.id);
       setPhoneNumber(parsed.nationalNumber);
-      setAddress(profile.address || '');
+      const parsedAddress = splitAddressAndCivico(profile.address || '');
+      setAddress(parsedAddress.street);
+      setCivico(parsedAddress.civico);
     } else if (isGuest) {
       setName('ospite123');
     }
@@ -667,12 +778,51 @@ export default function CheckoutScreen() {
 
   const handleNextStep = () => {
     if (step === 'type') {
+      setStep('time');
+    } else if (step === 'time') {
+      const isLongAvailabilityCheck =
+        isCheckingAvailability &&
+        availabilityCheckStartedAtRef.current !== null &&
+        Date.now() - availabilityCheckStartedAtRef.current > 6000;
+      if (isCheckingAvailability && !isLongAvailabilityCheck) {
+        Alert.alert(i18n.timeTitle, i18n.checkingAvailability, [{ text: 'OK' }]);
+        return;
+      }
+
+      if (
+        availabilityError &&
+        isClosedByBusinessHours &&
+        nextBusinessOpening &&
+        new Date(selectedFulfillmentIso).getTime() < nextBusinessOpening.getTime()
+      ) {
+        Alert.alert(
+          i18n.unavailableRestaurantClosed,
+          `${i18n.queueAtNextOpeningPrompt} ${formatLocalHourMinute(nextBusinessOpening)}?`,
+          [
+            { text: i18n.back, style: 'cancel' },
+            {
+              text: i18n.queueAtNextOpeningAction,
+              onPress: () => {
+                setFulfillmentMode('scheduled');
+                setSelectedFulfillmentTimeIso(nextBusinessOpening.toISOString());
+              },
+            },
+          ]
+        );
+        return;
+      }
+
+      if (availabilityError) {
+        Alert.alert(i18n.timeTitle, availabilityError, [{ text: 'OK' }]);
+        return;
+      }
+
       setStep('details');
     } else if (step === 'details') {
       // Clear previous errors
       setErrors({});
       
-      const newErrors: {name?: string; phone?: string; address?: string; tableNumber?: string} = {};
+      const newErrors: {name?: string; phone?: string; address?: string; civico?: string; tableNumber?: string} = {};
       let hasError = false;
 
       // Validate Name
@@ -711,6 +861,11 @@ export default function CheckoutScreen() {
         hasError = true;
       }
 
+      if (orderType === 'delivery' && !civico.trim()) {
+        newErrors.civico = 'Inserisci il numero civico';
+        hasError = true;
+      }
+
       if (hasError) {
         setErrors(newErrors);
         Alert.alert(
@@ -721,50 +876,14 @@ export default function CheckoutScreen() {
         return;
       }
 
-      const isLongAvailabilityCheck =
-        isCheckingAvailability &&
-        availabilityCheckStartedAtRef.current !== null &&
-        Date.now() - availabilityCheckStartedAtRef.current > 6000;
-      if (isCheckingAvailability && !isLongAvailabilityCheck) {
-        Alert.alert(i18n.missingFields, i18n.checkingAvailability, [{ text: 'OK' }]);
-        return;
-      }
-
-      if (
-        availabilityError &&
-        isClosedByBusinessHours &&
-        nextBusinessOpening &&
-        new Date(selectedFulfillmentIso).getTime() < nextBusinessOpening.getTime()
-      ) {
-        Alert.alert(
-          i18n.unavailableRestaurantClosed,
-          `${i18n.queueAtNextOpeningPrompt} ${formatLocalHourMinute(nextBusinessOpening)}?`,
-          [
-            { text: i18n.back, style: 'cancel' },
-            {
-              text: i18n.queueAtNextOpeningAction,
-              onPress: () => {
-                setFulfillmentMode('scheduled');
-                setSelectedFulfillmentTimeIso(nextBusinessOpening.toISOString());
-              },
-            },
-          ]
-        );
-        return;
-      }
-
-      if (availabilityError) {
-        Alert.alert(i18n.missingFields, availabilityError, [{ text: 'OK' }]);
-        return;
-      }
-
       setStep('payment');
     }
   };
 
   const handleBackStep = () => {
     if (step === 'payment') setStep('details');
-    else if (step === 'details') setStep('type');
+    else if (step === 'details') setStep('time');
+    else if (step === 'time') setStep('type');
     else router.back();
   };
 
@@ -806,12 +925,13 @@ export default function CheckoutScreen() {
 
     setIsProcessing(true);
     const fulfillmentToken = buildSchedulingToken(selectedFulfillmentIso);
+    const capacityToken = buildCapacityUnitsToken(cartPizzaUnits);
     const fulfillmentLabel =
       fulfillmentMode === 'asap'
         ? `ASAP (${formatLocalHourMinute(new Date(selectedFulfillmentIso))})`
         : formatLocalHourMinute(new Date(selectedFulfillmentIso));
     const baseNotes = `Metodo di pagamento: ${paymentProvider}${appliedDeliveryFee > 0 ? ` | Delivery fee: €${appliedDeliveryFee.toFixed(2)}` : ''}`;
-    const notesWithFulfillment = `${baseNotes} | Fulfillment: ${fulfillmentLabel} | ${fulfillmentToken}`;
+    const notesWithFulfillment = `${baseNotes} | Fulfillment: ${fulfillmentLabel} | ${fulfillmentToken} | ${capacityToken}`;
 
     try {
       // If offline, queue the order instead of trying to create it
@@ -822,7 +942,7 @@ export default function CheckoutScreen() {
           orderType,
           customerName: name,
           customerPhone: fullPhoneNumber,
-          deliveryAddress: address,
+          deliveryAddress: fullDeliveryAddress,
           tableNumber: tableNumber,
           paymentMethod: paymentProviderToMethod(paymentProvider),
         });
@@ -842,7 +962,7 @@ export default function CheckoutScreen() {
         orderType,
         customerName: name,
         customerPhone: fullPhoneNumber,
-        deliveryAddress: address,
+        deliveryAddress: fullDeliveryAddress,
         tableNumber: tableNumber,
         fulfillmentMode,
         fulfillmentAt: selectedFulfillmentIso,
@@ -852,9 +972,10 @@ export default function CheckoutScreen() {
       console.log('✅ Order created successfully:', result.orderId);
 
       clearCart();
-      setConfirmedOrderId(result.orderId);
-      setShowConfirmationModal(true);
       setIsProcessing(false);
+      router.replace(
+        `/order-tracking?orderType=${encodeURIComponent(orderType)}&orderId=${encodeURIComponent(result.orderId)}`
+      );
     } catch (error) {
       console.error('❌ Order creation failed:', error);
       Alert.alert(
@@ -926,6 +1047,126 @@ export default function CheckoutScreen() {
           disabled={isRestaurantTemporarilyClosed}
           size="lg"
         />
+      </View>
+    </ScrollView>
+  );
+
+  const renderTimeSelection = () => (
+    <ScrollView className="flex-1" contentContainerClassName="p-6 pb-10">
+      <View className="w-full max-w-[560px] self-center">
+        <Text className="text-3xl font-black text-gray-900 mb-2">{i18n.timeTitle}</Text>
+        <Text className="text-base leading-6 text-gray-600 mb-5">{i18n.timeSubtitle}</Text>
+
+        <View className="flex-row items-center gap-3 bg-white border border-[#e1a255]/40 rounded-xl p-3 mb-6">
+          <View className="w-11 h-11 rounded-lg bg-[#f9ecdd] items-center justify-center">
+            <FontAwesome
+              name={orderType === 'eat_in' ? 'cutlery' : orderType === 'take_away' ? 'shopping-bag' : 'motorcycle'}
+              size={20}
+              color="#8d171e"
+            />
+          </View>
+          <View className="flex-1">
+            <Text className="text-xs font-semibold text-gray-500">{i18n.selectedService}</Text>
+            <Text className="text-base font-bold text-gray-900">
+              {orderType === 'eat_in' ? i18n.dineInTitle : orderType === 'take_away' ? i18n.takeawayTitle : i18n.deliveryTitle}
+            </Text>
+          </View>
+          <FontAwesome name="check-circle" size={20} color="#8d171e" />
+        </View>
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityState={{ selected: fulfillmentMode === 'asap' }}
+          className={`min-h-[104px] rounded-2xl border-2 p-5 flex-row items-center gap-4 active:scale-[0.98] ${
+            fulfillmentMode === 'asap' ? 'bg-[#f9ecdd] border-[#8d171e]' : 'bg-white border-gray-200'
+          }`}
+          onPress={() => {
+            const firstAvailableSlot = availableTimeSlots.find((slot) => !disabledTimeSlots.includes(slot.key));
+            setFulfillmentMode('asap');
+            if (firstAvailableSlot) setAsapFulfillmentTimeIso(firstAvailableSlot.iso);
+          }}
+        >
+          <View className="w-12 h-12 rounded-xl bg-white items-center justify-center border border-[#e1a255]/40">
+            <FontAwesome name="bolt" size={21} color="#8d171e" />
+          </View>
+          <View className="flex-1">
+            <Text className="text-lg font-extrabold text-gray-900">{i18n.asapLabel}</Text>
+            <Text className="text-sm leading-5 text-gray-600 mt-1">{i18n.asapTimeHint}</Text>
+            <Text className="text-sm font-bold text-[#8d171e] mt-2">
+              {formatLocalHourMinute(new Date(asapFulfillmentTimeIso || selectedFulfillmentIso))}
+            </Text>
+          </View>
+          {fulfillmentMode === 'asap' && <FontAwesome name="check-circle" size={24} color="#8d171e" />}
+        </Pressable>
+
+        <Text className="text-base font-bold text-gray-900 mt-7 mb-3">{i18n.scheduledTimesTitle}</Text>
+        <View className="flex-row flex-wrap justify-between gap-y-3">
+          {availableTimeSlots.slice(0, 8).map((slot) => {
+            const isSelected = fulfillmentMode === 'scheduled' && selectedFulfillmentTimeIso === slot.iso;
+            const isDisabled = disabledTimeSlots.includes(slot.key);
+            return (
+              <Pressable
+                key={slot.iso}
+                accessibilityRole="button"
+                accessibilityState={{ selected: isSelected, disabled: isDisabled }}
+                disabled={isDisabled}
+                className={`w-[48%] min-h-[58px] rounded-xl border-2 items-center justify-center active:scale-[0.98] ${
+                  isSelected
+                    ? 'bg-[#8d171e] border-[#8d171e]'
+                    : isDisabled
+                      ? 'bg-gray-100 border-gray-200 opacity-50'
+                      : 'bg-white border-gray-200'
+                }`}
+                onPress={() => {
+                  setFulfillmentMode('scheduled');
+                  setSelectedFulfillmentTimeIso(slot.iso);
+                }}
+              >
+                <Text className={`text-base font-bold ${isSelected ? 'text-white' : 'text-gray-900'}`}>
+                  {slot.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        <Button
+          title={i18n.pickTimeWithWheel}
+          variant="outline"
+          onPress={() => setShowFulfillmentPicker(true)}
+          className="mt-4"
+        />
+
+        {(isRestaurantTemporarilyClosed || availabilityError) && (
+          <View className="bg-red-50 border border-red-200 rounded-xl p-4 mt-4">
+            <Text className="text-sm leading-5 text-red-700">
+              {availabilityError || i18n.unavailableRestaurantClosed}
+            </Text>
+          </View>
+        )}
+        {isCheckingAvailability && (
+          <View className="flex-row items-center gap-2 mt-4">
+            <FontAwesome name="clock-o" size={16} color="#92400e" />
+            <Text className="text-sm text-amber-800">{i18n.checkingAvailability}</Text>
+          </View>
+        )}
+
+        <View className="flex-row gap-3 mt-8">
+          <Button
+            title={i18n.back}
+            variant="outline"
+            onPress={handleBackStep}
+            className="flex-1"
+            size="lg"
+          />
+          <Button
+            title={i18n.continue}
+            onPress={handleNextStep}
+            disabled={isCheckingAvailability}
+            className="flex-1"
+            size="lg"
+          />
+        </View>
       </View>
     </ScrollView>
   );
@@ -1105,62 +1346,18 @@ export default function CheckoutScreen() {
             placeholder={i18n.addressPlaceholder}
             address={address}
             onAddressChange={setAddress}
+            civico={civico}
+            onCivicoChange={setCivico}
+            civicoLabel={i18n.civicoLabel}
+            civicoPlaceholder={i18n.civicoPlaceholder}
             error={errors.address}
+            civicoError={errors.civico}
             hasError={Boolean(errors.address)}
+            hasCivicoError={Boolean(errors.civico)}
             mapHint={i18n.addressMapHint}
             searchingLabel={i18n.addressSearching}
           />
         )}
-
-        <View className="bg-card border border-border rounded-xl p-4 gap-3">
-          <Text className="text-sm font-semibold">{i18n.fulfillmentTitle}</Text>
-          <View className="h-11 rounded-lg items-center justify-center border bg-[#f9ecdd] border-[#8d171e]">
-            <Text className="font-semibold">{i18n.asapLabel}</Text>
-          </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-2 pr-2">
-            {availableTimeSlots.map((slot) => {
-              const isSelectedAsap = fulfillmentMode === 'asap' && asapFulfillmentTimeIso === slot.iso;
-              const isSelectedScheduled = fulfillmentMode === 'scheduled' && selectedFulfillmentTimeIso === slot.iso;
-              return (
-                <Pressable
-                  key={slot.iso}
-                  className={`h-10 px-3 rounded-lg border items-center justify-center ${
-                    isSelectedAsap || isSelectedScheduled ? 'bg-[#f9ecdd] border-[#8d171e]' : 'bg-background border-border'
-                  }`}
-                  onPress={() => {
-                    setFulfillmentMode('asap');
-                    setAsapFulfillmentTimeIso(slot.iso);
-                  }}
-                >
-                  <Text className="text-sm font-medium">{slot.label}</Text>
-                </Pressable>
-              );
-            })}
-          </ScrollView>
-          <View className="gap-2">
-            <Text className="text-xs text-muted-foreground">{i18n.preferredTimeLabel}</Text>
-            <Button
-              title={i18n.pickTimeWithWheel}
-              variant="outline"
-              onPress={() => setShowFulfillmentPicker(true)}
-            />
-            {fulfillmentMode === 'scheduled' && selectedFulfillmentTimeIso && (
-              <Text className="text-xs text-emerald-700">
-                {i18n.preferredTimeSelected}: {formatLocalHourMinute(new Date(selectedFulfillmentTimeIso))}
-              </Text>
-            )}
-          </View>
-          {(isRestaurantTemporarilyClosed || availabilityError) && (
-            <View className="bg-red-50 border border-red-200 rounded-lg p-3">
-              <Text className="text-xs text-red-700">
-                {availabilityError || i18n.unavailableRestaurantClosed}
-              </Text>
-            </View>
-          )}
-          {isCheckingAvailability && (
-            <Text className="text-xs text-amber-700">{i18n.checkingAvailability}</Text>
-          )}
-        </View>
 
         {/* Buttons */}
         <View className="flex-row gap-3 mt-4">
@@ -1243,7 +1440,7 @@ export default function CheckoutScreen() {
               {name || 'The Greenwich Loft'}
             </Text>
             <Text className="text-xs text-gray-600 mt-1">
-              {address || '152 Mercer St, New York, NY 10012'}
+              {fullDeliveryAddress || BRAND.address}
             </Text>
           </View>
         </View>
@@ -1348,18 +1545,26 @@ export default function CheckoutScreen() {
               <FontAwesome name="arrow-left" size={20} color="#000" />
             </Pressable>
             <Text className="text-xl font-bold flex-1 text-center">
-              {step === 'type' ? i18n.reviewTitle : step === 'details' ? i18n.detailsTitle : i18n.paymentTitle}
+              {step === 'type'
+                ? i18n.reviewTitle
+                : step === 'time'
+                  ? i18n.timeTitle
+                  : step === 'details'
+                    ? i18n.detailsTitle
+                    : i18n.paymentTitle}
             </Text>
             <View className="w-10" />
           </View>
           <View className="flex-row gap-2 justify-center">
-            <View className={`h-2 w-16 rounded-full ${step === 'type' ? 'bg-primary' : 'bg-primary/30'}`} />
-            <View className={`h-2 w-16 rounded-full ${step === 'details' ? 'bg-primary' : 'bg-primary/30'}`} />
-            <View className={`h-2 w-16 rounded-full ${step === 'payment' ? 'bg-primary' : 'bg-primary/30'}`} />
+            <View className={`h-2 w-12 rounded-full ${step === 'type' ? 'bg-primary' : 'bg-primary/30'}`} />
+            <View className={`h-2 w-12 rounded-full ${step === 'time' ? 'bg-primary' : 'bg-primary/30'}`} />
+            <View className={`h-2 w-12 rounded-full ${step === 'details' ? 'bg-primary' : 'bg-primary/30'}`} />
+            <View className={`h-2 w-12 rounded-full ${step === 'payment' ? 'bg-primary' : 'bg-primary/30'}`} />
           </View>
         </View>
 
         {step === 'type' && renderOrderTypeSelection()}
+        {step === 'time' && renderTimeSelection()}
         {step === 'details' && renderDetailsForm()}
         {step === 'payment' && renderPayment()}
 
@@ -1463,33 +1668,20 @@ export default function CheckoutScreen() {
         <Modal
           transparent
           animationType="fade"
-          visible={showConfirmationModal}
-          onRequestClose={() => setShowConfirmationModal(false)}
+          visible={isProcessing}
+          onRequestClose={() => undefined}
         >
           <View className="flex-1 bg-black/45 items-center justify-center p-6">
             <View className="w-full max-w-[360px] bg-white rounded-2xl border border-[#e1a255]/40 p-5">
-              <View className="items-center mb-2">
-                <View className="w-12 h-12 rounded-full bg-emerald-100 items-center justify-center">
-                  <FontAwesome name="check" size={20} color="#047857" />
-                </View>
+              <View className="w-12 h-12 rounded-full bg-[#f9ecdd] items-center justify-center self-center mb-3">
+                <FontAwesome name="spinner" size={18} color="#8d171e" />
               </View>
               <Text className="text-xl font-extrabold text-center text-gray-900">
-                {i18n.orderConfirmed}
+                {i18n.orderSendingTitle}
               </Text>
               <Text className="text-sm text-gray-600 text-center mt-2">
-                Il tuo ordine #{(confirmedOrderId || 'N/A').slice(0, 8).toUpperCase()} e stato ricevuto.
+                {i18n.orderSendingMessage}
               </Text>
-              <Pressable
-                className="mt-4 h-12 rounded-xl bg-[#8d171e] items-center justify-center active:opacity-90"
-                onPress={() => {
-                  setShowConfirmationModal(false);
-                  router.replace(
-                    `/order-success?orderId=${confirmedOrderId || ''}&orderType=${orderType}`
-                  );
-                }}
-              >
-                <Text className="text-white font-bold">{i18n.openSummary}</Text>
-              </Pressable>
             </View>
           </View>
         </Modal>

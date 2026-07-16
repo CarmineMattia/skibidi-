@@ -1,31 +1,23 @@
-/**
- * Home Screen
- * - Guest home: conversione rapida con 2 CTA principali
- * - Logged home: retention (riordino, in voga, storico, consigli)
- */
-
-import { HomeCategoryGrid } from '@/components/features/home/HomeCategoryGrid';
-import { HomeDiscoveryCards } from '@/components/features/home/HomeDiscoveryCards';
-import { HomeGuestHero } from '@/components/features/home/HomeGuestHero';
-import { HomeHistoryPreview } from '@/components/features/home/HomeHistoryPreview';
-import { HomeLoggedWelcome } from '@/components/features/home/HomeLoggedWelcome';
-import { HomeOffersSection, type HomeOfferCard } from '@/components/features/home/HomeOffersSection';
-import { HomePrimaryActions } from '@/components/features/home/HomePrimaryActions';
-import { HomeQuickActions } from '@/components/features/home/HomeQuickActions';
-import { HomeTrendingSection } from '@/components/features/home/HomeTrendingSection';
-import { OrderAssistantChat } from '@/components/features/chat/OrderAssistantChat';
-import type {
-  HomeCategory,
-  HomeRecentOrder,
-  HomeTrendingPizza,
-} from '@/components/features/home/types';
-import { BRAND, BRAND_LOGO } from '@/lib/data/brand';
-import { BUILDER_PRODUCT_NAME } from '@/lib/data/pizzaBuilder';
-import { useRouter } from 'expo-router';
+import { HomeOffersSection } from '@/components/features/home/HomeOffersSection';
+import { LandingHeader } from '@/components/features/landing/LandingHeader';
+import { LandingHero } from '@/components/features/landing/LandingHero';
 import {
-  Alert,
+  LandingContact,
+  LandingGallery,
+  LandingServices,
+} from '@/components/features/landing/LandingSections';
+import { BRAND } from '@/lib/data/brand';
+import type { ResolvedComboOffer } from '@/lib/data/offers';
+import { useOffers } from '@/lib/hooks/useOffers';
+import { useAuth } from '@/lib/stores/AuthContext';
+import { useCart } from '@/lib/stores/CartContext';
+import { useRouter } from 'expo-router';
+import Head from 'expo-router/head';
+import { useEffect, useRef, useState } from 'react';
+import {
   Dimensions,
-  Image,
+  LayoutChangeEvent,
+  Platform,
   RefreshControl,
   ScrollView,
   Text,
@@ -33,467 +25,140 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useAuth } from '@/lib/stores/AuthContext';
-import { useProducts } from '@/lib/hooks/useProducts';
-import { useOrders } from '@/lib/hooks/useOrders';
-import { useCart } from '@/lib/stores/CartContext';
-import { getOrderStatusLabel, normalizeOrderType } from '@/lib/utils/orderTracking';
-import { useMemo } from 'react';
+
+function addOfferToCart(offer: ResolvedComboOffer, addItem: ReturnType<typeof useCart>['addItem']) {
+  if (offer.products.length === 0) return false;
+  offer.products.forEach((product) => {
+    addItem(product, 1, `Combo: ${offer.title}`);
+  });
+  return true;
+}
 
 export default function HomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const scrollRef = useRef<ScrollView>(null);
+  const sectionOffsets = useRef({ gallery: 0, contact: 0 });
+  const [hasHydrated, setHasHydrated] = useState(Platform.OS !== 'web');
   const { width } = useWindowDimensions();
   const viewportWidth = Dimensions.get('window').width;
   const effectiveWidth = Math.min(width, viewportWidth);
-  const isCompact = effectiveWidth < 430;
-  const { isAuthenticated, profile, signOut, isGuest, exitGuestMode, isAdmin } = useAuth();
+  const responsiveWidth = hasHydrated ? effectiveWidth : 390;
+  const isCompact = responsiveWidth < 430;
+  const isWide = responsiveWidth >= 768;
+  const isWebDesktop = Platform.OS === 'web' && isWide;
+  const { isAuthenticated, profile } = useAuth();
   const { addItem } = useCart();
-  const { data: products = [] } = useProducts();
-  const { data: orders = [] } = useOrders({ limit: 8, enabled: isAuthenticated });
-  const isGuestExperience = !isAuthenticated;
+  const { offers, refetch, isRefetching, isLoading } = useOffers();
 
-  const trendingPizzas: HomeTrendingPizza[] = [
-    {
-      id: '1',
-      name: 'Margherita DOP',
-      description: 'Pomodoro San Marzano, bufala, basilico',
-      price: 12.5,
-      badge: 'Best seller',
-      image: '',
-      imageUrl:
-        'https://images.unsplash.com/photo-1600628421066-f6bda6a7b976?auto=format&fit=crop&w=900&q=80',
-    },
-    {
-      id: '2',
-      name: 'Diavola',
-      description: 'Salame piccante, mozzarella, olio al peperoncino',
-      price: 13.5,
-      badge: 'Piccante',
-      image: '',
-      imageUrl:
-        'https://images.unsplash.com/photo-1594007654729-407eedc4fe0f?auto=format&fit=crop&w=900&q=80',
-    },
-    {
-      id: '3',
-      name: 'Capricciosa',
-      description: 'Prosciutto cotto, funghi, carciofi, olive',
-      price: 14,
-      badge: 'Consigliata',
-      image: '',
-      imageUrl:
-        'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=900&q=80',
-    },
-    {
-      id: '4',
-      name: 'Quattro Formaggi',
-      description: 'Mozzarella, gorgonzola, fontina e parmigiano',
-      price: 14.5,
-      badge: 'Cremosa',
-      image: '',
-      imageUrl:
-        'https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=900&q=80',
-    },
-    {
-      id: '5',
-      name: 'Bufalina',
-      description: 'Bufala campana, pomodorini e basilico fresco',
-      price: 15,
-      badge: 'Premium',
-      image: '',
-      imageUrl:
-        'https://images.unsplash.com/photo-1542834369-f10ebf06d3e0?auto=format&fit=crop&w=900&q=80',
-    },
-    {
-      id: '6',
-      name: 'Vegetariana',
-      description: 'Verdure grigliate, olive nere e mozzarella',
-      price: 13,
-      badge: 'Leggera',
-      image: '',
-      imageUrl:
-        'https://images.unsplash.com/photo-1593560708920-61dd98c46a4e?auto=format&fit=crop&w=900&q=80',
-    },
-  ];
+  useEffect(() => {
+    setHasHydrated(true);
+  }, []);
 
-  const categories: HomeCategory[] = [
-    { id: 1, name: 'Pizze', icon: '', color: 'bg-[#f3dabb]' },
-    { id: 2, name: 'Burger', icon: '', color: 'bg-red-100' },
-    { id: 3, name: 'Insalate', icon: '', color: 'bg-green-100' },
-    { id: 4, name: 'Dolci', icon: '', color: 'bg-pink-100' },
-    { id: 5, name: 'Bevande', icon: '', color: 'bg-blue-100' },
-  ];
-
-  const guestTrendingPizzas = useMemo<HomeTrendingPizza[]>(() => {
-    const pizzaByName = products.filter((product) => {
-      const searchable = `${product.name} ${product.description ?? ''}`.toLowerCase();
-      return searchable.includes('pizza') || searchable.includes('margherita') || searchable.includes('diavola');
-    });
-
-    const source = pizzaByName.length > 0 ? pizzaByName : products;
-    const mapped = source.slice(0, 8).map((product, index) => {
-      let badge = 'Consigliata';
-      if (index === 0) badge = 'Best seller';
-      if (index === 1) badge = 'Piccante';
-
-      return {
-        id: product.id,
-        name: product.name,
-        description: product.description || 'Ricetta artigianale del giorno',
-        price: product.price,
-        badge,
-        image: '',
-        imageUrl: product.image_url,
-      };
-    });
-
-    return mapped.length > 0 ? mapped : trendingPizzas;
-  }, [products]);
-
-  const recentOrders = useMemo<HomeRecentOrder[]>(() => {
-    if (!isAuthenticated || orders.length === 0) {
-      return [];
-    }
-
-    return orders.slice(0, 2).map((order) => {
-      const createdAt = order.created_at ? new Date(order.created_at) : null;
-      const date = createdAt
-        ? createdAt.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' })
-        : '--/--';
-
-      return {
-        id: `ORD-${order.id.slice(0, 6).toUpperCase()}`,
-        orderId: order.id,
-        orderType: order.order_type,
-        date,
-        total: order.total_amount,
-        status: getOrderStatusLabel(order.status),
-      };
-    });
-  }, [isAuthenticated, orders]);
-
-  const hasRecentOrders = recentOrders.length > 0;
-
-  const activeOrder = useMemo(
-    () => orders.find((order) => order.status !== 'delivered' && order.status !== 'cancelled'),
-    [orders]
-  );
-
-  const openActiveOrderTracking = () => {
-    if (!activeOrder) {
-      router.push('/(tabs)/two');
-      return;
-    }
-
-    const orderType = normalizeOrderType(activeOrder.order_type);
-    router.push(
-      `/order-tracking?orderType=${encodeURIComponent(orderType)}&orderId=${encodeURIComponent(activeOrder.id)}`
-    );
-  };
-
-  const offerCards = useMemo<HomeOfferCard[]>(
-    () => [
-      {
-        id: 'offerta-1',
-        title: 'Combo Menu Completo',
-        subtitle: 'Combo meal completo: burger artigianale, fries croccanti e drink 33cl inclusi',
-        cta: 'Prendi il combo',
-        imageUrl:
-          'https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=1200&q=80',
-        includes: ['Burger', 'Fries', 'Drink'],
-        previewImages: [
-          'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=300&q=80',
-          'https://images.unsplash.com/photo-1576107232684-1279f390859f?auto=format&fit=crop&w=300&q=80',
-          'https://images.unsplash.com/photo-1581636625402-29b2a704ef13?auto=format&fit=crop&w=300&q=80',
-        ],
-      },
-      {
-        id: 'offerta-2',
-        title: 'Duo Burger & Fries',
-        subtitle: '2 combo meal completi con doppio burger, fries e bibite ghiacciate',
-        cta: 'Attiva offerta',
-        imageUrl:
-          'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1200&q=80',
-        includes: ['2x Burger', '2x Fries', '2x Drink'],
-        previewImages: [
-          'https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=300&q=80',
-          'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?auto=format&fit=crop&w=300&q=80',
-          'https://images.unsplash.com/photo-1499636136210-6f4ee915583e?auto=format&fit=crop&w=300&q=80',
-        ],
-      },
-      {
-        id: 'offerta-3',
-        title: 'Family Combo',
-        subtitle: 'Combo meal famiglia: 2 pizze grandi, fries da condividere e 2 drink',
-        cta: 'Ordina family',
-        imageUrl:
-          'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&w=1200&q=80',
-        includes: ['2x Pizza', 'Maxi Fries', '2x Drink'],
-        previewImages: [
-          'https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=300&q=80',
-          'https://images.unsplash.com/photo-1625944525533-473f1f45d7c3?auto=format&fit=crop&w=300&q=80',
-          'https://images.unsplash.com/photo-1527960471264-932f39eb5846?auto=format&fit=crop&w=300&q=80',
-        ],
-      },
-      {
-        id: 'offerta-4',
-        title: 'Snack Box XL',
-        subtitle: 'Combo meal snack: nuggets, onion rings, fries e bibita media inclusa',
-        cta: 'Scopri snack box',
-        imageUrl:
-          'https://images.unsplash.com/photo-1512152272829-e3139592d56f?auto=format&fit=crop&w=1200&q=80',
-        includes: ['Nuggets', 'Fries', 'Drink'],
-        previewImages: [
-          'https://images.unsplash.com/photo-1562967914-608f82629710?auto=format&fit=crop&w=300&q=80',
-          'https://images.unsplash.com/photo-1625944525533-473f1f45d7c3?auto=format&fit=crop&w=300&q=80',
-          'https://images.unsplash.com/photo-1610873167013-2dd675d30ef4?auto=format&fit=crop&w=300&q=80',
-        ],
-      },
-      {
-        id: 'offerta-5',
-        title: 'Lunch Deal Smart',
-        subtitle: 'Combo meal pranzo: burger o wrap, fries e soft drink inclusi',
-        cta: 'Vedi lunch deal',
-        imageUrl:
-          'https://images.unsplash.com/photo-1561758033-d89a9ad46330?auto=format&fit=crop&w=1200&q=80',
-        includes: ['Wrap/Burger', 'Fries', 'Soft Drink'],
-        previewImages: [
-          'https://images.unsplash.com/photo-1550317138-10000687a72b?auto=format&fit=crop&w=300&q=80',
-          'https://images.unsplash.com/photo-1518013431117-eb1465fa5752?auto=format&fit=crop&w=300&q=80',
-          'https://images.unsplash.com/photo-1554866585-cd94860890b7?auto=format&fit=crop&w=300&q=80',
-        ],
-      },
-      {
-        id: 'offerta-6',
-        title: 'Weekend Party Menu',
-        subtitle: 'Combo meal party: pizza, fries, chicken bites e drink per tutti',
-        cta: 'Apri promo weekend',
-        imageUrl:
-          'https://images.unsplash.com/photo-1600891964092-4316c288032e?auto=format&fit=crop&w=1200&q=80',
-        includes: ['Pizza', 'Fries', 'Drinks'],
-        previewImages: [
-          'https://images.unsplash.com/photo-1579751626657-72bc17010498?auto=format&fit=crop&w=300&q=80',
-          'https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=300&q=80',
-          'https://images.unsplash.com/photo-1527661591475-527312dd65f5?auto=format&fit=crop&w=300&q=80',
-        ],
-      },
-    ],
-    []
-  );
-
-  const handleLogout = async () => {
-    try {
-      if (isGuest && !isAuthenticated) {
-        exitGuestMode();
-      } else {
-        await signOut();
-      }
-      router.replace('/login');
-    } catch (error) {
-      console.error('Errore logout:', error);
-    }
-  };
-
-  const handleReorder = (orderId: string) => {
-    Alert.alert(
-      'Riordina',
-      'Vuoi ordinare di nuovo questo ordine?',
-      [
-        { text: 'Annulla', style: 'cancel' },
-        {
-          text: 'Sì, Riordina',
-          onPress: () => {
-            Alert.alert('Aggiunto', 'Articoli aggiunti al carrello');
-            router.push('/(tabs)/menu');
-          },
-        },
-      ]
-    );
-  };
-
-  const handleAddSuggestedPizza = (pizzaId: string) => {
-    const product = products.find((item) => item.id === pizzaId);
-    // Il prodotto builder va composto nella sua scheda, mai aggiunto al volo
-    if (!product || product.name === BUILDER_PRODUCT_NAME) {
-      router.push('/(tabs)/menu');
-      return;
-    }
-
-    addItem(product, 1);
+  const handleSelectOffer = (offer: ResolvedComboOffer) => {
+    addOfferToCart(offer, addItem);
     router.push('/(tabs)/menu');
   };
 
-  const handleSelectTrendingPizza = (pizza: HomeTrendingPizza) => {
-    const normalizedName = pizza.name.toLowerCase();
-    const product = products.find((item) => {
-      const nameMatch = item.name.toLowerCase().includes(normalizedName) || normalizedName.includes(item.name.toLowerCase());
-      const idMatch = item.id === pizza.id;
-      return idMatch || nameMatch;
+  const saveSectionOffset =
+    (section: keyof typeof sectionOffsets.current) => (event: LayoutChangeEvent) => {
+      sectionOffsets.current[section] = event.nativeEvent.layout.y;
+    };
+
+  const scrollToSection = (section: keyof typeof sectionOffsets.current) => {
+    const stickyHeaderHeight = (isWide ? 78 : 108) + (isWebDesktop ? 0 : insets.top);
+    scrollRef.current?.scrollTo({
+      y: Math.max(0, sectionOffsets.current[section] - stickyHeaderHeight),
+      animated: true,
     });
-
-    if (product && product.name !== BUILDER_PRODUCT_NAME) {
-      addItem(product, 1);
-      router.push('/(tabs)/menu');
-      return;
-    }
-
-    router.push('/(tabs)/menu');
   };
-
-  const renderGuestHome = () => (
-    <View className={`w-full self-center max-w-[1120px] ${isCompact ? 'px-3 pt-3 gap-4' : 'px-4 pt-4 gap-5'}`}>
-      <HomeTrendingSection
-        title="In Voga Oggi"
-        pizzas={guestTrendingPizzas}
-        onOpenAll={() => router.push('/(tabs)/menu')}
-        onOpenPizza={handleSelectTrendingPizza}
-        onQuickAddPizza={handleAddSuggestedPizza}
-      />
-
-      <HomePrimaryActions
-        onOrderNow={() => router.push('/(tabs)/menu')}
-        onViewMenu={() => router.push('/(tabs)/menu')}
-      />
-
-      <HomeOffersSection offers={offerCards} onOpenOffer={() => router.push('/(tabs)/menu')} />
-
-      <OrderAssistantChat />
-
-      <HomeGuestHero
-        onOrderNow={() => router.push('/(tabs)/menu')}
-        onViewMenu={() => router.push('/(tabs)/menu')}
-        showActions={false}
-      />
-
-      <HomeDiscoveryCards
-        onOpenChef={() => router.push('/(tabs)/menu')}
-        onOpenNearby={() => router.push('/(tabs)/menu')}
-      />
-
-      <HomeCategoryGrid
-        categories={categories}
-        onOpenAll={() => router.push('/(tabs)/menu')}
-        onOpenCategory={(categoryId) => router.push(`/(tabs)/menu?category=${categoryId}`)}
-      />
-
-      <HomeQuickActions
-        isAdmin={false}
-        onOpenMenu={() => router.push('/(tabs)/menu')}
-        onOpenKitchen={() => router.push('/(tabs)/kitchen')}
-        onOpenTracking={openActiveOrderTracking}
-        onOpenRewards={() => router.push('/rewards')}
-        onLogout={handleLogout}
-      />
-    </View>
-  );
-
-  const renderLoggedHome = () => (
-    <View className={`w-full self-center max-w-[1120px] ${isCompact ? 'p-3 gap-4' : 'p-4 gap-5'}`}>
-      <HomeTrendingSection
-        title="In Voga Oggi"
-        pizzas={trendingPizzas}
-        onOpenAll={() => router.push('/(tabs)/menu')}
-        onOpenPizza={handleSelectTrendingPizza}
-      />
-
-      <HomePrimaryActions
-        onOrderNow={() => router.push('/(tabs)/menu')}
-        onViewMenu={() => router.push('/(tabs)/menu')}
-      />
-
-      <HomeOffersSection offers={offerCards} onOpenOffer={() => router.push('/(tabs)/menu')} />
-
-      <OrderAssistantChat />
-
-      <HomeLoggedWelcome
-        firstName={profile?.full_name?.split(' ')[0] || 'cliente'}
-        showReorder={hasRecentOrders}
-        onReorderLast={hasRecentOrders ? () => handleReorder(recentOrders[0].id) : undefined}
-        onContinueMenu={() => router.push('/(tabs)/menu')}
-        showActions={false}
-      />
-
-      {hasRecentOrders ? (
-        <HomeHistoryPreview
-          orders={recentOrders}
-          onOpenAll={() => router.push('/(tabs)/two')}
-          onOpenOrder={(orderId) => {
-            const order = recentOrders.find((item) => item.orderId === orderId);
-            if (!order) {
-              router.push('/(tabs)/two');
-              return;
-            }
-
-            const orderType = normalizeOrderType(order.orderType);
-            router.push(
-              `/order-tracking?orderType=${encodeURIComponent(orderType)}&orderId=${encodeURIComponent(order.orderId)}`
-            );
-          }}
-          onReorder={handleReorder}
-        />
-      ) : null}
-
-      <HomeDiscoveryCards
-        onOpenChef={() => router.push('/(tabs)/menu')}
-        onOpenNearby={() => router.push('/(tabs)/menu')}
-      />
-
-      <HomeCategoryGrid
-        categories={categories}
-        onOpenAll={() => router.push('/(tabs)/menu')}
-        onOpenCategory={(categoryId) => router.push(`/(tabs)/menu?category=${categoryId}`)}
-      />
-
-      <HomeQuickActions
-        isAdmin={isAdmin}
-        onOpenMenu={() => router.push('/(tabs)/menu')}
-        onOpenKitchen={() => router.push('/(tabs)/kitchen')}
-        onOpenTracking={openActiveOrderTracking}
-        onOpenRewards={() => router.push('/rewards')}
-        onLogout={handleLogout}
-      />
-    </View>
-  );
 
   return (
-    <ScrollView
+    <>
+      <Head>
+        <title>{`${BRAND.name} | Pizza e consegna a Montecchio Emilia`}</title>
+        <meta name="description" content={BRAND.description} />
+        <meta property="og:title" content={`${BRAND.name} — ${BRAND.tagline}`} />
+        <meta property="og:description" content={BRAND.description} />
+      </Head>
+      <ScrollView
+      ref={scrollRef}
+      nativeID="landing-page"
       className="flex-1 bg-[#f9ecdd]"
-      contentContainerStyle={{ paddingBottom: insets.bottom + 96 }}
-      refreshControl={
-        <RefreshControl refreshing={false} onRefresh={() => {}} />
-      }
+      contentContainerStyle={{ paddingBottom: isWebDesktop ? 0 : insets.bottom + 88 }}
+      refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
+      stickyHeaderIndices={[0]}
+      showsVerticalScrollIndicator={false}
     >
-      {/* Compact Header */}
-      <View className={`bg-[#f9ecdd]/95 border-b border-[#e1a255]/40 ${isCompact ? 'px-3 py-2.5' : 'p-4 pb-3'}`}>
-        <View className="w-full self-center max-w-[1120px] flex-row items-center gap-3">
-          <Image
-            source={BRAND_LOGO}
-            style={isCompact ? { width: 56, height: 32 } : { width: 80, height: 44 }}
-            resizeMode="contain"
-            accessibilityLabel={BRAND.name}
-          />
-          <View className="flex-1 min-w-0">
-            <Text
-              className={`font-extrabold text-gray-900 ${isCompact ? 'text-lg' : 'text-2xl'}`}
-              numberOfLines={1}
-            >
-              {BRAND.name}
-            </Text>
-            <Text className={`text-[#8d171e] font-bold ${isCompact ? 'text-xs' : 'text-sm'}`}>
-              {isGuestExperience ? BRAND.tagline : 'Sistema POS'}
-            </Text>
+      <LandingHeader
+        isAuthenticated={isAuthenticated}
+        isDesktop={isWide}
+        topInset={isWebDesktop ? 0 : insets.top}
+        onMenu={() => router.push('/(tabs)/menu')}
+        onOffers={() => router.push('/offers')}
+        onGallery={() => scrollToSection('gallery')}
+        onContact={() => scrollToSection('contact')}
+        onAccount={() =>
+          router.push(isAuthenticated ? '/(tabs)/account' : '/login')
+        }
+      />
+
+      <LandingHero
+        isDesktop={isWide}
+        onMenu={() => router.push('/(tabs)/menu')}
+        onContact={() => scrollToSection('contact')}
+      />
+
+      {isAuthenticated ? (
+        <View className="bg-[#8d171e] px-5 py-3">
+          <Text className="text-center text-sm font-bold text-white">
+            Ciao, {profile?.full_name?.split(' ')[0] || 'cliente'} · il tuo menu è pronto
+          </Text>
+        </View>
+      ) : null}
+
+      <LandingServices
+        isDesktop={isWide}
+        isCompact={isCompact}
+        onMenu={() => router.push('/(tabs)/menu')}
+      />
+
+      <View className="bg-[#f1dcc3]">
+        <View className="w-full max-w-[1240px] self-center px-5 py-16 sm:px-8 sm:py-24">
+          <View className="mb-8 flex-row items-end justify-between gap-4">
+            <View className="max-w-[680px] flex-1">
+              <View className="mb-4 flex-row items-center gap-3">
+                <View className="h-px w-8 bg-[#8d171e]" />
+                <Text className="text-xs font-black uppercase tracking-[2px] text-[#8d171e]">
+                  Scelte per te
+                </Text>
+              </View>
+              <Text className="font-black tracking-[-1.4px] text-[#271d19] text-[36px] leading-[40px] sm:text-[50px] sm:leading-[54px]">
+                Più gusto, insieme.
+              </Text>
+              <Text className="mt-3 max-w-[520px] text-base leading-7 text-[#65554c]">
+                Combo pensati per te: scorri in verticale, scegli e aggiungi al carrello in un tap.
+              </Text>
+            </View>
           </View>
+          <HomeOffersSection
+            offers={offers}
+            isLoading={isLoading && offers.length === 0}
+            isCompact={isCompact}
+            onSelectOffer={handleSelectOffer}
+            onOpenAll={() => router.push('/offers')}
+          />
         </View>
       </View>
 
-      {isAuthenticated ? renderLoggedHome() : renderGuestHome()}
-
-      {/* Footer */}
-      <View className="items-center py-4 border-t border-[#e1a255]/40 mx-4">
-        <Text className="text-gray-400 text-[10px]">
-          {BRAND.name} v1.0 {isAuthenticated ? '• Logged' : '• Guest'}
-        </Text>
+      <View onLayout={saveSectionOffset('gallery')}>
+        <LandingGallery isDesktop={isWide} isCompact={isCompact} />
       </View>
-    </ScrollView>
+
+      <View onLayout={saveSectionOffset('contact')}>
+        <LandingContact isDesktop={isWide} isCompact={isCompact} />
+      </View>
+      </ScrollView>
+    </>
   );
 }

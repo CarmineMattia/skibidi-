@@ -38,9 +38,9 @@ const buttonTextVariants = cva('font-medium text-center', {
     variant: {
       default: 'text-primary-foreground',
       destructive: 'text-destructive-foreground',
-      outline: 'text-accent-foreground',
+      outline: 'text-foreground',
       secondary: 'text-secondary-foreground',
-      ghost: 'text-accent-foreground',
+      ghost: 'text-foreground',
       link: 'text-primary underline',
     },
     size: {

@@ -21,12 +21,14 @@ export interface BuilderSize extends BuilderOption {
   basePrice: number;
   /** Moltiplicatore prezzo degli ingredienti extra per questa taglia */
   ingredientMultiplier: number;
+  /** Peso in unità pallina per la capacità forno per fascia */
+  capacityWeight: number;
 }
 
 export const BUILDER_SIZES: BuilderSize[] = [
-  { id: 'piccola', label: 'Piccola', description: 'Formato ridotto', basePrice: 4.0, surcharge: 0, ingredientMultiplier: 1 },
-  { id: 'media', label: 'Media', description: 'Formato classico', basePrice: 5.0, surcharge: 0, ingredientMultiplier: 1 },
-  { id: 'mezzo_metro', label: 'Mezzo metro', description: 'Da condividere (2-3 persone)', basePrice: 9.0, surcharge: 0, ingredientMultiplier: 2 },
+  { id: 'piccola', label: 'Piccola', description: 'Formato ridotto', basePrice: 4.0, surcharge: 0, ingredientMultiplier: 1, capacityWeight: 1 },
+  { id: 'media', label: 'Media', description: 'Formato classico', basePrice: 5.0, surcharge: 0, ingredientMultiplier: 1, capacityWeight: 1 },
+  { id: 'mezzo_metro', label: 'Mezzo metro', description: 'Da condividere (2-3 persone)', basePrice: 9.0, surcharge: 0, ingredientMultiplier: 2, capacityWeight: 3 },
 ];
 
 export const BUILDER_DOUGHS: BuilderOption[] = [

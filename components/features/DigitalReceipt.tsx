@@ -4,9 +4,11 @@
  */
 
 import { Button } from '@/components/ui/Button';
+import { SkeletonReceipt } from '@/components/ui/Skeleton';
 import { supabase } from '@/lib/api/supabase';
 import { BRAND } from '@/lib/data/brand';
 import { printDocumentoCommerciale, type PrintOrderData } from '@/lib/print/orderPrint';
+import { getOrderDisplayCode } from '@/lib/utils/orderDisplayCode';
 import type { Database } from '@/types/database.types';
 import { useQuery } from '@tanstack/react-query';
 import { FontAwesome } from '@expo/vector-icons';
@@ -24,6 +26,7 @@ type ReceiptOrderItem = {
 };
 type ReceiptOrder = {
     id: string;
+    display_code?: string | null;
     created_at: string;
     customer_name: string | null;
     total_amount: number | null;
@@ -103,6 +106,7 @@ export function DigitalReceipt({ visible, orderId, onClose }: DigitalReceiptProp
 
         const printData: PrintOrderData = {
             id: order.id,
+            displayCode: order.display_code,
             createdAt: order.created_at,
             orderType: order.order_type,
             tableNumber: order.table_number,
@@ -138,7 +142,7 @@ export function DigitalReceipt({ visible, orderId, onClose }: DigitalReceiptProp
         text += `Tel. ${BRAND.phone} - ${BRAND.vatNumber}\n`;
         text += `=================================\n`;
         text += `Data: ${date}\n`;
-        text += `Ordine: #${orderData.id.slice(0, 8)}\n`;
+        text += `Ordine: ${getOrderDisplayCode(orderData)}\n`;
         text += `=================================\n\n`;
 
         if (orderData.customer_name) {
@@ -194,12 +198,7 @@ export function DigitalReceipt({ visible, orderId, onClose }: DigitalReceiptProp
                         {/* Content */}
                         <ScrollView className="flex-1">
                             {isLoading ? (
-                                <View className="items-center justify-center py-12">
-                                    <FontAwesome name="spinner" size={48} color="#3b82f6" />
-                                    <Text className="text-card-foreground mt-4">
-                                        Caricamento scontrino...
-                                    </Text>
-                                </View>
+                                <SkeletonReceipt />
                             ) : error ? (
                                 <View className="items-center justify-center py-12">
                                     <FontAwesome name="exclamation-triangle" size={48} color="#ef4444" />
@@ -237,7 +236,7 @@ export function DigitalReceipt({ visible, orderId, onClose }: DigitalReceiptProp
                                                 Ordine:
                                             </Text>
                                             <Text className="text-card-foreground text-sm font-medium">
-                                                #{order.id.slice(0, 8)}
+                                                {getOrderDisplayCode(order)}
                                             </Text>
                                         </View>
                                         {order.customer_name && (

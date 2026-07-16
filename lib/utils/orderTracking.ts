@@ -149,27 +149,31 @@ export function getTrackingSummary(
 ): string {
   const resolvedStatus = status ?? 'pending';
 
+  if (resolvedStatus === 'pending') {
+    return 'Il tuo ordine è in attesa di conferma. Non chiudere la pagina.';
+  }
+
   if (resolvedStatus === 'cancelled') {
-    return `L'ordine #${orderRef} è stato rifiutato dal ristorante.`;
+    return `L'ordine ${orderRef} è stato rifiutato dal ristorante.`;
   }
   if (resolvedStatus === 'delivered') {
-    if (orderType === 'eat_in') return `L'ordine #${orderRef} è stato servito al tavolo.`;
-    if (orderType === 'take_away') return `L'ordine #${orderRef} è stato ritirato.`;
-    return `L'ordine #${orderRef} è stato consegnato.`;
+    if (orderType === 'eat_in') return `L'ordine ${orderRef} è stato servito al tavolo.`;
+    if (orderType === 'take_away') return `L'ordine ${orderRef} è stato ritirato.`;
+    return `L'ordine ${orderRef} è stato consegnato.`;
   }
   if (resolvedStatus === 'ready') {
-    if (orderType === 'take_away') return `L'ordine #${orderRef} è pronto per il ritiro.`;
-    if (orderType === 'eat_in') return `L'ordine #${orderRef} sta arrivando al tuo tavolo.`;
-    return `L'ordine #${orderRef} è in consegna verso di te.`;
+    if (orderType === 'take_away') return `L'ordine ${orderRef} è pronto per il ritiro.`;
+    if (orderType === 'eat_in') return `L'ordine ${orderRef} sta arrivando al tuo tavolo.`;
+    return `L'ordine ${orderRef} è in consegna verso di te.`;
   }
   if (resolvedStatus === 'preparing') {
-    if (orderType === 'eat_in') return `L'ordine #${orderRef} è in preparazione per il tavolo.`;
-    if (orderType === 'take_away') return `L'ordine #${orderRef} è in preparazione per il ritiro.`;
-    return `L'ordine #${orderRef} è in preparazione con cura.`;
+    if (orderType === 'eat_in') return `L'ordine ${orderRef} è in preparazione per il tavolo.`;
+    if (orderType === 'take_away') return `L'ordine ${orderRef} è in preparazione per il ritiro.`;
+    return `L'ordine ${orderRef} è in preparazione con cura.`;
   }
-  if (orderType === 'eat_in') return `L'ordine #${orderRef} è stato confermato per il tavolo.`;
-  if (orderType === 'take_away') return `L'ordine #${orderRef} è stato confermato per il ritiro.`;
-  return `L'ordine #${orderRef} è stato confermato e verrà preparato a breve.`;
+  if (orderType === 'eat_in') return `L'ordine ${orderRef} è stato confermato per il tavolo.`;
+  if (orderType === 'take_away') return `L'ordine ${orderRef} è stato confermato per il ritiro.`;
+  return `L'ordine ${orderRef} è stato confermato e verrà preparato a breve.`;
 }
 
 export function getEstimatedReadyTime(createdAt?: string | null): string {

@@ -56,6 +56,11 @@ TEST-CREDENTIALS.local.md
 
 # test artifacts
 test-results/
+playwright-report/
+playwright/.cache/
+
+# Supabase CLI local temp
+supabase/.temp/
 
 # lock files
 .claude/scheduled_tasks.lock

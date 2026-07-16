@@ -4,6 +4,7 @@ import { useFonts } from 'expo-font';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
+import { Platform } from 'react-native';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/components/useColorScheme';
@@ -14,6 +15,7 @@ import { AuthProvider, useAuth } from '@/lib/stores/AuthContext';
 import { FiscalProvider } from '@/lib/stores/FiscalContext';
 import { TenantProvider } from '@/lib/stores/TenantContext';
 import { OfflineQueueProvider, OfflineIndicator } from '@/lib/hooks/useOfflineQueue';
+import { OrderNotificationProvider } from '@/lib/stores/OrderNotificationContext';
 
 // Import global CSS for NativeWind
 import '../global.css';
@@ -48,7 +50,11 @@ export default function RootLayout() {
     }
   }, [loaded]);
 
-  if (!loaded) {
+  // Native: hold rendering behind the splash screen until fonts are ready.
+  // Web: paint immediately — the UI uses the system font stack, so blocking
+  // the statically-rendered page on the icon font download would blank the
+  // first viewport for no visual benefit (icons swap in when ready).
+  if (!loaded && Platform.OS !== 'web') {
     return null;
   }
 
@@ -65,20 +71,23 @@ function RootLayoutNav() {
           <FiscalProvider>
             <OfflineQueueProvider>
               <AuthProvider>
-                <CartProvider>
-                  <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-                    <AuthGuard>
-                      <Stack>
-                        <Stack.Screen name="login" options={{ headerShown: false }} />
-                        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                        <Stack.Screen name="admin-options" options={{ headerShown: false }} />
-                        <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-                        <Stack.Screen name="order-success" options={{ headerShown: false }} />
-                        <Stack.Screen name="rewards" options={{ headerShown: false }} />
-                      </Stack>
-                    </AuthGuard>
-                  </ThemeProvider>
-                </CartProvider>
+                <OrderNotificationProvider>
+                  <CartProvider>
+                    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+                      <AuthGuard>
+                        <Stack>
+                          <Stack.Screen name="login" options={{ headerShown: false }} />
+                          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                          <Stack.Screen name="admin-options" options={{ headerShown: false }} />
+                          <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+                          <Stack.Screen name="order-success" options={{ headerShown: false }} />
+                          <Stack.Screen name="rewards" options={{ headerShown: false }} />
+                          <Stack.Screen name="offers" options={{ headerShown: false }} />
+                        </Stack>
+                      </AuthGuard>
+                    </ThemeProvider>
+                  </CartProvider>
+                </OrderNotificationProvider>
               </AuthProvider>
             </OfflineQueueProvider>
           </FiscalProvider>

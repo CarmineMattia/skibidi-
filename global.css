@@ -66,3 +66,10 @@
     @apply hidden!;
   }
 }
+
+/* The public landing uses its own desktop navigation; hide the whole tab bar shell on desktop. */
+@media (min-width: 768px) {
+  body:has(#landing-page) div:has(> [role="tablist"]) {
+    display: none !important;
+  }
+}

@@ -1,7 +1,7 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { Dimensions, useWindowDimensions } from 'react-native';
+import { Dimensions, Platform, useWindowDimensions } from 'react-native';
 
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
@@ -25,6 +25,17 @@ export default function TabLayout() {
   const effectiveWidth = Math.min(width, viewportWidth);
   const compactTabBar = effectiveWidth < 400;
   const tabIconSize = compactTabBar ? 22 : 28;
+  const isWebDesktop = Platform.OS === 'web' && effectiveWidth >= 768;
+  const palette = Colors[colorScheme ?? 'light'];
+  const tabBarStyle = {
+    backgroundColor: '#fff9f1',
+    borderTopColor: 'rgba(141, 23, 30, 0.12)',
+    borderTopWidth: 1,
+    height: compactTabBar ? 56 : 64,
+    paddingBottom: compactTabBar ? 4 : 8,
+    paddingTop: 4,
+  } as const;
+  const hiddenTabBarStyle = { display: 'none' } as const;
 
   // Role-based tab visibility
   // Kiosk/Guest/Customer: Home + Menu + Account
@@ -38,9 +49,11 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarActiveTintColor: palette.tint,
+        tabBarInactiveTintColor: palette.tabIconDefault,
         tabBarLabelStyle: { fontSize: compactTabBar ? 10 : 12, fontWeight: '600' },
         tabBarItemStyle: compactTabBar ? { paddingVertical: 4 } : undefined,
+        tabBarStyle,
         // App-like look also on web: no top browser-like header.
         headerShown: false,
       }}>
@@ -50,6 +63,8 @@ export default function TabLayout() {
           title: 'Home',
           tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} size={tabIconSize} />,
           href: showHome ? '/(tabs)' : null,
+          // Desktop landing uses its own header navigation.
+          tabBarStyle: isWebDesktop ? hiddenTabBarStyle : tabBarStyle,
         }}
       />
       <Tabs.Screen

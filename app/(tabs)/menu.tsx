@@ -9,7 +9,7 @@ import { EditProductModal } from '@/components/features/EditProductModal';
 import { PizzaBuilderModal } from '@/components/features/PizzaBuilderModal';
 import { ProductCard } from '@/components/features/ProductCard';
 import { ProductDetailsModal } from '@/components/features/ProductDetailsModal';
-import { SkeletonProductCard, FullPageLoading } from '@/components/ui/Skeleton';
+import { SkeletonProductCard, SkeletonMenuScreen } from '@/components/ui/Skeleton';
 import { BUILDER_PRODUCT_NAME } from '@/lib/data/pizzaBuilder';
 import { useCategories } from '@/lib/hooks/useCategories';
 import { useCreateOrder } from '@/lib/hooks/useCreateOrder';
@@ -101,6 +101,11 @@ export default function MenuScreen() {
             artisanalRecipe: 'Artisanal recipe',
             yourOrder: 'Your Order',
             itemsLabel: 'items',
+            drinkPromptTitle: 'Add a drink?',
+            drinkPromptDescription:
+              'Your order has no drinks yet. Add one from the menu or continue without drinks.',
+            drinkPromptAdd: 'Browse drinks',
+            drinkPromptContinue: 'Continue without drinks',
           }
         : {
             appTitle: 'AMBROSIA - Menu Artigianale',
@@ -111,6 +116,11 @@ export default function MenuScreen() {
             artisanalRecipe: 'Ricetta artigianale',
             yourOrder: 'Il tuo ordine',
             itemsLabel: 'articoli',
+            drinkPromptTitle: 'Aggiungi una bevanda?',
+            drinkPromptDescription:
+              'Nel carrello non ci sono bevande. Scegline una dal menu oppure prosegui senza.',
+            drinkPromptAdd: 'Scegli una bevanda',
+            drinkPromptContinue: 'Procedi senza bevande',
           },
     [language]
   );
@@ -174,7 +184,11 @@ export default function MenuScreen() {
 
   // Initial loading state
   if (categoriesLoading) {
-    return <FullPageLoading message="Caricamento categorie..." />;
+    return (
+      <View className="flex-1 bg-[#f9ecdd]" style={{ paddingTop: insets.top }}>
+        <SkeletonMenuScreen numColumns={effectiveProductColumns} isMobile={isMobile} />
+      </View>
+    );
   }
 
   return (
@@ -264,44 +278,6 @@ export default function MenuScreen() {
         <View className="flex-1 bg-[#f9ecdd]">
           {/* Offline Indicator */}
           <OfflineIndicator />
-
-          {showContinueWithoutDrinks && selectedCategoryId && drinkCategoryIds.has(selectedCategoryId) && (
-            <View className="mx-3 mt-3 bg-white border border-[#e1a255]/60 rounded-2xl p-4 shadow-sm">
-              <View className="flex-row items-start gap-2">
-                <FontAwesome name="glass" size={16} color="#8d171e" style={{ marginTop: 2 }} />
-                <View className="flex-1">
-                  <Text className="text-base font-extrabold text-gray-900">Aggiungi una bevanda?</Text>
-                  <Text className="text-sm text-gray-600 mt-1">
-                    Se hai gia finito, puoi completare subito l&apos;ordine.
-                  </Text>
-                </View>
-              </View>
-
-              <Pressable
-                className="mt-3 h-11 bg-[#8d171e] rounded-xl items-center justify-center active:opacity-90"
-                onPress={() => {
-                  setShowContinueWithoutDrinks(false);
-                  router.push('/modal');
-                }}
-              >
-                <Text className="text-white font-bold text-sm">Completa ordine senza bevande</Text>
-              </Pressable>
-            </View>
-          )}
- 
-          {showContinueWithoutDrinks && selectedCategoryId && !drinkCategoryIds.has(selectedCategoryId) && (
-            <View className="mx-3 mt-2">
-              <Pressable
-                className="h-10 rounded-xl border border-[#e1a255]/60 bg-white items-center justify-center active:opacity-90"
-                onPress={() => {
-                  setShowContinueWithoutDrinks(false);
-                  router.push('/modal');
-                }}
-              >
-                <Text className="text-[#8d171e] font-semibold text-sm">Completa ordine senza bevande</Text>
-              </Pressable>
-            </View>
-          )}
 
           {productsLoading ? (
             <FlatList
@@ -534,6 +510,53 @@ export default function MenuScreen() {
                 <Text className="text-white font-bold">Accedi o Registrati</Text>
               </Pressable>
             )}
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        transparent
+        animationType="fade"
+        visible={showContinueWithoutDrinks}
+        onRequestClose={() => setShowContinueWithoutDrinks(false)}
+      >
+        <View className="flex-1 bg-black/55 items-center justify-center px-4">
+          <View className="w-full max-w-md bg-white rounded-2xl border border-[#e1a255]/60 p-5 shadow-xl">
+            <View className="flex-row items-start gap-3">
+              <View className="w-10 h-10 rounded-full bg-[#f9ecdd] border border-[#e1a255]/60 items-center justify-center">
+                <FontAwesome name="glass" size={16} color="#8d171e" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-lg font-extrabold text-gray-900">{i18n.drinkPromptTitle}</Text>
+                <Text className="text-sm text-gray-600 mt-1">{i18n.drinkPromptDescription}</Text>
+              </View>
+              <Pressable
+                onPress={() => setShowContinueWithoutDrinks(false)}
+                className="w-8 h-8 rounded-full bg-[#f9ecdd] border border-[#e1a255]/60 items-center justify-center active:opacity-80"
+                accessibilityLabel={language === 'en' ? 'Close' : 'Chiudi'}
+              >
+                <FontAwesome name="close" size={14} color="#8d171e" />
+              </Pressable>
+            </View>
+
+            <View className="mt-5 gap-3">
+              <Pressable
+                className="h-12 bg-[#8d171e] rounded-xl items-center justify-center active:opacity-90"
+                onPress={() => setShowContinueWithoutDrinks(false)}
+              >
+                <Text className="text-white font-bold text-sm">{i18n.drinkPromptAdd}</Text>
+              </Pressable>
+
+              <Pressable
+                className="h-12 rounded-xl border border-[#e1a255]/60 bg-white items-center justify-center active:opacity-90"
+                onPress={() => {
+                  setShowContinueWithoutDrinks(false);
+                  router.push('/modal');
+                }}
+              >
+                <Text className="text-[#8d171e] font-semibold text-sm">{i18n.drinkPromptContinue}</Text>
+              </Pressable>
+            </View>
           </View>
         </View>
       </Modal>

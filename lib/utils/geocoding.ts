@@ -6,6 +6,9 @@ export type GeoCoordinates = {
   lat: number;
 };
 
+/** Centro di Montecchio Emilia — area di consegna predefinita sulla mappa */
+export const DEFAULT_MAP_CENTER: GeoCoordinates = { lng: 10.667, lat: 44.6997 };
+
 export type AddressSuggestion = {
   id: string;
   label: string;

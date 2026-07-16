@@ -1,7 +1,8 @@
 import { FontAwesome } from '@expo/vector-icons';
 import { supabase } from '@/lib/api/supabase';
-import { useOrderAlertSound } from '@/lib/hooks/useOrderAlertSound';
+import { useCustomerOrderAlert } from '@/lib/hooks/useCustomerOrderAlert';
 import { useOrder } from '@/lib/hooks/useOrders';
+import { formatRescheduleLabel, parseRescheduleFromNote } from '@/lib/utils/orderDecline';
 import {
   getEstimatedReadyTime,
   getTrackingBadge,
@@ -9,10 +10,12 @@ import {
   getTrackingSummary,
   normalizeOrderType,
 } from '@/lib/utils/orderTracking';
+import { getOrderDisplayCode } from '@/lib/utils/orderDisplayCode';
+import { SkeletonOrderTracking } from '@/components/ui/Skeleton';
 import { useQueryClient } from '@tanstack/react-query';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useRef } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function OrderTrackingScreen() {
@@ -24,15 +27,31 @@ export default function OrderTrackingScreen() {
     orderId?: string;
   }>();
   const orderIdParam = typeof orderId === 'string' ? orderId : undefined;
-  const { data: orderData } = useOrder(orderIdParam ?? '');
-  const { playAlert } = useOrderAlertSound();
+  const { data: orderData, isLoading: isOrderLoading } = useOrder(orderIdParam ?? '');
+  const { playStatusAlert } = useCustomerOrderAlert();
   const lastStatusRef = useRef<string | null>(null);
+  const [customerNotice, setCustomerNotice] = useState<{
+    tone: 'success' | 'warning' | 'error';
+    title: string;
+    message: string;
+  } | null>(null);
+
+  const showSkeleton = Boolean(orderIdParam) && isOrderLoading && !orderData;
 
   const orderType = normalizeOrderType(orderData?.order_type ?? rawOrderType);
-  const orderRef = (orderIdParam || orderData?.id || 'AMB-9821').slice(0, 8).toUpperCase();
+  const orderRef = orderData
+    ? getOrderDisplayCode(orderData)
+    : orderIdParam
+      ? getOrderDisplayCode({ id: orderIdParam, display_code: null })
+      : 'Margherita #1';
   const trackedStatus = orderData?.status ?? null;
   const trackedDeclinePreset = orderData?.decline_reason_preset ?? null;
   const trackedDeclineNote = orderData?.decline_reason_note ?? null;
+  const rescheduleInfo = useMemo(
+    () => parseRescheduleFromNote(trackedDeclineNote),
+    [trackedDeclineNote]
+  );
+  const rescheduleLabel = formatRescheduleLabel(rescheduleInfo.rescheduleAt);
 
   const estimatedLabel = orderType === 'delivery' ? 'Arrivo stimato' : 'Pronto stimato';
   const estimatedTime = getEstimatedReadyTime(orderData?.created_at);
@@ -71,7 +90,25 @@ export default function OrderTrackingScreen() {
           void queryClient.invalidateQueries({ queryKey: ['orders'] });
 
           if (nextStatus === 'ready' && prevStatus !== 'ready') {
-            void playAlert('order-ready', orderIdParam);
+            void playStatusAlert(`${orderIdParam}:ready`);
+            setCustomerNotice({
+              tone: 'success',
+              title: 'Ordine pronto!',
+              message: 'Il tuo ordine è pronto. Puoi ritirarlo o attendere la consegna.',
+            });
+          }
+
+          if (nextStatus === 'preparing' && prevStatus === 'pending') {
+            void playStatusAlert(`${orderIdParam}:accepted`);
+            setCustomerNotice({
+              tone: 'success',
+              title: 'Ordine confermato',
+              message: 'La cucina ha accettato il tuo ordine e ha iniziato la preparazione.',
+            });
+          }
+
+          if (nextStatus === 'cancelled' && prevStatus !== 'cancelled') {
+            void playStatusAlert(`${orderIdParam}:cancelled`);
           }
         }
       )
@@ -80,15 +117,52 @@ export default function OrderTrackingScreen() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [orderIdParam, playAlert, queryClient]);
+  }, [orderIdParam, playStatusAlert, queryClient]);
 
   useEffect(() => {
     if (!orderData?.status) return;
-    if (orderData.status === 'ready' && lastStatusRef.current !== 'ready') {
-      void playAlert('order-ready', orderData.id);
+    const previous = lastStatusRef.current;
+    const current = orderData.status;
+
+    if (current === 'ready' && previous !== 'ready') {
+      void playStatusAlert(`${orderData.id}:ready`);
+      setCustomerNotice({
+        tone: 'success',
+        title: 'Ordine pronto!',
+        message: 'Il tuo ordine è pronto. Puoi ritirarlo o attendere la consegna.',
+      });
     }
-    lastStatusRef.current = orderData.status;
-  }, [orderData?.id, orderData?.status, playAlert]);
+
+    if (current === 'preparing' && previous === 'pending') {
+      void playStatusAlert(`${orderData.id}:accepted`);
+      setCustomerNotice({
+        tone: 'success',
+        title: 'Ordine confermato',
+        message: 'La cucina ha accettato il tuo ordine e ha iniziato la preparazione.',
+      });
+    }
+
+    if (current === 'cancelled' && previous !== 'cancelled') {
+      void playStatusAlert(`${orderData.id}:cancelled`);
+      const parsed = parseRescheduleFromNote(orderData.decline_reason_note);
+      const label = formatRescheduleLabel(parsed.rescheduleAt);
+      setCustomerNotice({
+        tone: 'error',
+        title: 'Ordine non accettato',
+        message: label
+          ? `Il ristorante propone di ripianificare per ${label}.`
+          : orderData.decline_reason_preset || 'Il ristorante non ha potuto accettare il tuo ordine.',
+      });
+    }
+
+    lastStatusRef.current = current;
+  }, [
+    orderData?.decline_reason_note,
+    orderData?.decline_reason_preset,
+    orderData?.id,
+    orderData?.status,
+    playStatusAlert,
+  ]);
 
   return (
     <>
@@ -98,6 +172,53 @@ export default function OrderTrackingScreen() {
         contentContainerStyle={{ paddingTop: insets.top + 12, paddingBottom: insets.bottom + 96 }}
       >
         <View className="px-4 gap-3.5">
+          {showSkeleton ? (
+            <SkeletonOrderTracking />
+          ) : (
+            <>
+          {customerNotice ? (
+            <View
+              className={`rounded-2xl border p-4 ${
+                customerNotice.tone === 'success'
+                  ? 'bg-emerald-50 border-emerald-200'
+                  : customerNotice.tone === 'warning'
+                    ? 'bg-amber-50 border-amber-200'
+                    : 'bg-red-50 border-red-200'
+              }`}
+            >
+              <Text
+                className={`text-xs font-bold uppercase tracking-wider ${
+                  customerNotice.tone === 'success'
+                    ? 'text-emerald-700'
+                    : customerNotice.tone === 'warning'
+                      ? 'text-amber-700'
+                      : 'text-red-700'
+                }`}
+              >
+                Aggiornamento ordine
+              </Text>
+              <Text className="text-base font-extrabold text-gray-900 mt-1">{customerNotice.title}</Text>
+              <Text className="text-sm text-gray-700 mt-1">{customerNotice.message}</Text>
+            </View>
+          ) : null}
+
+          {trackedStatus === 'pending' || (!trackedStatus && !showSkeleton) ? (
+            <View className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+              <View className="flex-row items-center gap-2">
+                <ActivityIndicator size="small" color="#92400e" />
+                <Text className="text-xs font-bold uppercase tracking-wider text-amber-700">
+                  In attesa di conferma
+                </Text>
+              </View>
+              <Text className="text-base font-extrabold text-gray-900 mt-2">
+                Il tuo ordine è in attesa di conferma. Non chiudere la pagina.
+              </Text>
+              <Text className="text-sm text-amber-800 mt-1">
+                Ti aggiorniamo in tempo reale appena la cucina accetta o rifiuta l&apos;ordine.
+              </Text>
+            </View>
+          ) : null}
+
           <View className="bg-white rounded-2xl border border-[#e1a255]/40 px-4 py-3.5 gap-2.5">
             <Text className="text-xs font-bold uppercase tracking-wider text-[#8d171e]">
               Ambrosia | Traccia il tuo ordine
@@ -164,7 +285,14 @@ export default function OrderTrackingScreen() {
               <Text className="text-base font-bold text-red-800">
                 {trackedDeclinePreset || 'Ordine rifiutato'}
               </Text>
-              {trackedDeclineNote ? (
+              {rescheduleLabel ? (
+                <Text className="text-sm font-semibold text-red-800">
+                  Nuovo orario proposto: {rescheduleLabel}
+                </Text>
+              ) : null}
+              {rescheduleInfo.message ? (
+                <Text className="text-sm text-red-700">{rescheduleInfo.message}</Text>
+              ) : trackedDeclineNote && !rescheduleLabel ? (
                 <Text className="text-sm text-red-700">{trackedDeclineNote}</Text>
               ) : null}
             </View>
@@ -198,6 +326,8 @@ export default function OrderTrackingScreen() {
           >
             <Text className="text-white font-bold">Nuovo ordine</Text>
           </Pressable>
+            </>
+          )}
         </View>
       </ScrollView>
     </>

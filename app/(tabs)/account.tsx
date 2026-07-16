@@ -1,4 +1,5 @@
 import { useAuth } from '@/lib/stores/AuthContext';
+import { SkeletonAccountProfile } from '@/components/ui/Skeleton';
 import { useRouter } from 'expo-router';
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -6,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 export default function AccountScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { profile, userRole, isGuest, isAuthenticated, isAdmin, signOut, exitGuestMode } = useAuth();
+  const { profile, userRole, isGuest, isAuthenticated, isAdmin, signOut, exitGuestMode, isLoading } = useAuth();
 
   const handleLogout = async () => {
     try {
@@ -29,6 +30,14 @@ export default function AccountScreen() {
     if (rawRole === 'kiosk') return 'Kiosk';
     return rawRole;
   })();
+
+  if (isLoading) {
+    return (
+      <ScrollView className="flex-1 bg-[#f9ecdd] p-5" contentContainerStyle={{ paddingTop: insets.top + 8 }}>
+        <SkeletonAccountProfile />
+      </ScrollView>
+    );
+  }
 
   return (
     <ScrollView className="flex-1 bg-[#f9ecdd] p-5" contentContainerStyle={{ paddingTop: insets.top + 8 }}>

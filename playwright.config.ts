@@ -5,6 +5,8 @@
 
 import { defineConfig, devices } from '@playwright/test';
 
+const externalBaseURL = process.env.PLAYWRIGHT_BASE_URL;
+
 export default defineConfig({
   testDir: './tests',
   fullyParallel: true,
@@ -16,7 +18,7 @@ export default defineConfig({
     ['list'],
   ],
   use: {
-    baseURL: 'http://localhost:8081',
+    baseURL: externalBaseURL || 'http://localhost:8081',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
@@ -43,12 +45,14 @@ export default defineConfig({
       use: { ...devices['iPhone 12'] },
     },
   ],
-  webServer: {
-    command: 'npm start',
-    url: 'http://localhost:8081',
-    reuseExistingServer: !process.env.CI,
-    timeout: 120000,
-  },
+  webServer: externalBaseURL
+    ? undefined
+    : {
+        command: 'npm start',
+        url: 'http://localhost:8081',
+        reuseExistingServer: !process.env.CI,
+        timeout: 120000,
+      },
   expect: {
     toHaveScreenshot: {
       maxDiffPixelRatio: 0.1,

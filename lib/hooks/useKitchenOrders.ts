@@ -19,11 +19,12 @@ export interface KitchenOrder extends Order {
 
 interface UseKitchenOrdersOptions {
   statuses?: Order['status'][];
-  onOrderEvent?: (event: { type: 'new-order' | 'order-ready'; orderId: string }) => void;
+  onOrderEvent?: (event: { type: 'new-order' | 'order-ready' | 'status-updated'; orderId: string; nextStatus?: Order['status'] }) => void;
+  enabled?: boolean;
 }
 
 export function useKitchenOrders(options: UseKitchenOrdersOptions = {}) {
-  const { statuses = ['pending', 'preparing', 'ready'], onOrderEvent } = options;
+  const { statuses = ['pending', 'preparing', 'ready'], onOrderEvent, enabled = true } = options;
   const { companyId } = useTenant();
   const queryClient = useQueryClient();
 
@@ -62,12 +63,12 @@ export function useKitchenOrders(options: UseKitchenOrdersOptions = {}) {
 
     refetchInterval: 10 * 1000, // Fallback poll every 10 s
     staleTime: 5 * 1000,
-    enabled: !!companyId,
+    enabled: !!companyId && enabled,
   });
 
   // Set up Realtime subscription
   useEffect(() => {
-    if (!companyId) return;
+    if (!companyId || !enabled) return;
 
     const channel = supabase
       .channel(`kitchen-orders-${companyId}`)
@@ -96,6 +97,20 @@ export function useKitchenOrders(options: UseKitchenOrdersOptions = {}) {
             onOrderEventRef.current?.({ type: 'order-ready', orderId: nextOrder.id });
           }
 
+          if (
+            payload.eventType === 'UPDATE' &&
+            nextOrder?.id &&
+            nextOrder.status &&
+            prevOrder?.status &&
+            nextOrder.status !== prevOrder.status
+          ) {
+            onOrderEventRef.current?.({
+              type: 'status-updated',
+              orderId: nextOrder.id,
+              nextStatus: nextOrder.status,
+            });
+          }
+
           queryClient.invalidateQueries({ queryKey: ['kitchen-orders', companyId] });
         }
       )
@@ -104,7 +119,7 @@ export function useKitchenOrders(options: UseKitchenOrdersOptions = {}) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [companyId, queryClient]);
+  }, [companyId, queryClient, enabled]);
 
   return query;
 }

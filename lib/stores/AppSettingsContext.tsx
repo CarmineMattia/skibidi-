@@ -16,6 +16,10 @@ interface OrderCapacitySettings {
   deliveryOrderWindowMinutes: number;
   disabledTimeSlots: string[];
   businessHours: WeeklyBusinessHours;
+  /** Palline totali disponibili per la serata/shift corrente (null = non tracciato). */
+  shiftDoughBallsTotal: number | null;
+  /** Inizio conteggio palline per la serata corrente. */
+  shiftStartedAt: string | null;
 }
 
 interface AlertSoundSettings {
@@ -35,6 +39,8 @@ interface AppSettingsContextType {
   deliveryOrderWindowMinutes: number;
   disabledTimeSlots: string[];
   businessHours: WeeklyBusinessHours;
+  shiftDoughBallsTotal: number | null;
+  shiftStartedAt: string | null;
   alertSounds: AlertSoundSettings;
   setLanguage: (language: AppLanguage) => void;
   setDeliveryFee: (fee: number) => void;
@@ -50,6 +56,9 @@ interface AppSettingsContextType {
   clearDisabledTimeSlots: () => void;
   setBusinessDayEnabled: (dayIndex: number, enabled: boolean) => void;
   setBusinessDayIntervals: (dayIndex: number, intervals: BusinessHoursInterval[]) => void;
+  setShiftDoughBallsTotal: (value: number | null) => void;
+  resetShiftDoughTracking: () => void;
+  clearShiftDoughTracking: () => void;
   setAlertSoundsEnabled: (value: boolean) => void;
   setNewOrderSoundUrl: (url: string | null) => void;
   setOrderReadySoundUrl: (url: string | null) => void;
@@ -77,6 +86,8 @@ const DEFAULT_ORDER_SETTINGS: OrderCapacitySettings = {
   deliveryOrderWindowMinutes: 10,
   disabledTimeSlots: [],
   businessHours: buildDefaultBusinessHours(),
+  shiftDoughBallsTotal: null,
+  shiftStartedAt: null,
 };
 
 const DEFAULT_ALERT_SOUND_SETTINGS: AlertSoundSettings = {
@@ -152,6 +163,14 @@ function parseOrderSettings(raw: unknown): OrderCapacitySettings {
     typeof source.ordersPausedUntil === 'string' && source.ordersPausedUntil.trim().length > 0
       ? source.ordersPausedUntil
       : null;
+  const shiftDoughBallsTotal =
+    typeof source.shiftDoughBallsTotal === 'number' && Number.isFinite(source.shiftDoughBallsTotal) && source.shiftDoughBallsTotal > 0
+      ? Math.floor(source.shiftDoughBallsTotal)
+      : null;
+  const shiftStartedAt =
+    typeof source.shiftStartedAt === 'string' && source.shiftStartedAt.trim().length > 0
+      ? source.shiftStartedAt
+      : null;
 
   const rawBusinessHours = Array.isArray(source.businessHours) ? source.businessHours : [];
   const businessHours: WeeklyBusinessHours = Array.from({ length: 7 }, (_, dayIndex) => {
@@ -187,6 +206,8 @@ function parseOrderSettings(raw: unknown): OrderCapacitySettings {
     deliveryOrderWindowMinutes: deliveryWindowMinutes,
     disabledTimeSlots: Array.from(new Set(normalizedSlots)).sort(),
     businessHours,
+    shiftDoughBallsTotal,
+    shiftStartedAt,
   };
 }
 
@@ -561,6 +582,45 @@ export function AppSettingsProvider({ children }: { children: ReactNode }) {
     );
   };
 
+  const setShiftDoughBallsTotal = (value: number | null) => {
+    const normalized =
+      value !== null && Number.isFinite(value) && value > 0 ? Math.floor(value) : null;
+
+    persistOrderSettings(
+      {
+        ...orderSettings,
+        shiftDoughBallsTotal: normalized,
+        shiftStartedAt:
+          normalized !== null
+            ? orderSettings.shiftStartedAt ?? new Date().toISOString()
+            : null,
+      },
+      'local'
+    );
+  };
+
+  const resetShiftDoughTracking = () => {
+    if (!orderSettings.shiftDoughBallsTotal) return;
+    persistOrderSettings(
+      {
+        ...orderSettings,
+        shiftStartedAt: new Date().toISOString(),
+      },
+      'local'
+    );
+  };
+
+  const clearShiftDoughTracking = () => {
+    persistOrderSettings(
+      {
+        ...orderSettings,
+        shiftDoughBallsTotal: null,
+        shiftStartedAt: null,
+      },
+      'local'
+    );
+  };
+
   const setAlertSoundsEnabled = (value: boolean) => {
     persistAlertSoundSettings(
       {
@@ -603,6 +663,8 @@ export function AppSettingsProvider({ children }: { children: ReactNode }) {
       deliveryOrderWindowMinutes: orderSettings.deliveryOrderWindowMinutes,
       disabledTimeSlots: orderSettings.disabledTimeSlots,
       businessHours: orderSettings.businessHours,
+      shiftDoughBallsTotal: orderSettings.shiftDoughBallsTotal,
+      shiftStartedAt: orderSettings.shiftStartedAt,
       alertSounds,
       setLanguage,
       setDeliveryFee,
@@ -618,6 +680,9 @@ export function AppSettingsProvider({ children }: { children: ReactNode }) {
       clearDisabledTimeSlots,
       setBusinessDayEnabled,
       setBusinessDayIntervals,
+      setShiftDoughBallsTotal,
+      resetShiftDoughTracking,
+      clearShiftDoughTracking,
       setAlertSoundsEnabled,
       setNewOrderSoundUrl,
       setOrderReadySoundUrl,

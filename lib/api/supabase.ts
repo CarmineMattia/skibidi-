@@ -4,7 +4,9 @@
  */
 
 import 'react-native-url-polyfill/auto';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient } from '@supabase/supabase-js';
+import { Platform } from 'react-native';
 import type { Database } from '@/types/database.types.generated';
 
 // TODO: Sostituire con le vostre credenziali Supabase
@@ -22,6 +24,11 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, 
     // Persistenza automatica della sessione
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: false,
+    // Su web il magic link rientra con i token nell'hash dell'URL e il client
+    // li consuma da solo; su nativo il passwordless usa il codice OTP a 6 cifre
+    detectSessionInUrl: Platform.OS === 'web',
+    // Su nativo senza storage esplicito la sessione vive solo in memoria
+    // e si perde al riavvio; su web resta il default (localStorage)
+    storage: Platform.OS === 'web' ? undefined : AsyncStorage,
   },
 });

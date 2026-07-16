@@ -279,6 +279,7 @@ export type Database = {
           decline_reason_preset: string | null
           declined_at: string | null
           delivery_address: string | null
+          display_code: string | null
           fiscal_external_id: string | null
           fiscal_status: Database["public"]["Enums"]["fiscal_status"]
           id: string
@@ -300,6 +301,7 @@ export type Database = {
           decline_reason_preset?: string | null
           declined_at?: string | null
           delivery_address?: string | null
+          display_code?: string | null
           fiscal_external_id?: string | null
           fiscal_status?: Database["public"]["Enums"]["fiscal_status"]
           id?: string
@@ -321,6 +323,7 @@ export type Database = {
           decline_reason_preset?: string | null
           declined_at?: string | null
           delivery_address?: string | null
+          display_code?: string | null
           fiscal_external_id?: string | null
           fiscal_status?: Database["public"]["Enums"]["fiscal_status"]
           id?: string
@@ -466,10 +469,16 @@ export type Database = {
           created_at: string
           fulfillment_token: string
           order_type: string
+          capacity_units: number
         }[]
+      }
+      get_shift_dough_usage: {
+        Args: { p_company: string; p_since: string }
+        Returns: number
       }
       get_my_company_id: { Args: never; Returns: string }
       get_order_tracking: { Args: { p_order_id: string }; Returns: Json }
+      reserve_order_display_code: { Args: { p_company_id: string }; Returns: string }
       is_admin: { Args: never; Returns: boolean }
       log_fiscal_event: {
         Args: {

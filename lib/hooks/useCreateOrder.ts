@@ -10,6 +10,7 @@ import { useTenant } from '@/lib/stores/TenantContext';
 import type { Database } from '@/types/database.types';
 import type { FiscalOrderData, FiscalProviderResult, PaymentMethod } from '@/types/fiscal.types';
 import { getFiscalService } from '@/lib/fiscal/FiscalService';
+import { generateFallbackOrderDisplayCode } from '@/lib/utils/orderDisplayCode';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 type OrderInsert = Database['public']['Tables']['orders']['Insert'];
@@ -31,6 +32,7 @@ interface CreateOrderInput {
 
 interface CreateOrderResult {
   orderId: string;
+  displayCode: string;
   totalAmount: number;
   fiscalStatus: 'pending' | 'success' | 'error';
   fiscalExternalId?: string;
@@ -120,8 +122,20 @@ export function useCreateOrder() {
       // 3. Create order record — UUID generated client-side so we never need
       //    a SELECT after insert (which RLS would block for unauthenticated guests).
       const orderId = crypto.randomUUID();
+      let displayCode = generateFallbackOrderDisplayCode(orderId);
+
+      const { data: reservedCode, error: displayCodeError } = await supabase.rpc(
+        'reserve_order_display_code',
+        { p_company_id: companyId! },
+      );
+
+      if (!displayCodeError && typeof reservedCode === 'string' && reservedCode.trim()) {
+        displayCode = reservedCode.trim();
+      }
+
       const orderData: OrderInsert = {
         id: orderId,
+        display_code: displayCode,
         customer_id: user?.id,
         status: 'pending',
         total_amount: totalAmount,
@@ -135,9 +149,12 @@ export function useCreateOrder() {
         company_id: companyId!,
       };
 
-      const { error: orderError } = await supabase
-        .from('orders')
-        .insert(orderData);
+      let { error: orderError } = await supabase.from('orders').insert(orderData);
+
+      if (orderError && /display_code/i.test(orderError.message)) {
+        const { display_code: _ignored, ...orderDataWithoutDisplayCode } = orderData;
+        ({ error: orderError } = await supabase.from('orders').insert(orderDataWithoutDisplayCode));
+      }
 
       if (orderError) {
         console.error('Order creation error:', orderError);
@@ -214,6 +231,7 @@ export function useCreateOrder() {
               // Order exists but fiscal status update failed
               return {
                 orderId: order.id,
+                displayCode,
                 totalAmount: order.total_amount,
                 fiscalStatus: 'error',
               };
@@ -258,6 +276,7 @@ export function useCreateOrder() {
       // 7. Return result
       return {
         orderId: order.id,
+        displayCode,
         totalAmount: order.total_amount,
         fiscalStatus: fiscalResult.success ? 'success' : 'error',
         fiscalExternalId: fiscalResult.external_id,

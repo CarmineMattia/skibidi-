@@ -4,6 +4,7 @@
  */
 
 import { useCart, type CartItem } from '@/lib/stores/CartContext';
+import { generateFallbackOrderDisplayCode } from '@/lib/utils/orderDisplayCode';
 import type { PaymentMethod } from '@/types/fiscal.types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect, useRouter } from 'expo-router';
@@ -129,7 +130,9 @@ export function OfflineQueueProvider({ children }: OfflineQueueProviderProps) {
         if (result.success) {
           successfulIds.push(order.id);
           // Navigate to success screen for this order
-          router.replace(`/order-success?orderId=${result.orderId}&offline=true`);
+          router.replace(
+            `/order-success?orderId=${result.orderId}&offline=true&displayCode=${encodeURIComponent(result.displayCode || '')}`
+          );
         } else {
           failedIds.push(order.id);
         }
@@ -208,7 +211,7 @@ export function OfflineQueueProvider({ children }: OfflineQueueProviderProps) {
   // Process a single order (mock implementation - replace with actual API call)
   const processOrder = async (
     order: PendingOrder
-  ): Promise<{ success: boolean; orderId?: string }> => {
+  ): Promise<{ success: boolean; orderId?: string; displayCode?: string }> => {
     // Simulate API call - replace with actual supabase call
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
@@ -216,7 +219,11 @@ export function OfflineQueueProvider({ children }: OfflineQueueProviderProps) {
     const success = Math.random() > 0.1;
 
     if (success) {
-      return { success: true, orderId: order.id };
+      return {
+        success: true,
+        orderId: order.id,
+        displayCode: generateFallbackOrderDisplayCode(order.id),
+      };
     }
 
     return { success: false };
@@ -281,7 +288,9 @@ export function OfflineQueueProvider({ children }: OfflineQueueProviderProps) {
           const updatedOrders = pendingOrders.filter((o) => o.id !== orderId);
           setPendingOrders(updatedOrders);
           await AsyncStorage.setItem(PENDING_ORDERS_KEY, JSON.stringify(updatedOrders));
-          router.replace(`/order-success?orderId=${orderId}&offline=true`);
+          router.replace(
+            `/order-success?orderId=${orderId}&offline=true&displayCode=${encodeURIComponent(result.displayCode || '')}`
+          );
         } else {
           // Update attempt count
           const updatedOrders = pendingOrders.map((o) => {

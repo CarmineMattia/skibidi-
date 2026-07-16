@@ -9,6 +9,7 @@
  */
 
 import { BRAND, BRAND_LOGO } from '@/lib/data/brand';
+import { getOrderDisplayCode } from '@/lib/utils/orderDisplayCode';
 import { Asset } from 'expo-asset';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Print from 'expo-print';
@@ -24,6 +25,7 @@ export interface PrintOrderItem {
 
 export interface PrintOrderData {
   id: string;
+  displayCode?: string | null;
   createdAt: string;
   orderType?: string | null; // eat_in | take_away | delivery
   tableNumber?: string | null;
@@ -178,7 +180,7 @@ export function buildDocumentoCommercialeHtml(order: PrintOrderData, logoSrc: st
   const createdAt = new Date(order.createdAt);
   const dateLabel = createdAt.toLocaleDateString('it-IT');
   const timeLabel = createdAt.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
-  const docNumber = order.id.slice(0, 8).toUpperCase();
+  const docNumber = getOrderDisplayCode(order);
   const vatAmount = (order.totalAmount * VAT_RATE) / (100 + VAT_RATE);
   const paymentLabel = extractPaymentLabel(order.notes);
 
@@ -275,7 +277,7 @@ export function buildComandaHtml(order: PrintOrderData, logoSrc: string | null):
   ${logoSrc ? `<img class="logo" src="${logoSrc}" alt="${escapeHtml(BRAND.name)}" />` : `<div class="center bold">${escapeHtml(BRAND.name.toUpperCase())}</div>`}
   <div class="center bold">*** COMANDA CUCINA ***</div>
   <div class="divider"></div>
-  <div class="row"><span class="bold">#${order.id.slice(0, 8).toUpperCase()}</span><span>ore ${timeLabel}</span></div>
+  <div class="row"><span class="bold">${escapeHtml(getOrderDisplayCode(order))}</span><span>ore ${timeLabel}</span></div>
   ${typeLabel ? `<div class="center badge">${escapeHtml(typeLabel)}</div>` : ''}
   ${fulfillmentTime ? `<div class="center bold">Per le ${fulfillmentTime}</div>` : ''}
   <div class="divider"></div>

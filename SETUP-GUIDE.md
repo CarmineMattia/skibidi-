@@ -1,5 +1,25 @@
 # 📘 Setup Guide - SKIBIDI ORDERS
 
+> **Nuovo contributor?** Flusso consigliato: [README.md](./README.md) → questa guida → [CONTRIBUTING.md](./CONTRIBUTING.md) (branch + PR).
+
+## Setup rapido (clone → run)
+
+```bash
+git clone https://github.com/CarmineMattia/skibidi-.git
+cd skibidi-
+npm install
+cp .env.example .env
+```
+
+1. Compila almeno `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`, `EXPO_PUBLIC_COMPANY_ID` in `.env`.
+2. Applica le migration in `supabase/migrations/` sul progetto Supabase (in ordine di nome file), oppure usa un progetto condiviso dal team già aggiornato.
+3. Avvia: `npm run web` (oppure `npm start` e premi `w`).
+4. Verifica: `npm run type-check`.
+
+Dettagli Auth OTP, SMTP e troubleshooting sotto.
+
+---
+
 ## ✅ Cosa è stato fatto (FASE 1)
 
 ### 1. Scaffolding Progetto
@@ -120,6 +140,42 @@
      VALUES ('uuid-utente', 'admin', 'admin@test.com', 'Admin');
      ```
 
+## 🔑 Login passwordless (config dashboard Supabase)
+
+Il login passwordless (codice OTP a 6 cifre + magic link nella stessa email) richiede
+configurazione manuale nel dashboard Supabase — senza questi passi il flusso NON funziona:
+
+1. **Auth → Email Templates — modifica ENTRAMBI i template:**
+   - **"Magic Link"** (inviato agli utenti esistenti) e **"Confirm signup"** (inviato ai
+     nuovi utenti creati via OTP) devono contenere sia `{{ .ConfirmationURL }}` sia `{{ .Token }}`.
+   - Copy suggerita:
+     ```
+     Clicca il link per accedere: {{ .ConfirmationURL }}
+     Oppure inserisci questo codice nell'app: {{ .Token }}
+     ```
+   - ⚠️ Se manca `{{ .Token }}` su "Confirm signup", i nuovi utenti su app nativa
+     ricevono una mail senza codice e non possono entrare.
+
+2. **Auth → URL Configuration:**
+   - **Site URL**: origin web di produzione (es. `https://pizzeriaambrosia.skibidiorders.com`)
+   - **Additional Redirect URLs**: `http://localhost:8081/**` (dev) e
+     `https://*.skibidiorders.com/**` (sottodomini tenant)
+
+3. **SMTP custom (obbligatorio per uso reale):**
+   - L'SMTP built-in di Supabase invia ~2 email/ora e SOLO agli indirizzi dei membri
+     del team del progetto → va bene solo per i primi test.
+   - Configura un provider (es. [Resend](https://resend.com), Postmark) in
+     **Project Settings → Auth → SMTP**, poi alza i rate limit in **Auth → Rate Limits**.
+
+4. **Auth → Providers → Email:** signups abilitati (richiesto da `shouldCreateUser`).
+   OTP expiry: default 3600s ok (valutare 900s in produzione).
+
+Note comportamento:
+- I nuovi utenti creati via OTP nascono sempre con ruolo `customer` (+ `company_id` del
+  tenant, passato nei metadata). Gli admin si creano solo dal flusso password con scelta ruolo.
+- Su nativo il magic link punta alla web app (`EXPO_PUBLIC_WEB_URL`); l'accesso in-app
+  avviene digitando il codice a 6 cifre.
+
 ## 🧪 Test Rapido della Configurazione
 
 Crea un file di test `app/(tabs)/test.tsx`:
@@ -146,6 +202,32 @@ export default function TestScreen() {
   );
 }
 ```
+
+## 🌐 Browser Performance (web) — LCP & CLS per pagina
+
+Regole permanenti per il rendering web (Expo Router `web.output: "static"`):
+il primo viewport deve dipingere prima dell'hydration, l'elemento LCP è
+esplicito, gli stati di caricamento mantengono le dimensioni finali e le
+animazioni usano solo `transform`/`opacity`.
+
+| Pagina | Elemento LCP | Strategia CLS / caricamento |
+|---|---|---|
+| `/` (home) | Hero `interior.jpeg` in `LandingHero` | `min-h` via breakpoint CSS (`sm:`/`md:`), layout identico pre/post hydration; offerte → `SkeletonHomeOffers` |
+| `/menu` | Griglia prodotti (prima card) | `SkeletonMenuScreen` + `SkeletonProductCard` ad altezza fissa (`h-[330/380/450px]`); card reali ad altezza fissa |
+| `/login` | Logo (128×64 espliciti) + titolo | Nessun fetch bloccante; form OTP renderizza subito |
+| `/kitchen` | Header + griglia ordini | `SkeletonKitchenGrid`; orologio a componente isolato (tick 1 s locale, screen tick 30 s) |
+| `/admin-dashboard` | Header + metriche | `SkeletonDashboardMetrics`; query gated su `isAdmin` |
+| `/modal` (checkout) | Step corrente | Mappa delivery: box riservato `h-[220px]`, chunk maplibre lazy via `React.lazy` |
+| `/order-success` | Cerchio check + titolo | Entrance solo `transform/opacity`, delay 150 ms, `useReducedMotion` → render immediato |
+| `/two` (ordini) | Header card | `FlatList` virtualizzata + `SkeletonOrderCard` |
+
+Invarianti da non regredire:
+- `app/_layout.tsx`: su web **non** bloccare il render sul font gate (`return null` solo su nativo) — il testo usa lo stack di sistema, le icone FontAwesome arrivano dopo.
+- `app/+html.tsx`: `preconnect` a Supabase + `dns-prefetch` a flagcdn; CSS globale `prefers-reduced-motion` che azzera animazioni/transizioni.
+- Niente `lazy-load` sull'immagine principale above-the-fold; niente spinner che collassano in blocchi grandi (usare gli skeleton di `components/ui/Skeleton.tsx` a dimensioni finali).
+- Layout first-paint da breakpoint CSS (`sm:`/`md:`/`web:md:`), non da `useWindowDimensions` (che su web static parte a 390px e rilayouta dopo l'hydration).
+- Asset landing: JPEG ricompressi (≤1920px, q74). Nuove immagini grandi vanno compresse prima del commit.
+- Terze parti fuori dal critical path: Supabase realtime solo su kitchen/admin, maplibre solo nel campo delivery (lazy), geocoding solo su input utente, fiscal service init sincrono senza rete.
 
 ## 📚 Risorse Utili
 

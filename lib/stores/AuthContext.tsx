@@ -4,14 +4,30 @@
  */
 
 import { supabase } from '@/lib/api/supabase';
+import { useTenant } from '@/lib/stores/TenantContext';
 import type { UserRole } from '@/types';
 import type { Profile } from '@/types/database.types';
 import type { Session, User } from '@supabase/supabase-js';
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
+import { Platform } from 'react-native';
 
 const GUEST_FLAG_KEY = 'skibidi_lastLoginAsGuest';
 const KIOSK_FLAG_KEY = 'skibidi_kioskModeEnabled';
 const GUEST_NAME = 'ospite123';
+
+// Target del magic link nelle build native (opzionale: fallback alla
+// Site URL configurata su Supabase). Su nativo l'accesso avviene comunque
+// col codice OTP; il link punta sempre alla web app.
+const WEB_URL = process.env.EXPO_PUBLIC_WEB_URL ?? null;
+
+function getOtpRedirectUrl(): string | undefined {
+  if (Platform.OS === 'web') {
+    const origin = globalThis?.window?.location?.origin;
+    // /login: l'AuthGuard reindirizza gli utenti autenticati verso il menu
+    return origin ? `${origin}/login` : undefined;
+  }
+  return WEB_URL ? `${WEB_URL.replace(/\/+$/, '')}/login` : undefined;
+}
 
 function getStorage(): Storage | null {
   try {
@@ -51,6 +67,13 @@ interface AuthContextType {
     fullName?: string,
     role?: UserRole
   ) => Promise<{ requiresEmailConfirmation: boolean; email: string }>;
+  /**
+   * Invia all'indirizzo una mail con magic link + codice OTP a 6 cifre.
+   * Se l'utente non esiste viene creato (ruolo customer).
+   */
+  requestOtp: (email: string) => Promise<void>;
+  /** Verifica il codice OTP ricevuto via email e apre la sessione. */
+  verifyEmailOtp: (email: string, token: string) => Promise<void>;
   resendConfirmationEmail: (email: string) => Promise<void>;
   signOut: () => Promise<void>;
 
@@ -77,6 +100,7 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
+  const { companyId } = useTenant();
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -214,11 +238,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
         // Self-healing: Profile missing, create it
         console.log('Profile missing for user, creating default profile...');
         const metadata = user.user_metadata || {};
+        // role is never taken from client-controlled metadata — the DB trigger
+        // would reject it anyway, and new self-healed profiles are always 'customer'.
         const { error: insertError } = await supabase.from('profiles').insert({
           id: user.id,
           email: user.email,
           full_name: metadata.full_name,
-          role: (metadata.role as UserRole) || 'customer',
+          role: 'customer',
         });
 
         if (insertError) {
@@ -266,6 +292,40 @@ export function AuthProvider({ children }: AuthProviderProps) {
     });
 
     if (error) throw error;
+  };
+
+  const requestOtp = async (email: string) => {
+    // La stessa normalizzazione va riusata in fase di verifica,
+    // altrimenti verifyOtp non trova il token
+    const normalizedEmail = email.trim().toLowerCase();
+
+    const { error } = await supabase.auth.signInWithOtp({
+      email: normalizedEmail,
+      options: {
+        shouldCreateUser: true,
+        emailRedirectTo: getOtpRedirectUrl(),
+        // Letto dal trigger handle_new_user alla creazione del profilo;
+        // ignorato da Supabase per gli utenti già esistenti
+        data: companyId ? { company_id: companyId } : undefined,
+      },
+    });
+
+    if (error) throw error;
+  };
+
+  const verifyEmailOtp = async (email: string, token: string) => {
+    const normalizedEmail = email.trim().toLowerCase();
+
+    // type 'email' copre sia gli utenti esistenti (token magiclink)
+    // sia i nuovi creati da shouldCreateUser (token signup)
+    const { error } = await supabase.auth.verifyOtp({
+      email: normalizedEmail,
+      token: token.trim(),
+      type: 'email',
+    });
+
+    if (error) throw error;
+    // Nessun altro step: onAuthStateChange gestisce fetch/creazione profilo
   };
 
   const signUp = async (
@@ -395,10 +455,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
     isKioskMode,
     isGuest,
     isAuthenticated: !!session && !!user,
-    isAdmin: userRole === 'admin' || user?.email?.toLowerCase() === 'admin@skibidi.com',
+    isAdmin: userRole === 'admin',
     isCustomer: userRole === 'customer',
     signIn,
     signUp,
+    requestOtp,
+    verifyEmailOtp,
     resendConfirmationEmail,
     signOut,
     enterKioskMode,

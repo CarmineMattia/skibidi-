@@ -1,154 +1,113 @@
-# 🚽 SKIBIDI ORDERS
+# Skibidi Orders
 
-> Sistema POS per ristorazione con infinite Rizz. No cap.
+POS / ordering system for restaurants: customer web & mobile ordering, kitchen display, admin dashboard, and Italian fiscal integration (Epson RT).
 
-Sistema proprietario per la ristorazione che unifica l'esperienza Consumatore (Web/Mobile) e Gestore/Totem (App Nativa Kiosk). Gestisce ordini, pagamenti e fiscalità italiana tramite comunicazione diretta con Registratori Telematici (RT) Epson.
+Built with **Expo (React Native)**, **TypeScript**, **Supabase**, and **NativeWind**.
 
-## 📦 Stack Tecnologico
-
-- **Framework**: React Native (Expo SDK 54)
-- **Linguaggio**: TypeScript (Strict Mode)
-- **Routing**: Expo Router v6
-- **Styling**: NativeWind (Tailwind CSS per React Native)
-- **UI Components**: Design System personalizzato stile shadcn/ui
-- **Backend**: Supabase (PostgreSQL + Auth + Realtime)
-- **State Management**: React Context + TanStack Query v5
-- **Icons**: Expo Vector Icons + Lucide React Native
-
-## 🏗️ Struttura del Progetto
-
-```
-skibidi-orders/
-├── app/                      # Routing (Expo Router)
-│   ├── (tabs)/              # Tab navigation principale
-│   └── _layout.tsx          # Root layout con providers
-├── components/              # Componenti riutilizzabili
-│   ├── ui/                  # Componenti UI base (Button, Card, etc.)
-│   └── features/            # Componenti feature-specific
-├── lib/                     # Business logic
-│   ├── api/                 # Supabase client, Query provider
-│   ├── fiscal/              # Logica fiscalità (RT Epson)
-│   ├── hooks/               # Custom React hooks
-│   ├── stores/              # Context providers
-│   └── utils/               # Utility functions
-├── types/                   # TypeScript type definitions
-│   └── database.types.ts    # Database schema types
-├── assets/                  # Immagini, font, etc.
-├── global.css              # CSS globale (Tailwind)
-├── tailwind.config.js      # Configurazione Tailwind
-└── supabase-schema.sql     # Schema SQL per Supabase
-```
-
-## 🚀 Setup Iniziale
-
-### 1. Clona e Installa Dipendenze
+## Quick start
 
 ```bash
-cd "skibidi orders"
+# 1. Clone
+git clone https://github.com/CarmineMattia/skibidi-.git
+cd skibidi-
+
+# 2. Install
 npm install
-```
 
-### 2. Configura Supabase
+# 3. Environment
+cp .env.example .env
+# Edit .env — at minimum set:
+#   EXPO_PUBLIC_SUPABASE_URL
+#   EXPO_PUBLIC_SUPABASE_ANON_KEY
+#   EXPO_PUBLIC_COMPANY_ID
 
-1. Vai su [supabase.com](https://supabase.com) e crea un nuovo progetto
-2. Vai nella SQL Editor e esegui il contenuto del file `supabase-schema.sql`
-3. Copia `.env.example` in `.env`:
-   ```bash
-   cp .env.example .env
-   ```
-4. Inserisci le tue credenziali Supabase nel file `.env`:
-   ```env
-   EXPO_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-   EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
-   ```
-
-### 3. Avvia il Progetto
-
-```bash
-# Web (browser)
+# 4. Run (web is the fastest way to verify)
 npm run web
-
-# Android (emulatore o dispositivo)
-npm run android
-
-# iOS (solo su macOS)
-npm run ios
-
-# Expo Dev Client
-npm start
 ```
 
-## ✅ FASE 1 - Completata
+For a full local Supabase + Auth setup (migrations, OTP login, admin user), see **[SETUP-GUIDE.md](./SETUP-GUIDE.md)**.
 
-- [x] Inizializzazione progetto Expo con TypeScript e Expo Router
-- [x] Configurazione NativeWind (Tailwind) per Native e Web
-- [x] Design system base (colori, tipografia, componenti atomici stile shadcn)
-- [x] Setup Supabase con TypeScript types
-- [x] Schema database con tabelle e RLS policies
-- [x] Struttura cartelle scalabile
+To contribute via pull request, see **[CONTRIBUTING.md](./CONTRIBUTING.md)**.
 
-## 🎨 Design System
+## Requirements
 
-Il progetto utilizza un design system ispirato a shadcn/ui con CSS variables per i colori:
+| Tool | Version |
+|------|---------|
+| Node.js | 20+ (LTS recommended) |
+| npm | 10+ |
+| Git | any recent |
+| Expo Go / emulator | optional (native) |
 
-```typescript
-// Usa i componenti UI pre-configurati
-import { Button, Card, CardHeader, CardTitle } from '@/components/ui';
+## Scripts
 
-// Oppure usa direttamente le classi Tailwind
-<View className="bg-primary rounded-lg p-4">
-  <Text className="text-primary-foreground font-semibold">Hello</Text>
-</View>
+| Command | What it does |
+|---------|----------------|
+| `npm start` | Expo dev server (press `w` / `a` / `i`) |
+| `npm run web` | Start web target |
+| `npm run android` / `npm run ios` | Native targets |
+| `npm run lint` | ESLint |
+| `npm run type-check` | `tsc --noEmit` |
+| `npx playwright test` | E2E tests (app must be running, or set `PLAYWRIGHT_BASE_URL`) |
+| `npx vitest run` | Unit tests under `tests/unit` |
+
+## Project layout
+
+```
+app/                 # Expo Router screens
+components/
+  ui/                # Shared UI primitives
+  features/          # Feature-specific UI
+lib/
+  api/               # Supabase client
+  hooks/             # Data & domain hooks
+  stores/            # React contexts
+  fiscal/            # RT / fiscal providers
+  utils/             # Helpers
+supabase/
+  migrations/        # SQL migrations (apply in order)
+types/               # Shared TypeScript types
+tests/               # Playwright + Vitest
 ```
 
-### Palette Colori
+## Environment
 
-Tutti i colori sono configurabili tramite CSS variables in `global.css`:
+Never commit `.env`. Copy from `.env.example`.
 
-- `primary` - Colore primario
-- `secondary` - Colore secondario
-- `destructive` - Per azioni distruttive
-- `muted` - Testi e elementi secondari
-- `accent` - Accenti e highlights
-- `background` / `foreground` - Sfondo e testo principale
-- `card` - Componenti card
-- `border` / `input` / `ring` - Bordi e focus
+**Minimum to run the app against an existing Supabase project:**
 
-## 🗄️ Database Schema
+```env
+EXPO_PUBLIC_SUPABASE_URL=https://xxxxx.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+EXPO_PUBLIC_COMPANY_ID=00000000-0000-0000-0000-000000000001
+```
 
-### Tabelle Principali
+Fiscal keys and service-role keys are optional for UI development (`EXPO_PUBLIC_FISCAL_MOCK_MODE=true` by default).
 
-- **profiles**: Profili utenti (admin, customer, kiosk)
-- **categories**: Categorie prodotti
-- **products**: Prodotti del menù
-- **orders**: Ordini con stato e fiscalizzazione
-- **order_items**: Dettaglio items per ordine
+## Database migrations
 
-### Row Level Security (RLS)
+Migrations live in `supabase/migrations/`. Apply them in filename order on your Supabase project (SQL Editor or Supabase CLI).
 
-Tutte le tabelle hanno RLS abilitato con policies appropriate:
-- Utenti possono vedere solo i propri ordini
-- Admin e Kiosk hanno accesso completo
-- Prodotti attivi visibili a tutti
+If you only need the latest order-related features on an already-provisioned DB, see `supabase/apply-order-features-manual.sql` as a convenience script (prefer migrations for new environments).
 
-## 📱 Prossimi Passi (Fase 2)
+## Contributing
 
-Vedi `roadmap.md` per la roadmap completa del progetto.
+1. Fork or create a feature branch from `main`
+2. Make focused changes
+3. Run `npm run type-check` (and tests relevant to your change)
+4. Open a PR — details in [CONTRIBUTING.md](./CONTRIBUTING.md)
 
-La Fase 2 includerà:
-- Implementazione navigazione e layout responsive
-- Componente ProductCard e griglia Menu
-- Logica Carrello (Context locale)
-- Autenticazione (Login Admin vs Accesso Anonimo Kiosk)
+Commit messages must match the repo hook format:
 
-## 🤝 Contribuire
+```text
+{message} ({taskId}) tests: {what you tested}
+```
 
-Questo è un progetto proprietario. Per contribuire, contatta il team di sviluppo.
+Example:
 
-## 📄 Licenza
+```text
+add: landing page and offers carousel (TASK147) tests: npm run type-check, landing playwright smoke
+```
 
-Proprietario - Tutti i diritti riservati
+## License
 
----
-
-**Built with Rizz** 💪 | Powered by Expo + Supabase
+Proprietary — all rights reserved.

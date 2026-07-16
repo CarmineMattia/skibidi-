@@ -68,6 +68,7 @@ export interface Order {
   customer_name?: string;
   customer_phone?: string;
   delivery_address?: string;
+  display_code?: string;
   table_number?: string;
   company_id: string;
   decline_reason_preset?: string | null;

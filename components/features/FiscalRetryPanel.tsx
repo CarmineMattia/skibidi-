@@ -8,6 +8,7 @@ import { supabase } from '@/lib/api/supabase';
 import { getFiscalService } from '@/lib/fiscal/FiscalService';
 import type { Database } from '@/types/database.types';
 import type { FiscalOrderData } from '@/types/fiscal.types';
+import { getOrderDisplayCode } from '@/lib/utils/orderDisplayCode';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { FontAwesome } from '@expo/vector-icons';
 import { useState } from 'react';
@@ -220,7 +221,7 @@ export function FiscalRetryPanel({ visible, onClose }: FiscalRetryPanelProps) {
                                             <View className="flex-row justify-between items-start">
                                                 <View className="flex-1">
                                                     <Text className="text-card-foreground font-semibold">
-                                                        Ordine #{order.id.slice(0, 8)}
+                                                        Ordine {getOrderDisplayCode(order)}
                                                     </Text>
                                                     <Text className="text-muted-foreground text-sm mt-1">
                                                         {new Date(order.created_at).toLocaleString('it-IT')}

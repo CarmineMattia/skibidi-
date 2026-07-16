@@ -84,7 +84,7 @@ export function useOrders(options: UseOrdersOptions = {}) {
         .on(
           'postgres_changes',
           {
-            event: 'UPDATE',
+            event: '*',
             schema: 'public',
             table: 'orders',
             filter: `customer_id=eq.${userId}`,

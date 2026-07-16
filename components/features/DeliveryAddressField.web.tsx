@@ -1,76 +1,52 @@
 import {
-  Map,
-  MapControls,
-  MapMarker,
-  MarkerContent,
-  useMap,
-} from '@/components/ui/map';
-import {
+  DEFAULT_MAP_CENTER,
   reverseGeocode,
   searchAddresses,
   type AddressSuggestion,
   type GeoCoordinates,
 } from '@/lib/utils/geocoding';
-import type { MapMouseEvent } from 'maplibre-gl';
-import { MapPin } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
 
-const DEFAULT_CENTER: GeoCoordinates = { lng: 12.4964, lat: 41.9028 };
-const DEFAULT_ZOOM = 13;
+// Lazy chunk: maplibre-gl (WebGL) stays out of the initial checkout bundle.
+// The Suspense fallback fills the same reserved 220 px box, so the map
+// arriving late never shifts the layout.
+const DeliveryMapSection = lazy(() => import('@/components/features/DeliveryMapSection'));
 
 type DeliveryAddressFieldProps = {
   label: string;
   placeholder: string;
   address: string;
   onAddressChange: (value: string) => void;
+  civico: string;
+  onCivicoChange: (value: string) => void;
+  civicoLabel: string;
+  civicoPlaceholder: string;
   error?: string;
+  civicoError?: string;
   hasError?: boolean;
+  hasCivicoError?: boolean;
   mapHint?: string;
   searchingLabel?: string;
 };
-
-function MapLocationSync({
-  coordinates,
-  onMapClick,
-}: {
-  coordinates: GeoCoordinates;
-  onMapClick: (coordinates: GeoCoordinates) => void;
-}) {
-  const { map, isLoaded } = useMap();
-
-  useEffect(() => {
-    if (!map || !isLoaded) return;
-    map.flyTo({ center: [coordinates.lng, coordinates.lat], zoom: Math.max(map.getZoom(), 15) });
-  }, [coordinates.lat, coordinates.lng, isLoaded, map]);
-
-  useEffect(() => {
-    if (!map || !isLoaded) return;
-
-    const handleClick = (event: MapMouseEvent) => {
-      onMapClick({ lng: event.lngLat.lng, lat: event.lngLat.lat });
-    };
-
-    map.on('click', handleClick);
-    return () => {
-      map.off('click', handleClick);
-    };
-  }, [isLoaded, map, onMapClick]);
-
-  return null;
-}
 
 export function DeliveryAddressField({
   label,
   placeholder,
   address,
   onAddressChange,
+  civico,
+  onCivicoChange,
+  civicoLabel,
+  civicoPlaceholder,
   error,
+  civicoError,
   hasError,
+  hasCivicoError,
   mapHint = 'Tap the map or drag the pin to set your delivery location.',
   searchingLabel = 'Searching addresses...',
 }: DeliveryAddressFieldProps) {
-  const [coordinates, setCoordinates] = useState<GeoCoordinates>(DEFAULT_CENTER);
+  const [coordinates, setCoordinates] = useState<GeoCoordinates>(DEFAULT_MAP_CENTER);
   const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isResolvingLocation, setIsResolvingLocation] = useState(false);
@@ -104,7 +80,7 @@ export function DeliveryAddressField({
       return;
     }
 
-    const trimmed = address.trim();
+    const trimmed = [address.trim(), civico.trim()].filter(Boolean).join(' ');
     if (trimmed.length < 3) {
       setSuggestions([]);
       setIsSearching(false);
@@ -131,7 +107,7 @@ export function DeliveryAddressField({
     }, 400);
 
     return () => clearTimeout(timeoutId);
-  }, [address]);
+  }, [address, civico]);
 
   const handleSuggestionSelect = (suggestion: AddressSuggestion) => {
     skipSearchRef.current = true;
@@ -183,30 +159,28 @@ export function DeliveryAddressField({
       {isSearching ? <Text className="text-xs text-muted-foreground mt-1">{searchingLabel}</Text> : null}
       {error ? <Text className="text-red-500 text-xs mt-1">{error}</Text> : null}
 
+      <Text className="text-sm font-medium mb-2 mt-3">{civicoLabel}</Text>
+      <TextInput
+        className={`bg-background border rounded-xl px-4 py-3 text-base ${
+          hasCivicoError ? 'border-red-500 bg-red-50' : 'border-border'
+        }`}
+        placeholder={civicoPlaceholder}
+        value={civico}
+        onChangeText={onCivicoChange}
+        autoCapitalize="characters"
+      />
+      {civicoError ? <Text className="text-red-500 text-xs mt-1">{civicoError}</Text> : null}
+
       <View className="mt-3 rounded-xl border border-border overflow-hidden bg-card">
         <View className="h-[220px] w-full">
-          <Map center={[DEFAULT_CENTER.lng, DEFAULT_CENTER.lat]} zoom={DEFAULT_ZOOM} className="h-full w-full">
-            <MapControls
-              showZoom
-              showLocate
-              onLocate={(coords) => {
-                void applyCoordinates({ lng: coords.longitude, lat: coords.latitude });
+          <Suspense fallback={<View className="h-full w-full bg-secondary/30 animate-pulse" />}>
+            <DeliveryMapSection
+              coordinates={coordinates}
+              onApplyCoordinates={(coords) => {
+                void applyCoordinates(coords);
               }}
             />
-            <MapLocationSync coordinates={coordinates} onMapClick={applyCoordinates} />
-            <MapMarker
-              draggable
-              longitude={coordinates.lng}
-              latitude={coordinates.lat}
-              onDragEnd={(lngLat) => {
-                void applyCoordinates({ lng: lngLat.lng, lat: lngLat.lat });
-              }}
-            >
-              <MarkerContent className="cursor-move">
-                <MapPin className="fill-[#8d171e] stroke-white" size={30} />
-              </MarkerContent>
-            </MapMarker>
-          </Map>
+          </Suspense>
         </View>
         <View className="px-3 py-2 border-t border-border bg-background">
           <Text className="text-xs text-muted-foreground">

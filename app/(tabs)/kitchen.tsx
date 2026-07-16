@@ -3,7 +3,8 @@
  * Real-time order management for kitchen staff
  */
 
-import { View, Text, FlatList, ActivityIndicator, Dimensions, Pressable, ScrollView, useWindowDimensions } from 'react-native';
+import { View, Text, FlatList, Dimensions, Pressable, ScrollView, useWindowDimensions } from 'react-native';
+import { SkeletonKitchenGrid } from '@/components/ui/Skeleton';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useKitchenOrders } from '@/lib/hooks/useKitchenOrders';
 import { KitchenOrderCard } from '@/components/features/KitchenOrderCard';
@@ -14,7 +15,6 @@ import type { Database } from '@/types/database.types.generated';
 import { FontAwesome } from '@expo/vector-icons';
 import { useAppSettings } from '@/lib/stores/AppSettingsContext';
 import { useAuth } from '@/lib/stores/AuthContext';
-import { useOrderAlertSound } from '@/lib/hooks/useOrderAlertSound';
 import { useRouter } from 'expo-router';
 import { getNextOpening, isOpenAt } from '@/lib/utils/businessHours';
 
@@ -27,6 +27,23 @@ const FILTER_OPTIONS: { label: string; statuses: OrderStatus[] }[] = [
   { label: 'Pronti', statuses: ['ready'] },
   { label: 'Tutti', statuses: ['pending', 'preparing', 'ready', 'delivered', 'cancelled'] },
 ];
+
+// Self-contained seconds clock: keeps the 1 s tick out of the screen
+// component so the order grid isn't re-rendered every second.
+function KitchenClock({ className }: { className: string }) {
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <Text className={className}>
+      {now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}
+    </Text>
+  );
+}
 
 export default function KitchenScreen() {
   const insets = useSafeAreaInsets();
@@ -43,7 +60,6 @@ export default function KitchenScreen() {
   const [deviceNow, setDeviceNow] = useState(() => new Date());
   const router = useRouter();
   const { isAdmin } = useAuth();
-  const { playAlert } = useOrderAlertSound();
   const { acceptingOrders, ordersPausedUntil, pauseOrdersForMinutes, resumeOrders, businessHours } = useAppSettings();
   const selectedFilter = FILTER_OPTIONS[selectedFilterIndex];
   const pausedUntilDate =
@@ -69,24 +85,24 @@ export default function KitchenScreen() {
   };
 
   useEffect(() => {
+    // Open/closed state and the pause countdown only display minute
+    // granularity — a 30 s tick avoids re-rendering the whole order grid
+    // every second (the visible seconds clock has its own local timer).
     const timer = setInterval(() => {
       setDeviceNow(new Date());
-    }, 1000);
+    }, 30_000);
     return () => clearInterval(timer);
   }, []);
 
   const { data: orders = [], isLoading, error, refetch } = useKitchenOrders({
     statuses: selectedFilter.statuses,
-    onOrderEvent: (event) => {
-      if (event.type === 'new-order') {
-        void playAlert('new-order', event.orderId);
-        return;
-      }
-      if (event.type === 'order-ready') {
-        void playAlert('order-ready', event.orderId);
-      }
-    },
+    enabled: isAdmin,
   });
+
+  if (!isAdmin) {
+    router.replace('/(tabs)/menu');
+    return null;
+  }
 
   if (error) {
     return (
@@ -120,9 +136,7 @@ export default function KitchenScreen() {
                 Cucina
               </Text>
               <View className={`rounded-full border border-gray-300 bg-gray-100 ${isUltraCompact ? 'px-1.5 py-0.5' : 'px-2 py-0.5'}`}>
-                <Text className={`text-gray-700 font-semibold ${isUltraCompact ? 'text-[9px]' : 'text-[10px]'}`}>
-                  {deviceNow.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}
-                </Text>
+                <KitchenClock className={`text-gray-700 font-semibold ${isUltraCompact ? 'text-[9px]' : 'text-[10px]'}`} />
               </View>
             </View>
             <View className="flex-row flex-wrap items-center gap-1.5">
@@ -182,9 +196,7 @@ export default function KitchenScreen() {
                 Cucina
               </Text>
               <View className="rounded-full border border-gray-300 bg-gray-100 px-2.5 py-1">
-                <Text className="text-gray-700 font-semibold text-xs">
-                  {deviceNow.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}
-                </Text>
+                <KitchenClock className="text-gray-700 font-semibold text-xs" />
               </View>
             </View>
             <View className="flex-row items-center gap-2 md:gap-3">
@@ -328,10 +340,7 @@ export default function KitchenScreen() {
 
       {/* Orders Grid */}
       {isLoading ? (
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" className="text-primary" />
-          <Text className="text-muted-foreground mt-4">Caricamento ordini...</Text>
-        </View>
+        <SkeletonKitchenGrid count={columns * 2} columns={columns} />
       ) : orders.length === 0 ? (
         <View className="flex-1 items-center justify-center p-8">
           <FontAwesome name="check-circle" size={60} color="#10b981" style={{ marginBottom: 12 }} />

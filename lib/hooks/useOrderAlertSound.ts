@@ -1,3 +1,7 @@
+import {
+  DEFAULT_NEW_ORDER_SOUND_URL,
+  DEFAULT_ORDER_READY_SOUND_URL,
+} from '@/lib/data/defaultAlertSounds';
 import { useAppSettings } from '@/lib/stores/AppSettingsContext';
 import { Audio } from 'expo-av';
 import { useCallback, useRef } from 'react';
@@ -11,7 +15,10 @@ export function useOrderAlertSound() {
   const playAlert = useCallback(
     async (event: OrderAlertEvent, dedupeKey?: string) => {
       if (!alertSounds.enabled) return;
-      const soundUrl = event === 'new-order' ? alertSounds.newOrderSoundUrl : alertSounds.orderReadySoundUrl;
+      const soundUrl =
+        event === 'new-order'
+          ? alertSounds.newOrderSoundUrl || DEFAULT_NEW_ORDER_SOUND_URL
+          : alertSounds.orderReadySoundUrl || DEFAULT_ORDER_READY_SOUND_URL;
       if (!soundUrl) return;
 
       if (dedupeKey) {

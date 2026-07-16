@@ -8,6 +8,7 @@ import { DeclineReasonModal } from '@/components/features/orders/DeclineReasonMo
 import { useUpdateOrderStatus } from '@/lib/hooks/useUpdateOrderStatus';
 import { printComanda, printDocumentoCommerciale, type PrintOrderData } from '@/lib/print/orderPrint';
 import type { Database } from '@/types/database.types.generated';
+import { getOrderDisplayCode } from '@/lib/utils/orderDisplayCode';
 import { FontAwesome } from '@expo/vector-icons';
 import { Alert, Pressable, Text, View } from 'react-native';
 import { useState } from 'react';
@@ -15,6 +16,7 @@ import { useState } from 'react';
 function kitchenOrderToPrintData(order: KitchenOrder): PrintOrderData {
   return {
     id: order.id,
+    displayCode: order.display_code,
     createdAt: order.created_at,
     orderType: order.order_type,
     tableNumber: order.table_number,
@@ -171,7 +173,7 @@ export function KitchenOrderCard({ order }: KitchenOrderCardProps) {
         <View className="flex-1">
           <View className="flex-row items-center gap-2 mb-1">
             <Text className="text-foreground font-extrabold text-2xl">
-              #{order.id.slice(0, 8).toUpperCase()}
+              {getOrderDisplayCode(order)}
             </Text>
             {isUrgent && <FontAwesome name="exclamation-triangle" size={16} color="#dc2626" />}
           </View>

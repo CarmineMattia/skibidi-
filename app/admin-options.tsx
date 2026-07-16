@@ -1,6 +1,8 @@
 import { Button } from '@/components/ui/Button';
+import { SkeletonShiftDoughStats } from '@/components/ui/Skeleton';
 import { supabase } from '@/lib/api/supabase';
 import { TimeWheelModal } from '@/components/ui/TimeWheelModal';
+import { useShiftDoughUsage } from '@/lib/hooks/useShiftDoughUsage';
 import { WEEKDAY_LABELS, useAppSettings, type AppLanguage } from '@/lib/stores/AppSettingsContext';
 import { useAuth } from '@/lib/stores/AuthContext';
 import { FontAwesome } from '@expo/vector-icons';
@@ -39,6 +41,11 @@ export default function AdminOptionsScreen() {
     clearDisabledTimeSlots,
     setBusinessDayEnabled,
     setBusinessDayIntervals,
+    shiftDoughBallsTotal,
+    shiftStartedAt,
+    setShiftDoughBallsTotal,
+    resetShiftDoughTracking,
+    clearShiftDoughTracking,
     setAlertSoundsEnabled,
     setNewOrderSoundUrl,
     setOrderReadySoundUrl,
@@ -59,6 +66,21 @@ export default function AdminOptionsScreen() {
   const [orderWindowInput, setOrderWindowInput] = useState(String(orderWindowMinutes));
   const [deliveryCapacityInput, setDeliveryCapacityInput] = useState(String(deliveryMaxOrdersPerWindow));
   const [deliveryWindowInput, setDeliveryWindowInput] = useState(String(deliveryOrderWindowMinutes));
+  const [shiftDoughInput, setShiftDoughInput] = useState(
+    shiftDoughBallsTotal !== null ? String(shiftDoughBallsTotal) : ''
+  );
+  const {
+    usedUnits: shiftUsedUnits,
+    remainingUnits: shiftRemainingUnits,
+    isTrackingEnabled: isShiftTrackingEnabled,
+    isRpcMissing: isShiftUsageRpcMissing,
+    hasTrackingError: hasShiftUsageError,
+    isLoading: isShiftUsageLoading,
+    refetch: refetchShiftUsage,
+  } = useShiftDoughUsage({
+    shiftStartedAt,
+    shiftDoughBallsTotal,
+  });
   const pauseDescription = useMemo(() => {
     if (!ordersPausedUntil) return null;
     const pausedDate = new Date(ordersPausedUntil);
@@ -82,6 +104,23 @@ export default function AdminOptionsScreen() {
   useEffect(() => {
     setDeliveryWindowInput(String(deliveryOrderWindowMinutes));
   }, [deliveryOrderWindowMinutes]);
+
+  useEffect(() => {
+    setShiftDoughInput(shiftDoughBallsTotal !== null ? String(shiftDoughBallsTotal) : '');
+  }, [shiftDoughBallsTotal]);
+
+  const shiftStartedLabel = useMemo(() => {
+    if (!shiftStartedAt) return null;
+    const startedAt = new Date(shiftStartedAt);
+    if (Number.isNaN(startedAt.getTime())) return null;
+    return startedAt.toLocaleString('it-IT', {
+      day: '2-digit',
+      month: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+  }, [shiftStartedAt]);
 
   if (!isAdmin) {
     // Se qualcuno arriva qui senza permessi admin, rimandiamo al menu principale
@@ -447,17 +486,20 @@ export default function AdminOptionsScreen() {
         )}
       </View>
 
-      {/* Rush capacity settings */}
+      {/* Pizza capacity settings */}
       <View className="bg-card rounded-2xl p-6 border border-border shadow-lg mb-6">
         <Text className="text-card-foreground font-semibold text-xl mb-2">
-          Capacità ordini per fascia
+          Capacità pizze per fascia
         </Text>
-        <Text className="text-muted-foreground mb-4">
-          Limita i nuovi ordini per ogni finestra temporale.
+        <Text className="text-muted-foreground mb-2">
+          Quante pizze (in unità pallina) il forno può gestire in ogni finestra temporale.
+        </Text>
+        <Text className="text-muted-foreground text-xs mb-4">
+          Pesi: normale/piccola = 1 · tirata = 1,5 · mezzo metro = 3 · metro = 6
         </Text>
         <View className="flex-row gap-3">
           <View className="flex-1">
-            <Text className="text-xs text-muted-foreground mb-1">Max ordini</Text>
+            <Text className="text-xs text-muted-foreground mb-1">Max pizze</Text>
             <TextInput
               className="h-12 rounded-xl border border-border bg-background px-4 text-foreground font-semibold"
               keyboardType="number-pad"
@@ -493,17 +535,128 @@ export default function AdminOptionsScreen() {
         </View>
       </View>
 
-      {/* Delivery capacity settings */}
+      {/* Shift dough balls tracking */}
       <View className="bg-card rounded-2xl p-6 border border-border shadow-lg mb-6">
         <Text className="text-card-foreground font-semibold text-xl mb-2">
-          Capacita delivery per fascia
+          Palline disponibili per serata
         </Text>
         <Text className="text-muted-foreground mb-4">
-          Limita i nuovi ordini delivery per ogni finestra temporale.
+          Inserisci quante palline hai a disposizione per la serata. Il sistema scala il residuo ad ogni ordine confermato.
+        </Text>
+
+        <View className="mb-4">
+          <Text className="text-xs text-muted-foreground mb-1">Palline totali serata</Text>
+          <TextInput
+            className="h-12 rounded-xl border border-border bg-background px-4 text-foreground font-semibold"
+            keyboardType="number-pad"
+            placeholder="es. 120"
+            value={shiftDoughInput}
+            onChangeText={(value) => setShiftDoughInput(sanitizeNumericInput(value))}
+            onBlur={() => {
+              const parsed = Number(shiftDoughInput);
+              if (Number.isFinite(parsed) && parsed > 0) {
+                setShiftDoughBallsTotal(parsed);
+              } else if (shiftDoughInput.trim() === '') {
+                clearShiftDoughTracking();
+              } else {
+                setShiftDoughInput(shiftDoughBallsTotal !== null ? String(shiftDoughBallsTotal) : '');
+              }
+            }}
+          />
+        </View>
+
+        {isShiftTrackingEnabled && (
+          <View className="rounded-xl border border-border bg-muted/30 p-4 mb-4">
+            <Text className="text-sm text-card-foreground font-semibold mb-2">Stato serata</Text>
+            {shiftStartedLabel && (
+              <Text className="text-xs text-muted-foreground mb-2">
+                Conteggio attivo dalle {shiftStartedLabel}
+              </Text>
+            )}
+            {isShiftUsageLoading ? (
+              <SkeletonShiftDoughStats />
+            ) : (
+              <View className="flex-row flex-wrap gap-4">
+                <View>
+                  <Text className="text-xs text-muted-foreground">Usate</Text>
+                  <Text className="text-lg font-bold text-foreground">{shiftUsedUnits}</Text>
+                </View>
+                <View>
+                  <Text className="text-xs text-muted-foreground">Rimanenti</Text>
+                  <Text
+                    className={`text-lg font-bold ${
+                      shiftRemainingUnits !== null && shiftRemainingUnits <= 5
+                        ? 'text-destructive'
+                        : 'text-emerald-700'
+                    }`}
+                  >
+                    {shiftRemainingUnits ?? '-'}
+                  </Text>
+                </View>
+                <View>
+                  <Text className="text-xs text-muted-foreground">Totali</Text>
+                  <Text className="text-lg font-bold text-foreground">{shiftDoughBallsTotal}</Text>
+                </View>
+              </View>
+            )}
+            {(isShiftUsageRpcMissing || hasShiftUsageError) && (
+              <View className="mt-3 rounded-lg border border-amber-300 bg-amber-50 p-3">
+                <Text className="text-xs text-amber-800">
+                  {isShiftUsageRpcMissing
+                    ? 'Tracking palline non disponibile: manca la funzione RPC get_shift_dough_usage su Supabase. Il limite serata viene bloccato in checkout finché non viene deployata la migration 20260711_shift_dough_usage.sql.'
+                    : 'Errore nel calcolo palline serata. Verifica Supabase e riprova.'}
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
+
+        <View className="flex-row flex-wrap gap-2">
+          {isShiftTrackingEnabled && (
+            <>
+              <Button
+                title="Nuova serata"
+                variant="outline"
+                onPress={() => {
+                  resetShiftDoughTracking();
+                  void refetchShiftUsage();
+                  Alert.alert('Serata resettata', 'Il conteggio palline riparte da adesso.');
+                }}
+              />
+              <Button
+                title="Aggiorna conteggio"
+                variant="outline"
+                onPress={() => {
+                  void refetchShiftUsage();
+                }}
+              />
+            </>
+          )}
+          {isShiftTrackingEnabled && (
+            <Button
+              title="Disattiva tracking"
+              variant="ghost"
+              onPress={() => {
+                clearShiftDoughTracking();
+                setShiftDoughInput('');
+                Alert.alert('Tracking disattivato', 'Il limite palline serata non è più attivo.');
+              }}
+            />
+          )}
+        </View>
+      </View>
+
+      {/* Delivery pizza capacity settings */}
+      <View className="bg-card rounded-2xl p-6 border border-border shadow-lg mb-6">
+        <Text className="text-card-foreground font-semibold text-xl mb-2">
+          Capacità pizze delivery per fascia
+        </Text>
+        <Text className="text-muted-foreground mb-4">
+          Limita le pizze delivery per ogni finestra temporale (stesse unità pallina del ritiro).
         </Text>
         <View className="flex-row gap-3">
           <View className="flex-1">
-            <Text className="text-xs text-muted-foreground mb-1">Max delivery</Text>
+            <Text className="text-xs text-muted-foreground mb-1">Max pizze delivery</Text>
             <TextInput
               className="h-12 rounded-xl border border-border bg-background px-4 text-foreground font-semibold"
               keyboardType="number-pad"
@@ -682,7 +835,7 @@ export default function AdminOptionsScreen() {
           Notifiche audio ordini
         </Text>
         <Text className="text-muted-foreground mb-4">
-          Carica suoni personalizzati per nuovi ordini e ordini pronti.
+          Suoni attivi di default. Carica audio personalizzati per nuovi ordini e ordini pronti.
         </Text>
 
         <View className="flex-row gap-2 mb-4">
@@ -706,7 +859,9 @@ export default function AdminOptionsScreen() {
 
         <View className="rounded-xl border border-border p-3 mb-3">
           <Text className="font-bold text-foreground mb-1">Nuovo ordine arrivato</Text>
-          <Text className="text-xs text-muted-foreground mb-2">{alertSounds.newOrderSoundUrl || 'Nessun suono caricato'}</Text>
+          <Text className="text-xs text-muted-foreground mb-2">
+            {alertSounds.newOrderSoundUrl || 'Suono predefinito Ambrosia'}
+          </Text>
           <View className="flex-row gap-2">
             <Button
               title={isUploadingSound ? 'Upload...' : 'Carica audio'}
@@ -720,7 +875,9 @@ export default function AdminOptionsScreen() {
 
         <View className="rounded-xl border border-border p-3">
           <Text className="font-bold text-foreground mb-1">Ordine pronto</Text>
-          <Text className="text-xs text-muted-foreground mb-2">{alertSounds.orderReadySoundUrl || 'Nessun suono caricato'}</Text>
+          <Text className="text-xs text-muted-foreground mb-2">
+            {alertSounds.orderReadySoundUrl || 'Suono predefinito Ambrosia'}
+          </Text>
           <View className="flex-row gap-2">
             <Button
               title={isUploadingSound ? 'Upload...' : 'Carica audio'}

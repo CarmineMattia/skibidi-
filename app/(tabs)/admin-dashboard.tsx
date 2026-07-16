@@ -1,16 +1,18 @@
 import { supabase } from '@/lib/api/supabase';
 import { DeclineReasonModal } from '@/components/features/orders/DeclineReasonModal';
-import { useOrderAlertSound } from '@/lib/hooks/useOrderAlertSound';
+import { SkeletonDashboardMetrics, SkeletonShiftDoughStats } from '@/components/ui/Skeleton';
+import { useShiftDoughUsage } from '@/lib/hooks/useShiftDoughUsage';
 import { useUpdateOrderStatus } from '@/lib/hooks/useUpdateOrderStatus';
 import { useAppSettings } from '@/lib/stores/AppSettingsContext';
 import { useAuth } from '@/lib/stores/AuthContext';
 import { useTenant } from '@/lib/stores/TenantContext';
+import { getOrderDisplayCode } from '@/lib/utils/orderDisplayCode';
 import { FontAwesome } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import type { ComponentProps } from 'react';
 import { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type TimeRangeKey = 'today' | '7d' | '30d';
@@ -52,7 +54,20 @@ export default function AdminDashboardScreen() {
     ordersPausedUntil,
     maxOrdersPerWindow,
     deliveryMaxOrdersPerWindow,
+    shiftDoughBallsTotal,
+    shiftStartedAt,
   } = useAppSettings();
+  const {
+    usedUnits: shiftUsedUnits,
+    remainingUnits: shiftRemainingUnits,
+    isTrackingEnabled: isShiftTrackingEnabled,
+    isRpcMissing: isShiftUsageRpcMissing,
+    hasTrackingError: hasShiftUsageError,
+    isLoading: isShiftUsageLoading,
+  } = useShiftDoughUsage({
+    shiftStartedAt,
+    shiftDoughBallsTotal,
+  });
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [timeRange, setTimeRange] = useState<TimeRangeKey>('today');
@@ -60,11 +75,11 @@ export default function AdminDashboardScreen() {
   const [selectedHourLabel, setSelectedHourLabel] = useState<string | null>(null);
   const [declineOrderId, setDeclineOrderId] = useState<string | null>(null);
   const updateOrderStatus = useUpdateOrderStatus();
-  const { playAlert } = useOrderAlertSound();
 
   const { data, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['admin-dashboard-stats', companyId],
     enabled: Boolean(companyId) && isAdmin,
+    refetchInterval: 10_000,
     queryFn: async (): Promise<DashboardStats> => {
       const startOfDay = new Date();
       startOfDay.setHours(0, 0, 0, 0);
@@ -173,6 +188,7 @@ export default function AdminDashboardScreen() {
   const { data: actionableOrders = [] } = useQuery({
     queryKey: ['admin-actionable-orders', companyId],
     enabled: Boolean(companyId) && isAdmin,
+    refetchInterval: 10_000,
     queryFn: async (): Promise<ActionableOrder[]> => {
       const { data, error } = await supabase
         .from('orders')
@@ -309,16 +325,8 @@ export default function AdminDashboardScreen() {
           table: 'orders',
           filter: `company_id=eq.${companyId}`,
         },
-        (payload) => {
-          const nextStatus = (payload.new as { status?: string; id?: string } | null)?.status;
-          const nextId = (payload.new as { status?: string; id?: string } | null)?.id;
-          const prevStatus = (payload.old as { status?: string } | null)?.status;
-          if (payload.eventType === 'INSERT' && nextStatus === 'pending' && nextId) {
-            void playAlert('new-order', nextId);
-          }
-          if (payload.eventType === 'UPDATE' && nextStatus === 'ready' && prevStatus !== 'ready' && nextId) {
-            void playAlert('order-ready', nextId);
-          }
+        () => {
+          void refetch();
         }
       )
       .subscribe();
@@ -326,7 +334,7 @@ export default function AdminDashboardScreen() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [companyId, playAlert]);
+  }, [companyId, refetch]);
 
   const getNextStatus = (status: ActionableOrder['status']): ActionableOrder['status'] | null => {
     if (status === 'pending') return 'preparing';
@@ -396,11 +404,49 @@ export default function AdminDashboardScreen() {
           </View>
         </View>
 
-        {isLoading && !data ? (
-          <View className="bg-white rounded-2xl border border-[#e1a255]/40 p-6 items-center">
-            <ActivityIndicator size="small" color="#d97706" />
-            <Text className="text-sm text-gray-600 mt-2">Caricamento metriche...</Text>
+        {isShiftTrackingEnabled && (
+          <View className="rounded-2xl border border-[#e1a255]/40 bg-[#fff8ef] p-4">
+            <Text className="text-sm font-bold text-[#8d171e] mb-2">Palline serata</Text>
+            {isShiftUsageLoading ? (
+              <SkeletonShiftDoughStats />
+            ) : (
+              <View className="flex-row gap-6">
+                <View>
+                  <Text className="text-xs text-gray-600">Usate</Text>
+                  <Text className="text-xl font-black text-gray-900">{shiftUsedUnits}</Text>
+                </View>
+                <View>
+                  <Text className="text-xs text-gray-600">Rimanenti</Text>
+                  <Text
+                    className={`text-xl font-black ${
+                      shiftRemainingUnits !== null && shiftRemainingUnits <= 5
+                        ? 'text-red-700'
+                        : 'text-emerald-700'
+                    }`}
+                  >
+                    {shiftRemainingUnits ?? '-'}
+                  </Text>
+                </View>
+                <View>
+                  <Text className="text-xs text-gray-600">Totali</Text>
+                  <Text className="text-xl font-black text-gray-900">{shiftDoughBallsTotal}</Text>
+                </View>
+              </View>
+            )}
+            {(isShiftUsageRpcMissing || hasShiftUsageError) && (
+              <View className="mt-3 rounded-lg border border-amber-300 bg-amber-50 p-3">
+                <Text className="text-xs text-amber-800">
+                  {isShiftUsageRpcMissing
+                    ? 'Tracking palline non disponibile: funzione RPC get_shift_dough_usage mancante su Supabase.'
+                    : 'Errore nel calcolo palline serata. Controlla la connessione Supabase.'}
+                </Text>
+              </View>
+            )}
           </View>
+        )}
+
+        {isLoading && !data ? (
+          <SkeletonDashboardMetrics />
         ) : (
           <View className="gap-3">
             <MetricCard
@@ -472,7 +518,7 @@ export default function AdminDashboardScreen() {
 
               {selectedMetric === 'pending' && (
                 <Text className="text-sm text-gray-700 mt-3">
-                  Ordini in lavorazione nel periodo: <Text className="font-bold">{selectedRangeStats?.pendingCount ?? 0}</Text>. Se supera 8-10 ordini insieme, valuta aumento capacita o stop temporaneo.
+                  Ordini in lavorazione nel periodo: <Text className="font-bold">{selectedRangeStats?.pendingCount ?? 0}</Text>. Se supera 8-10 pizze equivalenti insieme, valuta aumento capacita o stop temporaneo.
                 </Text>
               )}
 
@@ -547,10 +593,10 @@ export default function AdminDashboardScreen() {
                   >
                     <Text className="font-bold text-gray-900">{slot.label}</Text>
                     <Text className="text-xs text-gray-700 mt-1">
-                      Previsti: {slot.expectedTotal} ordini ({slot.expectedDelivery} delivery / {slot.expectedNonDelivery} altri)
+                      Previsti: ~{slot.expectedTotal} pizze ({slot.expectedDelivery} delivery / {slot.expectedNonDelivery} altri)
                     </Text>
                     <Text className="text-xs text-gray-700">
-                      Capacita: {slot.capacityTotal} totali, {slot.capacityDelivery} delivery
+                      Capacita: {slot.capacityTotal} pizze totali, {slot.capacityDelivery} delivery
                     </Text>
                     <Text className={`text-xs font-bold mt-1 ${slot.risk === 'critical' ? 'text-red-700' : slot.risk === 'warning' ? 'text-amber-700' : 'text-emerald-700'}`}>
                       {slot.risk === 'critical' ? 'Rischio alto saturazione' : slot.risk === 'warning' ? 'Rischio medio' : 'Capacita sotto controllo'}
@@ -572,7 +618,7 @@ export default function AdminDashboardScreen() {
                       <View key={order.id} className="rounded-xl border border-gray-200 bg-gray-50 p-3">
                         <View className="flex-row items-center justify-between">
                           <View>
-                            <Text className="font-extrabold text-gray-900">#{order.id.slice(0, 8).toUpperCase()}</Text>
+                            <Text className="font-extrabold text-gray-900">{getOrderDisplayCode(order)}</Text>
                             <Text className="text-xs text-gray-500">
                               {order.customer_name || 'Cliente'} • €{order.total_amount.toFixed(2)}
                             </Text>

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import Animated, {
     useAnimatedStyle,
+    useReducedMotion,
     useSharedValue,
     withDelay,
     withSequence,
@@ -10,20 +11,39 @@ import Animated, {
 } from 'react-native-reanimated';
 import { DigitalReceipt } from '@/components/features/DigitalReceipt';
 import { FontAwesome } from '@expo/vector-icons';
+import { useOrder } from '@/lib/hooks/useOrders';
+import { formatCustomerOrderCode } from '@/lib/utils/orderDisplayCode';
 
 export default function OrderSuccessScreen() {
     const router = useRouter();
-    const { orderId, orderType } = useLocalSearchParams<{ orderId: string; orderType?: string }>();
+    const { orderId, orderType, displayCode } = useLocalSearchParams<{
+        orderId: string;
+        orderType?: string;
+        displayCode?: string;
+    }>();
+    const { data: orderData } = useOrder(orderId || '');
+    const orderLabel = displayCode
+        ? `🍕 ${displayCode}`
+        : orderData
+          ? formatCustomerOrderCode(orderData)
+          : orderId
+            ? formatCustomerOrderCode({ id: orderId, display_code: null })
+            : 'N/A';
     const [showReceipt, setShowReceipt] = useState(false);
-    const scale = useSharedValue(0);
-    const opacity = useSharedValue(0);
+    // With reduced motion the confirmation renders fully visible right away.
+    // Otherwise keep the entrance short: this is the page's primary content,
+    // so it must not sit invisible behind a long animation delay.
+    const reducedMotion = useReducedMotion();
+    const scale = useSharedValue(reducedMotion ? 1 : 0);
+    const opacity = useSharedValue(reducedMotion ? 1 : 0);
 
     useEffect(() => {
+        if (reducedMotion) return;
         scale.value = withSequence(
             withSpring(1.2),
             withSpring(1)
         );
-        opacity.value = withDelay(500, withSpring(1));
+        opacity.value = withDelay(150, withSpring(1));
     }, []);
 
     const animatedIconStyle = useAnimatedStyle(() => ({
@@ -48,7 +68,7 @@ export default function OrderSuccessScreen() {
                         Order Confirmed!
                     </Text>
                     <Text className="text-muted-foreground text-base sm:text-lg md:text-xl text-center mb-8 leading-relaxed">
-                        Your order #{orderId ? orderId.slice(0, 8).toUpperCase() : 'N/A'} is now in preparation.
+                        Your order {orderLabel} is now in preparation.
                         View your digital receipt below.
                     </Text>
 

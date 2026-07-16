@@ -4,12 +4,14 @@ import type { AdminOrder } from '@/lib/hooks/useAdminOrders';
 import type { OrderWithItems } from '@/lib/hooks/useOrders';
 import { useAuth } from '@/lib/stores/AuthContext';
 import type { Database } from '@/types/database.types.generated';
+import { getOrderDisplayCode } from '@/lib/utils/orderDisplayCode';
+import { SkeletonList, SkeletonOrderCard } from '@/components/ui/Skeleton';
 import { FontAwesome } from '@expo/vector-icons';
 import { Stack, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import {
-  ActivityIndicator,
   Alert,
+  FlatList,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -78,7 +80,7 @@ function OrderCard({
       <View className="flex-row items-start justify-between">
         <View className="flex-1 pr-2">
           <Text className="font-bold text-gray-900">
-            #{order.id.slice(0, 8).toUpperCase()}
+            {getOrderDisplayCode(order)}
           </Text>
           <Text className="text-xs text-gray-500">{formatOrderDate(order.created_at)}</Text>
           {'customer_name' in order && order.customer_name ? (
@@ -147,9 +149,12 @@ export default function OrdersPage() {
   const orders = activeQuery.data ?? [];
   const isLoading = activeQuery.isLoading;
   const isRefetching = activeQuery.isRefetching;
+  const showSkeleton = isLoading && orders.length === 0;
 
   const handleReorder = (orderId: string) => {
-    Alert.alert('Riordina', `Vuoi riordinare #${orderId.slice(0, 8).toUpperCase()}?`, [
+    const order = orders.find((item) => item.id === orderId);
+    const label = order ? getOrderDisplayCode(order) : getOrderDisplayCode({ id: orderId, display_code: null });
+    Alert.alert('Riordina', `Vuoi riordinare ${label}?`, [
       { text: 'Annulla', style: 'cancel' },
       { text: 'Riordina', onPress: () => router.push('/(tabs)/menu') },
     ]);
@@ -187,72 +192,91 @@ export default function OrdersPage() {
     );
   }
 
+  // The list is virtualized (FlatList as the page scroller); the white
+  // rounded container is rebuilt from header/row/footer segments so up to
+  // 50 order cards don't all mount at once inside a plain ScrollView.
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
-      <ScrollView
+      <FlatList
         className="flex-1 bg-[#fdf9f3]"
-        contentContainerStyle={{ paddingTop: insets.top + 12, paddingBottom: insets.bottom + 24 }}
+        contentContainerStyle={{
+          paddingTop: insets.top + 12,
+          paddingBottom: insets.bottom + 24,
+          paddingHorizontal: 16,
+        }}
         refreshControl={
           <RefreshControl
             refreshing={isRefetching}
             onRefresh={() => void activeQuery.refetch()}
           />
         }
-      >
-        <View className="px-4 gap-4">
-          <View className="bg-white rounded-2xl border border-orange-100 p-4 gap-1">
-            <Text className="text-xs font-bold uppercase tracking-wider text-orange-700">
-              {isAdmin ? 'Admin' : 'Bentornato'}
-            </Text>
-            <Text className="text-2xl font-black text-gray-900">
-              {isAdmin ? 'Storico ordini' : profile?.full_name || 'Cliente Ambrosia'}
-            </Text>
-            <Text className="text-gray-600 text-sm">{headerSubtitle}</Text>
+        data={showSkeleton ? [] : orders}
+        keyExtractor={(order) => order.id}
+        renderItem={({ item: order }) => (
+          <View className="bg-white border-x border-orange-100 px-4 pb-3">
+            <OrderCard
+              order={order}
+              onReorder={!isAdmin ? () => handleReorder(order.id) : undefined}
+              onTrack={!isAdmin ? () => router.push('/order-tracking') : undefined}
+            />
           </View>
-
-          {isAdmin && (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <View className="flex-row gap-2">
-                {ADMIN_FILTERS.map((filter, index) => (
-                  <Pressable
-                    key={filter.label}
-                    className={`px-4 py-2 rounded-xl ${
-                      filterIndex === index ? 'bg-[#d4451a]' : 'bg-white border border-orange-100'
-                    }`}
-                    onPress={() => setFilterIndex(index)}
-                  >
-                    <Text
-                      className={`text-xs font-bold ${
-                        filterIndex === index ? 'text-white' : 'text-gray-600'
-                      }`}
-                    >
-                      {filter.label}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
-            </ScrollView>
-          )}
-
-          <View className="bg-white rounded-2xl border border-orange-100 p-4 gap-3">
-            <View className="flex-row items-center justify-between">
-              <Text className="text-lg font-extrabold text-gray-900">
-                {isAdmin ? `Ordini (${orders.length})` : 'Ordini recenti'}
+        )}
+        ListHeaderComponent={
+          <View className="gap-4">
+            <View className="bg-white rounded-2xl border border-orange-100 p-4 gap-1">
+              <Text className="text-xs font-bold uppercase tracking-wider text-orange-700">
+                {isAdmin ? 'Admin' : 'Bentornato'}
               </Text>
-              {!isAdmin && (
-                <Pressable onPress={() => router.push('/order-tracking')}>
-                  <Text className="text-orange-700 text-xs font-bold">Tracking live →</Text>
-                </Pressable>
-              )}
+              <Text className="text-2xl font-black text-gray-900">
+                {isAdmin ? 'Storico ordini' : profile?.full_name || 'Cliente Ambrosia'}
+              </Text>
+              <Text className="text-gray-600 text-sm">{headerSubtitle}</Text>
             </View>
 
-            {isLoading ? (
-              <View className="py-8 items-center">
-                <ActivityIndicator size="small" color="#d4451a" />
-                <Text className="text-sm text-gray-500 mt-2">Caricamento ordini...</Text>
+            {isAdmin && (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <View className="flex-row gap-2">
+                  {ADMIN_FILTERS.map((filter, index) => (
+                    <Pressable
+                      key={filter.label}
+                      className={`px-4 py-2 rounded-xl ${
+                        filterIndex === index ? 'bg-[#d4451a]' : 'bg-white border border-orange-100'
+                      }`}
+                      onPress={() => setFilterIndex(index)}
+                    >
+                      <Text
+                        className={`text-xs font-bold ${
+                          filterIndex === index ? 'text-white' : 'text-gray-600'
+                        }`}
+                      >
+                        {filter.label}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+              </ScrollView>
+            )}
+
+            <View className="bg-white rounded-t-2xl border-x border-t border-orange-100 p-4 pb-3">
+              <View className="flex-row items-center justify-between">
+                <Text className="text-lg font-extrabold text-gray-900">
+                  {isAdmin ? `Ordini (${orders.length})` : 'Ordini recenti'}
+                </Text>
+                {!isAdmin && (
+                  <Pressable onPress={() => router.push('/order-tracking')}>
+                    <Text className="text-orange-700 text-xs font-bold">Tracking live →</Text>
+                  </Pressable>
+                )}
               </View>
-            ) : orders.length === 0 ? (
+            </View>
+          </View>
+        }
+        ListEmptyComponent={
+          <View className="bg-white border-x border-orange-100 px-4 pb-3">
+            {showSkeleton ? (
+              <SkeletonList count={4} renderItem={() => <SkeletonOrderCard />} />
+            ) : (
               <View className="py-8 items-center">
                 <FontAwesome name="inbox" size={32} color="#d1d5db" />
                 <Text className="text-sm text-gray-500 mt-2 text-center">
@@ -261,19 +285,13 @@ export default function OrdersPage() {
                     : 'Non hai ancora effettuato ordini.'}
                 </Text>
               </View>
-            ) : (
-              orders.map((order) => (
-                <OrderCard
-                  key={order.id}
-                  order={order}
-                  onReorder={!isAdmin ? () => handleReorder(order.id) : undefined}
-                  onTrack={!isAdmin ? () => router.push('/order-tracking') : undefined}
-                />
-              ))
             )}
           </View>
-        </View>
-      </ScrollView>
+        }
+        ListFooterComponent={
+          <View className="bg-white rounded-b-2xl border-x border-b border-orange-100 h-3" />
+        }
+      />
     </>
   );
 }
