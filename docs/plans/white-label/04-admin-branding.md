@@ -4,90 +4,111 @@
 
 ## Obiettivo
 
-Dare all’admin un pannello per modificare branding e contenuti landing **dopo** l’onboarding (logo, colori, copy, gallery, SEO, contatti), con salvataggio su `companies.settings.branding` e preview coerente con la UI pubblica.
+Schermata **dedicata** (semplice, “boomer-friendly”) per far modificare al ristoratore identità, colori, foto e contatti dopo l’onboarding. Orari **unificati** (stessi che guidano ordini e landing). Gallery **almeno 5 immagini**.
 
 ## Fuori scope
 
-- CMS a blocchi / drag-and-drop sezioni
-- A/B testing landing
-- Custom CSS arbitrario del tenant
-- Path slug / custom domain (fase 05)
+- CMS a blocchi / drag-and-drop
+- Custom CSS
+- Ruolo staff “solo copy” (previsto, non in v1 — solo nota design)
+- Path slug / custom domain
 
 ## Prerequisiti
 
-- Fase 01–03: branding tipizzato, UI dinamica, company creata via onboarding
-- Storage Supabase disponibile (o da abilitare) per upload immagini
+- Fasi 01–03: branding dinamico, UI, company creata, checklist
+
+## Decisioni fissate (da Q&A)
+
+| Tema | Decisione |
+|------|-----------|
+| UI | **Schermata dedicata** `admin-branding` (non sepolta in options) |
+| Gallery | **Minimo 5** slot immagini (hero conta separato o come #1 — **scelta:** 1 hero + fino a 5 gallery) |
+| Orari | **Una sola fonte** `businessHours` → ops + landing |
+| Preview | Niente iframe complesso: bottone **“Vedi il sito pubblico”** che apre `https://{slug}.skibidiorders.com` |
+| Staff non-admin | **Futuro**: potranno editare solo copy; v1 = solo `admin` |
+
+### Chiarimento “preview”
+
+Non serve una mini-landing dentro l’admin. Basta un bottone grande: apre il sito vero del locale così il ristoratore vede nome, colori e foto come i clienti.
 
 ## Contratto dati / API
 
-### Sezioni UI admin
+### Sezioni schermata (ordine UI semplice)
 
-1. **Identità** — name (sync `companies.name`), tagline, description, story
-2. **Tema** — color pickers (`primary`, `background`, `accent`, `foreground`, `primaryForeground`)
-3. **Logo & media** — upload logo, hero, gallery (max N immagini)
-4. **Contatti & social** — address, phone, whatsapp, maps, vat, facebook/instagram
-5. **Orari display** — `openingHoursLabel` + lista `hours[]` (display landing; ops capacity resta in admin-options esistente)
-6. **SEO** — titleTemplate, description, ogImageUrl
+1. **Nome e testi** — `companies.name`, tagline, description, story  
+2. **Colori** — primary (+ accent opzionale); altri derivati/default  
+3. **Foto** — logo, hero, gallery (5 slot, upload o URL)  
+4. **Contatti** — address, phone, whatsapp, social, vat  
+5. **Orari** — stesso editor di admin-options / capacity (componente condiviso); salva in `orderCapacity.businessHours`  
+6. **SEO base** — titleTemplate, description (opzionale, default da name)  
+7. CTA fissa in alto: **Vedi il sito pubblico**
 
 ### Persistenza
 
 ```ts
-// merge
-settings = {
-  ...existingSettings,
-  branding: { ...existingBranding, ...patch, onboardingCompleted: true },
-}
-await supabase.from('companies').update({ name, settings }).eq('id', companyId)
+await supabase.from('companies').update({
+  name,
+  settings: {
+    ...existing,
+    branding: { ...existing.branding, ...patch },
+    orderCapacity: { ...existing.orderCapacity, businessHours },
+  },
+}).eq('id', companyId)
 ```
 
-- Aggiornare anche colonna `companies.name` quando cambia nome commerciale
-- Dopo save: `refreshBranding()`
+Poi `refreshBranding()`.
 
 ### Storage
 
-- Bucket proposto: `company-assets` (public read)
-- Path: `{company_id}/logo.{ext}`, `{company_id}/hero.{ext}`, `{company_id}/gallery/{uuid}.{ext}`
-- Policy: upload/delete solo admin con `get_my_company_id() = company_id`
+- Bucket `company-assets`, public read  
+- Path `{company_id}/logo`, `hero`, `gallery/{n}`  
+- RLS: solo admin della company  
+- Limite size + resize client (es. max 1.5MB, lato lungo 1600px)
 
-### Preview
+### Permessi v1 vs futuro
 
-- Pannello “Anteprima landing” (WebView web / screen read-only) oppure link “Apri sito” su subdomain
-- Preview deve riflettere colori CSS vars subito dopo save
+```text
+v1: role === 'admin' && company_id match
+v2: role staff + permission 'edit_branding_copy' (solo testi, no colori/slug)
+```
+
+Non implementare v2 ora; non disegnare UI che lo impedisca dopo (sezioni Testi vs Tema separate aiutano).
 
 ## File toccati
 
 | Path | Azione |
 |------|--------|
-| `app/admin-branding.tsx` (nuovo) o sezione in `app/admin-options.tsx` | Schermata Identità & Landing |
-| `components/features/admin/BrandingForm.tsx` (nuovo) | Form sezioni |
-| `components/features/admin/ColorField.tsx` (nuovo) | Picker colore |
-| `lib/api/companyAssets.ts` (nuovo) | Upload/delete Storage |
-| `lib/stores/BrandContext.tsx` | `updateBranding(patch)` helper |
-| `app/(tabs)/_layout.tsx` / navigazione admin | Voce menu “Identità” |
-| `supabase/migrations/…_company_assets_bucket.sql` | Bucket + RLS storage |
+| `app/admin-branding.tsx` | Schermata dedicata |
+| `components/features/admin/BrandingForm.tsx` | Form a sezioni |
+| `components/features/admin/ColorField.tsx` | Input hex + swatch |
+| `components/features/admin/GallerySlots.tsx` | 5 slot |
+| `lib/api/companyAssets.ts` | Upload |
+| `lib/stores/BrandContext.tsx` | `updateBranding` |
+| Navigazione admin | Voce chiara “Identità e sito” |
+| Migration storage bucket | RLS |
+
+Condividere editor orari con `admin-options` (estrarre componente se duplicato).
 
 ## Step di implementazione
 
-1. Aggiungere route/voce admin “Identità & Landing”.
-2. Form controllato bindato a `useBrand().branding`.
-3. Save merge + update `companies.name`.
-4. Upload logo/hero/gallery con preview locale.
-5. Validazione URL/colori hex.
-6. Preview o deep-link post-save.
-7. QA: modifica colore → landing header/CTA aggiornati senza reload hard (web).
+1. Route + voce menu admin grande e chiara.
+2. Form sezioni 1–6 + bottone sito pubblico.
+3. Upload logo/hero/gallery (5).
+4. Orari via componente condiviso → `businessHours`.
+5. Validazione hex / campi telefono.
+6. QA: cambio colore → sito pubblico aggiornato dopo refresh branding.
 
 ## Acceptance criteria
 
-- [ ] Admin può cambiare nome, tagline, colori, contatti e vedere il risultato su landing
-- [ ] Upload logo sostituisce `branding.logoUrl` e compare in header
-- [ ] Gallery URLs salvate in `branding.media.galleryImageUrls` e usate da `LandingSections`
-- [ ] Admin di company A non può scrivere asset/settings di company B
-- [ ] Salvataggio non cancella `deliveryFeeEur` / `orderCapacity` / `alerts`
-- [ ] Campi SEO aggiornano Head/title dove supportato
+- [ ] Admin boomer-path: trova “Identità e sito”, cambia nome/colore/foto, apre sito e vede le modifiche
+- [ ] Gallery supporta 5 immagini; landing le mostra
+- [ ] Orari cambiati qui = orari landing = regole accettazione ordini
+- [ ] Merge settings non cancella fee/alert
+- [ ] Solo admin della company può uploadare
+- [ ] Bottone “Vedi il sito pubblico” funziona su web
 
 ## Rischi / note
 
-- Non duplicare “orari operativi” di `admin-options` (capacity): qui solo **copy display** landing, oppure sync esplicita documentata se si sceglie un’unica source.
-- Immagini pesanti: limitare size/client-side resize.
-- Evitare editor rich-text complesso in v1 (textarea plain).
-- Su native, color picker può essere input hex se manca libreria già in repo.
+- Non duplicare due editor orari divergenti.
+- Foto pesanti: resize obbligatorio.
+- Testi plain textarea (no rich text).

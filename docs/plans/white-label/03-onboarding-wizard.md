@@ -4,111 +4,150 @@
 
 ## Obiettivo
 
-Permettere a un nuovo ristoratore di registrarsi e configurare in autonomia la propria `company` (slug, branding minimo, contatti/orari), senza SQL manuale. I dati raccolti popolano `companies.settings.branding` e sbloccano la UI già dinamica delle fasi 01–02.
+Il prospect visita la **demo Skibidi** (ristorante inventato), capisce il prodotto, poi **decide lui** quando creare la propria company. Wizard self-serve (anche fatto **insieme** al primo cliente Ambrosia). Dopo il salvataggio atterra in **home** con **checklist prossimi passi**; non è “100% on” finché non completa.
 
 ## Fuori scope
 
-- Editor avanzato gallery/SEO (fase 04)
-- Billing / Stripe / piani a pagamento (fase 05)
-- Seed menu completo automatico (opzionale step light solo)
-- Custom domain del cliente
+- Editor gallery/SEO avanzato (fase 04 — può completare foto lì)
+- Billing / piani a pagamento
+- Domanda “che tipo di attività sei?” (inutile: si va al succo)
+- Custom domain
+- Path resolve (fase 05) — in v1 subdomain già pronto
 
 ## Prerequisiti
 
-- Fase 01: schema branding + `useBrand` + merge settings sicuro
-- Fase 02 consigliata (altrimenti onboarding scrive dati che la UI non mostra ancora)
+- Fase 01–02: branding dinamico + demo visibile
+
+## Decisioni fissate (da Q&A)
+
+| Tema | Decisione |
+|------|-----------|
+| Accesso | **Self-serve** aperto |
+| Quando creare company | **Quando l’utente decide**, tipicamente dopo aver girato la demo |
+| Tipo attività | **Non chiedere** — flusso diretto: nome, slug, contatti, orari, foto/menu |
+| Post create | Atterraggio **home** + **prossimi passi** |
+| Go-live 100% | Solo dopo checklist completata (`onboardingCompleted` / flag `goLiveReady`) |
+| URL dopo create | **Subdomain già pronto**: `slug.skibidiorders.com` |
+| Primo cliente | Ambrosia fatta **insieme** al ristoratore con questo stesso wizard |
+
+### Chiarimento “campi obbligatori” (prima non chiaro)
+
+Cosa serve **prima** di poter andare online al pubblico:
+
+**Minimo per creare company (RPC):**
+- account autenticato
+- `name` (nome locale)
+- `slug` valido e libero
+
+**Minimo per checklist “quasi pronto” (home prossimi passi):**
+- telefono
+- indirizzo
+- orari (almeno un giorno aperto)
+- almeno **1 categoria + 1 prodotto** (anche con immagine URL)
+- colore primary (default ok se skip)
+
+**Minimo per “100% on” (`goLiveReady` / `onboardingCompleted: true`):**
+- tutti i punti sopra
+- conferma esplicita “Pubblica il mio locale” nello step finale
+
+Logo e gallery completa (≥5) possono restare in checklist ma **non** bloccare create; gallery piena è fase 04 / prossimi passi.
 
 ## Contratto dati / API
 
-### Flusso wizard (step)
+### Funnel UX
 
-1. **Account** — signup email/password → profilo creato come oggi (trigger forza `customer`); poi promozione ad admin della nuova company via RPC
-2. **Locale** — `name`, `slug` (validazione unicità + formato `[a-z0-9-]+`)
-3. **Identità** — tagline, description breve, colori primary/background (picker semplice), logo opzionale (skip → placeholder)
-4. **Contatti** — address, city, phone, vatNumber (opzionale), social opzionali
-5. **Orari** — riuso modello `businessHours` già in `AppSettingsContext` / `orderCapacity`
-6. **Go-live** — set `branding.onboardingCompleted = true`, redirect admin dashboard / preview landing
-
-### RPC consigliata (security definer)
-
-Nome proposto: `create_company_with_admin`
-
-Input:
-
-```ts
-{
-  name: string;
-  slug: string;
-  branding: Partial<CompanyBranding>; // minimo name/tagline/colors/contact
-}
+```text
+Apex / demo.skibidiorders.com
+  → utente esplora menu/landing demo (banner “esempio”)
+  → CTA “Apri il tuo locale” / “Inizia”
+  → signup se serve
+  → wizard create company
+  → redirect home admin + checklist
+  → (opzionale) apri slug.skibidiorders.com
 ```
 
-Comportamento:
+### Step wizard (diretti, no tipo attività)
 
-1. Auth required (`auth.uid()`)
-2. Verifica slug libero
-3. `INSERT companies (name, slug, plan, settings, active)`
-4. `UPDATE profiles SET role = 'admin', company_id = new_id WHERE id = auth.uid()`
-5. Return `{ company_id, slug }`
+1. **Account** — login/signup
+2. **Il tuo locale** — `name` + `slug` (preview live: `slug.skibidiorders.com`)
+3. **Contatti** — phone, address, city (vat opzionale)
+4. **Orari** — editor `businessHours` (unica fonte)
+5. **Aspetto base** — primary color (default palette) + logo opzionale skip
+6. **Primi prodotti** — 1…N prodotti con nome/prezzo/immagine URL o upload light
+7. **Conferma** — crea/pubblica → home + checklist
 
-**Critico**: oggi `handle_new_user()` forza sempre `customer` e non si fida del role client — la promozione admin deve avvenire **solo** in RPC server-side dopo create company.
+`create_company_with_admin` può avvenire allo **step 2** (appena name+slug) così i salvataggi successivi aggiornano la company; oppure tutto atomico a step 7. **Scelta concreta:** create allo **step 2** (slug riservato subito), poi update progressivi — se abbandona, company resta `onboardingCompleted: false` e `active` può restare true ma gated.
 
-### RLS
+### RPC `create_company_with_admin`
 
-- Policy `INSERT` diretta su `companies` da client: **no** (solo RPC)
-- `UPDATE companies` per admin della propria company: già / da verificare in migration `companies_update`
-- Storage (se upload logo in step 3): bucket path `companies/{company_id}/logo` con policy company-scoped
+```ts
+{ name: string; slug: string }
+```
 
-### Gate UX
+1. `auth.uid()` required  
+2. slug libero + formato `[a-z0-9-]+`  
+3. insert `companies` con `settings.branding` defaults + `onboardingCompleted: false`, `isDemo: false`  
+4. `profiles`: `role=admin`, `company_id=new`  
+5. return `{ company_id, slug }`  
+6. Blocco: se utente è già admin di un’altra company → errore (v1: 1 locale per account)
 
-| Ruolo / stato | Comportamento |
-|---------------|---------------|
-| Admin, `onboardingCompleted === false` | Redirect forzato a `/onboarding` (o modal full-screen) |
-| Admin, completed | App normale + admin tabs |
-| Customer / guest su tenant esistente | Landing/home branding tenant |
-| Root dominio senza slug (marketing) | Landing piattaforma “Skibidi Orders” + CTA “Registra il tuo locale” → onboarding |
+Promozione admin **solo** in RPC (trigger signup resta `customer`).
 
-### Route proposte
+### Checklist post go-live (home)
 
-- `app/onboarding/index.tsx` (wizard)
-- Entry CTA da login/marketing: “Apri il tuo locale”
-- Non riusare `app/login.tsx` Ambrosia-centric: CTA neutra
+Voci tipiche (checkbox persistite in `settings.branding.checklist` o derivati):
+
+- [ ] Orari impostati
+- [ ] Almeno un prodotto nel menu
+- [ ] Foto locale / hero
+- [ ] Telefono e indirizzo
+- [ ] Test ordine di prova
+- [ ] Stampa / cucina verificata (manuale)
+- [ ] **Pubblica** (set `onboardingCompleted: true`)
+
+Finché non pubblica: banner “Configurazione in corso” sul sito pubblico (o sito non active — **scelta:** sito visibile ma banner “in allestimento” se admin loggato; guest vede menu se `active`).
+
+**Scelta concreta:** `companies.active = true` dopo create; `onboardingCompleted = false` mostra banner “Presto online” / limita checkout? → **checkout disabilitato** finché `onboardingCompleted` (evita ordini su locale vuoto). Demo Skibidi ha `onboardingCompleted: true`.
+
+### Route
+
+- `app/onboarding/index.tsx`
+- CTA da landing demo + login
+- Guard: admin con onboarding incompleto può usare admin ma vede checklist; customer guest su subdomain nuovo → landing con banner + checkout off
 
 ## File toccati
 
 | Path | Azione |
 |------|--------|
-| `supabase/migrations/…_create_company_with_admin.sql` | RPC + grants |
-| `app/onboarding/index.tsx` (nuovo) | Wizard multi-step |
-| `components/features/onboarding/*` (nuovo) | Step UI |
-| `lib/api/onboarding.ts` (nuovo) | Client wrapper RPC + validazione slug |
-| `app/_layout.tsx` / guard | Redirect admin incompleto → onboarding |
-| `app/login.tsx` | CTA “Registra locale” + copy neutro |
-| `lib/types/branding.ts` | Campi minimi required per complete |
+| `supabase/migrations/…_create_company_with_admin.sql` | RPC |
+| `app/onboarding/index.tsx` + `components/features/onboarding/*` | Wizard |
+| `lib/api/onboarding.ts` | Client |
+| `components/features/home/OnboardingChecklist.tsx` | Prossimi passi in home |
+| `app/_layout.tsx` / guard | Soft gate checkout + checklist |
+| `app/login.tsx` | CTA neutra “Apri il tuo locale” |
 
 ## Step di implementazione
 
-1. Definire campi minimi per `onboardingCompleted = true` (name, slug, primary color, phone o address, tagline).
-2. Scrivere RPC `create_company_with_admin` + test SQL slug collision.
-3. UI wizard step 1–6 con persistenza progressiva (salvataggi parziali su `settings.branding` dopo step 2).
-4. Validazione slug live (`select` existence o RPC `check_slug_available`).
-5. Guard navigazione: admin incompleto non entra in kitchen/dashboard finché non completa.
-6. Post go-live: `refreshBranding()` + navigate a landing preview.
-7. Aggiornare docs `DEPLOYMENT-STRATEGY.md` § onboarding: self-service è il path primario; SQL resta fallback ops.
+1. RPC create + check slug + 1 company per admin.
+2. CTA da demo → onboarding.
+3. Wizard step 1–7 (create a step 2).
+4. Editor orari riusando componenti admin-options se esistono.
+5. Step prodotti minimi.
+6. Checklist home + disable checkout se non completed.
+7. Sessione “onboarding Ambrosia insieme”: script verbale / checklist umana allineata al wizard (doc breve nel MD o commento).
 
 ## Acceptance criteria
 
-- [ ] Un utente nuovo può creare company + diventare admin senza SQL manuale
-- [ ] Slug duplicato → errore chiaro, nessun insert parziale
-- [ ] Dopo go-live, subdomain/slug resolve mostra branding inserito
-- [ ] Admin con onboarding incompleto è gated sul wizard
-- [ ] RLS: un admin non può aggiornare `companies` di un altro tenant
-- [ ] Ops settings esistenti del seed Ambrosia non regressano
+- [ ] Da demo → CTA → create company senza SQL
+- [ ] Slug duplicato gestito
+- [ ] Subdomain `slug.skibidiorders.com` resolve branding nuovo
+- [ ] Checkout off finché `onboardingCompleted === false`
+- [ ] Home admin mostra prossimi passi
+- [ ] Ambrosia può essere creata con lo stesso flusso (nessun hardcode)
+- [ ] Admin non può creare seconda company
 
 ## Rischi / note
 
-- **Privilege escalation**: RPC deve verificare che l’utente non sia già admin di un’altra company (v1: 1 company per admin).
-- Signup attuale crea sempre `customer`: non cambiare il trigger; usare solo RPC per promozione.
-- Subdomain DNS wildcard deve già esistere in prod; in locale testare con fallback `EXPO_PUBLIC_COMPANY_ID` dopo create.
-- Upload logo può essere skippabile: non bloccare go-live.
-- Non implementare billing qui: `companies.plan` default `starter` / `free`.
+- DNS wildcard deve essere live prima della sessione Ambrosia.
+- Company abbandonate a metà: periodicamente `active=false` (ops futuro).
+- Non chiedere tipo attività: pizza builder resta on di default (fase 05 non blocca).

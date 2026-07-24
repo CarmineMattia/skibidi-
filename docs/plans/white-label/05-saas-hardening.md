@@ -4,119 +4,109 @@
 
 ## Obiettivo
 
-Chiudere i gap operativi multi-tenant dopo che branding + onboarding + admin funzionano: resolve tenant più robusto (path slug), piani, checklist DNS/deploy, e feature flag per verticalità prodotto (es. pizza builder non universale).
+Rendere solida l’operatività multi-tenant dopo branding/onboarding/admin: resolve di backup via path, apex che spiega il prodotto Skibidi (demo inventata), runbook DNS. **Niente** sistema complicato di “lucchetti per piano” in v1.
 
 ## Fuori scope
 
-- Marketplace plugin
-- Multi-region DB
-- White-label store listing automatico (Apple/Google) per ogni tenant
-- Fatturazione SaaS completa (oltre hook plan)
+- Billing / Stripe
+- Feature gating per piano a pagamento (spiegato sotto: rimandato)
+- Domanda tipo attività
+- Secondo seed “Ambrosia” in codice — Ambrosia nasce da onboarding reale
+- Store listing white-label automatico
 
 ## Prerequisiti
 
-- Fasi 01–04 operative in staging
-- Wildcard DNS / hosting già previsti in `DEPLOYMENT-STRATEGY.md`
+- Fasi 01–04 ok in staging
+- Wildcard DNS `*.skibidiorders.com`
+
+## Decisioni fissate (da Q&A)
+
+| Tema | Decisione |
+|------|-----------|
+| Path slug | Sì, prefisso **`/r/[slug]`** per evitare collisioni con `/login`, `/offers`, … |
+| “Gating feature” | **Non farlo in v1** (vedi chiarimento) |
+| Tipo attività | **Non chiedere** — default pizza stack acceso |
+| Apex | **Home = landing prodotto Skibidi** che mostra/collega la demo inventata + flag “ristorante di esempio” |
+| Secondo tenant test | **No** Ambrosia seed; solo demo generale inventata. Ambrosia = onboarding reale |
+
+### Chiarimento “prefisso `/r/[slug]`”
+
+Oggi il locale si apre così: `pizzeria-da-mario.skibidiorders.com`.  
+A volte (test, preview, DNS non pronto) serve un URL sul dominio principale senza subdomain.
+
+Se usassimo `skibidiorders.com/pizzeria-da-mario`, rischiamo di confonderlo con pagine app (`/login`, `/kitchen`, …).  
+Perciò: **`skibidiorders.com/r/pizzeria-da-mario`** — la `r` sta per “restaurant/locale”. Subdomain resta il modo principale.
+
+### Chiarimento “feature gating”
+
+Vuol dire “nascondere funzioni in base al piano free/starter/business” (es. gallery solo se paghi).  
+**In v1 non lo implementiamo**: tutti i locali self-serve hanno le stesse funzioni base. Il campo `companies.plan` può restare documentato ma senza lucchetti UI. Si riprende quando esiste billing.
 
 ## Contratto dati / API
 
-### 1. Path-based tenant resolve (oltre subdomain)
+### 1. Resolve order (aggiornato)
 
-Supportare:
+1. `EXPO_PUBLIC_COMPANY_ID`  
+2. Subdomain slug  
+3. Path `/r/[slug]`  
+4. Dev fallback → company demo Skibidi  
 
-- `slug.skibidiorders.com` (già)
-- `skibidiorders.com/r/[slug]` o `skibidiorders.com/[slug]` (nuovo)
+### 2. Apex `skibidiorders.com`
 
-Estendere [`lib/stores/TenantContext.tsx`](../../../lib/stores/TenantContext.tsx):
+- Non caricare un tenant ristorante “per sbaglio” come Ambrosia  
+- Mostrare marketing prodotto: cos’è Skibidi, CTA “Prova la demo”, CTA “Apri il tuo locale”  
+- Demo = tenant inventato (`demo` / `isDemo`) con banner chiaro  
 
-1. `EXPO_PUBLIC_COMPANY_ID`
-2. Subdomain slug
-3. Path slug (web)
-4. Dev fallback
+### 3. Features verticali (leggero, no wizard tipo)
 
-Documentare precedenza. Utile per preview e ambienti senza wildcard DNS.
-
-### 2. Piani `companies.plan`
-
-Valori iniziali: `free` | `starter` | `business` (allineare a docs esistenti).
-
-Gate soft (feature flags da plan):
-
-| Feature | free | starter | business |
-|---------|------|---------|----------|
-| Ordini online | sì | sì | sì |
-| Branding base | sì | sì | sì |
-| Custom gallery / SEO avanzato | no | sì | sì |
-| Alert sound custom | no | sì | sì |
-| Multi-kiosk / priorità support | no | no | sì |
-
-Implementazione: helper `useCompanyPlan()` + check in UI admin (non enforcement fiscale).
-
-### 3. Feature flags verticali
-
-In `settings.features` (accanto a branding):
+Opzionale in `settings.features` con default:
 
 ```ts
-{
-  pizzaBuilder: boolean;
-  doughBallTracking: boolean;
-  tableOrdering: boolean;
-  delivery: boolean;
-}
+{ pizzaBuilder: true, doughBallTracking: true, tableOrdering: true, delivery: true }
 ```
 
-Default onboarding: tutti `true` per pizzerie; UI nasconde pizza builder se `false`.
+Niente schermata “che attività sei?”. Spegnere a mano in admin solo se serve dopo. **Priorità bassa** rispetto a path + apex + DNS.
 
-File tipici da gattare: `components/features/PizzaBuilderModal.tsx`, entry point home/menu, `lib/data/pizzaBuilder.ts` assumptions.
+### 4. Runbook deploy
 
-### 4. DNS & deploy checklist (doc)
+Aggiornare `DEPLOYMENT-STRATEGY.md`:
 
-Aggiornare / creare runbook in `docs/plans/white-label/` o `DEPLOYMENT-STRATEGY.md`:
-
-1. Wildcard `*.skibidiorders.com` → hosting
-2. Supabase Auth redirect URLs wildcard
-3. Nuovo tenant: onboarding self-service (path primario)
-4. Native: EAS profile con `EXPO_PUBLIC_COMPANY_ID`
-5. Smoke: slug resolve, landing brand, create order, kitchen
-
-### 5. Marketing root
-
-Dominio apex senza tenant: landing piattaforma (prodotto Skibidi), non Ambrosia e non fallback company seed.
+1. Wildcard DNS → hosting  
+2. Auth redirect URLs wildcard  
+3. Onboarding self-serve = path primario (sessione Ambrosia inclusa)  
+4. Native: EAS + `EXPO_PUBLIC_COMPANY_ID`  
+5. Smoke: demo apex → create slug → subdomain → ordine → kitchen  
 
 ## File toccati
 
 | Path | Azione |
 |------|--------|
-| `lib/stores/TenantContext.tsx` | Path slug resolve |
-| `app/r/[slug]/_layout.tsx` o rewrite | Route path-based |
-| `lib/types/companyPlan.ts` / features | Tipi plan + features |
-| `lib/stores/BrandContext.tsx` o AppSettings | Esporre features |
-| `components/features/PizzaBuilderModal.tsx` + entry points | Gate `features.pizzaBuilder` |
-| `DEPLOYMENT-STRATEGY.md` | Allineare a self-service + path slug |
-| `docs/plans/white-label/00-roadmap.md` | Marcare fase 05 done quando chiusa |
+| `TenantContext.tsx` | Path `/r/[slug]` |
+| `app/r/[slug]/_layout.tsx` (o equivalente) | Bind tenant da path |
+| Landing apex / marketing | Home piattaforma + link demo |
+| `DEPLOYMENT-STRATEGY.md` | Allineamento self-serve |
+| (opz.) `settings.features` | Default on, no gating piani |
 
 ## Step di implementazione
 
-1. Path slug resolve + route Expo Router.
-2. Landing apex piattaforma (no seed Ambrosia).
-3. `settings.features` + default onboarding.
-4. Nascondere pizza builder / dough tracking se flag off.
-5. `useCompanyPlan` + gate soft sezioni admin branding avanzate.
-6. Aggiornare runbook deploy / Auth redirects.
-7. Test e2e smoke multi-tenant (due company seed).
+1. Route `/r/[slug]` + resolve.  
+2. Apex marketing distinto dal tenant demo.  
+3. Banner `isDemo` già da fase 02 — verificare su apex flow.  
+4. Runbook DNS/Auth.  
+5. Smoke e2e: demo + un company creato via onboarding (Ambrosia reale quando in sessione).  
+6. **Skip** UI piani/gating.
 
 ## Acceptance criteria
 
-- [ ] Tenant resolve funziona da subdomain **e** da path slug
-- [ ] Apex domain non mostra branding Ambrosia
-- [ ] Company con `pizzaBuilder: false` non vede entry “componi pizza”
-- [ ] Plan `free` nasconde (UI) feature business documentate
-- [ ] Runbook deploy aggiornato e coerente col codice
-- [ ] Due tenant in parallelo: dati e branding isolati (smoke test)
+- [ ] `slug.skibidiorders.com` e `/r/slug` risolvono lo stesso locale
+- [ ] Apex spiega Skibidi e manda alla demo inventata (flag esempio)
+- [ ] Nessun hardcode Ambrosia; Ambrosia esiste solo se creata via onboarding
+- [ ] Nessun lucchetto “piano free vs business” in UI
+- [ ] Runbook aggiornato
+- [ ] Sessione onboarding Ambrosia fattibile end-to-end su subdomain reale
 
 ## Rischi / note
 
-- Path slug può collidere con route app esistenti (`login`, `offers`, …): preferire prefisso `/r/[slug]`.
-- Plan gating è **soft** finché non c’è billing: non fingere sicurezza client-side.
-- Non rimuovere pizza domain dal codebase: solo flag.
-- Documentare che native resta single-company-per-build.
+- Prefisso `/r` obbligatorio per non rompere route app.
+- Non vendere “piani” in UI finché non c’è pagamento.
+- Native resta un company per build.

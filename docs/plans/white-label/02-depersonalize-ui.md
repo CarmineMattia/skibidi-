@@ -4,125 +4,110 @@
 
 ## Obiettivo
 
-Rimuovere la personalizzazione Ambrosia hardcodata da landing, home, legal, SEO, login, receipt/print e sostituirla con `useBrand()` / CSS variables tenant. L’app deve apparire generica o tenant-specific in base ai dati branding, non al codice.
+Togliere tutta la personalizzazione Ambrosia dal codice (landing, home, kitchen, admin copy, legal, SEO, receipt). L’app mostra il **tenant corrente** (demo Skibidi o company reale) via `useBrand()` + CSS variables. Menu di fantasia con immagini da URL web per prodotti/combo demo.
 
 ## Fuori scope
 
 - Wizard onboarding (fase 03)
-- Editor admin branding / upload (fase 04)
-- Feature-flag pizza builder come prodotto generico (fase 05)
-- Cambiare `app.json` name per ogni tenant nativo (limite Expo; resta build-time)
+- Upload admin gallery (fase 04) — qui bastano URL già in seed
+- Landing diversa per hamburger (resta struttura pizza-centrica)
+- Legal custom per-tenant
 
 ## Prerequisiti
 
-- Fase 01 completata: `useBrand()`, seed Ambrosia, fallback piattaforma
+- Fase 01: `useBrand()`, seed demo Skibidi, merge settings ok
+
+## Decisioni fissate (da Q&A)
+
+| Tema | Decisione |
+|------|-----------|
+| Scope ripulitura | **Tutta l’app**, inclusa kitchen/admin: via stringhe/hex Ambrosia |
+| Menu | Menu **fantasy** demo + immagini online (anche combo) |
+| Legal | Template **generici** (nome/vat da brand dove serve un contatto; niente testi legali unici per locale) |
+| Landing | **Stessa struttura** Ambrosia attuale (header/hero/story/gallery/contact/footer); cambiano solo nome, colori, immagini, copy |
+| Verticalità | **Pizza-centrica** per ora |
+| SEO | **Mix**: shell generica dove serve (`+html` statico ok) + **Head/JSON-LD tenant-aware** lato client (obbligatorio con più locali) |
 
 ## Contratto dati / API
 
-### Mapping obbligatorio `BRAND` → `useBrand()`
+### Mapping
 
-| Campo legacy (`lib/data/brand.ts`) | Nuovo |
-|------------------------------------|--------|
-| `BRAND.name` | `branding.name` |
-| `BRAND.tagline` | `branding.tagline` |
-| `BRAND.description` / `story` | `branding.description` / `story` |
-| address/phone/vat/social/hours | `branding.contact.*`, `social`, `hours`, `openingHoursLabel` |
-| `BRAND.deliveryFee` | **non branding**: usare `useAppSettings().deliveryFee` (già dinamico) |
-| `BRAND_LOGO` | `branding.logoUrl` (Image URI) o placeholder |
+| Legacy | Nuovo |
+|--------|--------|
+| `BRAND.*` / `BRAND_LOGO` | `useBrand()` — logo da `logoUrl` o monogramma da `companyName` |
+| Hex `#8d171e` / cream Ambrosia | CSS vars da `branding.colors` (web) + hook colori (native) |
+| “Ambrosia” in titoli | `companyName` |
+| `BRAND.deliveryFee` | `useAppSettings().deliveryFee` |
+| Orari landing | Formatter su `businessHours` da `useBrand()` / settings |
+| Flag demo | Se `branding.isDemo` → banner “Ristorante di esempio” |
 
-### Colori
+### Landing — struttura fissa (sezioni)
 
-- Iniettare su web CSS variables da `branding.colors` (es. `--brand-primary`) in un effetto del `BrandProvider`
-- Preferire token Tailwind/semantic già in `global.css` dove possibile; eliminare hex `#8d171e` / `#f9ecdd` sparsi nei componenti consumer pubblici
-- Native: esporre `colors` da hook e usarli inline dove serve (niente CSS vars)
+1. Header (logo/nome/tagline/CTA)
+2. Hero (immagine + description + CTA ordina)
+3. Story / “chi siamo”
+4. Gallery (da `media.galleryImageUrls`; se vuota, nascondi sezione)
+5. Contatti + orari formattati
+6. Footer + link legal generici
 
-### SEO
+### SEO mix (scelta concreta)
 
-- [`app/+html.tsx`](../../../app/+html.tsx) e Head in [`app/(tabs)/index.tsx`](../../../app/(tabs)/index.tsx): title/description/og/schema da `branding.seo` + contact (niente “Montecchio Emilia” hardcoded)
+- `app/+html.tsx`: title/description **generici piattaforma** (“Skibidi Orders”) + theme-color default
+- Per-route `Head` / schema.org su landing tenant: `companyName`, address, phone, `seo.*` — aggiornato client-side quando branding è loaded
+- Obiettivo: con N pizzerie, condividere un link subdomain dà meta coerenti il più possibile; accettare limite SSR Expo dove non c’è branding a build time
+
+### Menu demo
+
+- Seed prodotti/categorie fantasy legati al company demo (SQL o script)
+- `image_url` = URL pubblici cibo (Unsplash/similar)
+- Combo incluse con immagini
+- Non riusare testi “Ambrosia” / Montecchio
 
 ## File toccati
 
-### Consumer diretti di `BRAND` / `BRAND_LOGO` (da migrare)
+### Consumer `BRAND` (migrare tutti)
 
-| Path |
-|------|
-| `components/features/landing/LandingHeader.tsx` |
-| `components/features/landing/LandingHero.tsx` |
-| `components/features/landing/LandingSections.tsx` |
-| `components/features/landing/LandingFooter.tsx` |
-| `components/features/landing/LegalDocumentScreen.tsx` |
-| `app/(tabs)/index.tsx` |
-| `app/+html.tsx` |
-| `app/login.tsx` |
-| `app/offers.tsx` |
-| `app/privacy.tsx` |
-| `app/cookie.tsx` |
-| `app/termini.tsx` |
-| `app/allergeni.tsx` |
-| `app/modal.tsx` |
-| `components/features/DigitalReceipt.tsx` |
-| `lib/print/orderPrint.ts` |
+`LandingHeader`, `LandingHero`, `LandingSections`, `LandingFooter`, `LegalDocumentScreen`, `app/(tabs)/index.tsx`, `app/+html.tsx`, `login`, `offers`, `privacy`, `cookie`, `termini`, `allergeni`, `modal`, `DigitalReceipt`, `lib/print/orderPrint.ts`
 
-### Copy / hex Ambrosia senza import BRAND (da ripulire)
+### Copy/hex Ambrosia (ripulire)
 
-| Path | Esempio |
-|------|---------|
-| `components/features/home/HomeGuestHero.tsx` | CTA/colori pizza-centric + `#8d171e` |
-| `components/features/home/HomePrimaryActions.tsx` | hex Ambrosia |
-| `components/features/home/HomeQuickActions.tsx` | hex Ambrosia |
-| `components/features/home/HomeOffersSection.tsx` | hex Ambrosia |
-| `components/features/home/HomeCategoryGrid.tsx` | hex Ambrosia |
-| `app/(tabs)/account.tsx` | “Account Ambrosia” |
-| `app/rewards.tsx` | “Ambrosia Club” |
-| `app/(tabs)/order-tracking.tsx` | title Ambrosia |
-| `app/(tabs)/two.tsx` | “Cliente Ambrosia” |
-| `app/admin-options.tsx` | “Suono predefinito Ambrosia” |
-| `tests/landing.spec.ts` | rename describe / assert generici o seed-aware |
+Home guest/actions/offers/grid, `account`, `rewards`, `order-tracking`, `two`, `admin-options`, kitchen UI se compare “Ambrosia”, `tests/landing.spec.ts`
 
-### Asset
+### Tokens / asset
 
-| Path | Azione |
-|------|--------|
-| `assets/images/logo-pizzeria-ambrosia.png` | Non importare più in UI; seed usa URL |
-| `assets/images/landing/*.jpeg` | Landing usa `branding.media.*`; asset Ambrosia solo seed/demo Storage |
+- `global.css` / `constants/Colors.ts` → default = palette Skibidi fase 01
+- Rimuovere uso runtime `assets/images/logo-pizzeria-ambrosia.png`
+- Landing images → URL da `branding.media` (seed), non JPEG Ambrosia bundlati come source of truth
 
-### Design tokens
+### Cleanup
 
-| Path | Azione |
-|------|--------|
-| `global.css` | Variabili default = palette piattaforma neutra; override runtime da BrandProvider |
-| `constants/Colors.ts` | Default neutri; commento Ambrosia rimosso |
-
-### Cleanup finale
-
-| Path | Azione |
-|------|--------|
-| `lib/data/brand.ts` | Rimuovere o ridurre a fixture test/seed only |
+- `lib/data/brand.ts` → solo fixture test/seed o eliminato
 
 ## Step di implementazione
 
-1. Helper `BrandLogo` / `useBrandColors()` per Image URI + fallback testo.
-2. Web: inject CSS vars in `BrandProvider` all’aggiornamento branding.
-3. Migrare landing (header → hero → sections → footer) a `useBrand`.
-4. Migrare legal screens + `LegalDocumentScreen`.
-5. Migrare SEO (`+html`, index Head, JSON-LD).
-6. Migrare login, offers, receipt, print.
-7. Sostituire stringhe “Ambrosia” residue e hex primari nei componenti home/account/rewards/tracking.
-8. Aggiornare `tests/landing.spec.ts` su seed o asserzioni neutre.
-9. Eliminare import runtime di `lib/data/brand.ts` (grep zero fuori seed/test).
+1. `BrandLogo` + inject CSS vars in `BrandProvider`.
+2. Banner `isDemo` su landing/home.
+3. Migrare landing intera alla struttura fissa + dati dinamici.
+4. Legal generici con `{name}` contatto da brand.
+5. SEO mix (`+html` generico + Head tenant).
+6. Ripulire home/kitchen/admin stringhe e hex.
+7. Seed menu fantasy + immagini URL.
+8. Receipt/print da branding/contact.
+9. Aggiornare test landing (assert su Skibidi demo o selettori neutri).
+10. Grep zero Ambrosia/`#8d171e` / import `brand.ts` in app runtime.
 
 ## Acceptance criteria
 
-- [ ] `rg "from '@/lib/data/brand'|BRAND_LOGO" --glob '!docs/**'` → zero (o solo seed/test espliciti)
-- [ ] `rg "Ambrosia|#8d171e" --glob '{app,components}/**/*.{ts,tsx}'` → zero (o solo commenti seed documentati)
-- [ ] Landing su tenant seed Ambrosia mostra ancora nome/logo/colori Ambrosia (da DB)
-- [ ] Tenant senza branding mostra fallback neutro (nome generico, colori piattaforma)
-- [ ] Receipt/print usano `branding.name/address/phone/vat`
-- [ ] Test landing aggiornati e verdi
+- [ ] Nessun import runtime `lib/data/brand` / `BRAND_LOGO`
+- [ ] Nessuna stringa “Ambrosia” o hex Ambrosia in `app/` e `components/` (salvo commenti docs)
+- [ ] Demo tenant: landing struttura Ambrosia-like ma branding Skibidi + banner esempio
+- [ ] Gallery vuota → sezione nascosta
+- [ ] Orari landing = stessi di ops capacity
+- [ ] Menu demo con immagini URL visibili
+- [ ] Test landing verdi
 
 ## Rischi / note
 
-- `app/+html.tsx` gira in contesto statico: verificare se branding runtime è disponibile; se no, SEO minimale generico + override client dove Expo Router Head lo permette.
-- Hex Ambrosia sono diffusissimi: priorità ai **surface customer-facing**; admin interno può restare token semantic in un secondo passaggio se troppo ampio, ma i file listati sopra sono in scope.
-- Non spezzare layout landing: stesso markup, dati dinamici.
-- `deliveryFee` display: formattare da `useAppSettings`, non da branding.
+- Hex Ambrosia sparsi: fare passata `rg` sistematica.
+- URL immagini esterne: hotlink può rompersi — accettabile per demo; poi Storage.
+- Non cambiare layout landing: solo dati.
