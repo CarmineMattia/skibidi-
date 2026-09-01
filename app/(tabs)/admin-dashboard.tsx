@@ -203,8 +203,16 @@ export default function AdminDashboardScreen() {
     },
   });
 
+  // Redirect when the visitor is not an admin. The replace is scheduled in an
+  // effect (not during render) so deep-linking here cannot crash with
+  // "Cannot update a component while rendering a different component".
+  useEffect(() => {
+    if (!isAdmin) {
+      router.replace('/(tabs)');
+    }
+  }, [isAdmin, router]);
+
   if (!isAdmin) {
-    router.replace('/(tabs)');
     return null;
   }
 
