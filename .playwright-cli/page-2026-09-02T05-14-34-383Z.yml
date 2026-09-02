@@ -1,0 +1,22 @@
+- generic [active] [ref=f7e1]:
+  - generic [ref=f7e1678]:
+    - generic [ref=f7e1680]:
+      - generic [ref=f7e1681] [cursor=pointer]: 
+      - generic [ref=f7e1683]: I tuoi dati
+    - generic [ref=f7e1761]:
+      - generic [ref=f7e1762]: I tuoi dati
+      - generic [ref=f7e1763]:
+        - generic [ref=f7e1764]: Nome (opzionale)
+        - textbox "Il tuo nome" [ref=f7e1765]: Super Admin
+      - generic [ref=f7e1766]:
+        - generic [ref=f7e1767]: Numero tavolo *
+        - 'textbox "Es: 5" [ref=f7e1768]'
+      - generic [ref=f7e1769]:
+        - generic [ref=f7e1770] [cursor=pointer]: Indietro
+        - generic [ref=f7e1772] [cursor=pointer]: Continua
+  - generic [ref=f7e1776]:
+    - generic:
+      - generic:
+        - generic: Aggiornamento live
+        - generic: Ordine preso in carico
+        - generic: "Nduja #1 è passato in preparazione."

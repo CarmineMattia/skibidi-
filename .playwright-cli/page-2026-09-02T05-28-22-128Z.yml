@@ -1,0 +1,85 @@
+- generic [ref=f9e10]:
+  - generic [ref=f9e12]:
+    - generic [ref=f9e13]:
+      - button "Indietro" [ref=f9e14] [cursor=pointer]:
+        - generic [ref=f9e15]: 
+      - generic [ref=f9e16]:
+        - generic [ref=f9e17]: Offerte
+        - generic [ref=f9e18]: Pizzeria Ambrosia
+      - generic [ref=f9e19]: 
+    - generic [ref=f9e21]:
+      - generic [ref=f9e22]: Combo del momento
+      - generic [ref=f9e25]: Scegli il combo giusto per te.
+      - generic [ref=f9e26]: Scorri le offerte, aggiungi al carrello in un tap e completa l’ordine dal menu. Le foto mostrano i prodotti reali disponibili oggi.
+  - generic [ref=f9e28]:
+    - generic [ref=f9e29]:
+      - generic [ref=f9e30]: 6 combo disponibili
+      - generic [ref=f9e31]:
+        - button "Pizza + Drink" [ref=f9e33] [cursor=pointer]:
+          - generic [ref=f9e37]:
+            - generic [ref=f9e38]: COMBO
+            - generic [ref=f9e41]: Pizza + Drink
+          - generic [ref=f9e42]:
+            - generic [ref=f9e43]: Una pizza a scelta con bibita 33cl inclusa
+            - generic [ref=f9e44]:
+              - generic [ref=f9e46]:
+                - generic [ref=f9e47]: Pizza
+                - generic [ref=f9e49]: Drink
+              - generic [ref=f9e51]: 
+        - button "Duo Pizza" [ref=f9e54] [cursor=pointer]:
+          - generic [ref=f9e58]:
+            - generic [ref=f9e59]: COMBO
+            - generic [ref=f9e62]: Duo Pizza
+          - generic [ref=f9e63]:
+            - generic [ref=f9e64]: Due pizze classiche da condividere, prezzo speciale
+            - generic [ref=f9e65]:
+              - generic [ref=f9e66]: 2x Pizza
+              - generic [ref=f9e70]: 
+        - button "Family Combo" [ref=f9e73] [cursor=pointer]:
+          - generic [ref=f9e77]:
+            - generic [ref=f9e78]: COMBO
+            - generic [ref=f9e81]: Family Combo
+          - generic [ref=f9e82]:
+            - generic [ref=f9e83]: 2 pizze, antipasto e 2 bibite per tutta la famiglia
+            - generic [ref=f9e84]:
+              - generic [ref=f9e86]:
+                - generic [ref=f9e87]: 2x Pizza
+                - generic [ref=f9e89]: Antipasto
+                - generic [ref=f9e91]: 2x Drink
+              - generic [ref=f9e93]: 
+        - button "Pranzo Smart" [ref=f9e96] [cursor=pointer]:
+          - generic [ref=f9e100]:
+            - generic [ref=f9e101]: COMBO
+            - generic [ref=f9e104]: Pranzo Smart
+          - generic [ref=f9e105]:
+            - generic [ref=f9e106]: Pizza + acqua — perfetto per la pausa pranzo
+            - generic [ref=f9e107]:
+              - generic [ref=f9e109]:
+                - generic [ref=f9e110]: Pizza
+                - generic [ref=f9e112]: Acqua
+              - generic [ref=f9e114]: 
+        - button "Pizza & Dolce" [ref=f9e117] [cursor=pointer]:
+          - generic [ref=f9e121]:
+            - generic [ref=f9e122]: COMBO
+            - generic [ref=f9e125]: Pizza & Dolce
+          - generic [ref=f9e126]:
+            - generic [ref=f9e127]: Pizza gourmet e dessert fatto in casa
+            - generic [ref=f9e128]:
+              - generic [ref=f9e130]:
+                - generic [ref=f9e131]: Pizza
+                - generic [ref=f9e133]: Dolce
+              - generic [ref=f9e135]: 
+        - button "Serata Birra" [ref=f9e138] [cursor=pointer]:
+          - generic [ref=f9e142]:
+            - generic [ref=f9e143]: COMBO
+            - generic [ref=f9e146]: Serata Birra
+          - generic [ref=f9e147]:
+            - generic [ref=f9e148]: Pizza speciale e birra artigianale inclusa
+            - generic [ref=f9e149]:
+              - generic [ref=f9e151]:
+                - generic [ref=f9e152]: Pizza
+                - generic [ref=f9e154]: Birra
+              - generic [ref=f9e156]: 
+    - generic [ref=f9e158] [cursor=pointer]:
+      - generic [ref=f9e159]: 
+      - generic [ref=f9e160]: Esplora il menu completo

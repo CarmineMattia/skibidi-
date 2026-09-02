@@ -47,7 +47,7 @@ type ActionableOrder = {
 };
 
 export default function AdminDashboardScreen() {
-  const { isAdmin } = useAuth();
+  const { isAdmin, isLoading: isAuthLoading } = useAuth();
   const { companyId } = useTenant();
   const {
     acceptingOrders,
@@ -203,18 +203,20 @@ export default function AdminDashboardScreen() {
     },
   });
 
-  // Redirect when the visitor is not an admin. The replace is scheduled in an
-  // effect (not during render) so deep-linking here cannot crash with
-  // "Cannot update a component while rendering a different component".
+  // Redirect non-admin users away from the dashboard after the navigator is
+  // mounted. Calling router.replace() during render (before the root
+  // navigator is ready) throws "Attempted to navigate before mounting the
+  // Root Layout component" on web deep links.
   useEffect(() => {
+    if (isAuthLoading) return;
     if (!isAdmin) {
       router.replace('/(tabs)');
     }
-  }, [isAdmin, router]);
+  }, [isAdmin, isAuthLoading, router]);
 
-  if (!isAdmin) {
-    return null;
-  }
+  // Note: the `if (!isAdmin) return null;` guard has been moved below all
+  // hooks to satisfy React's Rules of Hooks (hooks must be called
+  // unconditionally, before any early return).
 
   const pausedUntilDate =
     ordersPausedUntil && !Number.isNaN(new Date(ordersPausedUntil).getTime())
@@ -343,6 +345,12 @@ export default function AdminDashboardScreen() {
       supabase.removeChannel(channel);
     };
   }, [companyId, refetch]);
+
+  // All hooks above are called unconditionally (Rules of Hooks). Now that
+  // every hook has run, guard the render: non-admin users see nothing.
+  if (!isAdmin) {
+    return null;
+  }
 
   const getNextStatus = (status: ActionableOrder['status']): ActionableOrder['status'] | null => {
     if (status === 'pending') return 'preparing';

@@ -1,0 +1,391 @@
+- generic [ref=f19e1]:
+  - generic [ref=f19e316]:
+    - generic [ref=f19e322]:
+      - generic [ref=f19e325]:
+        - generic [ref=f19e331]:
+          - generic [ref=f19e332]: Pizzeria Ambrosia
+          - generic [ref=f19e333]: Il Nettare degli Dei
+        - generic [ref=f19e334]:
+          - link [ref=f19e659] [cursor=pointer]:
+            - generic [ref=f19e336]: Menu
+          - link [ref=f19e660] [cursor=pointer]:
+            - generic [ref=f19e338]: Offerte
+          - link [ref=f19e661] [cursor=pointer]:
+            - generic [ref=f19e340]: Gallery
+          - link [ref=f19e662] [cursor=pointer]:
+            - generic [ref=f19e342]: Contatti
+        - generic [ref=f19e343]:
+          - link [ref=f19e663] [cursor=pointer]:
+            - generic [ref=f19e345]: 
+            - generic [ref=f19e346]: Accedi
+          - button [ref=f19e664] [cursor=pointer]:
+            - generic [ref=f19e348]: 
+            - generic [ref=f19e349]: Ordina
+      - generic [ref=f19e357]:
+        - generic [ref=f19e358]:
+          - generic [ref=f19e359]: 
+          - generic [ref=f19e360]: Montecchio Emilia · Dal forno a casa
+        - generic [ref=f19e361]: Il nettare degli dei.
+        - generic [ref=f19e362]: Pizza artigianale, ingredienti genuini e impasti preparati ogni giorno a Montecchio Emilia. Scegli la tua pizza e ordinala direttamente online.
+        - generic [ref=f19e363]:
+          - button [ref=f19e667] [cursor=pointer]:
+            - generic [ref=f19e365]: Ordina dal menu
+            - generic [ref=f19e366]: 
+          - link [ref=f19e668] [cursor=pointer]:
+            - generic [ref=f19e368]: 
+            - generic [ref=f19e369]: Orari e contatti
+        - generic [ref=f19e370]:
+          - generic [ref=f19e371]:
+            - generic [ref=f19e372]: €2,50
+            - generic [ref=f19e373]: consegna a domicilio
+          - generic [ref=f19e375]:
+            - generic [ref=f19e376]: Ogni giorno
+            - generic [ref=f19e377]: impasto fresco
+      - generic [ref=f19e378]:
+        - generic [ref=f19e379]:
+          - generic [ref=f19e380]:
+            - generic [ref=f19e381]: La nostra pizzeria
+            - generic [ref=f19e384]: Tradizione nel forno, libertà nel piatto.
+          - generic [ref=f19e385]: Benvenuti da Ambrosia, dove qualità e tradizione vengono prima di tutto. Prepariamo pizze classiche, bianche e al metro con ingredienti freschi, da gustare in pizzeria o a casa.
+        - generic [ref=f19e386]:
+          - generic [ref=f19e393]:
+            - generic [ref=f19e394]: 
+            - generic [ref=f19e396]: Fatta come la vuoi tu
+            - generic [ref=f19e397]: Bianche, gustose, al metro o create con i tuoi ingredienti preferiti.
+          - generic [ref=f19e398]:
+            - generic [ref=f19e399]:
+              - generic [ref=f19e400]: 
+              - generic [ref=f19e402]: A casa tua.
+              - generic [ref=f19e403]: Con soli €2,50 portiamo le pizze da te. Oppure passa a ritirarle appena sfornate.
+            - button [ref=f19e671] [cursor=pointer]:
+              - generic [ref=f19e407]: Scegli la tua pizza
+              - generic [ref=f19e408]: 
+      - generic [ref=f19e410]:
+        - generic [ref=f19e412]:
+          - generic [ref=f19e413]: Scelte per te
+          - generic [ref=f19e416]: Più gusto, insieme.
+          - generic [ref=f19e417]: "Combo pensati per te: scorri in verticale, scegli e aggiungi al carrello in un tap."
+        - generic [ref=f19e418]:
+          - generic [ref=f19e420]:
+            - button [ref=f19e672] [cursor=pointer]:
+              - generic [ref=f19e426]:
+                - generic [ref=f19e427]:
+                  - generic [ref=f19e428]: COMBO
+                  - generic [ref=f19e430]: Risparmi €1.30
+                - generic [ref=f19e432]: Pizza + Drink
+              - generic [ref=f19e433]:
+                - generic [ref=f19e434]: Una pizza a scelta con bibita 33cl inclusa
+                - generic [ref=f19e438]:
+                  - generic [ref=f19e439]:
+                    - generic [ref=f19e440]:
+                      - generic [ref=f19e441]: €11.70
+                      - generic [ref=f19e442]: €13.00
+                    - generic [ref=f19e443]:
+                      - generic [ref=f19e444]: Pizza
+                      - generic [ref=f19e446]: Drink
+                  - generic [ref=f19e448]: 
+            - button [ref=f19e674] [cursor=pointer]:
+              - generic [ref=f19e456]:
+                - generic [ref=f19e457]:
+                  - generic [ref=f19e458]: COMBO
+                  - generic [ref=f19e460]: Risparmi €1.56
+                - generic [ref=f19e462]: Duo Pizza
+              - generic [ref=f19e463]:
+                - generic [ref=f19e464]: Due pizze classiche da condividere, prezzo speciale
+                - generic [ref=f19e468]:
+                  - generic [ref=f19e469]:
+                    - generic [ref=f19e470]:
+                      - generic [ref=f19e471]: €11.44
+                      - generic [ref=f19e472]: €13.00
+                    - generic [ref=f19e473]: 2x Pizza
+                  - generic [ref=f19e476]: 
+            - button [ref=f19e676] [cursor=pointer]:
+              - generic [ref=f19e484]:
+                - generic [ref=f19e485]: COMBO
+                - generic [ref=f19e488]: Family Combo
+              - generic [ref=f19e489]:
+                - generic [ref=f19e490]: 2 pizze, antipasto e 2 bibite per tutta la famiglia
+                - generic [ref=f19e491]:
+                  - generic [ref=f19e493]:
+                    - generic [ref=f19e494]: 2x Pizza
+                    - generic [ref=f19e496]: Antipasto
+                    - generic [ref=f19e498]: 2x Drink
+                  - generic [ref=f19e500]: 
+            - button [ref=f19e678] [cursor=pointer]:
+              - generic [ref=f19e508]:
+                - generic [ref=f19e509]:
+                  - generic [ref=f19e510]: COMBO
+                  - generic [ref=f19e512]: Risparmi €0.44
+                - generic [ref=f19e514]: Pranzo Smart
+              - generic [ref=f19e515]:
+                - generic [ref=f19e516]: Pizza + acqua — perfetto per la pausa pranzo
+                - generic [ref=f19e522]:
+                  - generic [ref=f19e523]:
+                    - generic [ref=f19e524]:
+                      - generic [ref=f19e525]: €5.06
+                      - generic [ref=f19e526]: €5.50
+                    - generic [ref=f19e527]:
+                      - generic [ref=f19e528]: Pizza
+                      - generic [ref=f19e530]: Acqua
+                  - generic [ref=f19e532]: 
+            - button [ref=f19e680] [cursor=pointer]:
+              - generic [ref=f19e540]:
+                - generic [ref=f19e541]: COMBO
+                - generic [ref=f19e544]: Pizza & Dolce
+              - generic [ref=f19e545]:
+                - generic [ref=f19e546]: Pizza gourmet e dessert fatto in casa
+                - generic [ref=f19e547]:
+                  - generic [ref=f19e549]:
+                    - generic [ref=f19e550]: Pizza
+                    - generic [ref=f19e552]: Dolce
+                  - generic [ref=f19e554]: 
+            - button [ref=f19e682] [cursor=pointer]:
+              - generic [ref=f19e562]:
+                - generic [ref=f19e563]:
+                  - generic [ref=f19e564]: COMBO
+                  - generic [ref=f19e566]: Risparmi €0.90
+                - generic [ref=f19e568]: Serata Birra
+              - generic [ref=f19e569]:
+                - generic [ref=f19e570]: Pizza speciale e birra artigianale inclusa
+                - generic [ref=f19e574]:
+                  - generic [ref=f19e575]:
+                    - generic [ref=f19e576]:
+                      - generic [ref=f19e577]: €8.10
+                      - generic [ref=f19e578]: €9.00
+                    - generic [ref=f19e579]:
+                      - generic [ref=f19e580]: Pizza
+                      - generic [ref=f19e582]: Birra
+                  - generic [ref=f19e584]: 
+          - link [ref=f19e683] [cursor=pointer]:
+            - generic [ref=f19e587]: Apri pagina offerte (6)
+            - generic [ref=f19e588]: 
+      - generic [ref=f19e591]:
+        - generic [ref=f19e592]: Dentro Ambrosia
+        - generic [ref=f19e595]:
+          - generic [ref=f19e596]: Un ambiente da condividere.
+          - generic [ref=f19e597]: "Dal primo impasto all’ultima fetta: qui la pizza è un momento da vivere insieme."
+      - generic [ref=f19e610]:
+        - generic [ref=f19e611]:
+          - generic [ref=f19e612]: Vieni a trovarci
+          - generic [ref=f19e615]:
+            - generic [ref=f19e616]:
+              - generic [ref=f19e617]: La tua prossima pizza è qui.
+              - generic [ref=f19e618]: Via E. Franchini, 51, 42027 Montecchio Emilia (RE)
+              - generic [ref=f19e619]:
+                - link [ref=f19e690] [cursor=pointer]:
+                  - generic [ref=f19e621]: 
+                  - generic [ref=f19e622]: 0522 171 7681
+                - link [ref=f19e691] [cursor=pointer]:
+                  - generic [ref=f19e624]: 
+                  - generic [ref=f19e625]: Apri la mappa
+            - generic [ref=f19e626]:
+              - generic [ref=f19e627]:
+                - generic [ref=f19e628]: 
+                - generic [ref=f19e629]: Orari di apertura
+              - generic [ref=f19e630]:
+                - generic [ref=f19e631]: Lunedì
+                - generic [ref=f19e632]: Chiuso
+              - generic [ref=f19e633]:
+                - generic [ref=f19e634]: Martedì
+                - generic [ref=f19e635]: 12–14 · 18–22:30
+              - generic [ref=f19e636]:
+                - generic [ref=f19e637]: Mercoledì
+                - generic [ref=f19e638]: 12–14 · 18–22:30
+              - generic [ref=f19e639]:
+                - generic [ref=f19e640]: Giovedì
+                - generic [ref=f19e641]: 12–14 · 18–22:30
+              - generic [ref=f19e642]:
+                - generic [ref=f19e643]: Venerdì
+                - generic [ref=f19e644]: 12–14 · 18–22:30
+              - generic [ref=f19e645]:
+                - generic [ref=f19e646]: Sabato
+                - generic [ref=f19e647]: 18–22:30
+              - generic [ref=f19e648]:
+                - generic [ref=f19e649]: Domenica
+                - generic [ref=f19e650]: 18–22:30
+        - generic [ref=f19e652]:
+          - generic [ref=f19e653]:
+            - generic [ref=f19e654]: Pizzeria Ambrosia
+            - generic [ref=f19e655]: Il Nettare degli Dei
+          - generic [ref=f19e656]: © 2026 Pizzeria Ambrosia. Tutti i diritti riservati.
+    - generic [ref=f19e695]:
+      - generic [ref=f19e696]:
+        - generic [ref=f19e697]:
+          - generic [ref=f19e699]: 
+          - generic [ref=f19e701]: AMBROSIA - Menu Artigianale
+        - generic [ref=f19e702]:
+          - generic [ref=f19e704]:
+            - generic [ref=f19e705]: 
+            - generic [ref=f19e706]: Ospite
+          - generic [ref=f19e1834]:
+            - generic [ref=f19e1835]: 
+            - generic [ref=f19e1836]: "1"
+          - generic [ref=f19e707] [cursor=pointer]: Accedi
+      - generic [ref=f19e709]:
+        - generic [ref=f19e710]:
+          - generic [ref=f19e712]:
+            - generic [ref=f19e713] [cursor=pointer]:
+              - generic [ref=f19e714]: 
+              - generic [ref=f19e716]: Tutti
+            - generic [ref=f19e717] [cursor=pointer]:
+              - generic [ref=f19e718]: 
+              - generic [ref=f19e720]: Crea la tua pizza
+            - generic [ref=f19e721] [cursor=pointer]:
+              - generic [ref=f19e722]: 
+              - generic [ref=f19e724]: Pizze Gustose
+            - generic [ref=f19e725] [cursor=pointer]:
+              - generic [ref=f19e726]: 
+              - generic [ref=f19e728]: Pizze Bianche
+            - generic [ref=f19e729] [cursor=pointer]:
+              - generic [ref=f19e730]: 
+              - generic [ref=f19e732]: Al Metro
+            - generic [ref=f19e733] [cursor=pointer]:
+              - generic [ref=f19e734]: 
+              - generic [ref=f19e736]: Piadine
+            - generic [ref=f19e737] [cursor=pointer]:
+              - generic [ref=f19e738]: 
+              - generic [ref=f19e740]: Bevande
+          - generic [ref=f19e742] [cursor=pointer]:
+            - generic [ref=f19e743]: 
+            - generic [ref=f19e745]: Accedi o Registrati
+        - generic [ref=f19e1882]:
+          - generic [ref=f19e1884]:
+            - generic [ref=f19e1886]:
+              - button "Apri dettagli Acqua naturale 0.5L" [ref=f19e1887] [cursor=pointer]
+              - generic [ref=f19e1890]:
+                - button "Classic Acqua naturale 0.5L Acqua minerale naturale" [ref=f19e1891] [cursor=pointer]:
+                  - generic [ref=f19e1892]: Classic
+                  - generic [ref=f19e1893]: Acqua naturale 0.5L
+                  - generic [ref=f19e1894]: Acqua minerale naturale
+                - generic [ref=f19e1895]:
+                  - generic [ref=f19e1896] [cursor=pointer]: €1.00
+                  - button "Aggiungi Acqua naturale 0.5L al carrello" [ref=f19e1898] [cursor=pointer]:
+                    - generic [ref=f19e1899]: Aggiungi
+            - generic [ref=f19e1901]:
+              - button "Apri dettagli Acqua frizzante 0.5L" [ref=f19e1902] [cursor=pointer]
+              - generic [ref=f19e1905]:
+                - button "Classic Acqua frizzante 0.5L Acqua minerale frizzante" [ref=f19e1906] [cursor=pointer]:
+                  - generic [ref=f19e1907]: Classic
+                  - generic [ref=f19e1908]: Acqua frizzante 0.5L
+                  - generic [ref=f19e1909]: Acqua minerale frizzante
+                - generic [ref=f19e1910]:
+                  - generic [ref=f19e1911] [cursor=pointer]: €1.00
+                  - button "Aggiungi Acqua frizzante 0.5L al carrello" [ref=f19e1913] [cursor=pointer]:
+                    - generic [ref=f19e1914]: Aggiungi
+            - generic [ref=f19e1916]:
+              - button "Apri dettagli Coca-Cola 33cl" [ref=f19e1917] [cursor=pointer]
+              - generic [ref=f19e1920]:
+                - button "Classic Coca-Cola 33cl Bibita gassata" [ref=f19e1921] [cursor=pointer]:
+                  - generic [ref=f19e1922]: Classic
+                  - generic [ref=f19e1923]: Coca-Cola 33cl
+                  - generic [ref=f19e1924]: Bibita gassata
+                - generic [ref=f19e1925]:
+                  - generic [ref=f19e1926] [cursor=pointer]: €2.50
+                  - button "Aggiungi Coca-Cola 33cl al carrello" [ref=f19e1928] [cursor=pointer]:
+                    - generic [ref=f19e1929]: Aggiungi
+          - generic [ref=f19e1932]:
+            - generic [ref=f19e1934]:
+              - button "Apri dettagli Fanta 33cl" [ref=f19e1935] [cursor=pointer]
+              - generic [ref=f19e1938]:
+                - button "Classic Fanta 33cl Bibita all'arancia" [ref=f19e1939] [cursor=pointer]:
+                  - generic [ref=f19e1940]: Classic
+                  - generic [ref=f19e1941]: Fanta 33cl
+                  - generic [ref=f19e1942]: Bibita all'arancia
+                - generic [ref=f19e1943]:
+                  - generic [ref=f19e1944] [cursor=pointer]: €2.50
+                  - button "Aggiungi Fanta 33cl al carrello" [ref=f19e1946] [cursor=pointer]:
+                    - generic [ref=f19e1947]: Aggiungi
+            - generic [ref=f19e1949]:
+              - button "Apri dettagli Sprite 33cl" [ref=f19e1950] [cursor=pointer]
+              - generic [ref=f19e1953]:
+                - button "Classic Sprite 33cl Bibita al limone" [ref=f19e1954] [cursor=pointer]:
+                  - generic [ref=f19e1955]: Classic
+                  - generic [ref=f19e1956]: Sprite 33cl
+                  - generic [ref=f19e1957]: Bibita al limone
+                - generic [ref=f19e1958]:
+                  - generic [ref=f19e1959] [cursor=pointer]: €2.50
+                  - button "Aggiungi Sprite 33cl al carrello" [ref=f19e1961] [cursor=pointer]:
+                    - generic [ref=f19e1962]: Aggiungi
+            - generic [ref=f19e1964]:
+              - button "Apri dettagli Birra alla spina 0.4L" [ref=f19e1965] [cursor=pointer]
+              - generic [ref=f19e1968]:
+                - button "Classic Birra alla spina 0.4L Birra artigianale alla spina" [ref=f19e1969] [cursor=pointer]:
+                  - generic [ref=f19e1970]: Classic
+                  - generic [ref=f19e1971]: Birra alla spina 0.4L
+                  - generic [ref=f19e1972]: Birra artigianale alla spina
+                - generic [ref=f19e1973]:
+                  - generic [ref=f19e1974] [cursor=pointer]: €3.50
+                  - button "Aggiungi Birra alla spina 0.4L al carrello" [ref=f19e1976] [cursor=pointer]:
+                    - generic [ref=f19e1977]: Aggiungi
+          - generic [ref=f19e1980]:
+            - generic [ref=f19e1982]:
+              - button "Apri dettagli Birra in bottiglia" [ref=f19e1983] [cursor=pointer]
+              - generic [ref=f19e1986]:
+                - button "Classic Birra in bottiglia Birra in bottiglia 33cl" [ref=f19e1987] [cursor=pointer]:
+                  - generic [ref=f19e1988]: Classic
+                  - generic [ref=f19e1989]: Birra in bottiglia
+                  - generic [ref=f19e1990]: Birra in bottiglia 33cl
+                - generic [ref=f19e1991]:
+                  - generic [ref=f19e1992] [cursor=pointer]: €3.00
+                  - button "Aggiungi Birra in bottiglia al carrello" [ref=f19e1994] [cursor=pointer]:
+                    - generic [ref=f19e1995]: Aggiungi
+            - generic [ref=f19e1997]:
+              - button "Apri dettagli Vino rosso (calice)" [ref=f19e1998] [cursor=pointer]
+              - generic [ref=f19e2001]:
+                - button "Classic Vino rosso (calice) Vino rosso della casa" [ref=f19e2002] [cursor=pointer]:
+                  - generic [ref=f19e2003]: Classic
+                  - generic [ref=f19e2004]: Vino rosso (calice)
+                  - generic [ref=f19e2005]: Vino rosso della casa
+                - generic [ref=f19e2006]:
+                  - generic [ref=f19e2007] [cursor=pointer]: €3.00
+                  - button "Aggiungi Vino rosso (calice) al carrello" [ref=f19e2009] [cursor=pointer]:
+                    - generic [ref=f19e2010]: Aggiungi
+            - generic [ref=f19e2012]:
+              - button "Apri dettagli Vino bianco (calice)" [ref=f19e2013] [cursor=pointer]
+              - generic [ref=f19e2016]:
+                - button "Classic Vino bianco (calice) Vino bianco della casa" [ref=f19e2017] [cursor=pointer]:
+                  - generic [ref=f19e2018]: Classic
+                  - generic [ref=f19e2019]: Vino bianco (calice)
+                  - generic [ref=f19e2020]: Vino bianco della casa
+                - generic [ref=f19e2021]:
+                  - generic [ref=f19e2022] [cursor=pointer]: €3.00
+                  - button "Aggiungi Vino bianco (calice) al carrello" [ref=f19e2024] [cursor=pointer]:
+                    - generic [ref=f19e2025]: Aggiungi
+        - generic [ref=f19e1470]:
+          - generic [ref=f19e1471]:
+            - generic [ref=f19e1472]:
+              - generic [ref=f19e1473]:
+                - generic [ref=f19e1474]: 
+                - generic [ref=f19e1475]: Carrello
+              - generic [ref=f19e1851] [cursor=pointer]: Svuota
+            - generic [ref=f19e1476]: 1 prodotto
+          - generic [ref=f19e1855]:
+            - generic [ref=f19e1856]:
+              - generic [ref=f19e1857]:
+                - generic [ref=f19e1858]: Margherita
+                - generic [ref=f19e1859]: €5.00 cad.
+              - generic [ref=f19e1860] [cursor=pointer]: ✕
+            - generic [ref=f19e1862]:
+              - generic [ref=f19e1863]:
+                - generic [ref=f19e1864] [cursor=pointer]: −
+                - generic [ref=f19e1866]: "1"
+                - generic [ref=f19e1868] [cursor=pointer]: +
+              - generic [ref=f19e1870]: €5.00
+          - generic [ref=f19e1871]:
+            - generic [ref=f19e1873]:
+              - generic [ref=f19e1874]: Totale
+              - generic [ref=f19e1875]: €5.00
+            - generic [ref=f19e1877] [cursor=pointer]:
+              - generic [ref=f19e1878]: Procedi al Pagamento
+              - generic [ref=f19e1879]: 
+  - dialog [ref=f19e2027]:
+    - generic [ref=f19e2030]:
+      - generic [ref=f19e2031]:
+        - generic [ref=f19e2032]: 
+        - generic [ref=f19e2034]:
+          - generic [ref=f19e2035]: Aggiungi una bevanda?
+          - generic [ref=f19e2036]: Nel carrello non ci sono bevande. Scegline una dal menu oppure prosegui senza.
+        - generic "Chiudi" [active] [ref=f19e2037] [cursor=pointer]: 
+      - generic [ref=f19e2039]:
+        - generic [ref=f19e2040] [cursor=pointer]: Scegli una bevanda
+        - generic [ref=f19e2042] [cursor=pointer]: Procedi senza bevande

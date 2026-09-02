@@ -1,0 +1,112 @@
+[     654ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:17348
+[     689ms] [LOG] Running application "main" with appParams:
+ {rootTag: #root, hydrate: undefined} 
+Development-level warnings: ON.
+Performance optimizations: OFF. @ http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:40281
+[     754ms] [WARNING] [expo-av]: Expo AV has been deprecated and will be removed in SDK 54. Use the `expo-audio` and `expo-video` packages to replace the required functionality. @ http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:199230
+[     794ms] [WARNING] props.pointerEvents is deprecated. Use style.pointerEvents @ http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:23886
+[    1230ms] [LOG] Profile found: admin @ http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:89979
+[    1568ms] [LOG] Profile found: admin @ http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:89979
+[  452212ms] [LOG] Profile found: admin @ http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:89979
+[ 2581789ms] Failed to load because no supported source was found.
+[ 2634815ms] Failed to load because no supported source was found.
+[ 2779985ms] [LOG] [OfflineQueue] Offline event detected @ http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:198591
+[ 2780254ms] [LOG] [OfflineQueue] Online event, triggering sync... @ http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:198587
+[ 2780254ms] [LOG] [OfflineQueue] Connection restored, triggering sync... @ http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:198578
+[ 3507778ms] [LOG] [OfflineQueue] Offline event detected @ http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:198591
+[ 3508031ms] [LOG] [OfflineQueue] Online event, triggering sync... @ http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:198587
+[ 3508031ms] [LOG] [OfflineQueue] Connection restored, triggering sync... @ http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:198578
+[ 3931513ms] [LOG] Profile found: admin @ http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:89979
+[ 7411393ms] [LOG] Profile found: admin @ http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:89979
+[ 8973383ms] [ERROR] Cannot update a component (`%s`) while rendering a different component (`%s`). To locate the bad setState() call inside `%s`, follow the stack trace as described in https://react.dev/link/setstate-in-render ForwardRef(NavigationContainerInner) AdminDashboardScreen(./(tabs)/admin-dashboard.tsx) AdminDashboardScreen(./(tabs)/admin-dashboard.tsx) @ http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:901
+[ 8973396ms] [ERROR] The action 'REPLACE' with payload {"name":"index","params":{}} was not handled by any navigator.
+
+Do you have a route named 'index'?
+
+This is a development-only warning and won't be shown in production. @ http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:901
+[ 8973907ms] [LOG] Profile found: admin @ http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:89979
+[ 8973924ms] [ERROR] React has detected a change in the order of Hooks called by %s. This will lead to bugs and errors if not fixed. For more information, read the Rules of Hooks: https://react.dev/link/rules-of-hooks
+
+   Previous render            Next render
+   ------------------------------------------------------
+%s   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ AdminDashboardScreen(./(tabs)/admin-dashboard.tsx) 1. useContext                 useContext
+2. useContext                 useContext
+3. useContext                 useContext
+4. useContext                 useContext
+5. useContext                 useContext
+6. useContext                 useContext
+7. useContext                 useContext
+8. useEffect                  useEffect
+9. useState                   useState
+10. useCallback               useCallback
+11. useSyncExternalStore      useSyncExternalStore
+12. useEffect                 useEffect
+13. useContext                useContext
+14. useState                  useState
+15. useState                  useState
+16. useState                  useState
+17. useState                  useState
+18. useContext                useContext
+19. useContext                useContext
+20. useState                  useState
+21. useEffect                 useEffect
+22. useCallback               useCallback
+23. useSyncExternalStore      useSyncExternalStore
+24. useCallback               useCallback
+25. useContext                useContext
+26. useContext                useContext
+27. useContext                useContext
+28. useEffect                 useEffect
+29. useState                  useState
+30. useCallback               useCallback
+31. useSyncExternalStore      useSyncExternalStore
+32. useEffect                 useEffect
+33. useContext                useContext
+34. useContext                useContext
+35. useContext                useContext
+36. useEffect                 useEffect
+37. useState                  useState
+38. useCallback               useCallback
+39. useSyncExternalStore      useSyncExternalStore
+40. useEffect                 useEffect
+41. undefined                 useMemo
+ @ http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:901
+[ 8973945ms] [ERROR] %o
+
+%s
+
+%s
+ Error: Rendered more hooks than during the previous render.
+    at updateWorkInProgressHook (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:6958:17)
+    at updateMemo (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:7555:18)
+    at Object.useMemo (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:15993:18)
+    at exports.useMemo (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:2128:34)
+    at AdminDashboardScreen (http://localhost:8081/app/(tabs)/admin-dashboard.bundle//&platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&minify=false&modulesOnly=true&runModule=false&shallow=true:209:44)
+    at react-stack-bottom-frame (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:16634:20)
+    at renderWithHooks (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:6844:22)
+    at updateFunctionComponent (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:8537:19)
+    at beginWork (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:9123:18)
+    at runWithFiberInDEV (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:4616:70)
+    at performUnitOfWork (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:11196:95)
+    at workLoopSync (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:11089:40)
+    at renderRootSync (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:11073:9)
+    at performWorkOnRoot (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:10837:44)
+    at performWorkOnRootViaSchedulerTask (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:11793:7)
+    at MessagePort.performWorkUntilDeadline (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:17441:48) The above error occurred in the <AdminDashboardScreen(./(tabs)/admin-dashboard.tsx)> component. React will try to recreate this component tree from scratch using the error boundary you provided, Try. @ http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:901
+[ 8974068ms] [LOG] Profile found: admin @ http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:89979
+[ 8984289ms] [LOG] Profile found: admin @ http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:89979
+[ 8984606ms] [LOG] Profile found: admin @ http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:89979
+[ 9016682ms] Error: TransformError SyntaxError: /home/cr1m3/projects/skibidi-/app/(tabs)/admin-dashboard.tsx: Unexpected token (206:1)
+
+[0m [90m 204 |[39m   })[33m;[39m
+ [90m 205 |[39m
+[31m[1m>[22m[39m[90m 206 |[39m [33m<<[39m[33m<<[39m[33m<<[39m[33m<[39m [33mHEAD[39m
+ [90m     |[39m  [31m[1m^[22m[39m
+ [90m 207 |[39m   [90m// Redirect when the visitor is not an admin. The replace is scheduled in an[39m
+ [90m 208 |[39m   [90m// effect (not during render) so deep-linking here cannot crash with[39m
+ [90m 209 |[39m   [90m// "Cannot update a component while rendering a different component".[39m[0m
+    at showCompileError (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:76120:19)
+    at HMRClient.<anonymous> (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:76042:13)
+    at HMRClient.emit (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:76371:31)
+    at HMRClient._ws.onmessage (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:76186:18)

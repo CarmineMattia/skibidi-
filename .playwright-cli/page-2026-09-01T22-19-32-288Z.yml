@@ -1,0 +1,16 @@
+- tablist [ref=f15e86]:
+  - tab "  Home" [ref=f15e88] [cursor=pointer]:
+    - generic [ref=f15e89]:
+      - generic [ref=f15e90]: 
+      - generic [ref=f15e92]: 
+    - generic [ref=f15e94]: Home
+  - tab "  Menu" [selected] [ref=f15e96] [cursor=pointer]:
+    - generic [ref=f15e97]:
+      - generic [ref=f15e98]: 
+      - generic [ref=f15e100]: 
+    - generic [ref=f15e102]: Menu
+  - tab "  Profile" [ref=f15e104] [cursor=pointer]:
+    - generic [ref=f15e105]:
+      - generic [ref=f15e106]: 
+      - generic [ref=f15e108]: 
+    - generic [ref=f15e110]: Profile

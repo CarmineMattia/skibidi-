@@ -1,0 +1,44 @@
+- generic [ref=e2033]:
+  - generic [ref=e2035]:
+    - generic [ref=e2036] [cursor=pointer]: 
+    - generic [ref=e2038]: Pagamento
+  - generic [ref=e2133]:
+    - generic [ref=e2134]:
+      - generic [ref=e2135]: Riepilogo ordine (Asporto)
+      - generic [ref=e2137]:
+        - generic [ref=e2138]:
+          - generic [ref=e2139]: Tartufata
+          - generic [ref=e2140]: x1
+        - generic [ref=e2141]: €8.50
+      - generic [ref=e2143]:
+        - generic [ref=e2144]: Subtotale
+        - generic [ref=e2145]: €8.50
+      - generic [ref=e2146]:
+        - generic [ref=e2147]: Totale
+        - generic [ref=e2148]: €8.50
+    - generic [ref=e2149]:
+      - generic [ref=e2150]: Metodo di pagamento
+      - generic [ref=e2151]:
+        - generic [ref=e2152] [cursor=pointer]:
+          - generic [ref=e2153]: 
+          - generic [ref=e2154]:
+            - generic [ref=e2155]: Carta di credito
+            - generic [ref=e2156]: Visa, Mastercard, Amex
+        - generic [ref=e2157] [cursor=pointer]:
+          - generic [ref=e2158]: 
+          - generic [ref=e2159]:
+            - generic [ref=e2160]: Satispay
+            - generic [ref=e2161]: Paga con l'app Satispay
+        - generic [ref=e2162] [cursor=pointer]:
+          - generic [ref=e2163]: 
+          - generic [ref=e2164]:
+            - generic [ref=e2165]: POS in cassa
+            - generic [ref=e2166]: Terminale fisico
+        - generic [ref=e2167] [cursor=pointer]:
+          - generic [ref=e2168]: 
+          - generic [ref=e2169]:
+            - generic [ref=e2170]: Contanti
+            - generic [ref=e2171]: Paga alla cassa
+      - generic [ref=e2172]:
+        - generic [ref=e2173] [cursor=pointer]: Indietro
+        - generic [ref=e2175] [cursor=pointer]: Conferma ordine

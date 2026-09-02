@@ -1,0 +1,35 @@
+[       3ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://zqubwvhstobaugifzoyb.supabase.co/rest/v1/orders?select=id%2Ccreated_at%2Cstatus%2Ctotal_amount%2Ccustomer_name%2Cdecline_reason_preset%2Cdecline_reason_note&company_id=eq.00000000-0000-0000-0000-000000000001&status=in.%28pending%2Cpreparing%2Cready%2Ccancelled%29&order=created_at.desc&limit=12:0
+[       5ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://zqubwvhstobaugifzoyb.supabase.co/rest/v1/orders?select=*%2Corder_items%28*%2Cproduct%3Aproducts%28*%29%29&company_id=eq.00000000-0000-0000-0000-000000000001&order=created_at.asc&status=in.%28pending%2Cpreparing%2Cready%29:0
+[       5ms] [ERROR] Kitchen orders fetch error: {message: TypeError: Failed to fetch, details: TypeError: Failed to fetch
+    at http://localhost…lse&lazy=true&transform.routerRoot=app:150369:13), hint: , code: } @ http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:901
+[     831ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:17348
+[     863ms] [LOG] Running application "main" with appParams:
+ {rootTag: #root, hydrate: undefined} 
+Development-level warnings: ON.
+Performance optimizations: OFF. @ http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:40281
+[     920ms] [WARNING] [expo-av]: Expo AV has been deprecated and will be removed in SDK 54. Use the `expo-audio` and `expo-video` packages to replace the required functionality. @ http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:199232
+[     999ms] [WARNING] props.pointerEvents is deprecated. Use style.pointerEvents @ http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:23886
+[    1466ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://images.unsplash.com/photo-1594007654729-407eedc4fe0f?auto=format&fit=crop&w=1200&q=80:0
+[    1477ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://zqubwvhstobaugifzoyb.supabase.co/rest/v1/products?select=*&active=eq.true&company_id=eq.00000000-0000-0000-0000-000000000001&order=display_order.asc:0
+[    1477ms] [ERROR] Failed to fetch products: {message: TypeError: Failed to fetch, details: TypeError: Failed to fetch
+    at http://localhost…lse&lazy=true&transform.routerRoot=app:148684:13), hint: , code: } @ http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:901
+[    1478ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://zqubwvhstobaugifzoyb.supabase.co/rest/v1/profiles?select=id%2Crole%2Cemail%2Cfull_name%2Ccreated_at%2Cupdated_at%2Ccompany_id&id=eq.c706f588-0af9-4d27-8b9d-d16924b66960:0
+[    1478ms] [ERROR] Error fetching user role: {message: TypeError: Failed to fetch, details: TypeError: Failed to fetch
+    at http://localhost…alse&lazy=true&transform.routerRoot=app:89973:13), hint: , code: } @ http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:901
+[    1478ms] [ERROR] Exception in fetchUserRole: {message: TypeError: Failed to fetch, details: TypeError: Failed to fetch
+    at http://localhost…alse&lazy=true&transform.routerRoot=app:89973:13), hint: , code: } @ http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:901
+[    1478ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://zqubwvhstobaugifzoyb.supabase.co/rest/v1/profiles?select=id%2Crole%2Cemail%2Cfull_name%2Ccreated_at%2Cupdated_at%2Ccompany_id&id=eq.c706f588-0af9-4d27-8b9d-d16924b66960:0
+[    1478ms] [ERROR] Error fetching user role: {message: TypeError: Failed to fetch, details: TypeError: Failed to fetch
+    at http://localhost…alse&lazy=true&transform.routerRoot=app:89973:13), hint: , code: } @ http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:901
+[    1478ms] [ERROR] Exception in fetchUserRole: {message: TypeError: Failed to fetch, details: TypeError: Failed to fetch
+    at http://localhost…alse&lazy=true&transform.routerRoot=app:89973:13), hint: , code: } @ http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:901
+[    1478ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://zqubwvhstobaugifzoyb.supabase.co/rest/v1/companies?select=settings&id=eq.00000000-0000-0000-0000-000000000001:0
+[    2768ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://zqubwvhstobaugifzoyb.supabase.co/rest/v1/products?select=*&active=eq.true&company_id=eq.00000000-0000-0000-0000-000000000001&order=display_order.asc:0
+[    2768ms] [ERROR] Failed to fetch products: {message: TypeError: Failed to fetch, details: TypeError: Failed to fetch
+    at http://localhost…lse&lazy=true&transform.routerRoot=app:148684:13), hint: , code: } @ http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:901
+[    4958ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://zqubwvhstobaugifzoyb.supabase.co/rest/v1/products?select=*&active=eq.true&company_id=eq.00000000-0000-0000-0000-000000000001&order=display_order.asc:0
+[    4958ms] [ERROR] Failed to fetch products: {message: TypeError: Failed to fetch, details: TypeError: Failed to fetch
+    at http://localhost…lse&lazy=true&transform.routerRoot=app:148684:13), hint: , code: } @ http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:901
+[    9103ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://zqubwvhstobaugifzoyb.supabase.co/rest/v1/products?select=*&active=eq.true&company_id=eq.00000000-0000-0000-0000-000000000001&order=display_order.asc:0
+[    9103ms] [ERROR] Failed to fetch products: {message: TypeError: Failed to fetch, details: TypeError: Failed to fetch
+    at http://localhost…lse&lazy=true&transform.routerRoot=app:148684:13), hint: , code: } @ http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:901

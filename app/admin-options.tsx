@@ -14,7 +14,7 @@ import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-nativ
 import type { BusinessHoursInterval } from '@/lib/utils/businessHours';
 
 export default function AdminOptionsScreen() {
-  const { isAdmin, isKioskMode, enterKioskMode, exitKioskMode } = useAuth();
+  const { isAdmin, isKioskMode, enterKioskMode, exitKioskMode, isLoading: isAuthLoading } = useAuth();
   const {
     language,
     deliveryFee,
@@ -123,13 +123,14 @@ export default function AdminOptionsScreen() {
   }, [shiftStartedAt]);
 
   // Se qualcuno arriva qui senza permessi admin, rimandiamo al menu principale.
-  // The replace is scheduled in an effect (not during render) so deep-linking
-  // here cannot crash with "Cannot update a component while rendering a different component".
+  // Done in an effect (not during render) so web deep links don't throw
+  // "Attempted to navigate before mounting the Root Layout component".
   useEffect(() => {
+    if (isAuthLoading) return;
     if (!isAdmin) {
       router.replace('/(tabs)/menu');
     }
-  }, [isAdmin, router]);
+  }, [isAdmin, isAuthLoading, router]);
 
   if (!isAdmin) {
     return null;

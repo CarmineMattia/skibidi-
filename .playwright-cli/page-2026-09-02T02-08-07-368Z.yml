@@ -1,0 +1,21 @@
+- generic [ref=f19e2047]:
+  - generic [ref=f19e2049]:
+    - generic [ref=f19e2050] [cursor=pointer]: 
+    - generic [ref=f19e2052]: I tuoi dati
+  - generic [ref=f19e2125]:
+    - generic [ref=f19e2126]: I tuoi dati
+    - generic [ref=f19e2127]:
+      - generic [ref=f19e2128]: Nome *
+      - textbox "Il tuo nome" [ref=f19e2129]
+      - generic [ref=f19e2146]: Inserisci il tuo nome
+    - generic [ref=f19e2130]:
+      - generic [ref=f19e2131]: Telefono *
+      - generic [ref=f19e2133]:
+        - generic [ref=f19e2134] [cursor=pointer]:
+          - generic [ref=f19e2135]: "+39"
+          - generic [ref=f19e2139]: 
+        - 'textbox "Es: 3331234567" [ref=f19e2140]'
+      - generic [ref=f19e2147]: Inserisci un numero di telefono
+    - generic [ref=f19e2141]:
+      - generic [ref=f19e2142] [cursor=pointer]: Indietro
+      - generic [ref=f19e2144] [cursor=pointer]: Continua

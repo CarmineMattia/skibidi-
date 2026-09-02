@@ -1,0 +1,12 @@
+- generic [ref=f5e5]:
+  - generic:
+    - generic:
+      - generic:
+        - link "(tabs), back" [ref=f5e7] [cursor=pointer]:
+          - /url: /
+        - heading "one-screen-checkout" [level=1] [ref=f5e10]
+  - generic [ref=f5e15]:
+    - progressbar [ref=f5e16]
+    - generic [ref=f5e21]:
+      - generic [ref=f5e22]: Bundling...
+      - generic [ref=f5e23]: app/one-screen-checkout.tsx

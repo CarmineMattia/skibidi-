@@ -1,0 +1,21 @@
+- generic [ref=f19e2047]:
+  - generic [ref=f19e2049]:
+    - generic [ref=f19e2050] [cursor=pointer]: 
+    - generic [ref=f19e2052]: Come vuoi ordinare?
+  - generic [ref=f19e2060]:
+    - generic [ref=f19e2061]: Come vuoi ordinare?
+    - generic [ref=f19e2062]: Scegli la modalità più comoda per te.
+    - generic [ref=f19e2063]:
+      - generic [ref=f19e2064] [cursor=pointer]:
+        - generic [ref=f19e2065]: 
+        - generic [ref=f19e2066]: Mangio qui
+        - generic [ref=f19e2067]: Servizio al tavolo
+      - generic [ref=f19e2068] [cursor=pointer]:
+        - generic [ref=f19e2069]: 
+        - generic [ref=f19e2070]: Da asporto
+        - generic [ref=f19e2071]: Ritiro in negozio
+      - generic [ref=f19e2072] [cursor=pointer]:
+        - generic [ref=f19e2073]: 
+        - generic [ref=f19e2074]: Delivery
+        - generic [ref=f19e2075]: A domicilio (+€2.00)
+    - generic [ref=f19e2076] [cursor=pointer]: Continua

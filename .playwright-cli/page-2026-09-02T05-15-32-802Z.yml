@@ -1,0 +1,44 @@
+- generic [ref=f7e1678]:
+  - generic [ref=f7e1680]:
+    - generic [ref=f7e1681] [cursor=pointer]: 
+    - generic [ref=f7e1683]: Pagamento
+  - generic [ref=f7e1778]:
+    - generic [ref=f7e1779]:
+      - generic [ref=f7e1780]: Riepilogo ordine (Tavolo)
+      - generic [ref=f7e1782]:
+        - generic [ref=f7e1783]:
+          - generic [ref=f7e1784]: Pizza del Centro
+          - generic [ref=f7e1785]: x1
+        - generic [ref=f7e1786]: €8.00
+      - generic [ref=f7e1788]:
+        - generic [ref=f7e1789]: Subtotale
+        - generic [ref=f7e1790]: €8.00
+      - generic [ref=f7e1791]:
+        - generic [ref=f7e1792]: Totale
+        - generic [ref=f7e1793]: €8.00
+    - generic [ref=f7e1794]:
+      - generic [ref=f7e1795]: Metodo di pagamento
+      - generic [ref=f7e1796]:
+        - generic [ref=f7e1797] [cursor=pointer]:
+          - generic [ref=f7e1798]: 
+          - generic [ref=f7e1799]:
+            - generic [ref=f7e1800]: Carta di credito
+            - generic [ref=f7e1801]: Visa, Mastercard, Amex
+        - generic [ref=f7e1802] [cursor=pointer]:
+          - generic [ref=f7e1803]: 
+          - generic [ref=f7e1804]:
+            - generic [ref=f7e1805]: Satispay
+            - generic [ref=f7e1806]: Paga con l'app Satispay
+        - generic [active] [ref=f7e1807] [cursor=pointer]:
+          - generic [ref=f7e1808]: 
+          - generic [ref=f7e1809]:
+            - generic [ref=f7e1810]: POS in cassa
+            - generic [ref=f7e1811]: Terminale fisico
+        - generic [ref=f7e1812] [cursor=pointer]:
+          - generic [ref=f7e1813]: 
+          - generic [ref=f7e1814]:
+            - generic [ref=f7e1815]: Contanti
+            - generic [ref=f7e1816]: Paga alla cassa
+      - generic [ref=f7e1817]:
+        - generic [ref=f7e1818] [cursor=pointer]: Indietro
+        - generic [ref=f7e1820] [cursor=pointer]: Conferma ordine

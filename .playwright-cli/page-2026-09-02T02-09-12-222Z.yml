@@ -1,0 +1,44 @@
+- generic [ref=f19e2047]:
+  - generic [ref=f19e2049]:
+    - generic [ref=f19e2050] [cursor=pointer]: 
+    - generic [ref=f19e2052]: Pagamento
+  - generic [ref=f19e2157]:
+    - generic [ref=f19e2158]:
+      - generic [ref=f19e2159]: Riepilogo ordine (Asporto)
+      - generic [ref=f19e2161]:
+        - generic [ref=f19e2162]:
+          - generic [ref=f19e2163]: Margherita
+          - generic [ref=f19e2164]: x1
+        - generic [ref=f19e2165]: €5.00
+      - generic [ref=f19e2167]:
+        - generic [ref=f19e2168]: Subtotale
+        - generic [ref=f19e2169]: €5.00
+      - generic [ref=f19e2170]:
+        - generic [ref=f19e2171]: Totale
+        - generic [ref=f19e2172]: €5.00
+    - generic [ref=f19e2173]:
+      - generic [ref=f19e2174]: Metodo di pagamento
+      - generic [ref=f19e2175]:
+        - generic [ref=f19e2176] [cursor=pointer]:
+          - generic [ref=f19e2177]: 
+          - generic [ref=f19e2178]:
+            - generic [ref=f19e2179]: Carta di credito
+            - generic [ref=f19e2180]: Visa, Mastercard, Amex
+        - generic [ref=f19e2181] [cursor=pointer]:
+          - generic [ref=f19e2182]: 
+          - generic [ref=f19e2183]:
+            - generic [ref=f19e2184]: Satispay
+            - generic [ref=f19e2185]: Paga con l'app Satispay
+        - generic [ref=f19e2186] [cursor=pointer]:
+          - generic [ref=f19e2187]: 
+          - generic [ref=f19e2188]:
+            - generic [ref=f19e2189]: POS in cassa
+            - generic [ref=f19e2190]: Terminale fisico
+        - generic [active] [ref=f19e2191] [cursor=pointer]:
+          - generic [ref=f19e2192]: 
+          - generic [ref=f19e2193]:
+            - generic [ref=f19e2194]: Contanti
+            - generic [ref=f19e2195]: Paga alla cassa
+      - generic [ref=f19e2196]:
+        - generic [ref=f19e2197] [cursor=pointer]: Indietro
+        - generic [ref=f19e2199] [cursor=pointer]: Conferma ordine

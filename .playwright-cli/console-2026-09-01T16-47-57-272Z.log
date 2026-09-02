@@ -1,0 +1,19 @@
+[     503ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:17348
+[     535ms] [LOG] Running application "main" with appParams:
+ {rootTag: #root, hydrate: undefined} 
+Development-level warnings: ON.
+Performance optimizations: OFF. @ http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:40281
+[     597ms] [WARNING] [expo-av]: Expo AV has been deprecated and will be removed in SDK 54. Use the `expo-audio` and `expo-video` packages to replace the required functionality. @ http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:199208
+[     683ms] [WARNING] props.pointerEvents is deprecated. Use style.pointerEvents @ http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:23886
+[ 1134451ms] [WARNING] [.WebGL-0x247400140200]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels @ http://localhost:8081/modal:0
+[ 1135070ms] [WARNING] [.WebGL-0x247400140200]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels @ http://localhost:8081/modal:0
+[ 1135075ms] [WARNING] [.WebGL-0x247400140200]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels @ http://localhost:8081/modal:0
+[ 1135078ms] [WARNING] [.WebGL-0x247400140200]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat) @ http://localhost:8081/modal:0
+[ 2068243ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://zqubwvhstobaugifzoyb.supabase.co/rest/v1/rpc/reserve_order_display_code:0
+[ 2068462ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://zqubwvhstobaugifzoyb.supabase.co/rest/v1/orders:0
+[ 2069118ms] [ERROR] Failed to load resource: the server responded with a status of 401 () @ https://zqubwvhstobaugifzoyb.supabase.co/rest/v1/order_items?columns=%22order_id%22%2C%22product_id%22%2C%22quantity%22%2C%22unit_price%22%2C%22total_price%22%2C%22notes%22:0
+[ 2069120ms] [ERROR] Order items creation error: {code: 42501, details: null, hint: null, message: new row violates row-level security policy for table "order_items"} @ http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:901
+[ 2069347ms] [ERROR] Create order mutation failed: Error: Errore nell'aggiunta dei prodotti: new row violates row-level security policy for table "order_items"
+    at Object.mutationFn (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:198296:17) @ http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:901
+[ 2069347ms] [ERROR] ❌ Order creation failed: Error: Errore nell'aggiunta dei prodotti: new row violates row-level security policy for table "order_items"
+    at Object.mutationFn (http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:198296:17) @ http://localhost:8081/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:901

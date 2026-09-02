@@ -1,0 +1,27 @@
+- generic [ref=f21e41]:
+  - generic [ref=f21e42]:
+    - generic "Pizzeria Ambrosia" [ref=f21e43]:
+      - img "Pizzeria Ambrosia" [ref=f21e45]
+    - generic [ref=f21e46]: Pizzeria Ambrosia
+    - generic [ref=f21e47]: Il Nettare degli Dei
+  - generic [ref=f21e68]:
+    - generic [ref=f21e69] [cursor=pointer]: Login
+    - generic [ref=f21e71] [cursor=pointer]: Registrati
+  - generic [ref=f21e73]:
+    - generic [ref=f21e74]: Accedi
+    - generic [ref=f21e75]:
+      - generic [ref=f21e76]: Email
+      - textbox "esempio@email.com" [ref=f21e77]
+    - generic [ref=f21e78]:
+      - generic [ref=f21e79]: Password
+      - generic [ref=f21e80]:
+        - textbox "••••••••" [ref=f21e81]
+        - generic [ref=f21e82] [cursor=pointer]: 
+    - generic [ref=f21e84] [cursor=pointer]: Accedi
+    - generic [ref=f21e86] [cursor=pointer]: Torna all'accesso con codice email
+  - generic [ref=f21e58]: oppure
+  - generic [ref=f21e63] [cursor=pointer]:
+    - generic [ref=f21e64]:
+      - generic [ref=f21e65]: 
+      - generic [ref=f21e66]: Entra come ospite
+    - generic [ref=f21e67]: Ordina velocemente senza registrazione (profilo ospite)

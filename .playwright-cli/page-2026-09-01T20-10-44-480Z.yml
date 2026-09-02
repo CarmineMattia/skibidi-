@@ -1,0 +1,767 @@
+- generic [ref=e316]:
+  - generic [ref=e322]:
+    - generic [ref=e325]:
+      - generic [ref=e331]:
+        - generic [ref=e332]: Pizzeria Ambrosia
+        - generic [ref=e333]: Il Nettare degli Dei
+      - generic [ref=e334]:
+        - link [ref=e659] [cursor=pointer]:
+          - generic [ref=e336]: Menu
+        - link [ref=e660] [cursor=pointer]:
+          - generic [ref=e338]: Offerte
+        - link [ref=e661] [cursor=pointer]:
+          - generic [ref=e340]: Gallery
+        - link [ref=e662] [cursor=pointer]:
+          - generic [ref=e342]: Contatti
+      - generic [ref=e343]:
+        - link [ref=e663] [cursor=pointer]:
+          - generic [ref=e345]: 
+          - generic [ref=e346]: Accedi
+        - button [active] [ref=e664] [cursor=pointer]:
+          - generic [ref=e348]: 
+          - generic [ref=e349]: Ordina
+    - generic [ref=e357]:
+      - generic [ref=e358]:
+        - generic [ref=e359]: 
+        - generic [ref=e360]: Montecchio Emilia · Dal forno a casa
+      - generic [ref=e361]: Il nettare degli dei.
+      - generic [ref=e362]: Pizza artigianale, ingredienti genuini e impasti preparati ogni giorno a Montecchio Emilia. Scegli la tua pizza e ordinala direttamente online.
+      - generic [ref=e363]:
+        - button [ref=e667] [cursor=pointer]:
+          - generic [ref=e365]: Ordina dal menu
+          - generic [ref=e366]: 
+        - link [ref=e668] [cursor=pointer]:
+          - generic [ref=e368]: 
+          - generic [ref=e369]: Orari e contatti
+      - generic [ref=e370]:
+        - generic [ref=e371]:
+          - generic [ref=e372]: €2,50
+          - generic [ref=e373]: consegna a domicilio
+        - generic [ref=e375]:
+          - generic [ref=e376]: Ogni giorno
+          - generic [ref=e377]: impasto fresco
+    - generic [ref=e378]:
+      - generic [ref=e379]:
+        - generic [ref=e380]:
+          - generic [ref=e381]: La nostra pizzeria
+          - generic [ref=e384]: Tradizione nel forno, libertà nel piatto.
+        - generic [ref=e385]: Benvenuti da Ambrosia, dove qualità e tradizione vengono prima di tutto. Prepariamo pizze classiche, bianche e al metro con ingredienti freschi, da gustare in pizzeria o a casa.
+      - generic [ref=e386]:
+        - generic [ref=e393]:
+          - generic [ref=e394]: 
+          - generic [ref=e396]: Fatta come la vuoi tu
+          - generic [ref=e397]: Bianche, gustose, al metro o create con i tuoi ingredienti preferiti.
+        - generic [ref=e398]:
+          - generic [ref=e399]:
+            - generic [ref=e400]: 
+            - generic [ref=e402]: A casa tua.
+            - generic [ref=e403]: Con soli €2,50 portiamo le pizze da te. Oppure passa a ritirarle appena sfornate.
+          - button [ref=e671] [cursor=pointer]:
+            - generic [ref=e407]: Scegli la tua pizza
+            - generic [ref=e408]: 
+    - generic [ref=e410]:
+      - generic [ref=e412]:
+        - generic [ref=e413]: Scelte per te
+        - generic [ref=e416]: Più gusto, insieme.
+        - generic [ref=e417]: "Combo pensati per te: scorri in verticale, scegli e aggiungi al carrello in un tap."
+      - generic [ref=e418]:
+        - generic [ref=e420]:
+          - button [ref=e672] [cursor=pointer]:
+            - generic [ref=e426]:
+              - generic [ref=e427]:
+                - generic [ref=e428]: COMBO
+                - generic [ref=e430]: Risparmi €1.30
+              - generic [ref=e432]: Pizza + Drink
+            - generic [ref=e433]:
+              - generic [ref=e434]: Una pizza a scelta con bibita 33cl inclusa
+              - generic [ref=e438]:
+                - generic [ref=e439]:
+                  - generic [ref=e440]:
+                    - generic [ref=e441]: €11.70
+                    - generic [ref=e442]: €13.00
+                  - generic [ref=e443]:
+                    - generic [ref=e444]: Pizza
+                    - generic [ref=e446]: Drink
+                - generic [ref=e448]: 
+          - button [ref=e674] [cursor=pointer]:
+            - generic [ref=e456]:
+              - generic [ref=e457]:
+                - generic [ref=e458]: COMBO
+                - generic [ref=e460]: Risparmi €1.56
+              - generic [ref=e462]: Duo Pizza
+            - generic [ref=e463]:
+              - generic [ref=e464]: Due pizze classiche da condividere, prezzo speciale
+              - generic [ref=e468]:
+                - generic [ref=e469]:
+                  - generic [ref=e470]:
+                    - generic [ref=e471]: €11.44
+                    - generic [ref=e472]: €13.00
+                  - generic [ref=e473]: 2x Pizza
+                - generic [ref=e476]: 
+          - button [ref=e676] [cursor=pointer]:
+            - generic [ref=e484]:
+              - generic [ref=e485]: COMBO
+              - generic [ref=e488]: Family Combo
+            - generic [ref=e489]:
+              - generic [ref=e490]: 2 pizze, antipasto e 2 bibite per tutta la famiglia
+              - generic [ref=e491]:
+                - generic [ref=e493]:
+                  - generic [ref=e494]: 2x Pizza
+                  - generic [ref=e496]: Antipasto
+                  - generic [ref=e498]: 2x Drink
+                - generic [ref=e500]: 
+          - button [ref=e678] [cursor=pointer]:
+            - generic [ref=e508]:
+              - generic [ref=e509]:
+                - generic [ref=e510]: COMBO
+                - generic [ref=e512]: Risparmi €0.44
+              - generic [ref=e514]: Pranzo Smart
+            - generic [ref=e515]:
+              - generic [ref=e516]: Pizza + acqua — perfetto per la pausa pranzo
+              - generic [ref=e522]:
+                - generic [ref=e523]:
+                  - generic [ref=e524]:
+                    - generic [ref=e525]: €5.06
+                    - generic [ref=e526]: €5.50
+                  - generic [ref=e527]:
+                    - generic [ref=e528]: Pizza
+                    - generic [ref=e530]: Acqua
+                - generic [ref=e532]: 
+          - button [ref=e680] [cursor=pointer]:
+            - generic [ref=e540]:
+              - generic [ref=e541]: COMBO
+              - generic [ref=e544]: Pizza & Dolce
+            - generic [ref=e545]:
+              - generic [ref=e546]: Pizza gourmet e dessert fatto in casa
+              - generic [ref=e547]:
+                - generic [ref=e549]:
+                  - generic [ref=e550]: Pizza
+                  - generic [ref=e552]: Dolce
+                - generic [ref=e554]: 
+          - button [ref=e682] [cursor=pointer]:
+            - generic [ref=e562]:
+              - generic [ref=e563]:
+                - generic [ref=e564]: COMBO
+                - generic [ref=e566]: Risparmi €0.90
+              - generic [ref=e568]: Serata Birra
+            - generic [ref=e569]:
+              - generic [ref=e570]: Pizza speciale e birra artigianale inclusa
+              - generic [ref=e574]:
+                - generic [ref=e575]:
+                  - generic [ref=e576]:
+                    - generic [ref=e577]: €8.10
+                    - generic [ref=e578]: €9.00
+                  - generic [ref=e579]:
+                    - generic [ref=e580]: Pizza
+                    - generic [ref=e582]: Birra
+                - generic [ref=e584]: 
+        - link [ref=e683] [cursor=pointer]:
+          - generic [ref=e587]: Apri pagina offerte (6)
+          - generic [ref=e588]: 
+    - generic [ref=e591]:
+      - generic [ref=e592]: Dentro Ambrosia
+      - generic [ref=e595]:
+        - generic [ref=e596]: Un ambiente da condividere.
+        - generic [ref=e597]: "Dal primo impasto all’ultima fetta: qui la pizza è un momento da vivere insieme."
+    - generic [ref=e610]:
+      - generic [ref=e611]:
+        - generic [ref=e612]: Vieni a trovarci
+        - generic [ref=e615]:
+          - generic [ref=e616]:
+            - generic [ref=e617]: La tua prossima pizza è qui.
+            - generic [ref=e618]: Via E. Franchini, 51, 42027 Montecchio Emilia (RE)
+            - generic [ref=e619]:
+              - link [ref=e690] [cursor=pointer]:
+                - generic [ref=e621]: 
+                - generic [ref=e622]: 0522 171 7681
+              - link [ref=e691] [cursor=pointer]:
+                - generic [ref=e624]: 
+                - generic [ref=e625]: Apri la mappa
+          - generic [ref=e626]:
+            - generic [ref=e627]:
+              - generic [ref=e628]: 
+              - generic [ref=e629]: Orari di apertura
+            - generic [ref=e630]:
+              - generic [ref=e631]: Lunedì
+              - generic [ref=e632]: Chiuso
+            - generic [ref=e633]:
+              - generic [ref=e634]: Martedì
+              - generic [ref=e635]: 12–14 · 18–22:30
+            - generic [ref=e636]:
+              - generic [ref=e637]: Mercoledì
+              - generic [ref=e638]: 12–14 · 18–22:30
+            - generic [ref=e639]:
+              - generic [ref=e640]: Giovedì
+              - generic [ref=e641]: 12–14 · 18–22:30
+            - generic [ref=e642]:
+              - generic [ref=e643]: Venerdì
+              - generic [ref=e644]: 12–14 · 18–22:30
+            - generic [ref=e645]:
+              - generic [ref=e646]: Sabato
+              - generic [ref=e647]: 18–22:30
+            - generic [ref=e648]:
+              - generic [ref=e649]: Domenica
+              - generic [ref=e650]: 18–22:30
+      - generic [ref=e652]:
+        - generic [ref=e653]:
+          - generic [ref=e654]: Pizzeria Ambrosia
+          - generic [ref=e655]: Il Nettare degli Dei
+        - generic [ref=e656]: © 2026 Pizzeria Ambrosia. Tutti i diritti riservati.
+  - generic [ref=e695]:
+    - generic [ref=e696]:
+      - generic [ref=e697]:
+        - generic [ref=e699]: 
+        - generic [ref=e701]: AMBROSIA - Menu Artigianale
+      - generic [ref=e702]:
+        - generic [ref=e704]:
+          - generic [ref=e705]: 
+          - generic [ref=e706]: Ospite
+        - generic [ref=e707] [cursor=pointer]: Accedi
+    - generic [ref=e709]:
+      - generic [ref=e710]:
+        - generic [ref=e712]:
+          - generic [ref=e713] [cursor=pointer]:
+            - generic [ref=e714]: 
+            - generic [ref=e716]: Tutti
+          - generic [ref=e717] [cursor=pointer]:
+            - generic [ref=e718]: 
+            - generic [ref=e720]: Crea la tua pizza
+          - generic [ref=e721] [cursor=pointer]:
+            - generic [ref=e722]: 
+            - generic [ref=e724]: Pizze Gustose
+          - generic [ref=e725] [cursor=pointer]:
+            - generic [ref=e726]: 
+            - generic [ref=e728]: Pizze Bianche
+          - generic [ref=e729] [cursor=pointer]:
+            - generic [ref=e730]: 
+            - generic [ref=e732]: Al Metro
+          - generic [ref=e733] [cursor=pointer]:
+            - generic [ref=e734]: 
+            - generic [ref=e736]: Piadine
+          - generic [ref=e737] [cursor=pointer]:
+            - generic [ref=e738]: 
+            - generic [ref=e740]: Bevande
+        - generic [ref=e742] [cursor=pointer]:
+          - generic [ref=e743]: 
+          - generic [ref=e745]: Accedi o Registrati
+      - generic [ref=e749]:
+        - generic [ref=e751]:
+          - generic [ref=e753]:
+            - button "Apri dettagli Tartufata" [ref=e754] [cursor=pointer]
+            - generic [ref=e757]:
+              - button "Classic Tartufata Mozzarella, porcini, crema tartufata" [ref=e758] [cursor=pointer]:
+                - generic [ref=e759]: Classic
+                - generic [ref=e760]: Tartufata
+                - generic [ref=e761]: Mozzarella, porcini, crema tartufata
+              - generic [ref=e762]:
+                - generic [ref=e763] [cursor=pointer]: €8.50
+                - button "Aggiungi Tartufata al carrello" [ref=e765] [cursor=pointer]:
+                  - generic [ref=e766]: Aggiungi
+          - generic [ref=e768]:
+            - button "Apri dettagli Margherita al Metro" [ref=e769] [cursor=pointer]
+            - generic [ref=e772]:
+              - button "Classic Margherita al Metro Pomodoro, mozzarella (1 metro)" [ref=e773] [cursor=pointer]:
+                - generic [ref=e774]: Classic
+                - generic [ref=e775]: Margherita al Metro
+                - generic [ref=e776]: Pomodoro, mozzarella (1 metro)
+              - generic [ref=e777]:
+                - generic [ref=e778] [cursor=pointer]: €13.00
+                - button "Aggiungi Margherita al Metro al carrello" [ref=e780] [cursor=pointer]:
+                  - generic [ref=e781]: Aggiungi
+          - generic [ref=e783]:
+            - button "Apri dettagli Componi la tua pizza" [ref=e784] [cursor=pointer]
+            - generic [ref=e787]:
+              - button "Classic Componi la tua pizza Scegli taglia (piccola, media o mezzo metro), impasto, base e tutti gli ingredienti che vuoi. Prezzo a partire da 4 euro." [ref=e788] [cursor=pointer]:
+                - generic [ref=e789]: Classic
+                - generic [ref=e790]: Componi la tua pizza
+                - generic [ref=e791]: Scegli taglia (piccola, media o mezzo metro), impasto, base e tutti gli ingredienti che vuoi. Prezzo a partire da 4 euro.
+              - generic [ref=e792]:
+                - generic [ref=e793] [cursor=pointer]: €4.00
+                - button "Aggiungi Componi la tua pizza al carrello" [ref=e795] [cursor=pointer]:
+                  - generic [ref=e796]: Aggiungi
+        - generic [ref=e799]:
+          - generic [ref=e801]:
+            - button "Apri dettagli Piadina Emiliana" [ref=e802] [cursor=pointer]
+            - generic [ref=e805]:
+              - button "Classic Piadina Emiliana Crudo, rucola, scaglie di grana" [ref=e806] [cursor=pointer]:
+                - generic [ref=e807]: Classic
+                - generic [ref=e808]: Piadina Emiliana
+                - generic [ref=e809]: Crudo, rucola, scaglie di grana
+              - generic [ref=e810]:
+                - generic [ref=e811] [cursor=pointer]: €6.00
+                - button "Aggiungi Piadina Emiliana al carrello" [ref=e813] [cursor=pointer]:
+                  - generic [ref=e814]: Aggiungi
+          - generic [ref=e816]:
+            - button "Apri dettagli Marinara" [ref=e817] [cursor=pointer]
+            - generic [ref=e820]:
+              - button "Classic Marinara Pomodoro, origano, aglio" [ref=e821] [cursor=pointer]:
+                - generic [ref=e822]: Classic
+                - generic [ref=e823]: Marinara
+                - generic [ref=e824]: Pomodoro, origano, aglio
+              - generic [ref=e825]:
+                - generic [ref=e826] [cursor=pointer]: €4.50
+                - button "Aggiungi Marinara al carrello" [ref=e828] [cursor=pointer]:
+                  - generic [ref=e829]: Aggiungi
+          - generic [ref=e831]:
+            - button "Apri dettagli Margherita" [ref=e832] [cursor=pointer]
+            - generic [ref=e835]:
+              - button "Classic Margherita Pomodoro, mozzarella" [ref=e836] [cursor=pointer]:
+                - generic [ref=e837]: Classic
+                - generic [ref=e838]: Margherita
+                - generic [ref=e839]: Pomodoro, mozzarella
+              - generic [ref=e840]:
+                - generic [ref=e841] [cursor=pointer]: €5.00
+                - button "Aggiungi Margherita al carrello" [ref=e843] [cursor=pointer]:
+                  - generic [ref=e844]: Aggiungi
+        - generic [ref=e847]:
+          - generic [ref=e849]:
+            - button "Apri dettagli Metà Margherita / Metà Farcita" [ref=e850] [cursor=pointer]
+            - generic [ref=e853]:
+              - button "Classic Metà Margherita / Metà Farcita Metà margherita e metà a tua scelta" [ref=e854] [cursor=pointer]:
+                - generic [ref=e855]: Classic
+                - generic [ref=e856]: Metà Margherita / Metà Farcita
+                - generic [ref=e857]: Metà margherita e metà a tua scelta
+              - generic [ref=e858]:
+                - generic [ref=e859] [cursor=pointer]: €15.50
+                - button "Aggiungi Metà Margherita / Metà Farcita al carrello" [ref=e861] [cursor=pointer]:
+                  - generic [ref=e862]: Aggiungi
+          - generic [ref=e864]:
+            - button "Apri dettagli Piadina Valtellina" [ref=e865] [cursor=pointer]
+            - generic [ref=e868]:
+              - button "Classic Piadina Valtellina Bresaola, rucola, scaglie di grana" [ref=e869] [cursor=pointer]:
+                - generic [ref=e870]: Classic
+                - generic [ref=e871]: Piadina Valtellina
+                - generic [ref=e872]: Bresaola, rucola, scaglie di grana
+              - generic [ref=e873]:
+                - generic [ref=e874] [cursor=pointer]: €6.00
+                - button "Aggiungi Piadina Valtellina al carrello" [ref=e876] [cursor=pointer]:
+                  - generic [ref=e877]: Aggiungi
+          - generic [ref=e879]:
+            - button "Apri dettagli Buna" [ref=e880] [cursor=pointer]
+            - generic [ref=e883]:
+              - button "Classic Buna Mozzarella, friarielli, salsiccia" [ref=e884] [cursor=pointer]:
+                - generic [ref=e885]: Classic
+                - generic [ref=e886]: Buna
+                - generic [ref=e887]: Mozzarella, friarielli, salsiccia
+              - generic [ref=e888]:
+                - generic [ref=e889] [cursor=pointer]: €7.50
+                - button "Aggiungi Buna al carrello" [ref=e891] [cursor=pointer]:
+                  - generic [ref=e892]: Aggiungi
+        - generic [ref=e895]:
+          - generic [ref=e897]:
+            - button "Apri dettagli Piadina Vegetariana" [ref=e898] [cursor=pointer]
+            - generic [ref=e901]:
+              - button "Classic Piadina Vegetariana Peperoni, melanzane, zucchine" [ref=e902] [cursor=pointer]:
+                - generic [ref=e903]: Classic
+                - generic [ref=e904]: Piadina Vegetariana
+                - generic [ref=e905]: Peperoni, melanzane, zucchine
+              - generic [ref=e906]:
+                - generic [ref=e907] [cursor=pointer]: €6.00
+                - button "Aggiungi Piadina Vegetariana al carrello" [ref=e909] [cursor=pointer]:
+                  - generic [ref=e910]: Aggiungi
+          - generic [ref=e912]:
+            - button "Apri dettagli Due Terzi Farcita" [ref=e913] [cursor=pointer]
+            - generic [ref=e916]:
+              - button "Classic Due Terzi Farcita Un terzo margherita, due terzi a tua scelta" [ref=e917] [cursor=pointer]:
+                - generic [ref=e918]: Classic
+                - generic [ref=e919]: Due Terzi Farcita
+                - generic [ref=e920]: Un terzo margherita, due terzi a tua scelta
+              - generic [ref=e921]:
+                - generic [ref=e922] [cursor=pointer]: €17.00
+                - button "Aggiungi Due Terzi Farcita al carrello" [ref=e924] [cursor=pointer]:
+                  - generic [ref=e925]: Aggiungi
+          - generic [ref=e927]:
+            - button "Apri dettagli Mediterranea" [ref=e928] [cursor=pointer]
+            - generic [ref=e931]:
+              - button "Classic Mediterranea Mozzarella, friarielli, salame piccante, salsiccia" [ref=e932] [cursor=pointer]:
+                - generic [ref=e933]: Classic
+                - generic [ref=e934]: Mediterranea
+                - generic [ref=e935]: Mozzarella, friarielli, salame piccante, salsiccia
+              - generic [ref=e936]:
+                - generic [ref=e937] [cursor=pointer]: €8.50
+                - button "Aggiungi Mediterranea al carrello" [ref=e939] [cursor=pointer]:
+                  - generic [ref=e940]: Aggiungi
+        - generic [ref=e943]:
+          - generic [ref=e945]:
+            - button "Apri dettagli Speciale" [ref=e946] [cursor=pointer]
+            - generic [ref=e949]:
+              - button "Classic Speciale Pomodoro, mozzarella di bufala, pomodorini, basilico" [ref=e950] [cursor=pointer]:
+                - generic [ref=e951]: Classic
+                - generic [ref=e952]: Speciale
+                - generic [ref=e953]: Pomodoro, mozzarella di bufala, pomodorini, basilico
+              - generic [ref=e954]:
+                - generic [ref=e955] [cursor=pointer]: €7.50
+                - button "Aggiungi Speciale al carrello" [ref=e957] [cursor=pointer]:
+                  - generic [ref=e958]: Aggiungi
+          - generic [ref=e960]:
+            - button "Apri dettagli Piadina Trentina" [ref=e961] [cursor=pointer]
+            - generic [ref=e964]:
+              - button "Classic Piadina Trentina Gorgonzola, speck" [ref=e965] [cursor=pointer]:
+                - generic [ref=e966]: Classic
+                - generic [ref=e967]: Piadina Trentina
+                - generic [ref=e968]: Gorgonzola, speck
+              - generic [ref=e969]:
+                - generic [ref=e970] [cursor=pointer]: €5.00
+                - button "Aggiungi Piadina Trentina al carrello" [ref=e972] [cursor=pointer]:
+                  - generic [ref=e973]: Aggiungi
+          - generic [ref=e975]:
+            - button "Apri dettagli Nord & Sud" [ref=e976] [cursor=pointer]
+            - generic [ref=e979]:
+              - button "Classic Nord & Sud Pomodoro, mozzarella, 'nduja, gorgonzola" [ref=e980] [cursor=pointer]:
+                - generic [ref=e981]: Classic
+                - generic [ref=e982]: Nord & Sud
+                - generic [ref=e983]: Pomodoro, mozzarella, 'nduja, gorgonzola
+              - generic [ref=e984]:
+                - generic [ref=e985] [cursor=pointer]: €8.50
+                - button "Aggiungi Nord & Sud al carrello" [ref=e987] [cursor=pointer]:
+                  - generic [ref=e988]: Aggiungi
+        - generic [ref=e991]:
+          - generic [ref=e993]:
+            - button "Apri dettagli Farcita" [ref=e994] [cursor=pointer]
+            - generic [ref=e997]:
+              - button "Classic Farcita Ingredienti a tua scelta su tutto il metro" [ref=e998] [cursor=pointer]:
+                - generic [ref=e999]: Classic
+                - generic [ref=e1000]: Farcita
+                - generic [ref=e1001]: Ingredienti a tua scelta su tutto il metro
+              - generic [ref=e1002]:
+                - generic [ref=e1003] [cursor=pointer]: €19.00
+                - button "Aggiungi Farcita al carrello" [ref=e1005] [cursor=pointer]:
+                  - generic [ref=e1006]: Aggiungi
+          - generic [ref=e1008]:
+            - button "Apri dettagli Messicana" [ref=e1009] [cursor=pointer]
+            - generic [ref=e1012]:
+              - button "Classic Messicana Mozzarella di bufala, pancetta, olio piccante" [ref=e1013] [cursor=pointer]:
+                - generic [ref=e1014]: Classic
+                - generic [ref=e1015]: Messicana
+                - generic [ref=e1016]: Mozzarella di bufala, pancetta, olio piccante
+              - generic [ref=e1017]:
+                - generic [ref=e1018] [cursor=pointer]: €8.00
+                - button "Aggiungi Messicana al carrello" [ref=e1020] [cursor=pointer]:
+                  - generic [ref=e1021]: Aggiungi
+          - generic [ref=e1023]:
+            - button "Apri dettagli Super Farcita" [ref=e1024] [cursor=pointer]
+            - generic [ref=e1027]:
+              - button "Classic Super Farcita Ingredienti premium a tua scelta, farcitura abbondante" [ref=e1028] [cursor=pointer]:
+                - generic [ref=e1029]: Classic
+                - generic [ref=e1030]: Super Farcita
+                - generic [ref=e1031]: Ingredienti premium a tua scelta, farcitura abbondante
+              - generic [ref=e1032]:
+                - generic [ref=e1033] [cursor=pointer]: €21.00
+                - button "Aggiungi Super Farcita al carrello" [ref=e1035] [cursor=pointer]:
+                  - generic [ref=e1036]: Aggiungi
+        - generic [ref=e1039]:
+          - generic [ref=e1041]:
+            - button "Apri dettagli Salamina" [ref=e1042] [cursor=pointer]
+            - generic [ref=e1045]:
+              - button "Classic Salamina Mozzarella, salamino piccante, friarielli" [ref=e1046] [cursor=pointer]:
+                - generic [ref=e1047]: Classic
+                - generic [ref=e1048]: Salamina
+                - generic [ref=e1049]: Mozzarella, salamino piccante, friarielli
+              - generic [ref=e1050]:
+                - generic [ref=e1051] [cursor=pointer]: €8.00
+                - button "Aggiungi Salamina al carrello" [ref=e1053] [cursor=pointer]:
+                  - generic [ref=e1054]: Aggiungi
+          - generic [ref=e1056]:
+            - button "Apri dettagli Piadina Buna" [ref=e1057] [cursor=pointer]
+            - generic [ref=e1060]:
+              - button "Classic Piadina Buna Mozzarella, salsiccia, friarielli" [ref=e1061] [cursor=pointer]:
+                - generic [ref=e1062]: Classic
+                - generic [ref=e1063]: Piadina Buna
+                - generic [ref=e1064]: Mozzarella, salsiccia, friarielli
+              - generic [ref=e1065]:
+                - generic [ref=e1066] [cursor=pointer]: €6.00
+                - button "Aggiungi Piadina Buna al carrello" [ref=e1068] [cursor=pointer]:
+                  - generic [ref=e1069]: Aggiungi
+          - generic [ref=e1071]:
+            - button "Apri dettagli Amalfi" [ref=e1072] [cursor=pointer]
+            - generic [ref=e1075]:
+              - button "Classic Amalfi Pomodoro, mozzarella, scamorza affumicata, pomodorini" [ref=e1076] [cursor=pointer]:
+                - generic [ref=e1077]: Classic
+                - generic [ref=e1078]: Amalfi
+                - generic [ref=e1079]: Pomodoro, mozzarella, scamorza affumicata, pomodorini
+              - generic [ref=e1080]:
+                - generic [ref=e1081] [cursor=pointer]: €7.50
+                - button "Aggiungi Amalfi al carrello" [ref=e1083] [cursor=pointer]:
+                  - generic [ref=e1084]: Aggiungi
+        - generic [ref=e1087]:
+          - generic [ref=e1089]:
+            - button "Apri dettagli Piadina Messicana" [ref=e1090] [cursor=pointer]
+            - generic [ref=e1093]:
+              - button "Classic Piadina Messicana Bufala, pancetta, olio piccante" [ref=e1094] [cursor=pointer]:
+                - generic [ref=e1095]: Classic
+                - generic [ref=e1096]: Piadina Messicana
+                - generic [ref=e1097]: Bufala, pancetta, olio piccante
+              - generic [ref=e1098]:
+                - generic [ref=e1099] [cursor=pointer]: €5.00
+                - button "Aggiungi Piadina Messicana al carrello" [ref=e1101] [cursor=pointer]:
+                  - generic [ref=e1102]: Aggiungi
+          - generic [ref=e1104]:
+            - button "Apri dettagli Gorgonzola e Noci" [ref=e1105] [cursor=pointer]
+            - generic [ref=e1108]:
+              - button "Classic Gorgonzola e Noci Mozzarella, gorgonzola, noci" [ref=e1109] [cursor=pointer]:
+                - generic [ref=e1110]: Classic
+                - generic [ref=e1111]: Gorgonzola e Noci
+                - generic [ref=e1112]: Mozzarella, gorgonzola, noci
+              - generic [ref=e1113]:
+                - generic [ref=e1114] [cursor=pointer]: €8.00
+                - button "Aggiungi Gorgonzola e Noci al carrello" [ref=e1116] [cursor=pointer]:
+                  - generic [ref=e1117]: Aggiungi
+          - generic [ref=e1119]:
+            - button "Apri dettagli Tirolese" [ref=e1120] [cursor=pointer]
+            - generic [ref=e1123]:
+              - button "Classic Tirolese Pomodoro, mozzarella di bufala, porcini trifolati, speck" [ref=e1124] [cursor=pointer]:
+                - generic [ref=e1125]: Classic
+                - generic [ref=e1126]: Tirolese
+                - generic [ref=e1127]: Pomodoro, mozzarella di bufala, porcini trifolati, speck
+              - generic [ref=e1128]:
+                - generic [ref=e1129] [cursor=pointer]: €9.00
+                - button "Aggiungi Tirolese al carrello" [ref=e1131] [cursor=pointer]:
+                  - generic [ref=e1132]: Aggiungi
+        - generic [ref=e1135]:
+          - generic [ref=e1137]:
+            - button "Apri dettagli Trentina" [ref=e1138] [cursor=pointer]
+            - generic [ref=e1141]:
+              - button "Classic Trentina Pomodoro, mozzarella, gorgonzola, speck" [ref=e1142] [cursor=pointer]:
+                - generic [ref=e1143]: Classic
+                - generic [ref=e1144]: Trentina
+                - generic [ref=e1145]: Pomodoro, mozzarella, gorgonzola, speck
+              - generic [ref=e1146]:
+                - generic [ref=e1147] [cursor=pointer]: €8.00
+                - button "Aggiungi Trentina al carrello" [ref=e1149] [cursor=pointer]:
+                  - generic [ref=e1150]: Aggiungi
+          - generic [ref=e1152]:
+            - button "Apri dettagli Bologna" [ref=e1153] [cursor=pointer]
+            - generic [ref=e1156]:
+              - 'button "Classic Bologna Mozzarella; fuori cottura: mortadella, stracciatella, crema di pistacchio" [ref=e1157] [cursor=pointer]':
+                - generic [ref=e1158]: Classic
+                - generic [ref=e1159]: Bologna
+                - generic [ref=e1160]: "Mozzarella; fuori cottura: mortadella, stracciatella, crema di pistacchio"
+              - generic [ref=e1161]:
+                - generic [ref=e1162] [cursor=pointer]: €10.00
+                - button "Aggiungi Bologna al carrello" [ref=e1164] [cursor=pointer]:
+                  - generic [ref=e1165]: Aggiungi
+          - generic [ref=e1167]:
+            - button "Apri dettagli Piadina Bologna" [ref=e1168] [cursor=pointer]
+            - generic [ref=e1171]:
+              - button "Classic Piadina Bologna Stracciatella, mortadella, crema di pistacchio" [ref=e1172] [cursor=pointer]:
+                - generic [ref=e1173]: Classic
+                - generic [ref=e1174]: Piadina Bologna
+                - generic [ref=e1175]: Stracciatella, mortadella, crema di pistacchio
+              - generic [ref=e1176]:
+                - generic [ref=e1177] [cursor=pointer]: €6.00
+                - button "Aggiungi Piadina Bologna al carrello" [ref=e1179] [cursor=pointer]:
+                  - generic [ref=e1180]: Aggiungi
+        - generic [ref=e1183]:
+          - generic [ref=e1185]:
+            - button "Apri dettagli Francescana" [ref=e1186] [cursor=pointer]
+            - generic [ref=e1189]:
+              - button "Classic Francescana Pomodoro, mozzarella, gorgonzola, porcini trifolati" [ref=e1190] [cursor=pointer]:
+                - generic [ref=e1191]: Classic
+                - generic [ref=e1192]: Francescana
+                - generic [ref=e1193]: Pomodoro, mozzarella, gorgonzola, porcini trifolati
+              - generic [ref=e1194]:
+                - generic [ref=e1195] [cursor=pointer]: €8.00
+                - button "Aggiungi Francescana al carrello" [ref=e1197] [cursor=pointer]:
+                  - generic [ref=e1198]: Aggiungi
+          - generic [ref=e1200]:
+            - button "Apri dettagli La Rustica" [ref=e1201] [cursor=pointer]
+            - generic [ref=e1204]:
+              - button "Classic La Rustica Mozzarella, pancetta, stracchino, patate al forno" [ref=e1205] [cursor=pointer]:
+                - generic [ref=e1206]: Classic
+                - generic [ref=e1207]: La Rustica
+                - generic [ref=e1208]: Mozzarella, pancetta, stracchino, patate al forno
+              - generic [ref=e1209]:
+                - generic [ref=e1210] [cursor=pointer]: €9.00
+                - button "Aggiungi La Rustica al carrello" [ref=e1212] [cursor=pointer]:
+                  - generic [ref=e1213]: Aggiungi
+          - generic [ref=e1215]:
+            - button "Apri dettagli La Natalizia" [ref=e1216] [cursor=pointer]
+            - generic [ref=e1219]:
+              - button "Classic La Natalizia Mozzarella, gorgonzola, porcini, noci" [ref=e1220] [cursor=pointer]:
+                - generic [ref=e1221]: Classic
+                - generic [ref=e1222]: La Natalizia
+                - generic [ref=e1223]: Mozzarella, gorgonzola, porcini, noci
+              - generic [ref=e1224]:
+                - generic [ref=e1225] [cursor=pointer]: €9.00
+                - button "Aggiungi La Natalizia al carrello" [ref=e1227] [cursor=pointer]:
+                  - generic [ref=e1228]: Aggiungi
+        - generic [ref=e1231]:
+          - generic [ref=e1233]:
+            - button "Apri dettagli Matildica" [ref=e1234] [cursor=pointer]
+            - generic [ref=e1237]:
+              - button "Classic Matildica Pomodoro, mozzarella, funghi porcini trifolati, pomodorini, Parmigiano Reggiano" [ref=e1238] [cursor=pointer]:
+                - generic [ref=e1239]: Classic
+                - generic [ref=e1240]: Matildica
+                - generic [ref=e1241]: Pomodoro, mozzarella, funghi porcini trifolati, pomodorini, Parmigiano Reggiano
+              - generic [ref=e1242]:
+                - generic [ref=e1243] [cursor=pointer]: €8.00
+                - button "Aggiungi Matildica al carrello" [ref=e1245] [cursor=pointer]:
+                  - generic [ref=e1246]: Aggiungi
+          - generic [ref=e1248]:
+            - button "Apri dettagli Pizza del Centro" [ref=e1249] [cursor=pointer]
+            - generic [ref=e1252]:
+              - button "Classic Pizza del Centro Pomodoro, mozzarella, melanzane, zucchine, peperoni, pomodorini, porcini" [ref=e1253] [cursor=pointer]:
+                - generic [ref=e1254]: Classic
+                - generic [ref=e1255]: Pizza del Centro
+                - generic [ref=e1256]: Pomodoro, mozzarella, melanzane, zucchine, peperoni, pomodorini, porcini
+              - generic [ref=e1257]:
+                - generic [ref=e1258] [cursor=pointer]: €8.00
+                - button "Aggiungi Pizza del Centro al carrello" [ref=e1260] [cursor=pointer]:
+                  - generic [ref=e1261]: Aggiungi
+          - generic [ref=e1263]:
+            - button "Apri dettagli Carbonara" [ref=e1264] [cursor=pointer]
+            - generic [ref=e1267]:
+              - button "Classic Carbonara Mozzarella di bufala, pancetta, uova, pepe nero" [ref=e1268] [cursor=pointer]:
+                - generic [ref=e1269]: Classic
+                - generic [ref=e1270]: Carbonara
+                - generic [ref=e1271]: Mozzarella di bufala, pancetta, uova, pepe nero
+              - generic [ref=e1272]:
+                - generic [ref=e1273] [cursor=pointer]: €9.00
+                - button "Aggiungi Carbonara al carrello" [ref=e1275] [cursor=pointer]:
+                  - generic [ref=e1276]: Aggiungi
+        - generic [ref=e1279]:
+          - generic [ref=e1281]:
+            - button "Apri dettagli La Corte Vecia" [ref=e1282] [cursor=pointer]
+            - generic [ref=e1285]:
+              - button "Classic La Corte Vecia Pomodoro, mozzarella, rucola, scaglie di grana, glassa di aceto balsamico" [ref=e1286] [cursor=pointer]:
+                - generic [ref=e1287]: Classic
+                - generic [ref=e1288]: La Corte Vecia
+                - generic [ref=e1289]: Pomodoro, mozzarella, rucola, scaglie di grana, glassa di aceto balsamico
+              - generic [ref=e1290]:
+                - generic [ref=e1291] [cursor=pointer]: €8.00
+                - button "Aggiungi La Corte Vecia al carrello" [ref=e1293] [cursor=pointer]:
+                  - generic [ref=e1294]: Aggiungi
+          - generic [ref=e1296]:
+            - button "Apri dettagli Bufala e Pesto" [ref=e1297] [cursor=pointer]
+            - generic [ref=e1300]:
+              - button "Classic Bufala e Pesto Mozzarella di bufala, pomodorini, pesto genovese" [ref=e1301] [cursor=pointer]:
+                - generic [ref=e1302]: Classic
+                - generic [ref=e1303]: Bufala e Pesto
+                - generic [ref=e1304]: Mozzarella di bufala, pomodorini, pesto genovese
+              - generic [ref=e1305]:
+                - generic [ref=e1306] [cursor=pointer]: €9.00
+                - button "Aggiungi Bufala e Pesto al carrello" [ref=e1308] [cursor=pointer]:
+                  - generic [ref=e1309]: Aggiungi
+          - generic [ref=e1311]:
+            - button "Apri dettagli Piccantina" [ref=e1312] [cursor=pointer]
+            - generic [ref=e1315]:
+              - button "Classic Piccantina Mozzarella, salame piccante, acciughe, friarielli" [ref=e1316] [cursor=pointer]:
+                - generic [ref=e1317]: Classic
+                - generic [ref=e1318]: Piccantina
+                - generic [ref=e1319]: Mozzarella, salame piccante, acciughe, friarielli
+              - generic [ref=e1320]:
+                - generic [ref=e1321] [cursor=pointer]: €8.50
+                - button "Aggiungi Piccantina al carrello" [ref=e1323] [cursor=pointer]:
+                  - generic [ref=e1324]: Aggiungi
+        - generic [ref=e1327]:
+          - generic [ref=e1329]:
+            - button "Apri dettagli Gustosa" [ref=e1330] [cursor=pointer]
+            - generic [ref=e1333]:
+              - button "Classic Gustosa Pomodoro, mozzarella, pancetta, gorgonzola, radicchio" [ref=e1334] [cursor=pointer]:
+                - generic [ref=e1335]: Classic
+                - generic [ref=e1336]: Gustosa
+                - generic [ref=e1337]: Pomodoro, mozzarella, pancetta, gorgonzola, radicchio
+              - generic [ref=e1338]:
+                - generic [ref=e1339] [cursor=pointer]: €9.00
+                - button "Aggiungi Gustosa al carrello" [ref=e1341] [cursor=pointer]:
+                  - generic [ref=e1342]: Aggiungi
+          - generic [ref=e1344]:
+            - button "Apri dettagli Canossa" [ref=e1345] [cursor=pointer]
+            - generic [ref=e1348]:
+              - button "Classic Canossa Pomodoro, mozzarella, prosciutto crudo, rucola, scaglie di grana, glassa balsamica" [ref=e1349] [cursor=pointer]:
+                - generic [ref=e1350]: Classic
+                - generic [ref=e1351]: Canossa
+                - generic [ref=e1352]: Pomodoro, mozzarella, prosciutto crudo, rucola, scaglie di grana, glassa balsamica
+              - generic [ref=e1353]:
+                - generic [ref=e1354] [cursor=pointer]: €9.50
+                - button "Aggiungi Canossa al carrello" [ref=e1356] [cursor=pointer]:
+                  - generic [ref=e1357]: Aggiungi
+          - generic [ref=e1359]:
+            - button "Apri dettagli Stria" [ref=e1360] [cursor=pointer]
+            - generic [ref=e1363]:
+              - button "Classic Stria Piadina fritta, classica della tradizione emiliana" [ref=e1364] [cursor=pointer]:
+                - generic [ref=e1365]: Classic
+                - generic [ref=e1366]: Stria
+                - generic [ref=e1367]: Piadina fritta, classica della tradizione emiliana
+              - generic [ref=e1368]:
+                - generic [ref=e1369] [cursor=pointer]: €3.50
+                - button "Aggiungi Stria al carrello" [ref=e1371] [cursor=pointer]:
+                  - generic [ref=e1372]: Aggiungi
+        - generic [ref=e1375]:
+          - generic [ref=e1377]:
+            - button "Apri dettagli Valtellina" [ref=e1378] [cursor=pointer]
+            - generic [ref=e1381]:
+              - button "Classic Valtellina Pomodoro, mozzarella, bresaola, rucola, scaglie di grana" [ref=e1382] [cursor=pointer]:
+                - generic [ref=e1383]: Classic
+                - generic [ref=e1384]: Valtellina
+                - generic [ref=e1385]: Pomodoro, mozzarella, bresaola, rucola, scaglie di grana
+              - generic [ref=e1386]:
+                - generic [ref=e1387] [cursor=pointer]: €9.50
+                - button "Aggiungi Valtellina al carrello" [ref=e1389] [cursor=pointer]:
+                  - generic [ref=e1390]: Aggiungi
+          - generic [ref=e1392]:
+            - button "Apri dettagli Frutti di Mare" [ref=e1393] [cursor=pointer]
+            - generic [ref=e1396]:
+              - button "Classic Frutti di Mare Pomodoro, mozzarella, seppie, calamari, vongole, cozze, polpi, surimi" [ref=e1397] [cursor=pointer]:
+                - generic [ref=e1398]: Classic
+                - generic [ref=e1399]: Frutti di Mare
+                - generic [ref=e1400]: Pomodoro, mozzarella, seppie, calamari, vongole, cozze, polpi, surimi
+              - generic [ref=e1401]:
+                - generic [ref=e1402] [cursor=pointer]: €8.50
+                - button "Aggiungi Frutti di Mare al carrello" [ref=e1404] [cursor=pointer]:
+                  - generic [ref=e1405]: Aggiungi
+          - generic [ref=e1407]:
+            - button "Apri dettagli Miami" [ref=e1408] [cursor=pointer]
+            - generic [ref=e1411]:
+              - button "Classic Miami Pomodoro, mozzarella, gamberetti, zucchine" [ref=e1412] [cursor=pointer]:
+                - generic [ref=e1413]: Classic
+                - generic [ref=e1414]: Miami
+                - generic [ref=e1415]: Pomodoro, mozzarella, gamberetti, zucchine
+              - generic [ref=e1416]:
+                - generic [ref=e1417] [cursor=pointer]: €8.50
+                - button "Aggiungi Miami al carrello" [ref=e1419] [cursor=pointer]:
+                  - generic [ref=e1420]: Aggiungi
+        - generic [ref=e1423]:
+          - generic [ref=e1425]:
+            - button "Apri dettagli Vegetariana" [ref=e1426] [cursor=pointer]
+            - generic [ref=e1429]:
+              - button "Classic Vegetariana Pomodoro, mozzarella, melanzane, peperoni, zucchine" [ref=e1430] [cursor=pointer]:
+                - generic [ref=e1431]: Classic
+                - generic [ref=e1432]: Vegetariana
+                - generic [ref=e1433]: Pomodoro, mozzarella, melanzane, peperoni, zucchine
+              - generic [ref=e1434]:
+                - generic [ref=e1435] [cursor=pointer]: €7.50
+                - button "Aggiungi Vegetariana al carrello" [ref=e1437] [cursor=pointer]:
+                  - generic [ref=e1438]: Aggiungi
+          - generic [ref=e1440]:
+            - button "Apri dettagli La Rosa Selvaggia" [ref=e1441] [cursor=pointer]
+            - generic [ref=e1444]:
+              - button "Classic La Rosa Selvaggia Pomodoro, mozzarella, salsiccia, crema di radicchio, scamorza affumicata" [ref=e1445] [cursor=pointer]:
+                - generic [ref=e1446]: Classic
+                - generic [ref=e1447]: La Rosa Selvaggia
+                - generic [ref=e1448]: Pomodoro, mozzarella, salsiccia, crema di radicchio, scamorza affumicata
+              - generic [ref=e1449]:
+                - generic [ref=e1450] [cursor=pointer]: €9.00
+                - button "Aggiungi La Rosa Selvaggia al carrello" [ref=e1452] [cursor=pointer]:
+                  - generic [ref=e1453]: Aggiungi
+          - generic [ref=e1455]:
+            - button "Apri dettagli Piccola" [ref=e1456] [cursor=pointer]
+            - generic [ref=e1459]:
+              - button "Classic Piccola Formato ridotto — 1€ in meno rispetto alle normali" [ref=e1460] [cursor=pointer]:
+                - generic [ref=e1461]: Classic
+                - generic [ref=e1462]: Piccola
+                - generic [ref=e1463]: Formato ridotto — 1€ in meno rispetto alle normali
+              - generic [ref=e1464]:
+                - generic [ref=e1465] [cursor=pointer]: €4.00
+                - button "Aggiungi Piccola al carrello" [ref=e1467] [cursor=pointer]:
+                  - generic [ref=e1468]: Aggiungi
+      - generic [ref=e1470]:
+        - generic [ref=e1471]:
+          - generic [ref=e1473]:
+            - generic [ref=e1474]: 
+            - generic [ref=e1475]: Carrello
+          - generic [ref=e1476]: 0 prodotti
+        - generic [ref=e1478]:
+          - generic [ref=e1479]: 
+          - generic [ref=e1480]: Il carrello è vuoto
+          - generic [ref=e1481]: Aggiungi prodotti dal menu

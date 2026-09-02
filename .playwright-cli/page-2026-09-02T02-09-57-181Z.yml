@@ -1,0 +1,22 @@
+- generic [ref=f20e8]:
+  - generic [ref=f20e15]:
+    - progressbar [ref=f20e16]
+    - generic [ref=f20e21]:
+      - generic [ref=f20e22]: Bundling...
+      - generic [ref=f20e23]: app/(tabs)/kitchen.tsx
+  - tablist [ref=f20e25]:
+    - tab "  Home" [ref=f20e27] [cursor=pointer]:
+      - generic [ref=f20e28]:
+        - generic [ref=f20e29]: 
+        - generic [ref=f20e31]: 
+      - generic [ref=f20e33]: Home
+    - tab "  Menu" [ref=f20e35] [cursor=pointer]:
+      - generic [ref=f20e36]:
+        - generic [ref=f20e37]: 
+        - generic [ref=f20e39]: 
+      - generic [ref=f20e41]: Menu
+    - tab "  Profile" [ref=f20e43] [cursor=pointer]:
+      - generic [ref=f20e44]:
+        - generic [ref=f20e45]: 
+        - generic [ref=f20e47]: 
+      - generic [ref=f20e49]: Profile

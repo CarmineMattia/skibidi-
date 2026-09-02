@@ -1,0 +1,44 @@
+- generic [ref=f7e1]:
+  - generic [ref=f7e1678]:
+    - generic [ref=f7e1680]:
+      - generic [ref=f7e1681] [cursor=pointer]: 
+      - generic [ref=f7e1683]: Come vuoi ordinare?
+    - generic [ref=f7e1691]:
+      - generic [ref=f7e1692]: Come vuoi ordinare?
+      - generic [ref=f7e1693]: Scegli la modalità più comoda per te.
+      - generic [ref=f7e1694]:
+        - generic [ref=f7e1695] [cursor=pointer]:
+          - generic [ref=f7e1696]: 
+          - generic [ref=f7e1697]: Mangio qui
+          - generic [ref=f7e1698]: Servizio al tavolo
+        - generic [ref=f7e1699] [cursor=pointer]:
+          - generic [ref=f7e1700]: 
+          - generic [ref=f7e1701]: Da asporto
+          - generic [ref=f7e1702]: Ritiro in negozio
+        - generic [ref=f7e1703] [cursor=pointer]:
+          - generic [ref=f7e1704]: 
+          - generic [ref=f7e1705]: Delivery
+          - generic [ref=f7e1706]: A domicilio (+€2.00)
+      - generic [ref=f7e1707] [cursor=pointer]: Continua
+  - dialog [ref=f7e1709]:
+    - generic [ref=f7e1056]:
+      - generic [ref=f7e1057]:
+        - generic [ref=f7e1058]: 
+        - generic [ref=f7e1060]:
+          - generic [ref=f7e1061]: Nuovo ordine in arrivo
+          - generic [ref=f7e1062]: "Nduja #1"
+          - generic [ref=f7e1063]: Mario Rossi • €5.00
+      - generic [ref=f7e1066]:
+        - generic [ref=f7e1067]: Asporto
+        - generic [ref=f7e1068]: "+393331234567"
+        - generic [ref=f7e1069]: Arrivato alle 04:09
+      - generic [ref=f7e1070]: Accetta per avviare la preparazione oppure rifiuta indicando il motivo (anche ripianificazione).
+      - generic [ref=f7e1071]:
+        - generic [ref=f7e1072] [cursor=pointer]: Rifiuta
+        - generic [active] [ref=f7e1074] [cursor=pointer]: Accetta ordine
+  - generic [ref=f7e1713]:
+    - generic:
+      - generic:
+        - generic: Aggiornamento live
+        - generic: Ordine preso in carico
+        - generic: "Speck #3 è passato in preparazione."

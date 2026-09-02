@@ -1,0 +1,34 @@
+- generic [ref=e2033]:
+  - generic [ref=e2035]:
+    - generic [ref=e2036] [cursor=pointer]: 
+    - generic [ref=e2038]: Scegli l’orario
+  - generic [ref=e2066]:
+    - generic [ref=e2067]: Scegli l’orario
+    - generic [ref=e2068]: Dicci quando vuoi che il tuo ordine sia pronto.
+    - generic [ref=e2069]:
+      - generic [ref=e2070]: 
+      - generic [ref=e2072]:
+        - generic [ref=e2073]: Servizio scelto
+        - generic [ref=e2074]: Delivery
+      - generic [ref=e2075]: 
+    - button " Il prima possibile Prepareremo il tuo ordine al primo orario disponibile. 19:00 " [ref=e2076] [cursor=pointer]:
+      - generic [ref=e2077]: 
+      - generic [ref=e2079]:
+        - generic [ref=e2080]: Il prima possibile
+        - generic [ref=e2081]: Prepareremo il tuo ordine al primo orario disponibile.
+        - generic [ref=e2082]: 19:00
+      - generic [ref=e2083]: 
+    - generic [ref=e2084]: Oppure scegli un orario preciso
+    - generic [ref=e2085]:
+      - button "19:00" [ref=e2086] [cursor=pointer]
+      - button "19:10" [ref=e2088] [cursor=pointer]
+      - button "19:20" [ref=e2090] [cursor=pointer]
+      - button "19:30" [ref=e2092] [cursor=pointer]
+      - button "19:40" [ref=e2094] [cursor=pointer]
+      - button "19:50" [ref=e2096] [cursor=pointer]
+      - button "20:00" [ref=e2098] [cursor=pointer]
+      - button "20:10" [ref=e2100] [cursor=pointer]
+    - generic [ref=e2102] [cursor=pointer]: Scegli un altro orario
+    - generic [ref=e2104]:
+      - generic [ref=e2105] [cursor=pointer]: Indietro
+      - generic [ref=e2107] [cursor=pointer]: Continua

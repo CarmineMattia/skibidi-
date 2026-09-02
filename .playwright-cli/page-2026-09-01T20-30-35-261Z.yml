@@ -1,0 +1,19 @@
+- generic [ref=e2033]:
+  - generic [ref=e2035]:
+    - generic [ref=e2036] [cursor=pointer]: 
+    - generic [ref=e2038]: I tuoi dati
+  - generic [ref=e2111]:
+    - generic [ref=e2112]: I tuoi dati
+    - generic [ref=e2113]:
+      - generic [ref=e2114]: Nome *
+      - textbox "Il tuo nome" [ref=e2115]
+    - generic [ref=e2116]:
+      - generic [ref=e2117]: Telefono *
+      - generic [ref=e2119]:
+        - generic [ref=e2120] [cursor=pointer]:
+          - generic [ref=e2121]: "+39"
+          - generic [ref=e2125]: 
+        - 'textbox "Es: 3331234567" [ref=e2126]'
+    - generic [ref=e2127]:
+      - generic [ref=e2128] [cursor=pointer]: Indietro
+      - generic [ref=e2130] [cursor=pointer]: Continua

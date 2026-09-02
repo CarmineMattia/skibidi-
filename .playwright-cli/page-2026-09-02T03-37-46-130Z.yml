@@ -1,0 +1,22 @@
+- generic [ref=f1e8]:
+  - generic [ref=f1e15]:
+    - progressbar [ref=f1e16]
+    - generic [ref=f1e21]:
+      - generic [ref=f1e22]: Bundling...
+      - generic [ref=f1e23]: app/(tabs)/admin-dashboard.tsx
+  - tablist [ref=f1e25]:
+    - tab "  Home" [ref=f1e27] [cursor=pointer]:
+      - generic [ref=f1e28]:
+        - generic [ref=f1e29]: 
+        - generic [ref=f1e31]: 
+      - generic [ref=f1e33]: Home
+    - tab "  Menu" [ref=f1e35] [cursor=pointer]:
+      - generic [ref=f1e36]:
+        - generic [ref=f1e37]: 
+        - generic [ref=f1e39]: 
+      - generic [ref=f1e41]: Menu
+    - tab "  Profile" [ref=f1e43] [cursor=pointer]:
+      - generic [ref=f1e44]:
+        - generic [ref=f1e45]: 
+        - generic [ref=f1e47]: 
+      - generic [ref=f1e49]: Profile

@@ -1,0 +1,34 @@
+- generic [ref=f14e1429]:
+  - generic [ref=f14e1431]:
+    - generic [ref=f14e1432] [cursor=pointer]: 
+    - generic [ref=f14e1434]: Scegli l’orario
+  - generic [ref=f14e1462]:
+    - generic [ref=f14e1463]: Scegli l’orario
+    - generic [ref=f14e1464]: Dicci quando vuoi che il tuo ordine sia pronto.
+    - generic [ref=f14e1465]:
+      - generic [ref=f14e1466]: 
+      - generic [ref=f14e1468]:
+        - generic [ref=f14e1469]: Servizio scelto
+        - generic [ref=f14e1470]: Mangio qui
+      - generic [ref=f14e1471]: 
+    - button " Il prima possibile Prepareremo il tuo ordine al primo orario disponibile. 23:50 " [ref=f14e1472] [cursor=pointer]:
+      - generic [ref=f14e1473]: 
+      - generic [ref=f14e1475]:
+        - generic [ref=f14e1476]: Il prima possibile
+        - generic [ref=f14e1477]: Prepareremo il tuo ordine al primo orario disponibile.
+        - generic [ref=f14e1478]: 23:50
+      - generic [ref=f14e1479]: 
+    - generic [ref=f14e1480]: Oppure scegli un orario preciso
+    - generic [ref=f14e1481]:
+      - button "23:50" [ref=f14e1482] [cursor=pointer]
+      - button "00:00" [ref=f14e1484] [cursor=pointer]
+      - button "00:10" [ref=f14e1486] [cursor=pointer]
+      - button "00:20" [ref=f14e1488] [cursor=pointer]
+      - button "00:30" [ref=f14e1490] [cursor=pointer]
+      - button "00:40" [ref=f14e1492] [cursor=pointer]
+      - button "00:50" [ref=f14e1494] [cursor=pointer]
+      - button "01:00" [ref=f14e1496] [cursor=pointer]
+    - generic [ref=f14e1498] [cursor=pointer]: Scegli un altro orario
+    - generic [ref=f14e1500]:
+      - generic [ref=f14e1501] [cursor=pointer]: Indietro
+      - generic [ref=f14e1503] [cursor=pointer]: Continua

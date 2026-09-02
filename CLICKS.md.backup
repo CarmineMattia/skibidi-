@@ -1,0 +1,51 @@
+
+# CLICKS - Customer Order Flow Analysis
+
+## Current Click Path to Payment
+
+### Guest Order Flow (Happy Path)
+1. **Open App** → 1 click (land on menu)
+2. **Add item to cart** → 1 click (press + button on product)
+3. **Open cart** → 1 click (press cart button or bottom bar)
+4. **Checkout** → 1 click (press "Procedi al Pagamento" button)
+5. **Select Order Type** → 1 click (choose eat_in/take_away/delivery)
+6. **Enter Details** → 1-3 clicks (depending on order type)
+   - Eat-in: Enter table number (1 click)
+   - Take-away: Enter name + phone (2 clicks) 
+   - Delivery: Enter name + phone + address (3 clicks)
+7. **Select Payment Method** → 1 click (choose payment type)
+8. **Confirm Payment** → 1 click (process payment)
+
+**Total: 8-10 clicks** (depending on order type complexity)
+
+## Target Click Path (After Optimization)
+
+### Optimized Guest Order Flow (Happy Path)
+1. **Open App** → 1 click (land on menu)
+2. **Add item to cart** → 1 click (press + button on product)
+3. **Open cart** → 1 click (press cart button or bottom bar)
+4. **Checkout** → 1 click (press "Procedi al Pagamento" button)
+5. **Single Checkout Screen** → 1 click (order type + details + payment in one screen)
+6. **Confirm Payment** → 1 click (process payment)
+7. **Success** → 1 click (confirmation page)
+
+**Target Total: 7 clicks** (consolidated steps)
+
+## Optimization Strategy
+
+### Consolidation Opportunities:
+1. **Order Type + Customer Details** - Merge these into one screen
+2. **Payment Method** - Pre-fill based on order type or show as part of checkout
+3. **Pre-fill Known Data** - Use existing auth/session data where possible
+
+### Implementation Plan:
+1. Modify checkout modal to combine order type selection and customer details
+2. Use conditional UI based on order type
+3. Pre-fill customer information from auth context when available
+4. Implement smart defaults for order types based on settings
+5. Maintain all validation and error handling
+
+## Implementation Status
+- [x] Analysis complete
+- [x] Implementation plan defined
+- [x] Ready for implementation

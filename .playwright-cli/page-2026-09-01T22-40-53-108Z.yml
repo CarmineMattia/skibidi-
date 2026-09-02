@@ -1,0 +1,50 @@
+- generic [ref=f15e1]:
+  - generic [ref=f15e1479]:
+    - generic [ref=f15e1481]:
+      - generic [ref=f15e1482] [cursor=pointer]: 
+      - generic [ref=f15e1484]: Pagamento
+    - generic [ref=f15e1571]:
+      - generic [ref=f15e1572]:
+        - generic [ref=f15e1573]: Riepilogo ordine (Tavolo)
+        - generic [ref=f15e1575]:
+          - generic [ref=f15e1576]:
+            - generic [ref=f15e1577]: Marinara
+            - generic [ref=f15e1578]: x1
+          - generic [ref=f15e1579]: €4.50
+        - generic [ref=f15e1581]:
+          - generic [ref=f15e1582]: Subtotale
+          - generic [ref=f15e1583]: €4.50
+        - generic [ref=f15e1584]:
+          - generic [ref=f15e1585]: Totale
+          - generic [ref=f15e1586]: €4.50
+      - generic [ref=f15e1587]:
+        - generic [ref=f15e1588]: Metodo di pagamento
+        - generic [ref=f15e1589]:
+          - generic:
+            - generic [ref=f15e1591]: 
+            - generic [ref=f15e1592]:
+              - generic [ref=f15e1593]: Carta di credito
+              - generic [ref=f15e1594]: Visa, Mastercard, Amex
+          - generic:
+            - generic [ref=f15e1596]: 
+            - generic [ref=f15e1597]:
+              - generic [ref=f15e1598]: Satispay
+              - generic [ref=f15e1599]: Paga con l'app Satispay
+          - generic:
+            - generic [ref=f15e1601]: 
+            - generic [ref=f15e1602]:
+              - generic [ref=f15e1603]: POS in cassa
+              - generic [ref=f15e1604]: Terminale fisico
+          - generic:
+            - generic [ref=f15e1606]: 
+            - generic [ref=f15e1607]:
+              - generic [ref=f15e1608]: Contanti
+              - generic [ref=f15e1609]: Paga alla cassa
+        - generic [ref=f15e1610]:
+          - generic: Indietro
+          - generic: ...
+  - dialog [ref=f15e1634]:
+    - generic [ref=f15e1637]:
+      - generic [ref=f15e1638]: 
+      - generic [ref=f15e1640]: Invio ordine in corso
+      - generic [ref=f15e1641]: Il tuo ordine è in attesa di conferma. Non chiudere la pagina.

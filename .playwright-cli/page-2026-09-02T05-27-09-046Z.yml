@@ -1,0 +1,26 @@
+- generic [ref=f8e10]:
+  - generic [ref=f8e11]:
+    - generic [ref=f8e12]: Rewards & Loyalty
+    - generic [ref=f8e13]: Ambrosia Club
+    - generic [ref=f8e14]: "Punti attuali: 1460"
+  - generic [ref=f8e15]:
+    - generic [ref=f8e16]: Progresso livello
+    - generic [ref=f8e19]: 340 punti al prossimo premio premium.
+  - generic [ref=f8e20]:
+    - generic [ref=f8e21]: Premi disponibili
+    - generic [ref=f8e22]:
+      - generic [ref=f8e23]:
+        - generic [ref=f8e24]: Pizza omaggio
+        - generic [ref=f8e25]: 1200 punti
+      - generic [ref=f8e26]: Sbloccato
+    - generic [ref=f8e28]:
+      - generic [ref=f8e29]:
+        - generic [ref=f8e30]: Dolce premium
+        - generic [ref=f8e31]: 1800 punti
+      - generic [ref=f8e32]: Bloccato
+    - generic [ref=f8e34]:
+      - generic [ref=f8e35]:
+        - generic [ref=f8e36]: Consegna gratuita
+        - generic [ref=f8e37]: 2400 punti
+      - generic [ref=f8e38]: Bloccato
+  - generic [ref=f8e40] [cursor=pointer]: Vai al menu

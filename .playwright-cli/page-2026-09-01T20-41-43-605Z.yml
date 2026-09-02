@@ -1,0 +1,19 @@
+- generic [ref=f6e9]:
+  - generic [ref=f6e10]:
+    - generic "Pizzeria Ambrosia" [ref=f6e11]
+    - generic [ref=f6e13]: Pizzeria Ambrosia
+    - generic [ref=f6e14]: Il Nettare degli Dei
+  - generic [ref=f6e15]:
+    - generic [ref=f6e16]: Accedi
+    - generic [ref=f6e17]: "Niente password: ti inviamo via email un codice a 6 cifre e un link di accesso."
+    - generic [ref=f6e18]:
+      - generic [ref=f6e19]: Email
+      - textbox "esempio@email.com" [ref=f6e20]
+    - generic [ref=f6e21] [cursor=pointer]: Inviami il codice di accesso
+    - generic [ref=f6e23] [cursor=pointer]: Accedi con email e password
+  - generic [ref=f6e25]: oppure
+  - generic [ref=f6e30] [cursor=pointer]:
+    - generic [ref=f6e31]:
+      - generic [ref=f6e32]: 
+      - generic [ref=f6e33]: Entra come ospite
+    - generic [ref=f6e34]: Ordina velocemente senza registrazione (profilo ospite)

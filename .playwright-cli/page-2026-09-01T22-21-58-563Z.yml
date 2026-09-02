@@ -1,0 +1,199 @@
+- generic [ref=f15e1]:
+  - generic [ref=f15e116]:
+    - generic [ref=f15e121]:
+      - generic [ref=f15e122]:
+        - generic [ref=f15e123]:
+          - generic [ref=f15e125]: 
+          - generic [ref=f15e127]: AMBROSIA - Menu Artigianale
+        - generic [ref=f15e128]:
+          - generic [ref=f15e130]:
+            - generic [ref=f15e131]: 
+            - generic [ref=f15e132]: Ospite
+          - generic [ref=f15e1266]:
+            - generic [ref=f15e1267]: 
+            - generic [ref=f15e1268]: "1"
+          - generic [ref=f15e133] [cursor=pointer]: Accedi
+      - generic [ref=f15e135]:
+        - generic [ref=f15e136]:
+          - generic [ref=f15e138]:
+            - generic [ref=f15e139] [cursor=pointer]:
+              - generic [ref=f15e140]: 
+              - generic [ref=f15e142]: Tutti
+            - generic [ref=f15e143] [cursor=pointer]:
+              - generic [ref=f15e144]: 
+              - generic [ref=f15e146]: Crea la tua pizza
+            - generic [ref=f15e147] [cursor=pointer]:
+              - generic [ref=f15e148]: 
+              - generic [ref=f15e150]: Pizze Gustose
+            - generic [ref=f15e151] [cursor=pointer]:
+              - generic [ref=f15e152]: 
+              - generic [ref=f15e154]: Pizze Bianche
+            - generic [ref=f15e155] [cursor=pointer]:
+              - generic [ref=f15e156]: 
+              - generic [ref=f15e158]: Al Metro
+            - generic [ref=f15e159] [cursor=pointer]:
+              - generic [ref=f15e160]: 
+              - generic [ref=f15e162]: Piadine
+            - generic [ref=f15e163] [cursor=pointer]:
+              - generic [ref=f15e164]: 
+              - generic [ref=f15e166]: Bevande
+          - generic [ref=f15e168] [cursor=pointer]:
+            - generic [ref=f15e169]: 
+            - generic [ref=f15e171]: Accedi o Registrati
+        - generic [ref=f15e1314]:
+          - generic [ref=f15e1316]:
+            - generic [ref=f15e1318]:
+              - button "Apri dettagli Acqua naturale 0.5L" [ref=f15e1319] [cursor=pointer]
+              - generic [ref=f15e1322]:
+                - button "Classic Acqua naturale 0.5L Acqua minerale naturale" [ref=f15e1323] [cursor=pointer]:
+                  - generic [ref=f15e1324]: Classic
+                  - generic [ref=f15e1325]: Acqua naturale 0.5L
+                  - generic [ref=f15e1326]: Acqua minerale naturale
+                - generic [ref=f15e1327]:
+                  - generic [ref=f15e1328] [cursor=pointer]: €1.00
+                  - button "Aggiungi Acqua naturale 0.5L al carrello" [ref=f15e1330] [cursor=pointer]:
+                    - generic [ref=f15e1331]: Aggiungi
+            - generic [ref=f15e1333]:
+              - button "Apri dettagli Acqua frizzante 0.5L" [ref=f15e1334] [cursor=pointer]
+              - generic [ref=f15e1337]:
+                - button "Classic Acqua frizzante 0.5L Acqua minerale frizzante" [ref=f15e1338] [cursor=pointer]:
+                  - generic [ref=f15e1339]: Classic
+                  - generic [ref=f15e1340]: Acqua frizzante 0.5L
+                  - generic [ref=f15e1341]: Acqua minerale frizzante
+                - generic [ref=f15e1342]:
+                  - generic [ref=f15e1343] [cursor=pointer]: €1.00
+                  - button "Aggiungi Acqua frizzante 0.5L al carrello" [ref=f15e1345] [cursor=pointer]:
+                    - generic [ref=f15e1346]: Aggiungi
+            - generic [ref=f15e1348]:
+              - button "Apri dettagli Coca-Cola 33cl" [ref=f15e1349] [cursor=pointer]
+              - generic [ref=f15e1352]:
+                - button "Classic Coca-Cola 33cl Bibita gassata" [ref=f15e1353] [cursor=pointer]:
+                  - generic [ref=f15e1354]: Classic
+                  - generic [ref=f15e1355]: Coca-Cola 33cl
+                  - generic [ref=f15e1356]: Bibita gassata
+                - generic [ref=f15e1357]:
+                  - generic [ref=f15e1358] [cursor=pointer]: €2.50
+                  - button "Aggiungi Coca-Cola 33cl al carrello" [ref=f15e1360] [cursor=pointer]:
+                    - generic [ref=f15e1361]: Aggiungi
+          - generic [ref=f15e1364]:
+            - generic [ref=f15e1366]:
+              - button "Apri dettagli Fanta 33cl" [ref=f15e1367] [cursor=pointer]
+              - generic [ref=f15e1370]:
+                - button "Classic Fanta 33cl Bibita all'arancia" [ref=f15e1371] [cursor=pointer]:
+                  - generic [ref=f15e1372]: Classic
+                  - generic [ref=f15e1373]: Fanta 33cl
+                  - generic [ref=f15e1374]: Bibita all'arancia
+                - generic [ref=f15e1375]:
+                  - generic [ref=f15e1376] [cursor=pointer]: €2.50
+                  - button "Aggiungi Fanta 33cl al carrello" [ref=f15e1378] [cursor=pointer]:
+                    - generic [ref=f15e1379]: Aggiungi
+            - generic [ref=f15e1381]:
+              - button "Apri dettagli Sprite 33cl" [ref=f15e1382] [cursor=pointer]
+              - generic [ref=f15e1385]:
+                - button "Classic Sprite 33cl Bibita al limone" [ref=f15e1386] [cursor=pointer]:
+                  - generic [ref=f15e1387]: Classic
+                  - generic [ref=f15e1388]: Sprite 33cl
+                  - generic [ref=f15e1389]: Bibita al limone
+                - generic [ref=f15e1390]:
+                  - generic [ref=f15e1391] [cursor=pointer]: €2.50
+                  - button "Aggiungi Sprite 33cl al carrello" [ref=f15e1393] [cursor=pointer]:
+                    - generic [ref=f15e1394]: Aggiungi
+            - generic [ref=f15e1396]:
+              - button "Apri dettagli Birra alla spina 0.4L" [ref=f15e1397] [cursor=pointer]
+              - generic [ref=f15e1400]:
+                - button "Classic Birra alla spina 0.4L Birra artigianale alla spina" [ref=f15e1401] [cursor=pointer]:
+                  - generic [ref=f15e1402]: Classic
+                  - generic [ref=f15e1403]: Birra alla spina 0.4L
+                  - generic [ref=f15e1404]: Birra artigianale alla spina
+                - generic [ref=f15e1405]:
+                  - generic [ref=f15e1406] [cursor=pointer]: €3.50
+                  - button "Aggiungi Birra alla spina 0.4L al carrello" [ref=f15e1408] [cursor=pointer]:
+                    - generic [ref=f15e1409]: Aggiungi
+          - generic [ref=f15e1412]:
+            - generic [ref=f15e1414]:
+              - button "Apri dettagli Birra in bottiglia" [ref=f15e1415] [cursor=pointer]
+              - generic [ref=f15e1418]:
+                - button "Classic Birra in bottiglia Birra in bottiglia 33cl" [ref=f15e1419] [cursor=pointer]:
+                  - generic [ref=f15e1420]: Classic
+                  - generic [ref=f15e1421]: Birra in bottiglia
+                  - generic [ref=f15e1422]: Birra in bottiglia 33cl
+                - generic [ref=f15e1423]:
+                  - generic [ref=f15e1424] [cursor=pointer]: €3.00
+                  - button "Aggiungi Birra in bottiglia al carrello" [ref=f15e1426] [cursor=pointer]:
+                    - generic [ref=f15e1427]: Aggiungi
+            - generic [ref=f15e1429]:
+              - button "Apri dettagli Vino rosso (calice)" [ref=f15e1430] [cursor=pointer]
+              - generic [ref=f15e1433]:
+                - button "Classic Vino rosso (calice) Vino rosso della casa" [ref=f15e1434] [cursor=pointer]:
+                  - generic [ref=f15e1435]: Classic
+                  - generic [ref=f15e1436]: Vino rosso (calice)
+                  - generic [ref=f15e1437]: Vino rosso della casa
+                - generic [ref=f15e1438]:
+                  - generic [ref=f15e1439] [cursor=pointer]: €3.00
+                  - button "Aggiungi Vino rosso (calice) al carrello" [ref=f15e1441] [cursor=pointer]:
+                    - generic [ref=f15e1442]: Aggiungi
+            - generic [ref=f15e1444]:
+              - button "Apri dettagli Vino bianco (calice)" [ref=f15e1445] [cursor=pointer]
+              - generic [ref=f15e1448]:
+                - button "Classic Vino bianco (calice) Vino bianco della casa" [ref=f15e1449] [cursor=pointer]:
+                  - generic [ref=f15e1450]: Classic
+                  - generic [ref=f15e1451]: Vino bianco (calice)
+                  - generic [ref=f15e1452]: Vino bianco della casa
+                - generic [ref=f15e1453]:
+                  - generic [ref=f15e1454] [cursor=pointer]: €3.00
+                  - button "Aggiungi Vino bianco (calice) al carrello" [ref=f15e1456] [cursor=pointer]:
+                    - generic [ref=f15e1457]: Aggiungi
+        - generic [ref=f15e849]:
+          - generic [ref=f15e850]:
+            - generic [ref=f15e851]:
+              - generic [ref=f15e852]:
+                - generic [ref=f15e853]: 
+                - generic [ref=f15e854]: Carrello
+              - generic [ref=f15e1283] [cursor=pointer]: Svuota
+            - generic [ref=f15e855]: 1 prodotto
+          - generic [ref=f15e1287]:
+            - generic [ref=f15e1288]:
+              - generic [ref=f15e1289]:
+                - generic [ref=f15e1290]: Marinara
+                - generic [ref=f15e1291]: €4.50 cad.
+              - generic [ref=f15e1292] [cursor=pointer]: ✕
+            - generic [ref=f15e1294]:
+              - generic [ref=f15e1295]:
+                - generic [ref=f15e1296] [cursor=pointer]: −
+                - generic [ref=f15e1298]: "1"
+                - generic [ref=f15e1300] [cursor=pointer]: +
+              - generic [ref=f15e1302]: €4.50
+          - generic [ref=f15e1303]:
+            - generic [ref=f15e1305]:
+              - generic [ref=f15e1306]: Totale
+              - generic [ref=f15e1307]: €4.50
+            - generic [ref=f15e1309] [cursor=pointer]:
+              - generic [ref=f15e1310]: Procedi al Pagamento
+              - generic [ref=f15e1311]: 
+    - tablist [ref=f15e862]:
+      - tab "  Home" [ref=f15e864] [cursor=pointer]:
+        - generic [ref=f15e865]:
+          - generic [ref=f15e866]: 
+          - generic [ref=f15e868]: 
+        - generic [ref=f15e870]: Home
+      - tab "  Menu" [selected] [ref=f15e872] [cursor=pointer]:
+        - generic [ref=f15e873]:
+          - generic [ref=f15e874]: 
+          - generic [ref=f15e876]: 
+        - generic [ref=f15e878]: Menu
+      - tab "  Profile" [ref=f15e880] [cursor=pointer]:
+        - generic [ref=f15e881]:
+          - generic [ref=f15e882]: 
+          - generic [ref=f15e884]: 
+        - generic [ref=f15e886]: Profile
+  - dialog [ref=f15e1459]:
+    - generic [ref=f15e1462]:
+      - generic [ref=f15e1463]:
+        - generic [ref=f15e1464]: 
+        - generic [ref=f15e1466]:
+          - generic [ref=f15e1467]: Aggiungi una bevanda?
+          - generic [ref=f15e1468]: Nel carrello non ci sono bevande. Scegline una dal menu oppure prosegui senza.
+        - generic "Chiudi" [active] [ref=f15e1469] [cursor=pointer]: 
+      - generic [ref=f15e1471]:
+        - generic [ref=f15e1472] [cursor=pointer]: Scegli una bevanda
+        - generic [ref=f15e1474] [cursor=pointer]: Procedi senza bevande

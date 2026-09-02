@@ -1,0 +1,35 @@
+- generic [ref=e2033]:
+  - generic [ref=e2035]:
+    - generic [ref=e2036] [cursor=pointer]: 
+    - generic [ref=e2038]: I tuoi dati
+  - generic [ref=e2111]:
+    - generic [ref=e2112]: I tuoi dati
+    - generic [ref=e2113]:
+      - generic [ref=e2114]: Nome *
+      - textbox "Il tuo nome" [ref=e2115]
+    - generic [ref=e2116]:
+      - generic [ref=e2117]: Telefono *
+      - generic [ref=e2119]:
+        - generic [ref=e2120] [cursor=pointer]:
+          - generic [ref=e2121]: "+39"
+          - generic [ref=e2125]: 
+        - 'textbox "Es: 3331234567" [ref=e2126]'
+    - generic [ref=e2127]:
+      - generic [ref=e2128]: Indirizzo *
+      - textbox "Via, citta" [ref=e2130]
+      - generic [ref=e2131]: Numero civico *
+      - 'textbox "Es: 12" [ref=e2132]'
+      - generic [ref=e2133]:
+        - generic [ref=e2135]:
+          - generic:
+            - region "Map" [ref=e2137]
+            - button "Map marker" [ref=e2138] [cursor=pointer]
+          - generic [ref=e2143]:
+            - generic [ref=e2144]:
+              - button "Zoom in" [ref=e2145] [cursor=pointer]
+              - button "Zoom out" [ref=e2147] [cursor=pointer]
+            - button "Find my location" [ref=e2150] [cursor=pointer]
+        - generic [ref=e2153]: Tocca la mappa o trascina il segnaposto per impostare il punto di consegna.
+    - generic [ref=e2155]:
+      - generic [ref=e2156] [cursor=pointer]: Indietro
+      - generic [ref=e2158] [cursor=pointer]: Continua

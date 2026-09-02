@@ -1,0 +1,15 @@
+- generic [ref=f15e1479]:
+  - generic [ref=f15e1481]:
+    - generic [ref=f15e1482] [cursor=pointer]: 
+    - generic [ref=f15e1484]: I tuoi dati
+  - generic [ref=f15e1557]:
+    - generic [ref=f15e1558]: I tuoi dati
+    - generic [ref=f15e1559]:
+      - generic [ref=f15e1560]: Nome (opzionale)
+      - textbox "Il tuo nome" [ref=f15e1561]
+    - generic [ref=f15e1562]:
+      - generic [ref=f15e1563]: Numero tavolo *
+      - 'textbox "Es: 5" [ref=f15e1564]'
+    - generic [ref=f15e1565]:
+      - generic [ref=f15e1566] [cursor=pointer]: Indietro
+      - generic [ref=f15e1568] [cursor=pointer]: Continua

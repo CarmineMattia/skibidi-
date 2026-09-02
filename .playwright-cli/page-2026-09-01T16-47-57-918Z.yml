@@ -1,0 +1,190 @@
+- generic [ref=e15]:
+  - generic [ref=e17]:
+    - generic [ref=e18]:
+      - generic [ref=e19]:
+        - generic "Logo Pizzeria Ambrosia" [ref=e21]
+        - generic [ref=e23]:
+          - generic [ref=e24]: Pizzeria Ambrosia
+          - generic [ref=e25]: Il Nettare degli Dei
+      - generic [ref=e26]:
+        - link "" [ref=e27] [cursor=pointer]
+        - button " Ordina" [ref=e29] [cursor=pointer]:
+          - generic [ref=e30]: 
+          - generic [ref=e31]: Ordina
+    - generic [ref=e33]:
+      - link "Menu" [ref=e34] [cursor=pointer]
+      - link "Offerte" [ref=e36] [cursor=pointer]
+      - link "Gallery" [ref=e38] [cursor=pointer]
+      - link "Contatti" [ref=e40] [cursor=pointer]
+  - generic [ref=e43]:
+    - generic "Interno accogliente della Pizzeria Ambrosia" [ref=e44]
+    - generic [ref=e48]:
+      - generic [ref=e49]:
+        - generic [ref=e50]: 
+        - generic [ref=e51]: Montecchio Emilia · Dal forno a casa
+      - generic [ref=e52]: Il nettare degli dei.
+      - generic [ref=e53]: Pizza artigianale, ingredienti genuini e impasti preparati ogni giorno a Montecchio Emilia. Scegli la tua pizza e ordinala direttamente online.
+      - generic [ref=e54]:
+        - button "Ordina dal menu " [ref=e55] [cursor=pointer]:
+          - generic [ref=e56]: Ordina dal menu
+          - generic [ref=e57]: 
+        - link " Orari e contatti" [ref=e58] [cursor=pointer]:
+          - generic [ref=e59]: 
+          - generic [ref=e60]: Orari e contatti
+      - generic [ref=e61]:
+        - generic [ref=e62]:
+          - generic [ref=e63]: €2,50
+          - generic [ref=e64]: consegna a domicilio
+        - generic [ref=e66]:
+          - generic [ref=e67]: Ogni giorno
+          - generic [ref=e68]: impasto fresco
+  - generic [ref=e69]:
+    - generic [ref=e70]:
+      - generic [ref=e71]:
+        - generic [ref=e72]: La nostra pizzeria
+        - generic [ref=e75]: Tradizione nel forno, libertà nel piatto.
+      - generic [ref=e76]: Benvenuti da Ambrosia, dove qualità e tradizione vengono prima di tutto. Prepariamo pizze classiche, bianche e al metro con ingredienti freschi, da gustare in pizzeria o a casa.
+    - generic [ref=e77]:
+      - generic [ref=e79]:
+        - generic "Preparazione artigianale di una pizza Ambrosia" [ref=e80]
+        - generic [ref=e83]:
+          - generic [ref=e84]: 
+          - generic [ref=e86]: Fatta come la vuoi tu
+          - generic [ref=e87]: Bianche, gustose, al metro o create con i tuoi ingredienti preferiti.
+      - generic [ref=e88]:
+        - generic [ref=e89]:
+          - generic [ref=e90]: 
+          - generic [ref=e92]: A casa tua.
+          - generic [ref=e93]: Con soli €2,50 portiamo le pizze da te. Oppure passa a ritirarle appena sfornate.
+        - button "Scegli la tua pizza " [ref=e96] [cursor=pointer]:
+          - generic [ref=e97]: Scegli la tua pizza
+          - generic [ref=e98]: 
+  - generic [ref=e100]:
+    - generic [ref=e102]:
+      - generic [ref=e103]: Scelte per te
+      - generic [ref=e106]: Più gusto, insieme.
+      - generic [ref=e107]: "Combo pensati per te: scorri in verticale, scegli e aggiungi al carrello in un tap."
+    - generic [ref=e108]:
+      - generic [ref=e110]:
+        - button "Pizza + Drink" [ref=e112] [cursor=pointer]:
+          - generic [ref=e116]:
+            - generic [ref=e117]: COMBO
+            - generic [ref=e120]: Pizza + Drink
+          - generic [ref=e121]:
+            - generic [ref=e122]: Una pizza a scelta con bibita 33cl inclusa
+            - generic [ref=e123]:
+              - generic [ref=e125]:
+                - generic [ref=e126]: Pizza
+                - generic [ref=e128]: Drink
+              - generic [ref=e130]: 
+        - button "Duo Pizza" [ref=e134] [cursor=pointer]:
+          - generic [ref=e138]:
+            - generic [ref=e139]: COMBO
+            - generic [ref=e142]: Duo Pizza
+          - generic [ref=e143]:
+            - generic [ref=e144]: Due pizze classiche da condividere, prezzo speciale
+            - generic [ref=e145]:
+              - generic [ref=e146]: 2x Pizza
+              - generic [ref=e150]: 
+        - button "Family Combo" [ref=e154] [cursor=pointer]:
+          - generic [ref=e158]:
+            - generic [ref=e159]: COMBO
+            - generic [ref=e162]: Family Combo
+          - generic [ref=e163]:
+            - generic [ref=e164]: 2 pizze, antipasto e 2 bibite per tutta la famiglia
+            - generic [ref=e165]:
+              - generic [ref=e167]:
+                - generic [ref=e168]: 2x Pizza
+                - generic [ref=e170]: Antipasto
+                - generic [ref=e172]: 2x Drink
+              - generic [ref=e174]: 
+        - button "Pranzo Smart" [ref=e178] [cursor=pointer]:
+          - generic [ref=e182]:
+            - generic [ref=e183]: COMBO
+            - generic [ref=e186]: Pranzo Smart
+          - generic [ref=e187]:
+            - generic [ref=e188]: Pizza + acqua — perfetto per la pausa pranzo
+            - generic [ref=e189]:
+              - generic [ref=e191]:
+                - generic [ref=e192]: Pizza
+                - generic [ref=e194]: Acqua
+              - generic [ref=e196]: 
+        - button "Pizza & Dolce" [ref=e200] [cursor=pointer]:
+          - generic [ref=e204]:
+            - generic [ref=e205]: COMBO
+            - generic [ref=e208]: Pizza & Dolce
+          - generic [ref=e209]:
+            - generic [ref=e210]: Pizza gourmet e dessert fatto in casa
+            - generic [ref=e211]:
+              - generic [ref=e213]:
+                - generic [ref=e214]: Pizza
+                - generic [ref=e216]: Dolce
+              - generic [ref=e218]: 
+        - button "Serata Birra" [ref=e222] [cursor=pointer]:
+          - generic [ref=e226]:
+            - generic [ref=e227]: COMBO
+            - generic [ref=e230]: Serata Birra
+          - generic [ref=e231]:
+            - generic [ref=e232]: Pizza speciale e birra artigianale inclusa
+            - generic [ref=e233]:
+              - generic [ref=e235]:
+                - generic [ref=e236]: Pizza
+                - generic [ref=e238]: Birra
+              - generic [ref=e240]: 
+      - link "Apri pagina offerte (6) " [ref=e242] [cursor=pointer]:
+        - generic [ref=e243]: Apri pagina offerte (6)
+        - generic [ref=e244]: 
+  - generic [ref=e247]:
+    - generic [ref=e248]: Dentro Ambrosia
+    - generic [ref=e251]:
+      - generic [ref=e252]: Un ambiente da condividere.
+      - generic [ref=e253]: "Dal primo impasto all’ultima fetta: qui la pizza è un momento da vivere insieme."
+    - generic [ref=e254]:
+      - generic "Pizza margherita appena sfornata" [ref=e255]
+      - generic [ref=e257]:
+        - generic "Pallina di impasto fresco" [ref=e258]
+        - generic "Pizze Ambrosia pronte per la consegna" [ref=e260]
+  - generic [ref=e263]:
+    - generic [ref=e264]:
+      - generic [ref=e265]: Vieni a trovarci
+      - generic [ref=e268]:
+        - generic [ref=e269]:
+          - generic [ref=e270]: La tua prossima pizza è qui.
+          - generic [ref=e271]: Via E. Franchini, 51, 42027 Montecchio Emilia (RE)
+          - generic [ref=e272]:
+            - link " 0522 171 7681" [ref=e273] [cursor=pointer]:
+              - generic [ref=e274]: 
+              - generic [ref=e275]: 0522 171 7681
+            - link " Apri la mappa" [ref=e276] [cursor=pointer]:
+              - generic [ref=e277]: 
+              - generic [ref=e278]: Apri la mappa
+        - generic [ref=e279]:
+          - generic [ref=e280]:
+            - generic [ref=e281]: 
+            - generic [ref=e282]: Orari di apertura
+          - generic [ref=e283]:
+            - generic [ref=e284]: Lunedì
+            - generic [ref=e285]: Chiuso
+          - generic [ref=e286]:
+            - generic [ref=e287]: Martedì
+            - generic [ref=e288]: 12–14 · 18–22:30
+          - generic [ref=e289]:
+            - generic [ref=e290]: Mercoledì
+            - generic [ref=e291]: 12–14 · 18–22:30
+          - generic [ref=e292]:
+            - generic [ref=e293]: Giovedì
+            - generic [ref=e294]: 12–14 · 18–22:30
+          - generic [ref=e295]:
+            - generic [ref=e296]: Venerdì
+            - generic [ref=e297]: 12–14 · 18–22:30
+          - generic [ref=e298]:
+            - generic [ref=e299]: Sabato
+            - generic [ref=e300]: 18–22:30
+          - generic [ref=e301]:
+            - generic [ref=e302]: Domenica
+            - generic [ref=e303]: 18–22:30
+    - generic [ref=e305]:
+      - generic [ref=e306]:
+        - generic [ref=e307]: Pizzeria Ambrosia
+        - generic [ref=e308]: Il Nettare degli Dei
+      - generic [ref=e309]: © 2026 Pizzeria Ambrosia. Tutti i diritti riservati.
