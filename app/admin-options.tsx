@@ -122,9 +122,16 @@ export default function AdminOptionsScreen() {
     });
   }, [shiftStartedAt]);
 
+  // Se qualcuno arriva qui senza permessi admin, rimandiamo al menu principale.
+  // The replace is scheduled in an effect (not during render) so deep-linking
+  // here cannot crash with "Cannot update a component while rendering a different component".
+  useEffect(() => {
+    if (!isAdmin) {
+      router.replace('/(tabs)/menu');
+    }
+  }, [isAdmin, router]);
+
   if (!isAdmin) {
-    // Se qualcuno arriva qui senza permessi admin, rimandiamo al menu principale
-    router.replace('/(tabs)/menu');
     return null;
   }
 
