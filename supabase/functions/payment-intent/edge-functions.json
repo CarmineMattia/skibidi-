@@ -1,0 +1,10 @@
+{
+  "name": "create_payment_intent",
+  "entrypoint": "mod.ts",
+  "runtime": "deno",
+  "config": {
+    "env": {
+      "STRIPE_SECRET_KEY": "your_stripe_secret_key_here"
+    }
+  }
+}
