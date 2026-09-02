@@ -214,9 +214,9 @@ export default function AdminDashboardScreen() {
     }
   }, [isAdmin, isAuthLoading, router]);
 
-  if (!isAdmin) {
-    return null;
-  }
+  // Note: the `if (!isAdmin) return null;` guard has been moved below all
+  // hooks to satisfy React's Rules of Hooks (hooks must be called
+  // unconditionally, before any early return).
 
   const pausedUntilDate =
     ordersPausedUntil && !Number.isNaN(new Date(ordersPausedUntil).getTime())
@@ -345,6 +345,12 @@ export default function AdminDashboardScreen() {
       supabase.removeChannel(channel);
     };
   }, [companyId, refetch]);
+
+  // All hooks above are called unconditionally (Rules of Hooks). Now that
+  // every hook has run, guard the render: non-admin users see nothing.
+  if (!isAdmin) {
+    return null;
+  }
 
   const getNextStatus = (status: ActionableOrder['status']): ActionableOrder['status'] | null => {
     if (status === 'pending') return 'preparing';
