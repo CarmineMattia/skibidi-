@@ -47,7 +47,7 @@ type ActionableOrder = {
 };
 
 export default function AdminDashboardScreen() {
-  const { isAdmin } = useAuth();
+  const { isAdmin, isLoading: isAuthLoading } = useAuth();
   const { companyId } = useTenant();
   const {
     acceptingOrders,
@@ -203,8 +203,18 @@ export default function AdminDashboardScreen() {
     },
   });
 
+  // Redirect non-admin users away from the dashboard after the navigator is
+  // mounted. Calling router.replace() during render (before the root
+  // navigator is ready) throws "Attempted to navigate before mounting the
+  // Root Layout component" on web deep links.
+  useEffect(() => {
+    if (isAuthLoading) return;
+    if (!isAdmin) {
+      router.replace('/(tabs)');
+    }
+  }, [isAdmin, isAuthLoading, router]);
+
   if (!isAdmin) {
-    router.replace('/(tabs)');
     return null;
   }
 

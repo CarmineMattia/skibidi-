@@ -59,7 +59,7 @@ export default function KitchenScreen() {
   const [showPausePicker, setShowPausePicker] = useState(false);
   const [deviceNow, setDeviceNow] = useState(() => new Date());
   const router = useRouter();
-  const { isAdmin } = useAuth();
+  const { isAdmin, isLoading: isAuthLoading } = useAuth();
   const { acceptingOrders, ordersPausedUntil, pauseOrdersForMinutes, resumeOrders, businessHours } = useAppSettings();
   const selectedFilter = FILTER_OPTIONS[selectedFilterIndex];
   const pausedUntilDate =
@@ -99,8 +99,16 @@ export default function KitchenScreen() {
     enabled: isAdmin,
   });
 
+  // Redirect non-admin users away after the navigator is mounted (avoids
+  // "Attempted to navigate before mounting the Root Layout component" on web).
+  useEffect(() => {
+    if (isAuthLoading) return;
+    if (!isAdmin) {
+      router.replace('/(tabs)/menu');
+    }
+  }, [isAdmin, isAuthLoading, router]);
+
   if (!isAdmin) {
-    router.replace('/(tabs)/menu');
     return null;
   }
 
