@@ -11,7 +11,8 @@
  * Skips gracefully if credentials aren't available, matching admin-dashboard.spec.ts.
  */
 
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect } from '@playwright/test';
+import { loginAsCustomer } from '../fixtures/page-objects';
 
 // Lazy Supabase client — avoids crash when env vars aren't loaded in Playwright's context
 let _supabase: any = null;
@@ -35,34 +36,6 @@ async function getSupabase() {
 
 const CUSTOMER_EMAIL = process.env.TEST_CUSTOMER_EMAIL || 'customer@skibidi.com';
 const CUSTOMER_PASSWORD = process.env.TEST_CUSTOMER_PASSWORD || 'Customer123!';
-
-async function loginAsCustomer(page: Page): Promise<boolean> {
-  try {
-    await page.goto('/login');
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000); // let RN Web finish hydrating before clicking
-
-    // Login defaults to passwordless OTP; switch to the email+password form.
-    await page.getByText('Accedi con email e password').click({ timeout: 5000 });
-    await page.waitForTimeout(500);
-
-    const emailInput = page.getByPlaceholder(/esempio@email\.com|email/i);
-    const passwordInput = page.getByPlaceholder(/••••••••|password/i);
-
-    await emailInput.fill(CUSTOMER_EMAIL);
-    await passwordInput.fill(CUSTOMER_PASSWORD);
-
-    const loginBtn = page.getByText('Accedi').first();
-    await expect(loginBtn).toBeVisible({ timeout: 5000 });
-    await loginBtn.click();
-
-    await page.waitForURL(/\/(tabs|\/menu)/, { timeout: 8000 });
-    return true;
-  } catch (err) {
-    console.log(`⚠️  Customer login failed (credentials may not exist): ${err instanceof Error ? err.message : 'Unknown'}`);
-    return false;
-  }
-}
 
 test.describe('Access control — customer cannot reach admin/kitchen by direct URL', () => {
   test('1. Logged-in customer navigating directly to /kitchen is redirected away', async ({ page }) => {

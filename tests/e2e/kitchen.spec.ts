@@ -1,60 +1,43 @@
 /**
- * E2E Test: Kitchen Dashboard
- * Tests for kitchen order management functionality
+ * E2E Test: Kitchen Dashboard — admin order queue + access control.
+ *
+ * Verifies the admin kitchen renders (order queue + status tabs) and that
+ * non-admin users (including unauthenticated guests) are redirected away.
  */
 
 import { test, expect } from '@playwright/test';
-import { KitchenPage, LoginPage } from '../fixtures/page-objects';
+import { loginAsAdmin } from '../fixtures/page-objects';
 
 test.describe('Kitchen Dashboard', () => {
-  let kitchenPage: KitchenPage;
-  let loginPage: LoginPage;
-
-  test.beforeEach(async ({ page }) => {
-    kitchenPage = new KitchenPage(page);
-    loginPage = new LoginPage(page);
-
-    // Navigate as admin to access kitchen
-    await loginPage.navigate();
-    // Note: Kitchen access requires admin role
-    // For testing, we may need to mock the auth state
+  test('1. Kitchen shows the active orders queue', async ({ page }) => {
+    const ok = await loginAsAdmin(page);
+    if (!ok) {
+      test.skip(true, 'Admin account not reachable');
+      return;
+    }
+    await page.goto('/(tabs)/kitchen', { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(2000);
+    await expect(page.getByText('Cucina').first()).toBeVisible();
+    await expect(page.getByText('ORDINI ATTIVI').first()).toBeVisible();
   });
 
-  test('should display kitchen dashboard header', async ({ page }) => {
-    await kitchenPage.navigate();
-    await expect(page.getByText(/cucina|kitchen/i)).toBeVisible();
+  test('2. Kitchen shows status tabs', async ({ page }) => {
+    const ok = await loginAsAdmin(page);
+    if (!ok) {
+      test.skip(true, 'Admin account not reachable');
+      return;
+    }
+    await page.goto('/(tabs)/kitchen', { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(1500);
+    await expect(page.getByText('Attivi', { exact: true }).first()).toBeVisible();
+    await expect(page.getByText('In Preparazione', { exact: true }).first()).toBeVisible();
   });
 
-  test('should display orders section', async ({ page }) => {
-    await kitchenPage.navigate();
-    await expect(page.getByText(/ordini attivi/i)).toBeVisible();
-  });
-});
-
-test.describe('Order Status Flow', () => {
-  test('should show order status progression', async ({ page }) => {
-    await page.goto('/(tabs)/kitchen');
-    await page.waitForLoadState('networkidle');
-
-    // Check for status indicators
-    const pendingBadge = page.getByText(/in attesa/i);
-    const preparingBadge = page.getByText(/in preparazione/i);
-    const readyBadge = page.getByText(/pronto/i);
-
-    // Badges should be visible if orders exist
-    // In a test environment, orders may not be present
-  });
-});
-
-test.describe('Order Actions', () => {
-  test('should have action buttons for orders', async ({ page }) => {
-    await page.goto('/(tabs)/kitchen');
-    await page.waitForLoadState('networkidle');
-
-    // Check for action buttons
-    const readyButton = page.getByRole('button', { name: /pronto/i });
-    const deliveredButton = page.getByRole('button', { name: /consegnato/i });
-
-    // Buttons may be disabled if no orders are available
+  test('3. Unauthenticated guest cannot access the kitchen', async ({ page }) => {
+    // Fresh context = no session. The route guard must redirect away from /kitchen.
+    await page.goto('/(tabs)/kitchen', { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(2500);
+    await expect(page).not.toHaveURL(/kitchen/);
+    await expect(page.getByText('Cucina').first()).not.toBeVisible();
   });
 });
