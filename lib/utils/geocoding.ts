@@ -1,3 +1,10 @@
+import {
+  DELIVERY_ZONE_BOUNDS,
+  isAddressInDeliveryZone,
+  isCoordinatesInDeliveryZone,
+  looksLikeOutOfDeliveryZone,
+} from '@/lib/utils/deliveryZone';
+
 const NOMINATIM_BASE = 'https://nominatim.openstreetmap.org';
 const USER_AGENT = 'SkibidiOrders/1.0 (delivery address picker)';
 
@@ -7,7 +14,7 @@ export type GeoCoordinates = {
 };
 
 /** Centro di Montecchio Emilia — area di consegna predefinita sulla mappa */
-export const DEFAULT_MAP_CENTER: GeoCoordinates = { lng: 10.667, lat: 44.6997 };
+export const DEFAULT_MAP_CENTER: GeoCoordinates = { lng: 10.4464, lat: 44.7004 };
 
 export type AddressSuggestion = {
   id: string;
@@ -42,8 +49,23 @@ async function nominatimFetch<T>(path: string): Promise<T> {
 }
 
 export function formatShortAddress(displayName: string): string {
-  const parts = displayName.split(',').map((part) => part.trim());
-  return parts.slice(0, 4).join(', ');
+  const parts = displayName.split(',').map((part) => part.trim()).filter(Boolean);
+  const streetParts = parts.slice(0, 3);
+  const localityParts = parts.filter((part) => isAddressInDeliveryZone(part));
+  const merged = [...streetParts];
+  for (const locality of localityParts) {
+    if (!merged.includes(locality)) merged.push(locality);
+  }
+  return merged.slice(0, 5).join(', ');
+}
+
+function labelInDeliveryZone(displayName: string): string {
+  const short = formatShortAddress(displayName);
+  if (isAddressInDeliveryZone(short)) return short;
+  if (isAddressInDeliveryZone(displayName)) {
+    return `${short}, Montecchio Emilia`;
+  }
+  return short;
 }
 
 export async function searchAddresses(
@@ -53,11 +75,18 @@ export async function searchAddresses(
   const trimmed = query.trim();
   if (trimmed.length < 3) return [];
 
+  const searchQuery =
+    isAddressInDeliveryZone(trimmed) || looksLikeOutOfDeliveryZone(trimmed)
+      ? trimmed
+      : `${trimmed}, Montecchio Emilia`;
+
   const params = new URLSearchParams({
-    q: trimmed,
+    q: searchQuery,
     format: 'json',
     addressdetails: '1',
     limit: String(options?.limit ?? 5),
+    viewbox: `${DELIVERY_ZONE_BOUNDS.minLon},${DELIVERY_ZONE_BOUNDS.maxLat},${DELIVERY_ZONE_BOUNDS.maxLon},${DELIVERY_ZONE_BOUNDS.minLat}`,
+    bounded: '1',
   });
 
   if (options?.countryCode) {
@@ -66,14 +95,20 @@ export async function searchAddresses(
 
   const results = await nominatimFetch<NominatimSearchResult[]>(`/search?${params.toString()}`);
 
-  return results.map((result) => ({
-    id: String(result.place_id),
-    label: formatShortAddress(result.display_name),
-    coordinates: {
-      lng: Number(result.lon),
-      lat: Number(result.lat),
-    },
-  }));
+  return results
+    .map((result) => ({
+      id: String(result.place_id),
+      label: labelInDeliveryZone(result.display_name),
+      coordinates: {
+        lng: Number(result.lon),
+        lat: Number(result.lat),
+      },
+    }))
+    .filter(
+      (suggestion) =>
+        isAddressInDeliveryZone(suggestion.label) &&
+        isCoordinatesInDeliveryZone(suggestion.coordinates)
+    );
 }
 
 export async function reverseGeocode(coordinates: GeoCoordinates): Promise<string> {
@@ -84,5 +119,5 @@ export async function reverseGeocode(coordinates: GeoCoordinates): Promise<strin
   });
 
   const result = await nominatimFetch<NominatimReverseResult>(`/reverse?${params.toString()}`);
-  return formatShortAddress(result.display_name);
+  return labelInDeliveryZone(result.display_name);
 }

@@ -5,6 +5,13 @@ import {
   type AddressSuggestion,
   type GeoCoordinates,
 } from '@/lib/utils/geocoding';
+import {
+  getDeliveryZoneMessage,
+  isAddressInDeliveryZone,
+  isCoordinatesInDeliveryZone,
+  looksLikeOutOfDeliveryZone,
+} from '@/lib/utils/deliveryZone';
+import { useAppSettings } from '@/lib/stores/AppSettingsContext';
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
 
@@ -28,6 +35,7 @@ type DeliveryAddressFieldProps = {
   hasCivicoError?: boolean;
   mapHint?: string;
   searchingLabel?: string;
+  hint?: string;
 };
 
 export function DeliveryAddressField({
@@ -45,25 +53,42 @@ export function DeliveryAddressField({
   hasCivicoError,
   mapHint = 'Tap the map or drag the pin to set your delivery location.',
   searchingLabel = 'Searching addresses...',
+  hint,
 }: DeliveryAddressFieldProps) {
+  const { language } = useAppSettings();
+  const zoneMessage = getDeliveryZoneMessage(language === 'en' ? 'en' : 'it');
   const [coordinates, setCoordinates] = useState<GeoCoordinates>(DEFAULT_MAP_CENTER);
   const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isResolvingLocation, setIsResolvingLocation] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [zoneError, setZoneError] = useState<string | null>(null);
   const skipSearchRef = useRef(false);
   const searchRequestRef = useRef(0);
 
   const applyCoordinates = useCallback(
     async (nextCoordinates: GeoCoordinates, options?: { skipReverse?: boolean }) => {
+      if (!isCoordinatesInDeliveryZone(nextCoordinates)) {
+        setZoneError(zoneMessage);
+        return;
+      }
+
       setCoordinates(nextCoordinates);
 
-      if (options?.skipReverse) return;
+      if (options?.skipReverse) {
+        setZoneError(null);
+        return;
+      }
 
       setIsResolvingLocation(true);
       try {
         const resolvedAddress = await reverseGeocode(nextCoordinates);
+        if (!isAddressInDeliveryZone(resolvedAddress)) {
+          setZoneError(zoneMessage);
+          return;
+        }
         skipSearchRef.current = true;
+        setZoneError(null);
         onAddressChange(resolvedAddress);
       } catch {
         // Keep the typed address if reverse geocoding fails.
@@ -71,7 +96,7 @@ export function DeliveryAddressField({
         setIsResolvingLocation(false);
       }
     },
-    [onAddressChange],
+    [onAddressChange, zoneMessage],
   );
 
   useEffect(() => {
@@ -110,7 +135,15 @@ export function DeliveryAddressField({
   }, [address, civico]);
 
   const handleSuggestionSelect = (suggestion: AddressSuggestion) => {
+    if (
+      !isCoordinatesInDeliveryZone(suggestion.coordinates) ||
+      !isAddressInDeliveryZone(suggestion.label)
+    ) {
+      setZoneError(zoneMessage);
+      return;
+    }
     skipSearchRef.current = true;
+    setZoneError(null);
     onAddressChange(suggestion.label);
     setSuggestions([]);
     setShowSuggestions(false);
@@ -124,13 +157,14 @@ export function DeliveryAddressField({
       <View className="relative z-20">
         <TextInput
           className={`bg-background border rounded-xl px-4 py-3 text-base min-h-[80px] ${
-            hasError ? 'border-red-500 bg-red-50' : 'border-border'
+            hasError || zoneError ? 'border-red-500 bg-red-50' : 'border-border'
           }`}
           placeholder={placeholder}
           multiline
           value={address}
           onChangeText={(value) => {
             setShowSuggestions(true);
+            setZoneError(looksLikeOutOfDeliveryZone(value) ? zoneMessage : null);
             onAddressChange(value);
           }}
           onFocus={() => {
@@ -157,7 +191,11 @@ export function DeliveryAddressField({
       </View>
 
       {isSearching ? <Text className="text-xs text-muted-foreground mt-1">{searchingLabel}</Text> : null}
-      {error ? <Text className="text-red-500 text-xs mt-1">{error}</Text> : null}
+      {error || zoneError ? (
+        <Text className="text-red-600 text-sm font-semibold mt-1">{error || zoneError}</Text>
+      ) : (
+        <Text className="text-xs text-muted-foreground mt-2">{hint || zoneMessage}</Text>
+      )}
 
       <Text className="text-sm font-medium mb-2 mt-3">{civicoLabel}</Text>
       <TextInput

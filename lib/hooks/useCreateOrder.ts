@@ -11,6 +11,12 @@ import type { Database } from '@/types/database.types';
 import type { FiscalOrderData, FiscalProviderResult, PaymentMethod } from '@/types/fiscal.types';
 import { getFiscalService } from '@/lib/fiscal/FiscalService';
 import { generateFallbackOrderDisplayCode } from '@/lib/utils/orderDisplayCode';
+import {
+  finalizeDeliveryAddress,
+  getDeliveryZoneMessage,
+  isAddressInDeliveryZone,
+} from '@/lib/utils/deliveryZone';
+import { formatOrderItemNotes } from '@/lib/utils/orderItemDetails';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 type OrderInsert = Database['public']['Tables']['orders']['Insert'];
@@ -87,7 +93,7 @@ export function useCreateOrder() {
   const queryClient = useQueryClient();
   const fiscalService = getFiscalService();
   const { companyId } = useTenant();
-  const { deliveryFee } = useAppSettings();
+  const { deliveryFee, language } = useAppSettings();
 
   return useMutation({
     mutationFn: async ({
@@ -103,6 +109,16 @@ export function useCreateOrder() {
       paymentMethod = 'cash',
       skipFiscal = false,
     }: CreateOrderInput): Promise<CreateOrderResult> => {
+      const resolvedDeliveryAddress = deliveryAddress
+        ? finalizeDeliveryAddress(deliveryAddress)
+        : deliveryAddress;
+      if (
+        orderType === 'delivery' &&
+        (!resolvedDeliveryAddress?.trim() || !isAddressInDeliveryZone(resolvedDeliveryAddress))
+      ) {
+        throw new Error(getDeliveryZoneMessage(language === 'en' ? 'en' : 'it'));
+      }
+
       // 1. Get current user (or null for anonymous kiosk orders)
       const { data: { user } } = await supabase.auth.getUser();
 
@@ -144,7 +160,7 @@ export function useCreateOrder() {
         order_type: orderType,
         customer_name: customerName,
         customer_phone: customerPhone,
-        delivery_address: deliveryAddress,
+        delivery_address: resolvedDeliveryAddress,
         table_number: tableNumber,
         company_id: companyId!,
       };
@@ -163,15 +179,8 @@ export function useCreateOrder() {
 
       const order = { id: orderId, total_amount: totalAmount, fiscal_status: 'pending' as const };
 
-      // 4. Create order items (bulk insert)
+      // 4. Create order items (bulk insert) — modifiers + free notes live on order_items.notes
       const orderItems: OrderItemInsert[] = items.map((item) => {
-        // Combine notes and modifiers
-        let finalNotes = item.notes || '';
-        if (item.modifiers && item.modifiers.length > 0) {
-          const modifiersString = item.modifiers.join(', ');
-          finalNotes = finalNotes ? `${finalNotes} | ${modifiersString}` : modifiersString;
-        }
-
         const unitPrice = getCartItemUnitPrice(item);
         return {
           order_id: order.id,
@@ -179,7 +188,7 @@ export function useCreateOrder() {
           quantity: item.quantity,
           unit_price: unitPrice,
           total_price: unitPrice * item.quantity,
-          notes: finalNotes || undefined,
+          notes: formatOrderItemNotes(item.notes, item.modifiers, item.product.name),
         };
       });
 
