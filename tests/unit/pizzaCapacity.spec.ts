@@ -25,10 +25,17 @@ describe('pizza capacity weights', () => {
   test('counts tirata as 1.5', () => {
     expect(getCartItemPizzaWeight(makeCartItem('Margherita tirata'))).toBe(1.5);
     expect(getCartItemPizzaWeight(makeCartItem('Margherita', 1, ['Impasto tirata']))).toBe(1.5);
+    expect(getCartItemPizzaWeight(makeCartItem('Margherita', 1, ['Taglia: Tirata']))).toBe(1.5);
+  });
+
+  test('reads menu taglia modifiers', () => {
+    expect(getCartItemPizzaWeight(makeCartItem('Margherita', 1, ['Taglia: Normale']))).toBe(1);
+    expect(getCartItemPizzaWeight(makeCartItem('Margherita', 1, ['Taglia: Piccola']))).toBe(1);
   });
 
   test('counts mezzo metro as 3', () => {
     expect(getCartItemPizzaWeight(makeCartItem('Mezzo metro farcita'))).toBe(3);
+    expect(getCartItemPizzaWeight(makeCartItem('Tartufata', 1, ['Taglia: Mezzo metro']))).toBe(3);
   });
 
   test('sums weighted quantities', () => {

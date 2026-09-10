@@ -10,7 +10,8 @@ import { PizzaBuilderModal } from '@/components/features/PizzaBuilderModal';
 import { ProductCard } from '@/components/features/ProductCard';
 import { ProductDetailsModal } from '@/components/features/ProductDetailsModal';
 import { SkeletonProductCard, SkeletonMenuScreen } from '@/components/ui/Skeleton';
-import { BUILDER_PRODUCT_NAME } from '@/lib/data/pizzaBuilder';
+import { BUILDER_PRODUCT_NAME, getQuickAddPizzaModifiers } from '@/lib/data/pizzaBuilder';
+import { BRAND, BRAND_LOGO } from '@/lib/data/brand';
 import { useCategories } from '@/lib/hooks/useCategories';
 import { useCreateOrder } from '@/lib/hooks/useCreateOrder';
 import { OfflineIndicator } from '@/lib/hooks/useOfflineQueue';
@@ -22,8 +23,20 @@ import type { Product } from '@/types';
 import { FontAwesome } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
-import { Alert, Dimensions, FlatList, Modal, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import {
+  Alert,
+  Dimensions,
+  FlatList,
+  Image,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+  useWindowDimensions,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 function isDrinkCategoryName(categoryName: string): boolean {
@@ -35,6 +48,91 @@ function isDrinkCategoryName(categoryName: string): boolean {
     normalized.includes('cocktail') ||
     normalized.includes('birr') ||
     normalized.includes('vino')
+  );
+}
+
+function isPizzaCategoryName(categoryName?: string): boolean {
+  if (!categoryName) return false;
+  return categoryName.toLowerCase().includes('pizz');
+}
+
+function isMetroCategoryName(categoryName?: string): boolean {
+  if (!categoryName) return false;
+  return categoryName.toLowerCase().includes('metro');
+}
+
+function isStandardMenuPizza(product: Product, categoryName?: string): boolean {
+  return (
+    isPizzaCategoryName(categoryName) &&
+    !isMetroCategoryName(categoryName) &&
+    product.name !== 'Piccola' &&
+    product.name !== BUILDER_PRODUCT_NAME
+  );
+}
+
+function DrinkSpotlightWrap({
+  active,
+  title,
+  closeLabel,
+  onDismiss,
+  children,
+}: {
+  active: boolean;
+  title: string;
+  closeLabel: string;
+  onDismiss: () => void;
+  children: ReactNode;
+}) {
+  const [hovered, setHovered] = useState(false);
+
+  if (!active) {
+    return <>{children}</>;
+  }
+
+  return (
+    <View className="relative flex-1">
+      {children}
+      <View
+        pointerEvents="none"
+        className="absolute inset-0 rounded-3xl border-2 border-[#8d171e]"
+      />
+      <View className="absolute left-3 right-3 top-4 z-40 items-center" pointerEvents="box-none">
+        <Pressable
+          onHoverIn={() => setHovered(true)}
+          onHoverOut={() => setHovered(false)}
+          className="flex-row items-center gap-3 bg-[#8d171e] rounded-3xl px-5 py-3.5 max-w-full"
+        >
+          <FontAwesome name="glass" size={hovered ? 20 : 16} color="#f9ecdd" />
+          <Text
+            className={`text-white font-extrabold ${hovered ? 'text-2xl' : 'text-lg'}`}
+            numberOfLines={1}
+          >
+            {title}
+          </Text>
+          <Pressable
+            onPress={onDismiss}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel={closeLabel}
+            className="w-8 h-8 rounded-full bg-white/20 items-center justify-center"
+          >
+            <FontAwesome name="close" size={14} color="#f9ecdd" />
+          </Pressable>
+        </Pressable>
+        <View
+          style={{
+            width: 0,
+            height: 0,
+            borderLeftWidth: 10,
+            borderRightWidth: 10,
+            borderTopWidth: 12,
+            borderLeftColor: 'transparent',
+            borderRightColor: 'transparent',
+            borderTopColor: '#8d171e',
+          }}
+        />
+      </View>
+    </View>
   );
 }
 
@@ -58,13 +156,15 @@ export default function MenuScreen() {
   const [isCartVisible, setIsCartVisible] = useState(false);
   const [isMobileCategoriesOpen, setIsMobileCategoriesOpen] = useState(false);
   const [showContinueWithoutDrinks, setShowContinueWithoutDrinks] = useState(false);
+  const [highlightedDrinkId, setHighlightedDrinkId] = useState<string | null>(null);
+  const productListRef = useRef<FlatList<Product>>(null);
   const insets = useSafeAreaInsets();
 
   const { data: categories = [], isLoading: categoriesLoading } = useCategories();
   const { data: products = [], isLoading: productsLoading } = useProducts(
     selectedCategoryId || undefined
   );
-  const { items, totalItems, totalAmount } = useCart();
+  const { items, addItem, updateQuantity, totalItems, totalAmount } = useCart();
   const { isAuthenticated, profile, signOut, isGuest, exitGuestMode, isAdmin } = useAuth();
   const { language } = useAppSettings();
   const showDesktopSidebars = isDesktop;
@@ -93,37 +193,53 @@ export default function MenuScreen() {
     () =>
       language === 'en'
         ? {
-            appTitle: 'AMBROSIA - Artisanal Menu',
+            menuSubtitle: 'Order online',
             guest: 'Guest',
+            account: 'My account',
+            signOut: 'Sign out',
+            signIn: 'Sign in',
+            cart: 'Cart',
             featuredBadge: "Chef's Choice",
             featuredTitle: 'The Truffle Hearth',
             featuredDescription: 'Wild mushrooms, black truffle oil, fresh fior di latte and aged parmesan.',
             artisanalRecipe: 'Artisanal recipe',
             yourOrder: 'Your Order',
             itemsLabel: 'items',
-            drinkPromptTitle: 'Add a drink?',
-            drinkPromptDescription:
-              'Your order has no drinks yet. Add one from the menu or continue without drinks.',
-            drinkPromptAdd: 'Browse drinks',
-            drinkPromptContinue: 'Continue without drinks',
+            drinkPromptTitle: 'Pick a drink!',
           }
         : {
-            appTitle: 'AMBROSIA - Menu Artigianale',
+            menuSubtitle: 'Ordina online',
             guest: 'Ospite',
+            account: 'Il mio account',
+            signOut: 'Esci',
+            signIn: 'Accedi',
+            cart: 'Carrello',
             featuredBadge: 'Scelta dello chef',
             featuredTitle: 'La Fiamma al Tartufo',
             featuredDescription: 'Funghi di bosco, olio al tartufo nero, fior di latte fresco e parmigiano stagionato.',
             artisanalRecipe: 'Ricetta artigianale',
             yourOrder: 'Il tuo ordine',
             itemsLabel: 'articoli',
-            drinkPromptTitle: 'Aggiungi una bevanda?',
-            drinkPromptDescription:
-              'Nel carrello non ci sono bevande. Scegline una dal menu oppure prosegui senza.',
-            drinkPromptAdd: 'Scegli una bevanda',
-            drinkPromptContinue: 'Procedi senza bevande',
+            drinkPromptTitle: 'Scegli una bevanda!',
           },
     [language]
   );
+
+  const accountDisplayName = useMemo(() => {
+    if (!isAuthenticated || !profile) return i18n.guest;
+    if (isAdmin) return 'Admin';
+    const fullName = profile.full_name?.trim();
+    if (fullName) {
+      const parts = fullName.split(/\s+/).filter(Boolean);
+      if (parts.length >= 2 && parts[0].toLowerCase() === 'super') {
+        return parts.slice(1).join(' ') || 'Admin';
+      }
+      return parts[0];
+    }
+    return profile.email?.split('@')[0] || i18n.account;
+  }, [i18n.account, i18n.guest, isAdmin, isAuthenticated, profile]);
+
+  const accountInitial = (accountDisplayName.charAt(0) || 'A').toUpperCase();
 
   useEffect(() => {
     if (!isMobile) {
@@ -135,14 +251,92 @@ export default function MenuScreen() {
     const cartHasDrinks = items.some((item) => drinkCategoryIds.has(item.product.category_id));
     if (cartHasDrinks) {
       setShowContinueWithoutDrinks(false);
+      setHighlightedDrinkId(null);
     }
   }, [items, drinkCategoryIds]);
+
+  useEffect(() => {
+    if (!showContinueWithoutDrinks) {
+      setHighlightedDrinkId(null);
+      return;
+    }
+    if (displayProducts.length === 0) return;
+
+    setHighlightedDrinkId((current) => {
+      if (current && displayProducts.some((product) => product.id === current)) {
+        return current;
+      }
+      const pick = displayProducts[Math.floor(Math.random() * displayProducts.length)];
+      return pick.id;
+    });
+  }, [showContinueWithoutDrinks, displayProducts]);
+
+  useEffect(() => {
+    if (!highlightedDrinkId) return;
+    const itemIndex = displayProducts.findIndex((product) => product.id === highlightedDrinkId);
+    if (itemIndex < 0) return;
+
+    const columns = Math.max(1, effectiveProductColumns);
+    const rowIndex = Math.floor(itemIndex / columns);
+    const rowCount = Math.ceil(displayProducts.length / columns);
+    if (rowIndex < 0 || rowIndex >= rowCount) return;
+
+    const timer = setTimeout(() => {
+      try {
+        productListRef.current?.scrollToIndex({
+          index: rowIndex,
+          animated: true,
+          viewPosition: 0.25,
+        });
+      } catch {
+        // FlatList may not be measured yet; skip rather than crash checkout.
+      }
+    }, 180);
+
+    return () => clearTimeout(timer);
+  }, [highlightedDrinkId, displayProducts, effectiveProductColumns]);
+
+  const dismissDrinkHint = useCallback(() => {
+    setShowContinueWithoutDrinks(false);
+    setHighlightedDrinkId(null);
+  }, []);
+
+  useEffect(() => {
+    if (!showContinueWithoutDrinks || !highlightedDrinkId) return;
+    const timer = setTimeout(dismissDrinkHint, 4000);
+    return () => clearTimeout(timer);
+  }, [showContinueWithoutDrinks, highlightedDrinkId, dismissDrinkHint]);
 
   const handleProductPress = (productId: string) => {
     const product = products.find(p => p.id === productId);
     if (product) {
       setSelectedProduct(product);
     }
+  };
+
+  const handleQuickAdd = (product: Product) => {
+    if (product.name === BUILDER_PRODUCT_NAME) {
+      handleProductPress(product.id);
+      return;
+    }
+    const categoryName = categories.find((category) => category.id === product.category_id)?.name;
+    if (isStandardMenuPizza(product, categoryName)) {
+      addItem(product, 1, '', getQuickAddPizzaModifiers());
+      return;
+    }
+    addItem(product, 1);
+  };
+
+  const handleQuickDecrement = (product: Product) => {
+    let lastIndex = -1;
+    for (let i = items.length - 1; i >= 0; i -= 1) {
+      if (items[i].product.id === product.id) {
+        lastIndex = i;
+        break;
+      }
+    }
+    if (lastIndex < 0) return;
+    updateQuantity(lastIndex, items[lastIndex].quantity - 1);
   };
 
   const handleEditPress = (product: Product) => {
@@ -193,73 +387,148 @@ export default function MenuScreen() {
 
   return (
     <View className="flex-1 bg-[#f9ecdd]" style={{ paddingTop: insets.top }}>
-      {/* Top Bar - Minimal */}
+      {/* Top bar — stile sito */}
       <View
-        className={`${isMobile ? (isUltraCompactMobile ? 'px-3 py-2' : 'px-3 py-2.5') : 'px-8 py-4'} border-b border-[#e1a255]/40 flex-row items-center justify-between bg-white/95 z-10`}
+        className="z-10 border-b border-[#8d171e]/10 bg-[#fff9f1]/95"
+        style={
+          Platform.OS === 'web'
+            ? { boxShadow: '0 1px 0 rgba(39, 29, 25, 0.04), 0 8px 24px rgba(39, 29, 25, 0.04)' }
+            : undefined
+        }
       >
-        <View className={`flex-row items-center ${isMobile ? 'gap-1.5' : 'gap-3'}`}>
-          {!showDesktopSidebars && (
-            <Pressable
-              onPress={() => setIsMobileCategoriesOpen(prev => !prev)}
-              className={`bg-[#f9ecdd] border border-[#e1a255]/60 rounded-lg items-center justify-center active:opacity-80 ${isUltraCompactMobile ? 'p-1.5 w-8 h-8' : 'p-2 w-9 h-9'}`}
+        <View
+          className={`w-full flex-row items-center justify-between ${
+            isMobile ? (isUltraCompactMobile ? 'px-3 py-2' : 'px-3 py-2.5') : 'px-6 py-3 md:px-8'
+          }`}
+          style={{ minHeight: isMobile ? 56 : 68 }}
+        >
+          <View className={`min-w-0 flex-1 flex-row items-center ${isMobile ? 'gap-2' : 'gap-3'}`}>
+            {!showDesktopSidebars && (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={isMobileCategoriesOpen ? 'Chiudi categorie' : 'Apri categorie'}
+                onPress={() => setIsMobileCategoriesOpen((prev) => !prev)}
+                className={`items-center justify-center rounded-lg border border-[#8d171e]/15 bg-white active:opacity-80 ${
+                  isUltraCompactMobile ? 'h-8 w-8' : 'h-9 w-9'
+                }`}
+              >
+                <FontAwesome
+                  name={isMobileCategoriesOpen ? 'close' : 'bars'}
+                  size={isUltraCompactMobile ? 14 : 15}
+                  color="#342b27"
+                />
+              </Pressable>
+            )}
+
+            <View
+              className="shrink-0"
+              style={{
+                height: isMobile ? 34 : 44,
+                width: isMobile ? 60 : 78,
+              }}
             >
-              <FontAwesome name={isMobileCategoriesOpen ? 'close' : 'bars'} size={isUltraCompactMobile ? 14 : 16} color="black" />
-            </Pressable>
-          )}
-          {showDesktopSidebars && (
-            <View className="w-9 h-9" />
-          )}
+              <Image
+                source={BRAND_LOGO}
+                style={{ width: '100%', height: '100%' }}
+                resizeMode="contain"
+                accessibilityLabel={`Logo ${BRAND.name}`}
+              />
+            </View>
 
-          <View className={`${isMobile ? 'w-8 h-8' : 'w-10 h-10'} rounded-full bg-[#f9ecdd] border border-[#e1a255]/60 items-center justify-center`}>
-            <FontAwesome name="cutlery" size={isMobile ? 14 : 16} color="#8d171e" />
-          </View>
-          <Text
-            className={`text-gray-900 font-extrabold tracking-tight ${isMobile ? (isUltraCompactMobile ? 'text-sm' : 'text-base') : 'text-lg'}`}
-            numberOfLines={1}
-          >
-            {i18n.appTitle}
-          </Text>
-        </View>
-
-        <View className={`flex-row items-center ${isMobile ? 'gap-2' : 'gap-3'}`}>
-          {/* User Info - Compact */}
-          <View className={`bg-[#f9ecdd] border border-[#e1a255]/60 rounded-full ${isMobile ? 'px-2 py-1' : 'px-3 py-1.5'}`}>
-            <View className="flex-row items-center gap-1.5">
-              <FontAwesome name="user" size={isMobile ? 10 : 11} color="#8d171e" />
-              <Text className={`text-[#8d171e] font-semibold ${isMobile ? 'text-xs' : 'text-sm'}`}>
-                {isAuthenticated && profile
-                  ? `${profile.full_name?.split(' ')[0] || profile.email?.split('@')[0] || 'utente'}`
-                  : i18n.guest}
+            <View className="min-w-0 flex-1">
+              <Text
+                className={`font-black tracking-[-0.3px] text-[#271d19] ${
+                  isMobile ? (isUltraCompactMobile ? 'text-sm' : 'text-[15px]') : 'text-base'
+                }`}
+                numberOfLines={1}
+              >
+                {BRAND.name}
               </Text>
+              {!isUltraCompactMobile && (
+                <Text className="text-[11px] font-semibold text-[#8d171e]" numberOfLines={1}>
+                  {i18n.menuSubtitle}
+                </Text>
+              )}
             </View>
           </View>
 
-          {/* Order Counter Badge - Compact */}
-          {totalItems > 0 && (
-            <View className={`bg-[#8d171e] rounded-full flex-row items-center ${isMobile ? 'px-3 py-1 gap-1' : 'px-4 py-1.5 gap-1.5'}`}>
-              <FontAwesome name="shopping-cart" size={isMobile ? 10 : 11} color="#ffffff" />
-              <Text className={`text-white font-bold ${isMobile ? 'text-xs' : 'text-sm'}`}>{totalItems}</Text>
-            </View>
-          )}
-
-          {/* Logout Button - Compact */}
-          {(isAuthenticated || isGuest) && (
+          <View className={`shrink-0 flex-row items-center ${isMobile ? 'gap-1.5' : 'gap-2'}`}>
             <Pressable
-              className={`${isMobile ? 'p-1.5' : 'p-2'} bg-destructive/10 rounded-full active:opacity-80`}
-              onPress={handleLogout}
+              accessibilityRole="button"
+              accessibilityLabel={i18n.account}
+              onPress={() => router.push('/(tabs)/account')}
+              className={`flex-row items-center gap-2 rounded-lg active:opacity-70 web:hover:bg-[#8d171e]/[0.06] ${
+                isMobile ? 'px-1.5 py-1.5' : 'px-2.5 py-2'
+              }`}
             >
-              <FontAwesome name="sign-out" size={isMobile ? 14 : 18} color="#ef4444" />
+              <View
+                className={`items-center justify-center rounded-full border border-[#8d171e]/20 bg-white ${
+                  isMobile ? 'h-8 w-8' : 'h-9 w-9'
+                }`}
+              >
+                {isAuthenticated ? (
+                  <Text className="text-xs font-bold text-[#8d171e]">{accountInitial}</Text>
+                ) : (
+                  <FontAwesome name="user-o" size={isMobile ? 13 : 14} color="#8d171e" />
+                )}
+              </View>
+              {!isMobile && (
+                <View className="max-w-[140px]">
+                  <Text className="text-sm font-bold text-[#342b27]" numberOfLines={1}>
+                    {accountDisplayName}
+                  </Text>
+                  <Text className="text-[10px] font-semibold uppercase tracking-wide text-[#8d171e]/80">
+                    {isAuthenticated ? i18n.account : i18n.guest}
+                  </Text>
+                </View>
+              )}
             </Pressable>
-          )}
 
-          {!isAuthenticated && (
-            <Pressable
-              className={`${isMobile ? 'px-2 py-1' : 'px-3 py-1.5'} bg-[#8d171e] rounded-full active:opacity-80`}
-              onPress={() => router.push('/login')}
-            >
-              <Text className={`text-white font-bold ${isMobile ? 'text-xs' : 'text-sm'}`}>Accedi</Text>
-            </Pressable>
-          )}
+            {totalItems > 0 && (
+              <View
+                className={`flex-row items-center gap-1.5 rounded-lg border border-[#8d171e]/20 bg-white ${
+                  isMobile ? 'px-2.5 py-1.5' : 'px-3 py-2'
+                }`}
+                accessibilityLabel={`${i18n.cart}: ${totalItems}`}
+              >
+                <FontAwesome name="shopping-bag" size={isMobile ? 12 : 13} color="#8d171e" />
+                <Text className={`font-bold text-[#8d171e] ${isMobile ? 'text-xs' : 'text-sm'}`}>
+                  {totalItems}
+                </Text>
+              </View>
+            )}
+
+            {(isAuthenticated || isGuest) && (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={i18n.signOut}
+                onPress={handleLogout}
+                className={`rounded-lg border border-[#8d171e]/12 bg-white active:opacity-70 web:hover:bg-[#8d171e]/[0.05] ${
+                  isMobile ? 'px-2.5 py-2' : 'px-3 py-2'
+                }`}
+              >
+                {isMobile ? (
+                  <FontAwesome name="sign-out" size={14} color="#8d171e" />
+                ) : (
+                  <Text className="text-sm font-semibold text-[#453831]">{i18n.signOut}</Text>
+                )}
+              </Pressable>
+            )}
+
+            {!isAuthenticated && !isGuest && (
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => router.push('/login')}
+                className={`items-center justify-center rounded-lg bg-[#8d171e] active:opacity-90 web:hover:bg-[#741218] ${
+                  isMobile ? 'px-3 py-2' : 'px-4 py-2.5'
+                }`}
+              >
+                <Text className={`font-bold text-white ${isMobile ? 'text-xs' : 'text-sm'}`}>
+                  {i18n.signIn}
+                </Text>
+              </Pressable>
+            )}
+          </View>
         </View>
       </View>
 
@@ -304,7 +573,9 @@ export default function MenuScreen() {
             </View>
           ) : (
             <FlatList
+              ref={productListRef}
               data={displayProducts}
+              extraData={`${highlightedDrinkId}-${showContinueWithoutDrinks}-${totalItems}`}
               keyExtractor={(item) => item.id}
               numColumns={effectiveProductColumns}
               key={`products-${effectiveProductColumns}`}
@@ -313,6 +584,10 @@ export default function MenuScreen() {
               ItemSeparatorComponent={() => <View className={isMobile ? 'h-3' : 'h-4 md:h-6'} />}
               showsVerticalScrollIndicator={false}
               refreshing={productsLoading}
+              onScrollToIndexFailed={(info) => {
+                const offset = Math.max(0, info.averageItemLength * info.index);
+                productListRef.current?.scrollToOffset({ offset, animated: true });
+              }}
               onRefresh={() => {
                 queryClient.invalidateQueries({ queryKey: ['products'] });
               }}
@@ -376,46 +651,92 @@ export default function MenuScreen() {
                   </View>
                 ) : null
               }
-              renderItem={({ item }) => (
-                isMobile ? (
-                  <Pressable
-                    onPress={() => handleProductPress(item.id)}
-                    className="bg-white rounded-2xl border border-[#e1a255]/40 p-4 active:opacity-90"
+              renderItem={({ item }) => {
+                const isSpotlight = showContinueWithoutDrinks && highlightedDrinkId === item.id;
+                const quantityInCart = items.reduce(
+                  (sum, cartItem) => (cartItem.product.id === item.id ? sum + cartItem.quantity : sum),
+                  0
+                );
+
+                return isMobile ? (
+                  <DrinkSpotlightWrap
+                    active={isSpotlight}
+                    title={i18n.drinkPromptTitle}
+                    closeLabel={language === 'en' ? 'Close' : 'Chiudi'}
+                    onDismiss={dismissDrinkHint}
                   >
-                    <View className="flex-row items-start justify-between gap-3">
-                      <View className="flex-1">
-                        <Text className="text-[11px] font-bold text-gray-500 uppercase">
-                          {selectedCategoryName}
-                        </Text>
-                        <Text className="text-lg font-extrabold text-gray-900 mt-0.5" numberOfLines={1}>
-                          {item.name}
-                        </Text>
-                        <Text className="text-xs text-gray-600 mt-1" numberOfLines={2}>
-                          {item.description || item.ingredients?.join(', ') || i18n.artisanalRecipe}
-                        </Text>
-                        <Text className="text-lg font-extrabold text-[#8d171e] mt-2">
-                          €{item.price.toFixed(2)}
-                        </Text>
+                    <Pressable
+                      onPress={() => handleProductPress(item.id)}
+                      className="bg-white rounded-2xl border border-[#e1a255]/40 p-4 active:opacity-90"
+                    >
+                      <View className="flex-row items-start justify-between gap-3">
+                        <View className="flex-1">
+                          <Text className="text-[11px] font-bold text-gray-500 uppercase">
+                            {selectedCategoryName}
+                          </Text>
+                          <Text className="text-lg font-extrabold text-gray-900 mt-0.5" numberOfLines={1}>
+                            {item.name}
+                          </Text>
+                          <Text className="text-xs text-gray-600 mt-1" numberOfLines={2}>
+                            {item.description || item.ingredients?.join(', ') || i18n.artisanalRecipe}
+                          </Text>
+                          <Text className="text-lg font-extrabold text-[#8d171e] mt-2">
+                            €{item.price.toFixed(2)}
+                          </Text>
+                        </View>
+                        <View className="flex-row items-center bg-[#f9ecdd] rounded-full border border-[#e1a255]/60">
+                          <Pressable
+                            onPress={(event) => {
+                              event.stopPropagation();
+                              handleQuickDecrement(item);
+                            }}
+                            disabled={quantityInCart <= 0}
+                            className="w-8 h-8 items-center justify-center"
+                          >
+                            <FontAwesome
+                              name="minus"
+                              size={11}
+                              color={quantityInCart > 0 ? '#8d171e' : '#c4a494'}
+                            />
+                          </Pressable>
+                          <Text className="w-5 text-center text-sm font-extrabold text-[#8d171e]">
+                            {quantityInCart}
+                          </Text>
+                          <Pressable
+                            onPress={(event) => {
+                              event.stopPropagation();
+                              handleQuickAdd(item);
+                            }}
+                            className="w-8 h-8 rounded-full bg-[#8d171e] items-center justify-center"
+                          >
+                            <FontAwesome name="plus" size={11} color="#ffffff" />
+                          </Pressable>
+                        </View>
                       </View>
-                      <Pressable
-                        onPress={() => handleProductPress(item.id)}
-                        className="w-8 h-8 rounded-full bg-[#8d171e] items-center justify-center"
-                      >
-                        <Text className="text-white text-lg font-bold leading-none">+</Text>
-                      </Pressable>
-                    </View>
-                  </Pressable>
+                    </Pressable>
+                  </DrinkSpotlightWrap>
                 ) : (
                   <View className={`flex-1 ${effectiveProductColumns > 1 ? 'h-[450px]' : 'h-[380px]'} max-w-[500px]`}>
-                    <ProductCard
-                      product={item}
-                      onPress={handleProductPress}
-                      onAddToCart={handleProductPress}
-                      onEditPress={isAdmin ? () => handleEditPress(item) : undefined}
-                    />
+                    <DrinkSpotlightWrap
+                      active={isSpotlight}
+                      title={i18n.drinkPromptTitle}
+                      closeLabel={language === 'en' ? 'Close' : 'Chiudi'}
+                      onDismiss={dismissDrinkHint}
+                    >
+                      <ProductCard
+                        product={item}
+                        onPress={handleProductPress}
+                        onAddToCart={handleProductPress}
+                        quickAddAsNormalPizza={isStandardMenuPizza(
+                          item,
+                          categories.find((category) => category.id === item.category_id)?.name
+                        )}
+                        onEditPress={isAdmin ? () => handleEditPress(item) : undefined}
+                      />
+                    </DrinkSpotlightWrap>
                   </View>
-                )
-              )}
+                );
+              }}
             />
           )}
         </View>
@@ -510,53 +831,6 @@ export default function MenuScreen() {
                 <Text className="text-white font-bold">Accedi o Registrati</Text>
               </Pressable>
             )}
-          </View>
-        </View>
-      </Modal>
-
-      <Modal
-        transparent
-        animationType="fade"
-        visible={showContinueWithoutDrinks}
-        onRequestClose={() => setShowContinueWithoutDrinks(false)}
-      >
-        <View className="flex-1 bg-black/55 items-center justify-center px-4">
-          <View className="w-full max-w-md bg-white rounded-2xl border border-[#e1a255]/60 p-5 shadow-xl">
-            <View className="flex-row items-start gap-3">
-              <View className="w-10 h-10 rounded-full bg-[#f9ecdd] border border-[#e1a255]/60 items-center justify-center">
-                <FontAwesome name="glass" size={16} color="#8d171e" />
-              </View>
-              <View className="flex-1">
-                <Text className="text-lg font-extrabold text-gray-900">{i18n.drinkPromptTitle}</Text>
-                <Text className="text-sm text-gray-600 mt-1">{i18n.drinkPromptDescription}</Text>
-              </View>
-              <Pressable
-                onPress={() => setShowContinueWithoutDrinks(false)}
-                className="w-8 h-8 rounded-full bg-[#f9ecdd] border border-[#e1a255]/60 items-center justify-center active:opacity-80"
-                accessibilityLabel={language === 'en' ? 'Close' : 'Chiudi'}
-              >
-                <FontAwesome name="close" size={14} color="#8d171e" />
-              </Pressable>
-            </View>
-
-            <View className="mt-5 gap-3">
-              <Pressable
-                className="h-12 bg-[#8d171e] rounded-xl items-center justify-center active:opacity-90"
-                onPress={() => setShowContinueWithoutDrinks(false)}
-              >
-                <Text className="text-white font-bold text-sm">{i18n.drinkPromptAdd}</Text>
-              </Pressable>
-
-              <Pressable
-                className="h-12 rounded-xl border border-[#e1a255]/60 bg-white items-center justify-center active:opacity-90"
-                onPress={() => {
-                  setShowContinueWithoutDrinks(false);
-                  router.push('/modal');
-                }}
-              >
-                <Text className="text-[#8d171e] font-semibold text-sm">{i18n.drinkPromptContinue}</Text>
-              </Pressable>
-            </View>
           </View>
         </View>
       </Modal>

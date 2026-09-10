@@ -4,9 +4,11 @@
  */
 
 import type { Product } from '@/types/database.types';
+import { BUILDER_PRODUCT_NAME, getQuickAddPizzaModifiers } from '@/lib/data/pizzaBuilder';
 import { useAppSettings } from '@/lib/stores/AppSettingsContext';
+import { useCart } from '@/lib/stores/CartContext';
 import { FontAwesome } from '@expo/vector-icons';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { Image, Pressable, Text, View, useWindowDimensions } from 'react-native';
 
 interface ProductCardProps {
@@ -14,6 +16,8 @@ interface ProductCardProps {
   readonly onAddToCart: (productId: string) => void;
   readonly onPress?: (productId: string) => void;
   readonly onEditPress?: () => void;
+  /** Se true, il + rapido aggiunge la pizza in formato Normale. */
+  readonly quickAddAsNormalPizza?: boolean;
 }
 
 // Helper function to get icon name based on product name
@@ -40,17 +44,43 @@ function getProductIcon(product: Product): string {
   return 'cutlery';
 }
 
-export function ProductCard({ product, onAddToCart, onPress, onEditPress }: ProductCardProps) {
+export function ProductCard({ product, onAddToCart, onPress, onEditPress, quickAddAsNormalPizza = false }: ProductCardProps) {
   const { width } = useWindowDimensions();
   const { language } = useAppSettings();
+  const { items, addItem, updateQuantity } = useCart();
   const isMobile = width < 768;
 
   // Only show edit button if onEditPress is provided (which implies admin check in parent)
   const showEditButton = !!onEditPress;
+  const needsBuilder = product.name === BUILDER_PRODUCT_NAME;
+  const quantityInCart = useMemo(
+    () => items.reduce((sum, item) => (item.product.id === product.id ? sum + item.quantity : sum), 0),
+    [items, product.id]
+  );
 
-  const handleAddToCart = useCallback(() => {
-    onAddToCart(product.id);
-  }, [product.id, onAddToCart]);
+  const handleIncrement = useCallback(() => {
+    if (needsBuilder) {
+      onAddToCart(product.id);
+      return;
+    }
+    if (quickAddAsNormalPizza) {
+      addItem(product, 1, '', getQuickAddPizzaModifiers());
+      return;
+    }
+    addItem(product, 1);
+  }, [addItem, needsBuilder, onAddToCart, product, quickAddAsNormalPizza]);
+
+  const handleDecrement = useCallback(() => {
+    let lastIndex = -1;
+    for (let i = items.length - 1; i >= 0; i -= 1) {
+      if (items[i].product.id === product.id) {
+        lastIndex = i;
+        break;
+      }
+    }
+    if (lastIndex < 0) return;
+    updateQuantity(lastIndex, items[lastIndex].quantity - 1);
+  }, [items, product.id, updateQuantity]);
 
   const handlePress = useCallback(() => {
     onPress?.(product.id);
@@ -136,22 +166,36 @@ export function ProductCard({ product, onAddToCart, onPress, onEditPress }: Prod
               {formattedPrice}
             </Text>
           </Pressable>
-          <Pressable
-            className={`bg-[#8d171e] rounded-full items-center justify-center active:opacity-90 ${
-              isMobile ? 'h-10 px-4' : 'h-11 px-5'
-            }`}
-            onPress={handleAddToCart}
-            accessibilityRole="button"
-            accessibilityLabel={
-              language === 'en'
-                ? `Add ${product.name} to cart`
-                : `Aggiungi ${product.name} al carrello`
-            }
-          >
-            <Text className={`text-white font-extrabold ${isMobile ? 'text-sm' : 'text-base'}`}>
-              {language === 'en' ? 'Add' : 'Aggiungi'}
+          <View className="flex-row items-center bg-[#f9ecdd] rounded-full border border-[#e1a255]/60">
+            <Pressable
+              className={`${isMobile ? 'w-10 h-10' : 'w-11 h-11'} items-center justify-center active:opacity-80`}
+              onPress={handleDecrement}
+              disabled={quantityInCart <= 0}
+              accessibilityRole="button"
+              accessibilityLabel={
+                language === 'en'
+                  ? `Remove one ${product.name}`
+                  : `Togli una ${product.name}`
+              }
+            >
+              <FontAwesome name="minus" size={isMobile ? 12 : 13} color={quantityInCart > 0 ? '#8d171e' : '#c4a494'} />
+            </Pressable>
+            <Text className={`${isMobile ? 'text-sm w-6' : 'text-base w-7'} text-center font-extrabold text-[#8d171e]`}>
+              {quantityInCart}
             </Text>
-          </Pressable>
+            <Pressable
+              className={`${isMobile ? 'w-10 h-10' : 'w-11 h-11'} items-center justify-center bg-[#8d171e] rounded-full active:opacity-90`}
+              onPress={handleIncrement}
+              accessibilityRole="button"
+              accessibilityLabel={
+                language === 'en'
+                  ? `Add ${product.name} to cart`
+                  : `Aggiungi ${product.name} al carrello`
+              }
+            >
+              <FontAwesome name="plus" size={isMobile ? 12 : 13} color="#ffffff" />
+            </Pressable>
+          </View>
         </View>
       </View>
     </View>

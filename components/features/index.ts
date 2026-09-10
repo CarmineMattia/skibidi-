@@ -8,6 +8,7 @@ export * from './CategoryFilter';
 export * from './CartItem';
 export * from './CartSummary';
 export * from './ProductDetailsModal';
+export * from './MezzoMetroGustiStep';
 export * from './EditProductModal';
 export * from './KitchenOrderCard';
 export * from './FiscalRetryPanel';
