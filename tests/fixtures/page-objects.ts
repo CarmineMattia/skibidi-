@@ -1,59 +1,96 @@
-/**
- * Page Objects
- * Reusable page interaction utilities for E2E tests
- */
+// Page Objects for Pizzeria Ambrosia (web)
+//
+// The UI is in Italian and built on react-native-web: interactive controls on
+// the login screen are Pressable (div) elements, NOT native <button>s, so they
+// are addressed by visible text (getByText), while form fields are real inputs
+// (input[type=email|password]) and the product "add" controls are native
+// buttons with aria-labels ("Aggiungi <name> al carrello").
+import { expect, type Browser, type Locator, type Page } from '@playwright/test';
 
-import { type Page, type Locator, expect } from '@playwright/test';
+const GUEST_KEY = 'skibidi_lastLoginAsGuest';
+const KIOSK_KEY = 'skibidi_kioskModeEnabled';
+
+// Put the app into guest/kiosk mode via its own state keys. Pressable clicks on
+// RN-web are unreliable in headless Chromium (no real pointer capture), so
+// seeding localStorage is the deterministic way to reach guest mode.
+export async function enterGuestMode(page: Page) {
+  await page.goto('/login', { waitUntil: 'domcontentloaded' });
+  await page.evaluate((keys) => {
+    localStorage.setItem(keys[0], 'true');
+    localStorage.setItem(keys[1], 'true');
+  }, [GUEST_KEY, KIOSK_KEY]);
+  await page.goto('/menu', { waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(1500);
+}
 
 export class LoginPage {
   readonly page: Page;
+  readonly brand: Locator;
   readonly emailInput: Locator;
   readonly passwordInput: Locator;
-  readonly loginButton: Locator;
-  readonly signupTab: Locator;
-  readonly guestModeButton: Locator;
-  readonly errorMessage: Locator;
   readonly fullNameInput: Locator;
+  readonly otpButton: Locator;      // "Inviami il codice di accesso" (OTP view)
+  readonly passwordViewToggle: Locator; // "Accedi con email e password"
+  readonly guestButton: Locator;    // "Entra come ospite"
+  readonly errorMessage: Locator;
 
   constructor(page: Page) {
     this.page = page;
-    this.emailInput = page.getByPlaceholder('esempio@email.com');
-    this.passwordInput = page.getByPlaceholder('••••••••');
-    this.loginButton = page.getByRole('button', { name: /accedi/i });
-    this.signupTab = page.getByRole('button', { name: /registrati/i });
-    this.guestModeButton = page.getByRole('button', { name: /entra come ospite/i });
-    this.errorMessage = page.locator('[class*="text-destructive"]');
-    this.fullNameInput = page.getByPlaceholder('Mario Rossi');
+    this.brand = page.getByText('Pizzeria Ambrosia', { exact: true }).first();
+    this.emailInput = page.locator('input[type="email"]');
+    this.passwordInput = page.locator('input[type="password"]');
+    this.fullNameInput = page.getByPlaceholder(/Mario Rossi/i);
+    this.otpButton = page.getByText(/codice di accesso/i);
+    this.passwordViewToggle = page.getByText(/email e password/i);
+    this.guestButton = page.getByText(/come ospite/i);
+    this.errorMessage = page.locator('.text-destructive');
   }
 
   async navigate() {
-    await this.page.goto('/login');
-    await this.page.waitForLoadState('networkidle');
+    await this.page.goto('/login', { waitUntil: 'domcontentloaded' });
+    await this.emailInput.waitFor({ timeout: 15000 });
   }
 
-  async login(email: string, password: string) {
+  async requestOtpCode(email: string) {
+    await this.emailInput.fill(email);
+    await this.otpButton.click();
+    await this.page.waitForTimeout(1500);
+  }
+
+  // Switch from the default OTP view to the email + password view. The toggle
+  // only exists in the OTP view, so a tap that a slow render swallows is safe to retry.
+  async switchToPasswordView() {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      if ((await this.passwordViewToggle.count()) === 0) break; // already in password view
+      await this.passwordViewToggle.click();
+      if (await this.passwordInput.isVisible()) return;
+      await this.page.waitForTimeout(500);
+    }
+    await this.passwordInput.waitFor({ timeout: 15000 });
+  }
+
+  // shares its label with the form heading, so target the last exact match.
+  async submitPassword() {
+    await this.page.getByText('Accedi', { exact: true }).last().click();
+  }
+
+  // Full email + password login. Returns true if the authenticated menu loaded.
+  async login(email: string, password: string): Promise<boolean> {
+    await this.switchToPasswordView();
     await this.emailInput.fill(email);
     await this.passwordInput.fill(password);
-    await this.loginButton.click();
-    await this.page.waitForURL(/\(tabs\)\/menu/);
-  }
-
-  async clickSignupTab() {
-    await this.signupTab.click();
-  }
-
-  async signup(email: string, password: string, fullName: string, role: string) {
-    await this.clickSignupTab();
-    await this.fullNameInput.fill(fullName);
-    await this.emailInput.fill(email);
-    await this.passwordInput.fill(password);
-    await this.loginButton.click();
-    await this.page.waitForTimeout(1000);
+    await this.submitPassword();
+    return this.page
+      .getByText('Ordina online')
+      .first()
+      .waitFor({ timeout: 12000 })
+      .then(() => true)
+      .catch(() => false);
   }
 
   async enterGuestMode() {
-    await this.guestModeButton.click();
-    await this.page.waitForURL(/\(tabs\)\/menu/);
+    await this.navigate();
+    await enterGuestMode(this.page);
   }
 
   async expectError(message: string | RegExp) {
@@ -63,133 +100,115 @@ export class LoginPage {
 
 export class MenuPage {
   readonly page: Page;
-  readonly products: Locator;
-  readonly cartBadge: Locator;
-  readonly checkoutButton: Locator;
-  readonly logoutButton: Locator;
-  readonly categoryButtons: Locator;
+  readonly headerBrand: Locator;
+  readonly headerSubtitle: Locator;
+  readonly guestBadge: Locator;
+  readonly logOutButton: Locator;
+  readonly cart: Locator;
 
   constructor(page: Page) {
     this.page = page;
-    this.products = page.locator('[class*="ProductCard"]');
-    this.cartBadge = page.locator('[class*="cart"]');
-    this.checkoutButton = page.getByRole('button', { name: /vai al pagamento|checkout/i }).first();
-    this.logoutButton = page.getByRole('button', { name: /esci|logout/i }).first();
-    this.categoryButtons = page.locator('[class*="CategoryFilter"] button');
+    this.headerBrand = page.getByText('Pizzeria Ambrosia', { exact: true }).first();
+    this.headerSubtitle = page.getByText('Ordina online');
+    this.guestBadge = page.getByText(/^Ospite$/i);
+    this.logOutButton = page.getByText('Esci');
+    this.cart = page.getByText('Carrello');
   }
 
   async navigate() {
-    await this.page.goto('/(tabs)/menu');
-    await this.page.waitForLoadState('networkidle');
+    await this.page.goto('/menu', { waitUntil: 'domcontentloaded' });
+    await this.headerSubtitle.first().waitFor({ timeout: 15000 });
   }
 
-  async addProductToCart(productName: string) {
-    const product = this.page.getByText(productName).first();
-    await product.click();
-    await this.page.waitForTimeout(500);
+  // Native product add-buttons: aria-label "Aggiungi <name> al carrello".
+  addButtons(): Locator {
+    return this.page.getByRole('button', { name: /Aggiungi .*al carrello/i });
   }
 
-  async goToCheckout() {
-    await this.checkoutButton.click();
-    await this.page.waitForURL('/modal');
+  async clickAddButton(index = 0) {
+    await this.addButtons().nth(index).click();
   }
 
-  async logout() {
-    await this.logoutButton.click();
-    await this.page.waitForURL('/login');
+  // Native per-product "remove one" stepper buttons: aria-label "Togli una <name>".
+  togliButtons(): Locator {
+    return this.page.getByRole('button', { name: /^Togli una /i });
   }
 
+  // A category pill by its exact Italian name (e.g. "Pizze Gustose").
+  category(name: string): Locator {
+    return this.page.getByText(name, { exact: true });
+  }
+
+  async addToCart(productName: string) {
+    const re = new RegExp(`Aggiungi ${productName} al carrello`, 'i');
+    await this.page.getByRole('button', { name: re }).first().click();
+  }
+
+  // The menu is loaded when at least one product add-button is available.
   async expectProductsLoaded() {
-    await expect(this.products.first()).toBeVisible({ timeout: 10000 });
+    await expect(this.addButtons().first()).toBeVisible();
+  }
+
+  // Number of items in the cart, read from the CartSummary "N prodotto/i" label.
+  async cartCount(): Promise<number> {
+    return this.page.evaluate(() => {
+      const el = Array.from(document.querySelectorAll('*')).find(
+        (e) => /^\d+ prodotto/i.test((e.textContent || '').trim()),
+      );
+      const m = (el?.textContent || '').match(/(\d+) prodotto/i);
+      return m ? Number(m[1]) : 0;
+    });
   }
 }
 
-export class CheckoutPage {
-  readonly page: Page;
-  readonly orderTypeButtons: Locator;
-  readonly continueButton: Locator;
-  readonly nameInput: Locator;
-  readonly tableInput: Locator;
-  readonly phoneInput: Locator;
-  readonly paymentButton: Locator;
-  readonly cardPayment: Locator;
-  readonly cashPayment: Locator;
+// --- Admin helpers ---------------------------------------------------------
+//
+// There is no service-role key, so an admin account cannot be seeded from
+// tests. These helpers attempt a real login and report success; specs that
+// require an admin skip gracefully when no admin account is reachable.
 
-  constructor(page: Page) {
-    this.page = page;
-    this.orderTypeButtons = page.locator('[class*="order-type"]');
-    this.continueButton = page.getByRole('button', { name: /continua|vai al pagamento/i });
-    this.nameInput = page.getByPlaceholder('Il tuo nome');
-    this.tableInput = page.getByPlaceholder('Es. 12');
-    this.phoneInput = page.getByPlaceholder('Il tuo numero');
-    this.paymentButton = page.getByRole('button', { name: /paga ora/i });
-    this.cardPayment = page.getByText(/carta di credito/i);
-    this.cashPayment = page.getByText(/contanti/i);
-  }
+export const ADMIN_EMAIL = process.env.SKIBIDI_ADMIN_EMAIL ?? 'admin@skibidi.com';
+export const ADMIN_PASSWORD = process.env.SKIBIDI_ADMIN_PASSWORD ?? 'Admin123!';
 
-  async selectOrderType(type: 'eat_in' | 'take_away' | 'delivery') {
-    const typeMap = {
-      eat_in: 'Mangio Qui',
-      take_away: 'Da Asporto',
-      delivery: 'Delivery',
-    };
-    await this.page.getByText(typeMap[type]).click();
-    await this.continueButton.click();
-  }
+export const CUSTOMER_EMAIL = process.env.SKIBIDI_CUSTOMER_EMAIL ?? 'customer@skibidi.com';
+export const CUSTOMER_PASSWORD = process.env.SKIBIDI_CUSTOMER_PASSWORD ?? 'Customer123!';
 
-  async fillCustomerDetails(type: 'eat_in' | 'take_away' | 'delivery', details: { name: string; table?: string; phone?: string; address?: string }) {
-    if (type === 'eat_in' && details.table) {
-      await this.tableInput.fill(details.table!);
-    }
-    if ((type === 'take_away' || type === 'delivery') && details.phone) {
-      await this.phoneInput.fill(details.phone!);
-    }
-    await this.continueButton.click();
+// Try an admin login on a throwaway page; true if it reaches /admin-options.
+export async function hasAdminAccount(browser: Browser): Promise<boolean> {
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await ctx.newPage();
+  page.setDefaultTimeout(8000);
+  let ok = false;
+  try {
+    await page.goto('/login', { waitUntil: 'domcontentloaded' });
+    await page.locator('input[type="email"]').waitFor({ timeout: 15000 });
+    await page.getByText(/email e password/i).click();
+    await page.waitForTimeout(500);
+    await page.locator('input[type="email"]').fill(ADMIN_EMAIL);
+    await page.locator('input[type="password"]').fill(ADMIN_PASSWORD);
+    await page.getByText('Accedi', { exact: true }).last().click();
+      ok = await page
+        .waitForURL(/menu/, { timeout: 8000 })
+        .then(() => true)
+        .catch(() => false);
+  } catch {
+    ok = false;
+  } finally {
+    await ctx.close();
   }
-
-  async selectPaymentMethod(method: 'card' | 'cash') {
-    if (method === 'card') {
-      await this.cardPayment.click();
-    } else {
-      await this.cashPayment.click();
-    }
-  }
-
-  async completePayment() {
-    await this.paymentButton.click();
-    await this.page.waitForURL(/\/order-success/);
-  }
+  return ok;
 }
 
-export class KitchenPage {
-  readonly page: Page;
-  readonly orders: Locator;
-  readonly readyButton: Locator;
-  readonly deliveredButton: Locator;
+// Log in as admin on the given page; true on success (navigates to dashboard).
+export async function loginAsAdmin(page: Page): Promise<boolean> {
+  const lp = new LoginPage(page);
+  await lp.navigate();
+  return lp.login(ADMIN_EMAIL, ADMIN_PASSWORD);
+}
 
-  constructor(page: Page) {
-    this.page = page;
-    this.orders = page.locator('[class*="KitchenOrder"]');
-    this.readyButton = page.getByRole('button', { name: /pronto/i });
-    this.deliveredButton = page.getByRole('button', { name: /consegnato/i });
-  }
-
-  async navigate() {
-    await this.page.goto('/(tabs)/kitchen');
-    await this.page.waitForLoadState('networkidle');
-  }
-
-  async expectOrdersLoaded() {
-    await expect(this.orders.first()).toBeVisible({ timeout: 10000 });
-  }
-
-  async markOrderReady() {
-    await this.readyButton.first().click();
-    await this.page.waitForTimeout(500);
-  }
-
-  async markOrderDelivered() {
-    await this.deliveredButton.first().click();
-    await this.page.waitForTimeout(500);
-  }
+// Log in as the known customer; true on success (navigates to /menu).
+export async function loginAsCustomer(page: Page): Promise<boolean> {
+  const lp = new LoginPage(page);
+  await lp.navigate();
+  return lp.login(CUSTOMER_EMAIL, CUSTOMER_PASSWORD);
 }

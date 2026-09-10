@@ -63,12 +63,14 @@ export default function AdminOptionsScreen() {
   const [businessPickerEnd, setBusinessPickerEnd] = useState<{ hour: number; minute: number }>({ hour: 14, minute: 0 });
   const [isBusinessHoursCollapsed, setIsBusinessHoursCollapsed] = useState(false);
   const [orderCapacityInput, setOrderCapacityInput] = useState(String(maxOrdersPerWindow));
-  const [orderWindowInput, setOrderWindowInput] = useState(String(orderWindowMinutes));
   const [deliveryCapacityInput, setDeliveryCapacityInput] = useState(String(deliveryMaxOrdersPerWindow));
-  const [deliveryWindowInput, setDeliveryWindowInput] = useState(String(deliveryOrderWindowMinutes));
+  const [deliveryFeeInput, setDeliveryFeeInput] = useState(deliveryFee.toFixed(2));
+  const [deliveryFeeSavedFlash, setDeliveryFeeSavedFlash] = useState(false);
+  const [capacitySavedFlash, setCapacitySavedFlash] = useState(false);
   const [shiftDoughInput, setShiftDoughInput] = useState(
     shiftDoughBallsTotal !== null ? String(shiftDoughBallsTotal) : ''
   );
+  const [shiftDoughSavedFlash, setShiftDoughSavedFlash] = useState(false);
   const {
     usedUnits: shiftUsedUnits,
     remainingUnits: shiftRemainingUnits,
@@ -94,20 +96,23 @@ export default function AdminOptionsScreen() {
   }, [maxOrdersPerWindow]);
 
   useEffect(() => {
-    setOrderWindowInput(String(orderWindowMinutes));
-  }, [orderWindowMinutes]);
-
-  useEffect(() => {
     setDeliveryCapacityInput(String(deliveryMaxOrdersPerWindow));
   }, [deliveryMaxOrdersPerWindow]);
 
   useEffect(() => {
-    setDeliveryWindowInput(String(deliveryOrderWindowMinutes));
-  }, [deliveryOrderWindowMinutes]);
+    setDeliveryFeeInput(deliveryFee.toFixed(2));
+  }, [deliveryFee]);
 
   useEffect(() => {
     setShiftDoughInput(shiftDoughBallsTotal !== null ? String(shiftDoughBallsTotal) : '');
   }, [shiftDoughBallsTotal]);
+
+  // Una sola durata fascia: allinea eventuali valori legacy diversi.
+  useEffect(() => {
+    if (deliveryOrderWindowMinutes !== orderWindowMinutes) {
+      setDeliveryOrderWindowMinutes(orderWindowMinutes);
+    }
+  }, [deliveryOrderWindowMinutes, orderWindowMinutes, setDeliveryOrderWindowMinutes]);
 
   const shiftStartedLabel = useMemo(() => {
     if (!shiftStartedAt) return null;
@@ -159,12 +164,42 @@ export default function AdminOptionsScreen() {
     );
   };
 
-  const handleDeliveryFeeChange = (raw: string) => {
+  const sanitizeDeliveryFeeInput = (raw: string): string => {
+    // Allow digits + one decimal separator while typing (comma or dot).
     const normalized = raw.replace(',', '.');
-    const parsed = Number(normalized);
-    if (!Number.isNaN(parsed) && parsed >= 0) {
-      setDeliveryFee(parsed);
+    const cleaned = normalized.replace(/[^\d.]/g, '');
+    const parts = cleaned.split('.');
+    if (parts.length <= 1) return cleaned;
+    return `${parts[0]}.${parts.slice(1).join('').slice(0, 2)}`;
+  };
+
+  const commitDeliveryFee = (raw = deliveryFeeInput) => {
+    const normalized = raw.replace(',', '.').trim();
+    if (normalized === '' || normalized === '.') {
+      setDeliveryFeeInput(deliveryFee.toFixed(2));
+      return;
     }
+    const parsed = Number(normalized);
+    if (Number.isNaN(parsed) || parsed < 0) {
+      Alert.alert('Valore non valido', 'Inserisci un importo delivery valido, ad esempio 2.50');
+      setDeliveryFeeInput(deliveryFee.toFixed(2));
+      return;
+    }
+    const rounded = Math.round(parsed * 100) / 100;
+    setDeliveryFee(rounded);
+    setDeliveryFeeInput(rounded.toFixed(2));
+    setDeliveryFeeSavedFlash(true);
+    setTimeout(() => setDeliveryFeeSavedFlash(false), 1800);
+  };
+
+  const nudgeDeliveryFee = (delta: number) => {
+    const current = Number(deliveryFeeInput.replace(',', '.'));
+    const base = Number.isFinite(current) ? current : deliveryFee;
+    const next = Math.max(0, Math.round((base + delta) * 100) / 100);
+    setDeliveryFeeInput(next.toFixed(2));
+    setDeliveryFee(next);
+    setDeliveryFeeSavedFlash(true);
+    setTimeout(() => setDeliveryFeeSavedFlash(false), 1800);
   };
 
   const handlePauseOrders = () => {
@@ -193,6 +228,96 @@ export default function AdminOptionsScreen() {
   };
 
   const sanitizeNumericInput = (value: string): string => value.replaceAll(/\D/g, '');
+
+  const WINDOW_MINUTE_PRESETS = [5, 10, 15, 20] as const;
+
+  const flashCapacitySaved = () => {
+    setCapacitySavedFlash(true);
+    setTimeout(() => setCapacitySavedFlash(false), 1800);
+  };
+
+  const flashShiftDoughSaved = () => {
+    setShiftDoughSavedFlash(true);
+    setTimeout(() => setShiftDoughSavedFlash(false), 1800);
+  };
+
+  const commitPickupCapacity = (raw?: string) => {
+    const parsed = Number(raw ?? orderCapacityInput);
+    if (!Number.isFinite(parsed) || parsed < 1) {
+      setOrderCapacityInput(String(maxOrdersPerWindow));
+      return;
+    }
+    const next = Math.max(1, Math.floor(parsed));
+    setOrderCapacityInput(String(next));
+    setMaxOrdersPerWindow(next);
+    flashCapacitySaved();
+  };
+
+  const commitDeliveryCapacity = (raw?: string) => {
+    const parsed = Number(raw ?? deliveryCapacityInput);
+    if (!Number.isFinite(parsed) || parsed < 1) {
+      setDeliveryCapacityInput(String(deliveryMaxOrdersPerWindow));
+      return;
+    }
+    const next = Math.max(1, Math.floor(parsed));
+    setDeliveryCapacityInput(String(next));
+    setDeliveryMaxOrdersPerWindow(next);
+    flashCapacitySaved();
+  };
+
+  const nudgePickupCapacity = (delta: number) => {
+    const current = Number(orderCapacityInput);
+    const base = Number.isFinite(current) && current >= 1 ? current : maxOrdersPerWindow;
+    commitPickupCapacity(String(Math.max(1, Math.floor(base + delta))));
+  };
+
+  const nudgeDeliveryCapacity = (delta: number) => {
+    const current = Number(deliveryCapacityInput);
+    const base = Number.isFinite(current) && current >= 1 ? current : deliveryMaxOrdersPerWindow;
+    commitDeliveryCapacity(String(Math.max(1, Math.floor(base + delta))));
+  };
+
+  const commitShiftDoughTotal = (raw?: string) => {
+    const value = (raw ?? shiftDoughInput).trim();
+    if (value === '') {
+      clearShiftDoughTracking();
+      setShiftDoughInput('');
+      flashShiftDoughSaved();
+      return;
+    }
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed) || parsed < 1) {
+      setShiftDoughInput(shiftDoughBallsTotal !== null ? String(shiftDoughBallsTotal) : '');
+      return;
+    }
+    const next = Math.floor(parsed);
+    setShiftDoughInput(String(next));
+    setShiftDoughBallsTotal(next);
+    flashShiftDoughSaved();
+  };
+
+  const nudgeShiftDoughTotal = (delta: number) => {
+    const current = Number(shiftDoughInput);
+    const base =
+      Number.isFinite(current) && current >= 1
+        ? current
+        : shiftDoughBallsTotal !== null && shiftDoughBallsTotal > 0
+          ? shiftDoughBallsTotal
+          : 100;
+    commitShiftDoughTotal(String(Math.max(1, Math.floor(base + delta))));
+  };
+
+  const capacitySummaryText = `Ogni ${orderWindowMinutes} min: fino a ${maxOrdersPerWindow} unità in sala/asporto, ${deliveryMaxOrdersPerWindow} in delivery.`;
+  const capacityExampleUnits = maxOrdersPerWindow;
+  const capacityExampleText =
+    capacityExampleUnits >= 6
+      ? `${capacityExampleUnits} unità ≈ ${capacityExampleUnits} Margherite, oppure 1 metro + ${Math.max(0, capacityExampleUnits - 6)} normali.`
+      : `${capacityExampleUnits} unità ≈ ${capacityExampleUnits} Margherite (o mix di taglie equivalenti).`;
+
+  const shiftUsageRatio =
+    isShiftTrackingEnabled && shiftDoughBallsTotal && shiftDoughBallsTotal > 0
+      ? Math.min(1, Math.max(0, shiftUsedUnits / shiftDoughBallsTotal))
+      : 0;
 
   const formatTime = (hour: number, minute: number): string =>
     `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
@@ -309,11 +434,16 @@ export default function AdminOptionsScreen() {
       Alert.alert('Nessun suono', 'Carica prima un file audio.');
       return;
     }
-    const { sound } = await Audio.Sound.createAsync({ uri: url }, { shouldPlay: true, volume: 1 });
-    sound.setOnPlaybackStatusUpdate((status) => {
-      if (!status.isLoaded || !status.didJustFinish) return;
-      void sound.unloadAsync();
-    });
+    try {
+      const { sound } = await Audio.Sound.createAsync({ uri: url }, { shouldPlay: true, volume: 1 });
+      sound.setOnPlaybackStatusUpdate((status) => {
+        if (!status.isLoaded || !status.didJustFinish) return;
+        void sound.unloadAsync().catch(() => undefined);
+      });
+    } catch (error) {
+      console.warn('[AdminOptions] test sound failed:', url, error);
+      Alert.alert('Suono non valido', 'Il file audio non può essere riprodotto. Caricane un altro (MP3/WAV/M4A/OGG).');
+    }
   };
 
   return (
@@ -389,19 +519,60 @@ export default function AdminOptionsScreen() {
           Costo delivery
         </Text>
         <Text className="text-muted-foreground mb-4">
-          Imposta il supplemento delivery in euro (es. 2.00).
+          Digita l&apos;importo (es. 2,50 oppure 2.50), poi premi Salva. Oppure usa + / − per cambiare di 0,50€.
         </Text>
-        <View className="flex-row items-center gap-3">
-          <View className="h-12 w-12 rounded-xl bg-secondary items-center justify-center">
-            <Text className="text-foreground font-bold text-lg">€</Text>
+
+        <View className="flex-row items-center gap-2 mb-3">
+          <Pressable
+            accessibilityLabel="Diminuisci delivery di 50 centesimi"
+            onPress={() => nudgeDeliveryFee(-0.5)}
+            className="h-12 w-12 rounded-xl bg-secondary border border-border items-center justify-center active:opacity-80"
+          >
+            <Text className="text-foreground font-black text-xl">−</Text>
+          </Pressable>
+
+          <View className="flex-1 h-12 rounded-xl border border-border bg-background px-3 flex-row items-center gap-2">
+            <Text className="text-muted-foreground font-bold text-base">€</Text>
+            <TextInput
+              className="flex-1 text-foreground font-extrabold text-xl"
+              keyboardType="decimal-pad"
+              inputMode="decimal"
+              value={deliveryFeeInput}
+              onChangeText={(value) => setDeliveryFeeInput(sanitizeDeliveryFeeInput(value))}
+              onBlur={() => commitDeliveryFee()}
+              onSubmitEditing={() => commitDeliveryFee()}
+              placeholder="0.00"
+              placeholderTextColor="#9ca3af"
+              selectTextOnFocus
+              returnKeyType="done"
+            />
           </View>
-          <TextInput
-            className="flex-1 h-12 rounded-xl border border-border bg-background px-4 text-foreground font-semibold"
-            keyboardType="decimal-pad"
-            value={deliveryFee.toFixed(2)}
-            onChangeText={handleDeliveryFeeChange}
-          />
+
+          <Pressable
+            accessibilityLabel="Aumenta delivery di 50 centesimi"
+            onPress={() => nudgeDeliveryFee(0.5)}
+            className="h-12 w-12 rounded-xl bg-secondary border border-border items-center justify-center active:opacity-80"
+          >
+            <Text className="text-foreground font-black text-xl">+</Text>
+          </Pressable>
         </View>
+
+        <View className="flex-row items-center gap-2">
+          <Pressable
+            onPress={() => commitDeliveryFee()}
+            className="flex-1 h-11 rounded-xl bg-[#8d171e] items-center justify-center active:opacity-90"
+          >
+            <Text className="text-white font-bold">Salva costo delivery</Text>
+          </Pressable>
+          <View className="rounded-xl bg-secondary px-3 py-2 border border-border">
+            <Text className="text-[10px] font-bold uppercase text-muted-foreground">Attuale</Text>
+            <Text className="text-foreground font-extrabold">€{deliveryFee.toFixed(2)}</Text>
+          </View>
+        </View>
+
+        {deliveryFeeSavedFlash ? (
+          <Text className="text-emerald-700 text-xs font-bold mt-2">Costo delivery aggiornato.</Text>
+        ) : null}
       </View>
 
       {/* Order availability controls */}
@@ -494,208 +665,283 @@ export default function AdminOptionsScreen() {
         )}
       </View>
 
-      {/* Pizza capacity settings */}
+      {/* Capacità forno — ritmo fascia + palline serata */}
       <View className="bg-card rounded-2xl p-6 border border-border shadow-lg mb-6">
-        <Text className="text-card-foreground font-semibold text-xl mb-2">
-          Capacità pizze per fascia
+        <Text className="text-card-foreground font-semibold text-xl mb-2">Capacità forno</Text>
+        <Text className="text-muted-foreground mb-3">
+          Controlla quanta pasta il forno può accettare per fascia oraria e quante palline hai per la serata.
+          I limiti usano unità pallina, non pezzi grezzi.
         </Text>
-        <Text className="text-muted-foreground mb-2">
-          Quante pizze (in unità pallina) il forno può gestire in ogni finestra temporale.
-        </Text>
-        <Text className="text-muted-foreground text-xs mb-4">
-          Pesi: normale/piccola = 1 · tirata = 1,5 · mezzo metro = 3 · metro = 6
-        </Text>
-        <View className="flex-row gap-3">
-          <View className="flex-1">
-            <Text className="text-xs text-muted-foreground mb-1">Max pizze</Text>
+
+        <View className="flex-row flex-wrap gap-2 mb-5">
+          {[
+            { label: 'Normale / piccola', weight: '1' },
+            { label: 'Tirata', weight: '1,5' },
+            { label: 'Mezzo metro', weight: '3' },
+            { label: 'Metro', weight: '6' },
+          ].map((item) => (
+            <View
+              key={item.label}
+              className="rounded-full border border-border bg-muted/40 px-3 py-1.5 flex-row items-center gap-1.5"
+            >
+              <Text className="text-xs font-semibold text-card-foreground">{item.label}</Text>
+              <Text className="text-xs font-black text-[#8d171e]">= {item.weight}</Text>
+            </View>
+          ))}
+        </View>
+
+        {/* Ritmo forno */}
+        <View className="rounded-xl border border-border bg-muted/20 p-4 mb-5">
+          <Text className="text-sm font-bold text-card-foreground mb-1">Ritmo forno</Text>
+          <Text className="text-xs text-muted-foreground mb-3">
+            Una sola durata fascia per tutti i canali; due tetti separati (asporto/sala vs delivery).
+          </Text>
+
+          <Text className="text-xs text-muted-foreground mb-2">Durata fascia</Text>
+          <View className="flex-row flex-wrap gap-2 mb-4">
+            {WINDOW_MINUTE_PRESETS.map((minutes) => {
+              const selected = orderWindowMinutes === minutes;
+              return (
+                <Pressable
+                  key={minutes}
+                  onPress={() => {
+                    setOrderWindowMinutes(minutes);
+                    flashCapacitySaved();
+                  }}
+                  className={`px-3 py-2 rounded-xl border ${
+                    selected ? 'bg-[#8d171e] border-[#8d171e]' : 'bg-background border-border'
+                  }`}
+                >
+                  <Text className={`font-bold ${selected ? 'text-white' : 'text-foreground'}`}>
+                    {minutes} min
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          <Text className="text-xs text-muted-foreground mb-2">Max unità asporto / sala</Text>
+          <View className="flex-row items-center gap-2 mb-4">
+            <Pressable
+              accessibilityLabel="Diminuisci capacità asporto"
+              onPress={() => nudgePickupCapacity(-1)}
+              className="h-12 w-12 rounded-xl bg-secondary border border-border items-center justify-center active:opacity-80"
+            >
+              <Text className="text-foreground font-black text-xl">−</Text>
+            </Pressable>
             <TextInput
-              className="h-12 rounded-xl border border-border bg-background px-4 text-foreground font-semibold"
+              className="flex-1 h-12 rounded-xl border border-border bg-background px-4 text-foreground font-extrabold text-xl text-center"
               keyboardType="number-pad"
               value={orderCapacityInput}
               onChangeText={(value) => setOrderCapacityInput(sanitizeNumericInput(value))}
-              onBlur={() => {
-                const parsed = Number(orderCapacityInput);
-                if (Number.isFinite(parsed) && parsed > 0) {
-                  setMaxOrdersPerWindow(parsed);
-                } else {
-                  setOrderCapacityInput(String(maxOrdersPerWindow));
-                }
-              }}
+              onBlur={() => commitPickupCapacity()}
+              onSubmitEditing={() => commitPickupCapacity()}
+              selectTextOnFocus
+              returnKeyType="done"
             />
+            <Pressable
+              accessibilityLabel="Aumenta capacità asporto"
+              onPress={() => nudgePickupCapacity(1)}
+              className="h-12 w-12 rounded-xl bg-secondary border border-border items-center justify-center active:opacity-80"
+            >
+              <Text className="text-foreground font-black text-xl">+</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => commitPickupCapacity()}
+              className="h-12 px-4 rounded-xl bg-[#8d171e] items-center justify-center active:opacity-90"
+            >
+              <Text className="text-white font-bold">Salva</Text>
+            </Pressable>
           </View>
-          <View className="flex-1">
-            <Text className="text-xs text-muted-foreground mb-1">Ogni X minuti</Text>
+
+          <Text className="text-xs text-muted-foreground mb-2">Max unità delivery</Text>
+          <View className="flex-row items-center gap-2 mb-4">
+            <Pressable
+              accessibilityLabel="Diminuisci capacità delivery"
+              onPress={() => nudgeDeliveryCapacity(-1)}
+              className="h-12 w-12 rounded-xl bg-secondary border border-border items-center justify-center active:opacity-80"
+            >
+              <Text className="text-foreground font-black text-xl">−</Text>
+            </Pressable>
             <TextInput
-              className="h-12 rounded-xl border border-border bg-background px-4 text-foreground font-semibold"
-              keyboardType="number-pad"
-              value={orderWindowInput}
-              onChangeText={(value) => setOrderWindowInput(sanitizeNumericInput(value))}
-              onBlur={() => {
-                const parsed = Number(orderWindowInput);
-                if (Number.isFinite(parsed) && parsed >= 5) {
-                  setOrderWindowMinutes(parsed);
-                } else {
-                  setOrderWindowInput(String(orderWindowMinutes));
-                }
-              }}
-            />
-          </View>
-        </View>
-      </View>
-
-      {/* Shift dough balls tracking */}
-      <View className="bg-card rounded-2xl p-6 border border-border shadow-lg mb-6">
-        <Text className="text-card-foreground font-semibold text-xl mb-2">
-          Palline disponibili per serata
-        </Text>
-        <Text className="text-muted-foreground mb-4">
-          Inserisci quante palline hai a disposizione per la serata. Il sistema scala il residuo ad ogni ordine confermato.
-        </Text>
-
-        <View className="mb-4">
-          <Text className="text-xs text-muted-foreground mb-1">Palline totali serata</Text>
-          <TextInput
-            className="h-12 rounded-xl border border-border bg-background px-4 text-foreground font-semibold"
-            keyboardType="number-pad"
-            placeholder="es. 120"
-            value={shiftDoughInput}
-            onChangeText={(value) => setShiftDoughInput(sanitizeNumericInput(value))}
-            onBlur={() => {
-              const parsed = Number(shiftDoughInput);
-              if (Number.isFinite(parsed) && parsed > 0) {
-                setShiftDoughBallsTotal(parsed);
-              } else if (shiftDoughInput.trim() === '') {
-                clearShiftDoughTracking();
-              } else {
-                setShiftDoughInput(shiftDoughBallsTotal !== null ? String(shiftDoughBallsTotal) : '');
-              }
-            }}
-          />
-        </View>
-
-        {isShiftTrackingEnabled && (
-          <View className="rounded-xl border border-border bg-muted/30 p-4 mb-4">
-            <Text className="text-sm text-card-foreground font-semibold mb-2">Stato serata</Text>
-            {shiftStartedLabel && (
-              <Text className="text-xs text-muted-foreground mb-2">
-                Conteggio attivo dalle {shiftStartedLabel}
-              </Text>
-            )}
-            {isShiftUsageLoading ? (
-              <SkeletonShiftDoughStats />
-            ) : (
-              <View className="flex-row flex-wrap gap-4">
-                <View>
-                  <Text className="text-xs text-muted-foreground">Usate</Text>
-                  <Text className="text-lg font-bold text-foreground">{shiftUsedUnits}</Text>
-                </View>
-                <View>
-                  <Text className="text-xs text-muted-foreground">Rimanenti</Text>
-                  <Text
-                    className={`text-lg font-bold ${
-                      shiftRemainingUnits !== null && shiftRemainingUnits <= 5
-                        ? 'text-destructive'
-                        : 'text-emerald-700'
-                    }`}
-                  >
-                    {shiftRemainingUnits ?? '-'}
-                  </Text>
-                </View>
-                <View>
-                  <Text className="text-xs text-muted-foreground">Totali</Text>
-                  <Text className="text-lg font-bold text-foreground">{shiftDoughBallsTotal}</Text>
-                </View>
-              </View>
-            )}
-            {(isShiftUsageRpcMissing || hasShiftUsageError) && (
-              <View className="mt-3 rounded-lg border border-amber-300 bg-amber-50 p-3">
-                <Text className="text-xs text-amber-800">
-                  {isShiftUsageRpcMissing
-                    ? 'Tracking palline non disponibile: manca la funzione RPC get_shift_dough_usage su Supabase. Il limite serata viene bloccato in checkout finché non viene deployata la migration 20260711_shift_dough_usage.sql.'
-                    : 'Errore nel calcolo palline serata. Verifica Supabase e riprova.'}
-                </Text>
-              </View>
-            )}
-          </View>
-        )}
-
-        <View className="flex-row flex-wrap gap-2">
-          {isShiftTrackingEnabled && (
-            <>
-              <Button
-                title="Nuova serata"
-                variant="outline"
-                onPress={() => {
-                  resetShiftDoughTracking();
-                  void refetchShiftUsage();
-                  Alert.alert('Serata resettata', 'Il conteggio palline riparte da adesso.');
-                }}
-              />
-              <Button
-                title="Aggiorna conteggio"
-                variant="outline"
-                onPress={() => {
-                  void refetchShiftUsage();
-                }}
-              />
-            </>
-          )}
-          {isShiftTrackingEnabled && (
-            <Button
-              title="Disattiva tracking"
-              variant="ghost"
-              onPress={() => {
-                clearShiftDoughTracking();
-                setShiftDoughInput('');
-                Alert.alert('Tracking disattivato', 'Il limite palline serata non è più attivo.');
-              }}
-            />
-          )}
-        </View>
-      </View>
-
-      {/* Delivery pizza capacity settings */}
-      <View className="bg-card rounded-2xl p-6 border border-border shadow-lg mb-6">
-        <Text className="text-card-foreground font-semibold text-xl mb-2">
-          Capacità pizze delivery per fascia
-        </Text>
-        <Text className="text-muted-foreground mb-4">
-          Limita le pizze delivery per ogni finestra temporale (stesse unità pallina del ritiro).
-        </Text>
-        <View className="flex-row gap-3">
-          <View className="flex-1">
-            <Text className="text-xs text-muted-foreground mb-1">Max pizze delivery</Text>
-            <TextInput
-              className="h-12 rounded-xl border border-border bg-background px-4 text-foreground font-semibold"
+              className="flex-1 h-12 rounded-xl border border-border bg-background px-4 text-foreground font-extrabold text-xl text-center"
               keyboardType="number-pad"
               value={deliveryCapacityInput}
               onChangeText={(value) => setDeliveryCapacityInput(sanitizeNumericInput(value))}
-              onBlur={() => {
-                const parsed = Number(deliveryCapacityInput);
-                if (Number.isFinite(parsed) && parsed > 0) {
-                  setDeliveryMaxOrdersPerWindow(parsed);
-                } else {
-                  setDeliveryCapacityInput(String(deliveryMaxOrdersPerWindow));
-                }
-              }}
+              onBlur={() => commitDeliveryCapacity()}
+              onSubmitEditing={() => commitDeliveryCapacity()}
+              selectTextOnFocus
+              returnKeyType="done"
             />
+            <Pressable
+              accessibilityLabel="Aumenta capacità delivery"
+              onPress={() => nudgeDeliveryCapacity(1)}
+              className="h-12 w-12 rounded-xl bg-secondary border border-border items-center justify-center active:opacity-80"
+            >
+              <Text className="text-foreground font-black text-xl">+</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => commitDeliveryCapacity()}
+              className="h-12 px-4 rounded-xl bg-[#8d171e] items-center justify-center active:opacity-90"
+            >
+              <Text className="text-white font-bold">Salva</Text>
+            </Pressable>
           </View>
-          <View className="flex-1">
-            <Text className="text-xs text-muted-foreground mb-1">Ogni X minuti</Text>
+
+          <View className="rounded-lg border border-border bg-background px-3 py-3 mb-2">
+            <Text className="text-sm font-semibold text-card-foreground">{capacitySummaryText}</Text>
+            <Text className="text-xs text-muted-foreground mt-1">{capacityExampleText}</Text>
+          </View>
+          {capacitySavedFlash ? (
+            <Text className="text-emerald-700 text-xs font-bold">Capacità fascia aggiornata.</Text>
+          ) : null}
+        </View>
+
+        {/* Palline serata */}
+        <View className="rounded-xl border border-border bg-muted/20 p-4">
+          <Text className="text-sm font-bold text-card-foreground mb-1">Palline disponibili per serata</Text>
+          <Text className="text-xs text-muted-foreground mb-3">
+            Inserisci quante palline hai a disposizione. Il sistema scala il residuo a ogni ordine confermato.
+            Lascia vuoto e salva per disattivare il limite serata.
+          </Text>
+
+          <Text className="text-xs text-muted-foreground mb-2">Palline totali serata</Text>
+          <View className="flex-row items-center gap-2 mb-3">
+            <Pressable
+              accessibilityLabel="Diminuisci palline serata"
+              onPress={() => nudgeShiftDoughTotal(-5)}
+              className="h-12 w-12 rounded-xl bg-secondary border border-border items-center justify-center active:opacity-80"
+            >
+              <Text className="text-foreground font-black text-xl">−</Text>
+            </Pressable>
             <TextInput
-              className="h-12 rounded-xl border border-border bg-background px-4 text-foreground font-semibold"
+              className="flex-1 h-12 rounded-xl border border-border bg-background px-4 text-foreground font-extrabold text-xl text-center"
               keyboardType="number-pad"
-              value={deliveryWindowInput}
-              onChangeText={(value) => setDeliveryWindowInput(sanitizeNumericInput(value))}
-              onBlur={() => {
-                const parsed = Number(deliveryWindowInput);
-                if (Number.isFinite(parsed) && parsed >= 5) {
-                  setDeliveryOrderWindowMinutes(parsed);
-                } else {
-                  setDeliveryWindowInput(String(deliveryOrderWindowMinutes));
-                }
-              }}
+              placeholder="es. 120"
+              placeholderTextColor="#9ca3af"
+              value={shiftDoughInput}
+              onChangeText={(value) => setShiftDoughInput(sanitizeNumericInput(value))}
+              onBlur={() => commitShiftDoughTotal()}
+              onSubmitEditing={() => commitShiftDoughTotal()}
+              selectTextOnFocus
+              returnKeyType="done"
             />
+            <Pressable
+              accessibilityLabel="Aumenta palline serata"
+              onPress={() => nudgeShiftDoughTotal(5)}
+              className="h-12 w-12 rounded-xl bg-secondary border border-border items-center justify-center active:opacity-80"
+            >
+              <Text className="text-foreground font-black text-xl">+</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => commitShiftDoughTotal()}
+              className="h-12 px-4 rounded-xl bg-[#8d171e] items-center justify-center active:opacity-90"
+            >
+              <Text className="text-white font-bold">Salva</Text>
+            </Pressable>
+          </View>
+
+          {shiftDoughSavedFlash ? (
+            <Text className="text-emerald-700 text-xs font-bold mb-3">Palline serata aggiornate.</Text>
+          ) : null}
+
+          {isShiftTrackingEnabled && (
+            <View className="rounded-xl border border-border bg-background p-4 mb-3">
+              <Text className="text-sm text-card-foreground font-semibold mb-2">Stato serata</Text>
+              {shiftStartedLabel && (
+                <Text className="text-xs text-muted-foreground mb-2">
+                  Conteggio attivo dalle {shiftStartedLabel}
+                </Text>
+              )}
+              {isShiftUsageLoading ? (
+                <SkeletonShiftDoughStats />
+              ) : (
+                <>
+                  <View className="h-2.5 rounded-full bg-muted overflow-hidden mb-3">
+                    <View
+                      className={`h-full rounded-full ${
+                        shiftRemainingUnits !== null && shiftRemainingUnits <= 10
+                          ? 'bg-destructive'
+                          : 'bg-emerald-600'
+                      }`}
+                      style={{ width: `${Math.round(shiftUsageRatio * 100)}%` }}
+                    />
+                  </View>
+                  <View className="flex-row flex-wrap gap-4">
+                    <View>
+                      <Text className="text-xs text-muted-foreground">Usate</Text>
+                      <Text className="text-lg font-bold text-foreground">{shiftUsedUnits}</Text>
+                    </View>
+                    <View>
+                      <Text className="text-xs text-muted-foreground">Rimanenti</Text>
+                      <Text
+                        className={`text-lg font-bold ${
+                          shiftRemainingUnits !== null && shiftRemainingUnits <= 10
+                            ? 'text-destructive'
+                            : 'text-emerald-700'
+                        }`}
+                      >
+                        {shiftRemainingUnits ?? '-'}
+                      </Text>
+                    </View>
+                    <View>
+                      <Text className="text-xs text-muted-foreground">Totali</Text>
+                      <Text className="text-lg font-bold text-foreground">{shiftDoughBallsTotal}</Text>
+                    </View>
+                  </View>
+                  {shiftRemainingUnits !== null && shiftRemainingUnits <= 10 ? (
+                    <Text className="text-xs text-amber-800 mt-2 font-semibold">
+                      Attenzione: restano poche palline per la serata.
+                    </Text>
+                  ) : null}
+                </>
+              )}
+              {(isShiftUsageRpcMissing || hasShiftUsageError) && (
+                <View className="mt-3 rounded-lg border border-amber-300 bg-amber-50 p-3">
+                  <Text className="text-xs text-amber-800">
+                    {isShiftUsageRpcMissing
+                      ? 'Tracking palline non disponibile: manca la funzione RPC get_shift_dough_usage su Supabase. Il limite serata viene bloccato in checkout finché non viene deployata la migration.'
+                      : 'Errore nel calcolo palline serata. Verifica Supabase e riprova.'}
+                  </Text>
+                </View>
+              )}
+            </View>
+          )}
+
+          <View className="flex-row flex-wrap gap-2">
+            {isShiftTrackingEnabled ? (
+              <>
+                <Button
+                  title="Nuova serata"
+                  variant="outline"
+                  onPress={() => {
+                    resetShiftDoughTracking();
+                    void refetchShiftUsage();
+                    Alert.alert('Serata resettata', 'Il conteggio palline riparte da adesso.');
+                  }}
+                />
+                <Button
+                  title="Aggiorna conteggio"
+                  variant="outline"
+                  onPress={() => {
+                    void refetchShiftUsage();
+                  }}
+                />
+                <Button
+                  title="Disattiva limite"
+                  variant="ghost"
+                  onPress={() => {
+                    clearShiftDoughTracking();
+                    setShiftDoughInput('');
+                    Alert.alert('Tracking disattivato', 'Il limite palline serata non è più attivo.');
+                  }}
+                />
+              </>
+            ) : (
+              <Text className="text-xs text-muted-foreground">
+                Limite serata disattivo. Salva un totale maggiore di 0 per attivarlo.
+              </Text>
+            )}
           </View>
         </View>
       </View>

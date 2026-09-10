@@ -83,7 +83,7 @@ export interface OrderItem {
   quantity: number;
   unit_price: number;
   total_price: number;
-  notes?: string;
+  notes?: string | null;
   created_at: string;
 }
 
