@@ -31,11 +31,26 @@ export function useOrderAlertSound() {
         dedupeMap.current[key] = now;
       }
 
-      const { sound } = await Audio.Sound.createAsync({ uri: soundUrl }, { shouldPlay: true, volume: 1 });
-      sound.setOnPlaybackStatusUpdate((status) => {
-        if (!status.isLoaded || !status.didJustFinish) return;
-        void sound.unloadAsync();
-      });
+      try {
+        const { sound } = await Audio.Sound.createAsync(
+          { uri: soundUrl },
+          { shouldPlay: true, volume: 1 }
+        );
+        sound.setOnPlaybackStatusUpdate((status) => {
+          if (!status.isLoaded) {
+            if ('error' in status && status.error) {
+              console.warn('[OrderAlertSound] load/play error:', event, soundUrl, status.error);
+              void sound.unloadAsync().catch(() => undefined);
+            }
+            return;
+          }
+          if (!status.didJustFinish) return;
+          void sound.unloadAsync().catch(() => undefined);
+        });
+      } catch (error) {
+        // Never block kitchen actions if a remote/custom sound fails to decode.
+        console.warn('[OrderAlertSound] playback failed:', event, soundUrl, error);
+      }
     },
     [alertSounds.enabled, alertSounds.newOrderSoundUrl, alertSounds.orderReadySoundUrl]
   );

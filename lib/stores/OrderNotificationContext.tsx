@@ -5,11 +5,12 @@ import { supabase } from '@/lib/api/supabase';
 import { useAuth } from '@/lib/stores/AuthContext';
 import { useTenant } from '@/lib/stores/TenantContext';
 import { getOrderDisplayCode } from '@/lib/utils/orderDisplayCode';
+import { parseOrderItemNotes } from '@/lib/utils/orderItemDetails';
 import { buildAdminOrderRealtimeNotice } from '@/lib/utils/orderRealtimeNotifications';
 import { FontAwesome } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { ActivityIndicator, Modal, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Modal, Pressable, ScrollView, Text, View } from 'react-native';
 
 type IncomingOrder = {
   id: string;
@@ -21,6 +22,14 @@ type IncomingOrder = {
   delivery_address?: string | null;
   table_number?: string | null;
   created_at: string;
+};
+
+type IncomingOrderLine = {
+  id: string;
+  quantity: number;
+  notes: string | null;
+  totalPrice: number;
+  productName: string;
 };
 
 type OrderNotificationContextValue = {
@@ -65,6 +74,8 @@ export function OrderNotificationProvider({ children }: { children: ReactNode })
   const queryClient = useQueryClient();
   const [queue, setQueue] = useState<IncomingOrder[]>([]);
   const [showDeclineModal, setShowDeclineModal] = useState(false);
+  const [activeItems, setActiveItems] = useState<IncomingOrderLine[]>([]);
+  const [activeItemsLoading, setActiveItemsLoading] = useState(false);
   const [statusNotice, setStatusNotice] = useState<{
     title: string;
     message: string;
@@ -86,7 +97,73 @@ export function OrderNotificationProvider({ children }: { children: ReactNode })
     handledIdsRef.current.add(orderId);
     setQueue((current) => current.filter((item) => item.id !== orderId));
     setShowDeclineModal(false);
+    setActiveItems([]);
   }, []);
+
+  const loadOrderItems = useCallback(async (orderId: string): Promise<IncomingOrderLine[]> => {
+    const { data, error } = await supabase
+      .from('order_items')
+      .select('id, quantity, notes, total_price, product:products(name)')
+      .eq('order_id', orderId);
+
+    if (error) {
+      console.error('[OrderNotification] items fetch failed:', error);
+      return [];
+    }
+
+    return (data ?? []).map((row) => {
+      const product = Array.isArray(row.product) ? row.product[0] : row.product;
+      const parsed = parseOrderItemNotes(typeof row.notes === 'string' ? row.notes : null);
+      const productName =
+        (product && typeof product === 'object' && 'name' in product && typeof product.name === 'string'
+          ? product.name
+          : null) ??
+        parsed.productName ??
+        'Prodotto';
+
+      return {
+        id: String(row.id),
+        quantity: typeof row.quantity === 'number' ? row.quantity : 1,
+        notes: typeof row.notes === 'string' ? row.notes : null,
+        totalPrice: typeof row.total_price === 'number' ? row.total_price : 0,
+        productName,
+      };
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!activeOrder?.id) {
+      setActiveItems([]);
+      setActiveItemsLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    setActiveItemsLoading(true);
+
+    const pull = async () => {
+      const lines = await loadOrderItems(activeOrder.id);
+      if (cancelled) return;
+      setActiveItems(lines);
+      setActiveItemsLoading(false);
+      return lines;
+    };
+
+    void pull();
+    // Items are often inserted a moment after the order row — retry briefly.
+    const retryA = setTimeout(() => {
+      void pull();
+    }, 500);
+    const retryB = setTimeout(() => {
+      void pull();
+    }, 1500);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(retryA);
+      clearTimeout(retryB);
+    };
+  }, [activeOrder?.id, loadOrderItems]);
 
   const loadPendingOrders = useCallback(async () => {
     if (!companyId || !isAdmin) return;
@@ -265,105 +342,145 @@ export function OrderNotificationProvider({ children }: { children: ReactNode })
 
   return (
     <OrderNotificationContext.Provider value={contextValue}>
-      {children}
+      <View className="flex-1">
+        {children}
 
-      <Modal
-        visible={Boolean(isAdmin && activeOrder && !showDeclineModal)}
-        animationType="fade"
-        transparent
-        onRequestClose={() => undefined}
-      >
-        <View className="flex-1 bg-black/60 justify-center items-center p-5">
-          <View className="w-full max-w-lg rounded-2xl bg-white border border-[#e1a255]/50 p-5 shadow-2xl">
-            <View className="flex-row items-start gap-3 mb-4">
-              <View className="w-12 h-12 rounded-full bg-[#8d171e] items-center justify-center">
-                <FontAwesome name="bell" size={20} color="#ffffff" />
-              </View>
-              <View className="flex-1">
-                <Text className="text-xs font-bold uppercase tracking-wider text-[#8d171e]">
-                  Nuovo ordine in arrivo
-                </Text>
-                <Text className="text-2xl font-black text-gray-900 mt-1">
-                  {activeOrder ? getOrderDisplayCode(activeOrder) : ''}
-                </Text>
-                <Text className="text-sm text-gray-600 mt-1">
-                  {activeOrder?.customer_name || 'Cliente'} • €{activeOrder?.total_amount.toFixed(2) ?? '0.00'}
-                </Text>
-              </View>
-              {queue.length > 1 ? (
-                <View className="bg-[#f3dabb] rounded-full px-2 py-1">
-                  <Text className="text-[10px] font-bold text-[#8d171e]">+{queue.length - 1}</Text>
+        <Modal
+          visible={Boolean(isAdmin && activeOrder && !showDeclineModal)}
+          animationType="fade"
+          transparent
+          onRequestClose={() => undefined}
+        >
+          <View className="flex-1 bg-black/60 justify-center items-center p-5">
+            <View className="w-full max-w-lg rounded-2xl bg-white border border-[#e1a255]/50 p-5 shadow-2xl">
+              <View className="flex-row items-start gap-3 mb-4">
+                <View className="w-12 h-12 rounded-full bg-[#8d171e] items-center justify-center">
+                  <FontAwesome name="bell" size={20} color="#ffffff" />
                 </View>
-              ) : null}
-            </View>
+                <View className="flex-1">
+                  <Text className="text-xs font-bold uppercase tracking-wider text-[#8d171e]">
+                    Nuovo ordine in arrivo
+                  </Text>
+                  <Text className="text-2xl font-black text-gray-900 mt-1">
+                    {activeOrder ? getOrderDisplayCode(activeOrder) : ''}
+                  </Text>
+                  <Text className="text-sm text-gray-600 mt-1">
+                    {activeOrder?.customer_name || 'Cliente'} • €{activeOrder?.total_amount.toFixed(2) ?? '0.00'}
+                  </Text>
+                </View>
+                {queue.length > 1 ? (
+                  <View className="bg-[#f3dabb] rounded-full px-2 py-1">
+                    <Text className="text-[10px] font-bold text-[#8d171e]">+{queue.length - 1}</Text>
+                  </View>
+                ) : null}
+              </View>
 
-            <View className="rounded-xl bg-[#f9ecdd] border border-[#e1a255]/40 p-3 mb-4 gap-1">
-              <Text className="text-sm font-bold text-gray-900">
-                {activeOrder ? getOrderTypeLabel(activeOrder.order_type) : ''}
-                {activeOrder?.table_number ? ` • Tavolo ${activeOrder.table_number}` : ''}
+              <View className="rounded-xl bg-[#f9ecdd] border border-[#e1a255]/40 p-3 mb-3 gap-1">
+                <Text className="text-sm font-bold text-gray-900">
+                  {activeOrder ? getOrderTypeLabel(activeOrder.order_type) : ''}
+                  {activeOrder?.table_number ? ` • Tavolo ${activeOrder.table_number}` : ''}
+                </Text>
+                {activeOrder?.delivery_address ? (
+                  <Text className="text-xs text-gray-700">{activeOrder.delivery_address}</Text>
+                ) : null}
+                {activeOrder?.customer_phone ? (
+                  <Text className="text-xs text-gray-700">{activeOrder.customer_phone}</Text>
+                ) : null}
+                <Text className="text-[11px] text-gray-500 mt-1">
+                  Arrivato alle{' '}
+                  {activeOrder
+                    ? new Date(activeOrder.created_at).toLocaleTimeString('it-IT', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: false,
+                      })
+                    : '--:--'}
+                </Text>
+              </View>
+
+              <View className="rounded-xl border border-gray-200 bg-gray-50 p-3 mb-4 max-h-48">
+                <Text className="text-[10px] font-extrabold uppercase tracking-wider text-gray-500 mb-2">
+                  Dettaglio ordine
+                </Text>
+                {activeItemsLoading && activeItems.length === 0 ? (
+                  <View className="flex-row items-center gap-2 py-1">
+                    <ActivityIndicator size="small" color="#8d171e" />
+                    <Text className="text-sm text-gray-600">Carico i prodotti…</Text>
+                  </View>
+                ) : null}
+                {!activeItemsLoading && activeItems.length === 0 ? (
+                  <Text className="text-sm text-gray-600">
+                    Nessun prodotto ancora visibile. Riprova tra un attimo.
+                  </Text>
+                ) : null}
+                <ScrollView className="max-h-36">
+                  {activeItems.map((line) => {
+                    const { modifiers, freeNote } = parseOrderItemNotes(line.notes);
+                    return (
+                      <View key={line.id} className="mb-2 pb-2 border-b border-gray-200 last:border-b-0 last:mb-0 last:pb-0">
+                        <Text className="text-sm font-extrabold text-gray-900">
+                          {line.quantity}× {line.productName}
+                        </Text>
+                        {modifiers.length > 0 ? (
+                          <Text className="text-xs text-gray-700 mt-0.5">{modifiers.join(' · ')}</Text>
+                        ) : null}
+                        {freeNote ? (
+                          <Text className="text-xs text-amber-800 mt-0.5 italic">Nota: {freeNote}</Text>
+                        ) : null}
+                      </View>
+                    );
+                  })}
+                </ScrollView>
+              </View>
+
+              <Text className="text-sm text-gray-600 mb-4">
+                Accetta per avviare la preparazione oppure rifiuta indicando il motivo (anche ripianificazione).
               </Text>
-              {activeOrder?.delivery_address ? (
-                <Text className="text-xs text-gray-700">{activeOrder.delivery_address}</Text>
-              ) : null}
-              {activeOrder?.customer_phone ? (
-                <Text className="text-xs text-gray-700">{activeOrder.customer_phone}</Text>
-              ) : null}
-              <Text className="text-[11px] text-gray-500 mt-1">
-                Arrivato alle{' '}
-                {activeOrder
-                  ? new Date(activeOrder.created_at).toLocaleTimeString('it-IT', {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      hour12: false,
-                    })
-                  : '--:--'}
-              </Text>
-            </View>
 
-            <Text className="text-sm text-gray-600 mb-4">
-              Accetta per avviare la preparazione oppure rifiuta indicando il motivo (anche ripianificazione).
-            </Text>
-
-            <View className="flex-row gap-3">
-              <Pressable
-                className="flex-1 h-12 rounded-xl border border-red-300 bg-red-50 items-center justify-center active:opacity-90"
-                onPress={() => setShowDeclineModal(true)}
-                disabled={updateOrderStatus.isPending}
-              >
-                <Text className="font-bold text-red-700">Rifiuta</Text>
-              </Pressable>
-              <Pressable
-                className="flex-1 h-12 rounded-xl bg-emerald-600 items-center justify-center active:opacity-90"
-                onPress={handleAccept}
-                disabled={updateOrderStatus.isPending}
-              >
-                {updateOrderStatus.isPending ? (
-                  <ActivityIndicator color="#ffffff" />
-                ) : (
-                  <Text className="font-bold text-white">Accetta ordine</Text>
-                )}
-              </Pressable>
+              <View className="flex-row gap-3">
+                <Pressable
+                  className="flex-1 h-12 rounded-xl border border-red-300 bg-red-50 items-center justify-center active:opacity-90"
+                  onPress={() => setShowDeclineModal(true)}
+                  disabled={updateOrderStatus.isPending}
+                >
+                  <Text className="font-bold text-red-700">Rifiuta</Text>
+                </Pressable>
+                <Pressable
+                  className="flex-1 h-12 rounded-xl bg-emerald-600 items-center justify-center active:opacity-90"
+                  onPress={handleAccept}
+                  disabled={updateOrderStatus.isPending}
+                >
+                  {updateOrderStatus.isPending ? (
+                    <ActivityIndicator color="#ffffff" />
+                  ) : (
+                    <Text className="font-bold text-white">Accetta ordine</Text>
+                  )}
+                </Pressable>
+              </View>
             </View>
           </View>
-        </View>
-      </Modal>
+        </Modal>
 
-      <DeclineReasonModal
-        visible={showDeclineModal && Boolean(activeOrder)}
-        onClose={() => setShowDeclineModal(false)}
-        onConfirm={handleDecline}
-        isSubmitting={updateOrderStatus.isPending}
-      />
+        <DeclineReasonModal
+          visible={showDeclineModal && Boolean(activeOrder)}
+          onClose={() => setShowDeclineModal(false)}
+          onConfirm={handleDecline}
+          isSubmitting={updateOrderStatus.isPending}
+        />
 
-      <Modal
-        visible={Boolean(isAdmin && statusNotice)}
-        animationType="fade"
-        transparent
-        onRequestClose={() => setStatusNotice(null)}
-      >
-        <View className="flex-1 justify-start items-center pt-14 px-4" pointerEvents="none">
-          {statusNotice ? (
-            <View
+        {/*
+          Toast overlay (not Modal): RN Modal blocks the whole screen even with
+          pointerEvents="none" on children, so accept/decline feedback froze the UI.
+        */}
+        {isAdmin && statusNotice ? (
+          <View
+            className="absolute left-0 right-0 top-0 z-[9999] items-center pt-14 px-4"
+            pointerEvents="box-none"
+          >
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Chiudi aggiornamento ordine"
+              onPress={() => setStatusNotice(null)}
               className={`w-full max-w-lg rounded-2xl border px-4 py-3 shadow-lg ${
                 statusNotice.tone === 'success'
                   ? 'bg-emerald-50 border-emerald-200'
@@ -389,10 +506,10 @@ export function OrderNotificationProvider({ children }: { children: ReactNode })
               </Text>
               <Text className="text-base font-extrabold text-gray-900 mt-1">{statusNotice.title}</Text>
               <Text className="text-sm text-gray-700 mt-1">{statusNotice.message}</Text>
-            </View>
-          ) : null}
-        </View>
-      </Modal>
+            </Pressable>
+          </View>
+        ) : null}
+      </View>
     </OrderNotificationContext.Provider>
   );
 }

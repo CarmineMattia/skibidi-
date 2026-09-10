@@ -9,7 +9,8 @@ export type TrackingStepIcon =
   | 'shopping-bag'
   | 'motorcycle'
   | 'home'
-  | 'times-circle';
+  | 'times-circle'
+  | 'fire';
 
 export type TrackingStepState = 'completed' | 'active' | 'upcoming';
 
@@ -38,9 +39,9 @@ const STATUS_LABEL_IT: Record<OrderStatus, string> = {
 };
 
 const STEP_SUBTEXT: Record<TrackingStepState, string> = {
-  completed: 'Completato',
-  active: 'In corso',
-  upcoming: 'In attesa del prossimo step',
+  completed: 'Fatto',
+  active: 'In corso ora',
+  upcoming: 'In attesa',
 };
 
 function getStepState(
@@ -56,6 +57,30 @@ function getStepState(
   return 'upcoming';
 }
 
+/** When a step is done, show a clearer past-tense label + check icon. */
+function resolveCompletedPresentation(
+  key: string,
+  label: string
+): { label: string; icon: TrackingStepIcon } {
+  switch (key) {
+    case 'confirmed':
+      return { label: 'Confermato', icon: 'check-circle' };
+    case 'preparing':
+      return { label: 'Preparato', icon: 'check-circle' };
+    case 'ready':
+    case 'pickup':
+      return { label: key === 'pickup' ? 'Pronto per il ritiro' : 'Pronto', icon: 'check-circle' };
+    case 'delivery':
+      return { label: 'In consegna', icon: 'check-circle' };
+    case 'served':
+      return { label: 'Servito al tavolo', icon: 'check-circle' };
+    case 'delivered':
+      return { label: 'Consegnato', icon: 'check-circle' };
+    default:
+      return { label, icon: 'check-circle' };
+  }
+}
+
 function buildStep(
   key: string,
   label: string,
@@ -64,7 +89,14 @@ function buildStep(
   status: OrderStatus
 ): TrackingStep {
   const state = getStepState(minRank, status);
-  return { key, label, icon, state, subtext: STEP_SUBTEXT[state] };
+  if (state === 'completed') {
+    const done = resolveCompletedPresentation(key, label);
+    return { key, label: done.label, icon: done.icon, state, subtext: STEP_SUBTEXT.completed };
+  }
+  if (state === 'active') {
+    return { key, label, icon, state, subtext: STEP_SUBTEXT.active };
+  }
+  return { key, label, icon, state, subtext: STEP_SUBTEXT.upcoming };
 }
 
 export function normalizeOrderType(value?: string | null): OrderType {
@@ -98,22 +130,23 @@ export function getTrackingSteps(
   if (orderType === 'eat_in') {
     return [
       buildStep('confirmed', 'Confermato', 'check-circle', 0, resolvedStatus),
-      buildStep('preparing', 'In preparazione', 'cutlery', 1, resolvedStatus),
-      buildStep('served', 'Servito al tavolo', 'bell', 3, resolvedStatus),
+      buildStep('preparing', 'In preparazione', 'fire', 1, resolvedStatus),
+      // Rank 2 = ready → active "Pronto" while waiting to be served
+      buildStep('ready', 'Pronto', 'bell', 2, resolvedStatus),
     ];
   }
 
   if (orderType === 'take_away') {
     return [
       buildStep('confirmed', 'Confermato', 'check-circle', 0, resolvedStatus),
-      buildStep('preparing', 'In preparazione', 'cutlery', 1, resolvedStatus),
+      buildStep('preparing', 'In preparazione', 'fire', 1, resolvedStatus),
       buildStep('pickup', 'Pronto per il ritiro', 'shopping-bag', 2, resolvedStatus),
     ];
   }
 
   return [
     buildStep('confirmed', 'Confermato', 'check-circle', 0, resolvedStatus),
-    buildStep('preparing', 'In preparazione', 'cutlery', 1, resolvedStatus),
+    buildStep('preparing', 'In preparazione', 'fire', 1, resolvedStatus),
     buildStep('delivery', 'In consegna', 'motorcycle', 2, resolvedStatus),
     buildStep('delivered', 'Consegnato', 'home', 3, resolvedStatus),
   ];
@@ -133,7 +166,7 @@ export function getTrackingBadge(
   }
   if (resolvedStatus === 'ready') {
     if (orderType === 'take_away') return { label: 'Pronto per il ritiro', icon: 'shopping-bag' };
-    if (orderType === 'eat_in') return { label: 'In arrivo al tavolo', icon: 'bell' };
+    if (orderType === 'eat_in') return { label: 'Pronto — in arrivo al tavolo', icon: 'bell' };
     return { label: 'In consegna', icon: 'motorcycle' };
   }
   if (resolvedStatus === 'preparing') {
@@ -163,7 +196,7 @@ export function getTrackingSummary(
   }
   if (resolvedStatus === 'ready') {
     if (orderType === 'take_away') return `L'ordine ${orderRef} è pronto per il ritiro.`;
-    if (orderType === 'eat_in') return `L'ordine ${orderRef} sta arrivando al tuo tavolo.`;
+    if (orderType === 'eat_in') return `L'ordine ${orderRef} è pronto e sta arrivando al tuo tavolo.`;
     return `L'ordine ${orderRef} è in consegna verso di te.`;
   }
   if (resolvedStatus === 'preparing') {

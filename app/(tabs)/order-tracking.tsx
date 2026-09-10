@@ -244,32 +244,50 @@ export default function OrderTrackingScreen() {
                 <View key={step.key} className="flex-row gap-3">
                   <View className="items-center">
                     <View
-                      className={`w-9 h-9 rounded-full items-center justify-center ${
-                        isCompleted || isActive ? 'bg-[#8d171e]' : 'bg-[#f3dabb]'
+                      className={`w-10 h-10 rounded-full items-center justify-center border-2 ${
+                        isCompleted
+                          ? 'bg-emerald-600 border-emerald-700'
+                          : isActive
+                            ? 'bg-[#8d171e] border-[#6f1218]'
+                            : 'bg-[#f3dabb] border-[#e7b577]'
                       }`}
                     >
                       <FontAwesome
                         name={step.icon}
-                        size={15}
+                        size={16}
                         color={isCompleted || isActive ? '#fff' : '#9a3412'}
                       />
                     </View>
                     {!isLast && (
                       <View
-                        className={`w-[2px] h-10 ${
-                          isCompleted ? 'bg-[#8d171e]' : 'bg-[#e7b577]/50'
+                        className={`w-[3px] h-10 rounded-full ${
+                          isCompleted ? 'bg-emerald-500' : isActive ? 'bg-[#8d171e]/40' : 'bg-[#e7b577]/50'
                         }`}
                       />
                     )}
                   </View>
-                  <View className="pt-1">
-                    <Text className="text-gray-900 font-bold text-base">{step.label}</Text>
+                  <View className="pt-1 flex-1">
                     <Text
-                      className={`text-xs ${
-                        isActive ? 'text-[#8d171e] font-semibold' : 'text-gray-500'
+                      className={`font-extrabold text-base ${
+                        isCompleted
+                          ? 'text-emerald-800'
+                          : isActive
+                            ? 'text-[#8d171e]'
+                            : 'text-gray-500'
                       }`}
                     >
-                      {step.subtext}
+                      {step.label}
+                    </Text>
+                    <Text
+                      className={`text-xs mt-0.5 ${
+                        isCompleted
+                          ? 'text-emerald-700 font-bold'
+                          : isActive
+                            ? 'text-[#8d171e] font-semibold'
+                            : 'text-gray-400'
+                      }`}
+                    >
+                      {isCompleted ? `✓ ${step.subtext}` : step.subtext}
                     </Text>
                   </View>
                 </View>

@@ -28,9 +28,8 @@ const FILTER_OPTIONS: { label: string; statuses: OrderStatus[] }[] = [
   { label: 'Tutti', statuses: ['pending', 'preparing', 'ready', 'delivered', 'cancelled'] },
 ];
 
-// Self-contained seconds clock: keeps the 1 s tick out of the screen
-// component so the order grid isn't re-rendered every second.
-function KitchenClock({ className }: { className: string }) {
+// Self-contained digital clock — local 1s tick so the order grid does not re-render.
+function KitchenClock({ compact = false }: { compact?: boolean }) {
   const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
@@ -38,10 +37,32 @@ function KitchenClock({ className }: { className: string }) {
     return () => clearInterval(timer);
   }, []);
 
+  const hours = now.getHours().toString().padStart(2, '0');
+  const minutes = now.getMinutes().toString().padStart(2, '0');
+  const seconds = now.getSeconds().toString().padStart(2, '0');
+
   return (
-    <Text className={className}>
-      {now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}
-    </Text>
+    <View
+      className={`flex-row items-center rounded-xl border border-[#2a1810] bg-[#1a100c] ${
+        compact ? 'px-2.5 py-1.5 gap-1' : 'px-3.5 py-2 gap-1.5'
+      }`}
+      accessibilityRole="text"
+      accessibilityLabel={`Ora ${hours}:${minutes}:${seconds}`}
+    >
+      <View className={`${compact ? 'w-1.5 h-1.5' : 'w-2 h-2'} rounded-full bg-emerald-400`} />
+      <Text
+        className={`text-[#f3dabb] font-black tracking-[0.12em] ${
+          compact ? 'text-sm' : 'text-base md:text-lg'
+        }`}
+        style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace' }}
+      >
+        {hours}
+        <Text className="text-[#e7b577]">:</Text>
+        {minutes}
+        <Text className="text-[#8d171e]/80">:</Text>
+        <Text className="text-[#e7b577]/90">{seconds}</Text>
+      </Text>
+    </View>
   );
 }
 
@@ -135,128 +156,91 @@ export default function KitchenScreen() {
   return (
     <View className="flex-1 bg-background" style={{ paddingTop: insets.top }}>
       {/* Header */}
-      <View className={`px-3 md:px-8 ${isMobile ? (isUltraCompact ? 'py-2' : 'py-2.5') : 'py-5'} border-b-2 border-border bg-card shadow-sm`}>
-        {isMobile ? (
-          <View className="gap-2 mb-2">
-            <View className="flex-row items-center gap-2">
-              <FontAwesome name="fire" size={isUltraCompact ? 16 : 18} color="#111827" />
-              <Text className={`text-foreground font-extrabold tracking-tight ${isUltraCompact ? 'text-lg' : 'text-xl'}`}>
+      <View className={`px-3 md:px-8 ${isMobile ? (isUltraCompact ? 'py-2' : 'py-2.5') : 'py-4'} border-b border-[#e1a255]/35 bg-[#f9ecdd]`}>
+        <View className={`flex-row items-center justify-between gap-2 ${isMobile ? 'mb-2' : 'mb-3'}`}>
+          <View className="flex-row items-center gap-2 md:gap-3 flex-1 min-w-0">
+            <View className={`${isUltraCompact ? 'w-8 h-8' : 'w-10 h-10'} rounded-xl bg-[#8d171e] items-center justify-center`}>
+              <FontAwesome name="fire" size={isUltraCompact ? 14 : 18} color="#ffffff" />
+            </View>
+            <View className="min-w-0">
+              <Text className={`text-[#1a100c] font-black tracking-tight ${isUltraCompact ? 'text-lg' : isMobile ? 'text-xl' : 'text-2xl md:text-3xl'}`}>
                 Cucina
               </Text>
-              <View className={`rounded-full border border-gray-300 bg-gray-100 ${isUltraCompact ? 'px-1.5 py-0.5' : 'px-2 py-0.5'}`}>
-                <KitchenClock className={`text-gray-700 font-semibold ${isUltraCompact ? 'text-[9px]' : 'text-[10px]'}`} />
-              </View>
+              {!isUltraCompact ? (
+                <Text className="text-[#8d171e] text-[10px] font-bold uppercase tracking-wider">
+                  {orders.length} {orders.length === 1 ? 'ordine attivo' : 'ordini attivi'}
+                </Text>
+              ) : null}
             </View>
-            <View className="flex-row flex-wrap items-center gap-1.5">
+            <KitchenClock compact={isMobile} />
+          </View>
+
+          <View className="flex-row items-center gap-1.5 md:gap-2">
+            <Pressable
+              accessibilityLabel="Errori fiscali"
+              className={`rounded-xl bg-[#c45c16] flex-row items-center active:opacity-85 ${
+                isUltraCompact ? 'px-2 py-2' : isMobile ? 'px-2.5 py-2 gap-1' : 'px-3.5 py-2.5 gap-2'
+              }`}
+              onPress={() => setShowFiscalRetry(true)}
+            >
+              <FontAwesome name="file-text-o" size={isUltraCompact ? 12 : 14} color="white" />
+              {!isUltraCompact ? (
+                <Text className={`text-white font-bold ${isMobile ? 'text-xs' : 'text-sm'}`}>Fiscal</Text>
+              ) : null}
+            </Pressable>
+
+            {isAdmin ? (
               <Pressable
-                className={`bg-yellow-500 rounded-full flex-row items-center active:opacity-80 ${isUltraCompact ? 'px-2 py-1 gap-1' : 'px-3 py-1.5 gap-1.5'}`}
-                onPress={() => setShowFiscalRetry(true)}
+                accessibilityLabel={isClosedNow ? (canManualReopen ? 'Riapri ordini' : 'Gestisci orari') : 'Metti in pausa gli ordini'}
+                className={`rounded-xl flex-row items-center active:opacity-85 ${
+                  isClosedNow ? 'bg-emerald-700' : 'bg-[#8d171e]'
+                } ${isUltraCompact ? 'px-2 py-2' : isMobile ? 'px-2.5 py-2 gap-1' : 'px-3.5 py-2.5 gap-2'}`}
+                onPress={() => {
+                  if (isClosedNow) {
+                    if (canManualReopen) {
+                      resumeOrders();
+                    } else {
+                      router.push('/admin-options');
+                    }
+                    return;
+                  }
+                  setShowPausePicker(true);
+                }}
               >
-                <FontAwesome name="exclamation-triangle" size={isUltraCompact ? 12 : 14} color="white" />
-                <Text className={`text-white font-bold ${isUltraCompact ? 'text-[10px]' : 'text-xs'}`}>Fiscal</Text>
+                <FontAwesome name={isClosedNow ? 'play' : 'pause'} size={isUltraCompact ? 11 : 13} color="white" />
+                {!isUltraCompact ? (
+                  <Text className={`text-white font-bold ${isMobile ? 'text-xs' : 'text-sm'}`}>
+                    {isClosedNow ? (canManualReopen ? 'Apri' : 'Orari') : 'Pausa'}
+                  </Text>
+                ) : null}
               </Pressable>
-              <View className={`bg-green-500 rounded-full flex-row items-center ${isUltraCompact ? 'px-2 py-1 gap-1' : 'px-3 py-1.5 gap-1.5'}`}>
-                <View className={`${isUltraCompact ? 'w-1.5 h-1.5' : 'w-2 h-2'} bg-white rounded-full animate-pulse`} />
-                <Text className={`text-white font-bold ${isUltraCompact ? 'text-[10px]' : 'text-xs'}`}>LIVE</Text>
-              </View>
-              {isAdmin && (
-                <View className="flex-row items-center gap-1">
-                  <Pressable
-                    className={`${isClosedNow ? 'bg-emerald-600' : 'bg-red-600'} rounded-full flex-row items-center active:opacity-80 ${isUltraCompact ? 'px-2 py-1 gap-1' : 'px-3 py-1.5 gap-1.5'}`}
-                    onPress={() => {
-                      if (isClosedNow) {
-                        if (canManualReopen) {
-                          resumeOrders();
-                        } else {
-                          router.push('/admin-options');
-                        }
-                        return;
-                      }
-                      setShowPausePicker(true);
-                    }}
-                  >
-                    <FontAwesome name={isClosedNow ? 'play' : 'pause'} size={isUltraCompact ? 10 : 12} color="white" />
-                    <Text className={`text-white font-bold ${isUltraCompact ? 'text-[10px]' : 'text-xs'}`}>
-                      {isClosedNow ? (canManualReopen ? 'Apri' : 'Orari') : 'Stop'}
-                    </Text>
-                  </Pressable>
-                  {isClosedNow && pausedUntilDate && remainingPauseMs > 0 && (
-                    <View className={`${isUltraCompact ? 'px-2 py-1' : 'px-2.5 py-1.5'} rounded-full bg-gray-700`}>
-                      <Text className={`text-white font-bold ${isUltraCompact ? 'text-[10px]' : 'text-xs'}`}>
-                        {formatRemainingPause(remainingPauseMs)}
-                      </Text>
-                    </View>
-                  )}
-                </View>
-              )}
-              <View className={`bg-primary rounded-full ${isUltraCompact ? 'px-2 py-1' : 'px-3 py-1.5'}`}>
-                <Text className={`text-primary-foreground font-bold ${isUltraCompact ? 'text-[11px]' : 'text-sm'}`}>
-                  {orders.length} {orders.length === 1 ? 'ordine' : 'ordini'}
+            ) : null}
+
+            {isClosedNow && pausedUntilDate && remainingPauseMs > 0 ? (
+              <View className={`rounded-xl bg-[#1a100c] ${isUltraCompact ? 'px-2 py-2' : 'px-3 py-2.5'}`}>
+                <Text className={`text-[#f3dabb] font-bold ${isUltraCompact ? 'text-[10px]' : 'text-xs'}`}>
+                  {formatRemainingPause(remainingPauseMs)}
                 </Text>
               </View>
-            </View>
-          </View>
-        ) : (
-          <View className="flex-row flex-wrap items-center justify-between gap-3 mb-3">
-            <View className="flex-row items-center gap-2 md:gap-3">
-              <FontAwesome name="fire" size={24} color="#111827" />
-              <Text className="text-foreground font-extrabold tracking-tight text-2xl md:text-3xl">
-                Cucina
+            ) : null}
+
+            <View
+              className={`rounded-xl border border-[#8d171e]/25 bg-white ${
+                isUltraCompact ? 'px-2 py-2' : isMobile ? 'px-2.5 py-2' : 'px-3.5 py-2.5'
+              }`}
+            >
+              <Text className={`text-[#8d171e] font-black ${isUltraCompact ? 'text-xs' : isMobile ? 'text-sm' : 'text-base'}`}>
+                {orders.length}
+                {!isUltraCompact ? (
+                  <Text className="text-[#8d171e]/70 font-bold text-xs">
+                    {' '}
+                    {orders.length === 1 ? 'ordine' : 'ordini'}
+                  </Text>
+                ) : null}
               </Text>
-              <View className="rounded-full border border-gray-300 bg-gray-100 px-2.5 py-1">
-                <KitchenClock className="text-gray-700 font-semibold text-xs" />
-              </View>
-            </View>
-            <View className="flex-row items-center gap-2 md:gap-3">
-              <Pressable
-                className="bg-yellow-500 rounded-full flex-row items-center gap-2 active:opacity-80 px-4 py-2"
-                onPress={() => setShowFiscalRetry(true)}
-              >
-                <FontAwesome name="exclamation-triangle" size={16} color="white" />
-                <Text className="text-white font-bold text-sm">Fiscal</Text>
-              </Pressable>
-              <View className="bg-green-500 rounded-full flex-row items-center gap-2 px-4 py-2">
-                <View className="w-2 h-2 bg-white rounded-full animate-pulse" />
-                <Text className="text-white font-bold text-sm">LIVE</Text>
-              </View>
-              {isAdmin && (
-                <View className="flex-row items-center gap-2">
-                  <Pressable
-                    className={`rounded-full flex-row items-center gap-2 active:opacity-80 px-4 py-2 ${isClosedNow ? 'bg-emerald-600' : 'bg-red-600'}`}
-                    onPress={() => {
-                      if (isClosedNow) {
-                        if (canManualReopen) {
-                          resumeOrders();
-                        } else {
-                          router.push('/admin-options');
-                        }
-                        return;
-                      }
-                      setShowPausePicker(true);
-                    }}
-                  >
-                    <FontAwesome name={isClosedNow ? 'play' : 'pause'} size={14} color="white" />
-                    <Text className="text-white font-bold text-sm">
-                      {isClosedNow ? (canManualReopen ? 'Riapri' : 'Orari') : 'Stop'}
-                    </Text>
-                  </Pressable>
-                  {isClosedNow && pausedUntilDate && remainingPauseMs > 0 && (
-                    <View className="rounded-full bg-gray-700 px-3 py-2">
-                      <Text className="text-white font-bold text-sm">
-                        {formatRemainingPause(remainingPauseMs)}
-                      </Text>
-                    </View>
-                  )}
-                </View>
-              )}
-              <View className="bg-primary rounded-full px-5 py-2">
-                <Text className="text-primary-foreground font-bold text-lg">
-                  {orders.length} {orders.length === 1 ? 'ordine' : 'ordini'}
-                </Text>
-              </View>
             </View>
           </View>
-        )}
+        </View>
 
         {/* Filter Tabs */}
         <ScrollView
@@ -269,16 +253,16 @@ export default function KitchenScreen() {
               key={filter.label}
               className={`${isMobile ? (isUltraCompact ? 'px-2.5 py-1.5' : 'px-3 py-2') : 'px-4 py-2'} rounded-xl ${
                 selectedFilterIndex === index
-                  ? 'bg-primary'
-                  : 'bg-secondary'
+                  ? 'bg-[#8d171e]'
+                  : 'bg-white border border-[#e1a255]/40'
               }`}
               onPress={() => setSelectedFilterIndex(index)}
             >
               <Text
                 className={`font-bold ${isMobile ? (isUltraCompact ? 'text-[10px]' : 'text-xs') : 'text-sm'} ${
                   selectedFilterIndex === index
-                    ? 'text-primary-foreground'
-                    : 'text-muted-foreground'
+                    ? 'text-white'
+                    : 'text-[#5c4033]'
                 }`}
               >
                 {filter.label}

@@ -70,6 +70,10 @@ export function useKitchenOrders(options: UseKitchenOrdersOptions = {}) {
   useEffect(() => {
     if (!companyId || !enabled) return;
 
+    const invalidate = () => {
+      queryClient.invalidateQueries({ queryKey: ['kitchen-orders', companyId] });
+    };
+
     const channel = supabase
       .channel(`kitchen-orders-${companyId}`)
       .on(
@@ -86,6 +90,9 @@ export function useKitchenOrders(options: UseKitchenOrdersOptions = {}) {
 
           if (payload.eventType === 'INSERT' && nextOrder?.id && nextOrder.status === 'pending') {
             onOrderEventRef.current?.({ type: 'new-order', orderId: nextOrder.id });
+            // Items are inserted right after the order row — refresh again shortly.
+            setTimeout(invalidate, 400);
+            setTimeout(invalidate, 1200);
           }
 
           if (
@@ -111,7 +118,19 @@ export function useKitchenOrders(options: UseKitchenOrdersOptions = {}) {
             });
           }
 
-          queryClient.invalidateQueries({ queryKey: ['kitchen-orders', companyId] });
+          invalidate();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'order_items',
+        },
+        () => {
+          // Covers the race where the order row lands before its line items.
+          invalidate();
         }
       )
       .subscribe();

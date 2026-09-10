@@ -10,6 +10,7 @@
 
 import { BRAND, BRAND_LOGO } from '@/lib/data/brand';
 import { getOrderDisplayCode } from '@/lib/utils/orderDisplayCode';
+import { cleanKitchenOrderNotes, parseOrderItemNotes } from '@/lib/utils/orderItemDetails';
 import { Asset } from 'expo-asset';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Print from 'expo-print';
@@ -105,15 +106,19 @@ export function extractPaymentLabel(notes?: string | null): string {
 
 /** Rimuove i token tecnici dalle note ordine per la stampa */
 function cleanOrderNotes(notes?: string | null): string {
-  if (!notes) return '';
-  return notes
-    .replace(/\[FULFILLMENT:[^\]]+\]/g, '')
-    .replace(/Metodo di pagamento:\s*[^|]+/gi, '')
-    .replace(/Delivery fee:\s*[^|]+/gi, '')
-    .replace(/Fulfillment:\s*[^|]+/gi, '')
-    .split('|')
-    .map((part) => part.trim())
-    .filter((part) => part.length > 0)
+  return cleanKitchenOrderNotes(notes);
+}
+
+function formatItemNotesForPrint(raw?: string | null): string {
+  const { modifiers, freeNote } = parseOrderItemNotes(raw);
+  const lines = [...modifiers];
+  if (freeNote) lines.push(`Nota: ${freeNote}`);
+  if (lines.length > 0) return lines.join(' · ');
+  // Avoid dumping the [P] product snapshot into the notes line.
+  return (raw ?? '')
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line && !/^\[P\]\s*/i.test(line))
     .join(' · ');
 }
 
@@ -187,7 +192,7 @@ export function buildDocumentoCommercialeHtml(order: PrintOrderData, logoSrc: st
   const itemsHtml = order.items
     .map((item) => {
       const notesHtml = item.notes
-        ? `<tr><td colspan="3" class="item-notes">${escapeHtml(item.notes)}</td></tr>`
+        ? `<tr><td colspan="3" class="item-notes">${escapeHtml(formatItemNotesForPrint(item.notes))}</td></tr>`
         : '';
       return `
         <tr>
@@ -252,7 +257,7 @@ export function buildComandaHtml(order: PrintOrderData, logoSrc: string | null):
   const itemsHtml = order.items
     .map((item) => {
       const notesHtml = item.notes
-        ? `<div class="comanda-notes">${escapeHtml(item.notes)}</div>`
+        ? `<div class="comanda-notes">${escapeHtml(formatItemNotesForPrint(item.notes))}</div>`
         : '';
       return `
         <div class="comanda-item">

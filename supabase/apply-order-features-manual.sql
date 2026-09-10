@@ -12,7 +12,7 @@ SET declined_at = COALESCE(declined_at, updated_at)
 WHERE status = 'cancelled'
   AND declined_at IS NULL;
 
--- 2) Codici ordine leggibili (es. "Diavola #12")
+-- 2) Codici ordine leggibili (es. "Ordine #12")
 ALTER TABLE public.orders
   ADD COLUMN IF NOT EXISTS display_code text;
 
@@ -31,12 +31,6 @@ SET search_path = public
 AS $$
 DECLARE
   v_counter integer;
-  v_names text[] := ARRAY[
-    'Margherita', 'Diavola', 'Bufala', 'Tartufo', 'Patate', 'Ortolana', 'Marinara',
-    'Carbonara', 'Speck', 'Porcini', 'Gamberi', 'Bresaola', 'Nduja', 'Capricciosa',
-    '4 Formaggi', 'Prosciutto', 'Wurstel', 'Funghi', 'Rucola', 'Norma'
-  ];
-  v_name text;
 BEGIN
   INSERT INTO order_daily_counters (company_id, day, counter)
   VALUES (p_company_id, current_date, 1)
@@ -44,8 +38,7 @@ BEGIN
   DO UPDATE SET counter = order_daily_counters.counter + 1
   RETURNING counter INTO v_counter;
 
-  v_name := v_names[1 + floor(random() * array_length(v_names, 1))::int];
-  RETURN v_name || ' #' || v_counter::text;
+  RETURN 'Ordine #' || v_counter::text;
 END;
 $$;
 

@@ -61,9 +61,10 @@ function weightFromBuilderModifiers(modifiers: string[]): number | null {
   const matchedSize = BUILDER_SIZES.find((size) => normalizeText(size.label) === tagliaLabel);
   if (matchedSize) return matchedSize.capacityWeight;
 
+  if (tagliaLabel.includes('tirata')) return PIZZA_CAPACITY_WEIGHT.tirata;
   if (tagliaLabel.includes('piccola')) return PIZZA_CAPACITY_WEIGHT.piccola;
   if (tagliaLabel.includes('mezzo metro')) return PIZZA_CAPACITY_WEIGHT.mezzo_metro;
-  if (tagliaLabel.includes('media')) return PIZZA_CAPACITY_WEIGHT.media;
+  if (tagliaLabel.includes('media') || tagliaLabel.includes('normale')) return PIZZA_CAPACITY_WEIGHT.normale;
 
   return PIZZA_CAPACITY_WEIGHT.normale;
 }

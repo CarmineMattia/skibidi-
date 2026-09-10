@@ -6,12 +6,38 @@
 import type { KitchenOrder } from '@/lib/hooks/useKitchenOrders';
 import { DeclineReasonModal } from '@/components/features/orders/DeclineReasonModal';
 import { useUpdateOrderStatus } from '@/lib/hooks/useUpdateOrderStatus';
-import { printComanda, printDocumentoCommerciale, type PrintOrderData } from '@/lib/print/orderPrint';
+import { printComanda, printDocumentoCommerciale, extractFulfillmentTime, type PrintOrderData } from '@/lib/print/orderPrint';
 import type { Database } from '@/types/database.types.generated';
 import { getOrderDisplayCode } from '@/lib/utils/orderDisplayCode';
+import {
+  cleanKitchenOrderNotes,
+  parseOrderItemNotes,
+} from '@/lib/utils/orderItemDetails';
 import { FontAwesome } from '@expo/vector-icons';
 import { Alert, Pressable, Text, View } from 'react-native';
 import { useState } from 'react';
+
+function modifierChipClass(modifier: string): string {
+  const value = modifier.toLowerCase();
+  if (value.startsWith('no ')) return 'bg-red-100 border-red-200';
+  if (value.startsWith('extra ') || value.startsWith('+ ')) return 'bg-emerald-100 border-emerald-200';
+  if (value.startsWith('taglia:') || value.startsWith('impasto:') || value.startsWith('base:') || value.startsWith('gusto')) {
+    return 'bg-amber-100 border-amber-200';
+  }
+  if (value.startsWith('cottura:')) return 'bg-sky-100 border-sky-200';
+  return 'bg-primary/10 border-primary/20';
+}
+
+function modifierTextClass(modifier: string): string {
+  const value = modifier.toLowerCase();
+  if (value.startsWith('no ')) return 'text-red-800';
+  if (value.startsWith('extra ') || value.startsWith('+ ')) return 'text-emerald-800';
+  if (value.startsWith('taglia:') || value.startsWith('impasto:') || value.startsWith('base:') || value.startsWith('gusto')) {
+    return 'text-amber-900';
+  }
+  if (value.startsWith('cottura:')) return 'text-sky-900';
+  return 'text-primary';
+}
 
 function kitchenOrderToPrintData(order: KitchenOrder): PrintOrderData {
   return {
@@ -26,13 +52,17 @@ function kitchenOrderToPrintData(order: KitchenOrder): PrintOrderData {
     notes: order.notes,
     totalAmount: order.total_amount,
     fiscalExternalId: order.fiscal_external_id,
-    items: order.order_items.map((item) => ({
-      name: item.product.name,
-      quantity: item.quantity,
-      unitPrice: item.unit_price,
-      totalPrice: item.total_price,
-      notes: item.notes,
-    })),
+    items: (order.order_items ?? []).map((item) => {
+      const product = Array.isArray(item.product) ? item.product[0] : item.product;
+      const parsed = parseOrderItemNotes(item.notes);
+      return {
+        name: product?.name ?? parsed.productName ?? 'Prodotto',
+        quantity: item.quantity,
+        unitPrice: item.unit_price,
+        totalPrice: item.total_price,
+        notes: item.notes,
+      };
+    }),
   };
 }
 
@@ -220,39 +250,88 @@ export function KitchenOrderCard({ order }: KitchenOrderCardProps) {
         </View>
       </View>
 
-      {/* Order Items */}
+      {/* Order Items — product + modifiers/notes for kitchen */}
       <View className="bg-secondary/30 rounded-xl p-4 mb-4">
-        {order.order_items.map((item, index) => (
-          <View key={item.id} className={index > 0 ? 'mt-3 pt-3 border-t border-border' : ''}>
-            <View className="flex-row justify-between items-start">
-              <View className="flex-1">
-                <Text className="text-foreground font-bold text-lg">
-                  {item.quantity}x {item.product.name}
-                </Text>
-                {item.notes && (
-                  <View className="flex-row items-center gap-1 mt-1">
-                    <FontAwesome name="sticky-note-o" size={11} color="#6b7280" />
-                    <Text className="text-muted-foreground text-sm">{item.notes}</Text>
+        {!order.order_items?.length ? (
+          <Text className="text-muted-foreground text-sm font-semibold">
+            Dettagli prodotti in caricamento… Se non compaiono, attendi un attimo o aggiorna la pagina.
+          </Text>
+        ) : (
+          order.order_items.map((item, index) => {
+            const { productName: notedProductName, modifiers, freeNote } = parseOrderItemNotes(item.notes);
+            const productRelation = Array.isArray(item.product) ? item.product[0] : item.product;
+            const productName = productRelation?.name ?? notedProductName ?? 'Prodotto';
+
+            return (
+              <View key={item.id} className={index > 0 ? 'mt-4 pt-4 border-t border-border' : ''}>
+                <View className="flex-row justify-between items-start gap-2">
+                  <View className="flex-1">
+                    <Text className="text-foreground font-extrabold text-xl leading-tight">
+                      {item.quantity}× {productName}
+                    </Text>
+
+                    {modifiers.length > 0 ? (
+                      <View className="flex-row flex-wrap gap-1.5 mt-2">
+                        {modifiers.map((modifier, modifierIndex) => (
+                          <View
+                            key={`${item.id}-mod-${modifierIndex}`}
+                            className={`rounded-lg border px-2.5 py-1 ${modifierChipClass(modifier)}`}
+                          >
+                            <Text className={`text-xs font-bold ${modifierTextClass(modifier)}`}>
+                              {modifier}
+                            </Text>
+                          </View>
+                        ))}
+                      </View>
+                    ) : null}
+
+                    {freeNote ? (
+                      <View className="mt-2 rounded-lg bg-amber-50 border border-amber-200 px-2.5 py-2">
+                        <Text className="text-[10px] font-extrabold uppercase text-amber-800">
+                          Nota cliente
+                        </Text>
+                        <Text className="text-sm text-amber-950 mt-0.5">{freeNote}</Text>
+                      </View>
+                    ) : null}
+
+                    {!modifiers.length && !freeNote && item.notes && !notedProductName ? (
+                      <View className="flex-row items-center gap-1 mt-1">
+                        <FontAwesome name="sticky-note-o" size={11} color="#6b7280" />
+                        <Text className="text-muted-foreground text-sm">{item.notes}</Text>
+                      </View>
+                    ) : null}
                   </View>
-                )}
+                  <Text className="text-foreground font-semibold text-base">
+                    €{Number(item.total_price).toFixed(2)}
+                  </Text>
+                </View>
               </View>
-              <Text className="text-foreground font-semibold text-base ml-2">
-                €{item.total_price.toFixed(2)}
-              </Text>
-            </View>
-          </View>
-        ))}
+            );
+          })
+        )}
       </View>
 
-      {/* Order Notes */}
-      {order.notes && (
-        <View className="bg-yellow-50 border border-yellow-200 rounded-xl p-3 mb-4">
-          <View className="flex-row items-center gap-1">
-            <FontAwesome name="comment-o" size={11} color="#854d0e" />
-            <Text className="text-yellow-800 text-sm">{order.notes}</Text>
+      {/* Order Notes (customer / fulfillment, tokens stripped) */}
+      {(() => {
+        const cleanedNotes = cleanKitchenOrderNotes(order.notes);
+        const fulfillmentTime = extractFulfillmentTime(order.notes);
+        if (!cleanedNotes && !fulfillmentTime) return null;
+        return (
+          <View className="bg-yellow-50 border border-yellow-200 rounded-xl p-3 mb-4 gap-1">
+            {fulfillmentTime ? (
+              <Text className="text-yellow-900 text-sm font-bold">
+                Orario: {fulfillmentTime}
+              </Text>
+            ) : null}
+            {cleanedNotes ? (
+              <View className="flex-row items-start gap-1">
+                <FontAwesome name="comment-o" size={11} color="#854d0e" />
+                <Text className="text-yellow-800 text-sm flex-1">{cleanedNotes}</Text>
+              </View>
+            ) : null}
           </View>
-        </View>
-      )}
+        );
+      })()}
 
       {(order.decline_reason_preset || order.decline_reason_note) && (
         <View className="bg-red-50 border border-red-200 rounded-xl p-3 mb-4">
