@@ -11,7 +11,8 @@ import { useAuth } from '@/lib/stores/AuthContext';
 import { useAppSettings } from '@/lib/stores/AppSettingsContext';
 import { getCartItemUnitPrice, useCart } from '@/lib/stores/CartContext';
 import { useTenant } from '@/lib/stores/TenantContext';
-import { getNextOpening, isOpenAt } from '@/lib/utils/businessHours';
+import { finalizeDeliveryAddress, isAddressInDeliveryZone } from '@/lib/utils/deliveryZone';
+import { isOpenAt, getNextOpening } from '@/lib/utils/businessHours';
 import { buildCapacityUnitsToken, sumCartPizzaCapacity } from '@/lib/utils/pizzaCapacity';
 import { paymentProviderToMethod, type PaymentProvider } from '@/lib/hooks/usePayment';
 import { FontAwesome } from '@expo/vector-icons';
@@ -263,10 +264,12 @@ export default function CheckoutScreen() {
             namePlaceholder: 'Your name',
             tablePlaceholder: 'e.g. 5',
             phonePlaceholder: 'e.g. 3331234567',
-            addressPlaceholder: 'Street, city',
+            addressPlaceholder: 'Street in Montecchio Emilia or Villa Aiola',
             civicoPlaceholder: 'e.g. 12',
             addressMapHint: 'Tap the map or drag the pin to set your delivery location.',
             addressSearching: 'Searching addresses...',
+            deliveryZoneHint: 'Delivery is only possible in Montecchio Emilia and Villa Aiola.',
+            deliveryZoneError: 'Delivery is only possible in Montecchio Emilia and Villa Aiola.',
             summaryTitle: 'Order summary',
             table: 'Table',
             pickup: 'Take away',
@@ -353,10 +356,12 @@ export default function CheckoutScreen() {
             namePlaceholder: 'Il tuo nome',
             tablePlaceholder: 'Es: 5',
             phonePlaceholder: 'Es: 3331234567',
-            addressPlaceholder: 'Via, citta',
+            addressPlaceholder: 'Via a Montecchio Emilia o Villa Aiola',
             civicoPlaceholder: 'Es: 12',
             addressMapHint: 'Tocca la mappa o trascina il segnaposto per impostare il punto di consegna.',
             addressSearching: 'Ricerca indirizzi...',
+            deliveryZoneHint: 'Le consegne sono possibili solo a Montecchio Emilia e Villa Aiola.',
+            deliveryZoneError: 'Le consegne sono possibili solo a Montecchio Emilia e Villa Aiola.',
             summaryTitle: 'Riepilogo ordine',
             table: 'Tavolo',
             pickup: 'Asporto',
@@ -421,7 +426,7 @@ export default function CheckoutScreen() {
   const [errors, setErrors] = useState<{name?: string; phone?: string; address?: string; civico?: string; tableNumber?: string}>({});
   const selectedPhonePrefix = PHONE_PREFIX_OPTIONS.find((option) => option.id === selectedPhoneOptionId) ?? DEFAULT_PHONE_OPTION;
   const fullPhoneNumber = `${selectedPhonePrefix.dialCode}${phoneNumber}`;
-  const fullDeliveryAddress = formatDeliveryAddress(address, civico);
+  const fullDeliveryAddress = finalizeDeliveryAddress(formatDeliveryAddress(address, civico));
 
   // Ordini telefonici: riconoscimento cliente dal numero (fisso o cellulare).
   // Solo per admin/cassa, per non esporre dati di altri clienti.
@@ -859,6 +864,9 @@ export default function CheckoutScreen() {
       if (orderType === 'delivery' && !address.trim()) {
         newErrors.address = 'Inserisci l\'indirizzo di consegna';
         hasError = true;
+      } else if (orderType === 'delivery' && !isAddressInDeliveryZone(fullDeliveryAddress)) {
+        newErrors.address = i18n.deliveryZoneError;
+        hasError = true;
       }
 
       if (orderType === 'delivery' && !civico.trim()) {
@@ -868,9 +876,10 @@ export default function CheckoutScreen() {
 
       if (hasError) {
         setErrors(newErrors);
+        const isZoneError = newErrors.address === i18n.deliveryZoneError;
         Alert.alert(
-          i18n.missingFields,
-          i18n.missingFieldsSubtitle,
+          isZoneError ? i18n.deliveryTitle : i18n.missingFields,
+          isZoneError ? i18n.deliveryZoneError : i18n.missingFieldsSubtitle,
           [{ text: 'OK' }]
         );
         return;
@@ -920,6 +929,11 @@ export default function CheckoutScreen() {
       Date.now() - availabilityCheckStartedAtRef.current > 6000;
     if (isCheckingAvailability && !isLongAvailabilityCheck) {
       Alert.alert(i18n.missingFields, i18n.checkingAvailability, [{ text: 'OK' }]);
+      return;
+    }
+
+    if (orderType === 'delivery' && !isAddressInDeliveryZone(fullDeliveryAddress)) {
+      Alert.alert(i18n.deliveryTitle, i18n.deliveryZoneError, [{ text: 'OK' }]);
       return;
     }
 
@@ -1356,6 +1370,7 @@ export default function CheckoutScreen() {
             hasCivicoError={Boolean(errors.civico)}
             mapHint={i18n.addressMapHint}
             searchingLabel={i18n.addressSearching}
+            hint={i18n.deliveryZoneHint}
           />
         )}
 

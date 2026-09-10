@@ -9,6 +9,12 @@
 import { Button } from '@/components/ui/Button';
 import { useCreateOrder } from '@/lib/hooks/useCreateOrder';
 import {
+  finalizeDeliveryAddress,
+  getDeliveryZoneMessage,
+  isAddressInDeliveryZone,
+  looksLikeOutOfDeliveryZone,
+} from '@/lib/utils/deliveryZone';
+import {
   paymentProviderToMethod,
   type PaymentProvider,
 } from '@/lib/hooks/usePayment';
@@ -62,6 +68,11 @@ export default function OneScreenCheckout() {
       Alert.alert('Indirizzo mancante', 'Inserisci l\u2019indirizzo di consegna.');
       return;
     }
+    const resolvedDeliveryAddress = finalizeDeliveryAddress(deliveryAddress);
+    if (orderType === 'delivery' && !isAddressInDeliveryZone(resolvedDeliveryAddress)) {
+      Alert.alert('Zona non coperta', getDeliveryZoneMessage('it'));
+      return;
+    }
 
     setIsProcessing(true);
     try {
@@ -71,7 +82,7 @@ export default function OneScreenCheckout() {
         customerName: customerName.trim(),
         customerPhone: customerPhone.trim(),
         deliveryAddress:
-          orderType === 'delivery' ? deliveryAddress.trim() : undefined,
+          orderType === 'delivery' ? resolvedDeliveryAddress.trim() : undefined,
         fulfillmentMode: 'asap',
         paymentMethod: paymentProviderToMethod(selectedPayment),
       });
@@ -177,13 +188,22 @@ export default function OneScreenCheckout() {
           keyboardType="phone-pad"
         />
         {orderType === 'delivery' && (
-          <TextInput
-            className="bg-card border border-border rounded-xl px-4 py-3 text-foreground"
-            placeholder="Indirizzo di consegna"
-            placeholderTextColor="#999"
-            value={deliveryAddress}
-            onChangeText={setDeliveryAddress}
-          />
+          <View className="gap-1">
+            <TextInput
+              className="bg-card border border-border rounded-xl px-4 py-3 text-foreground"
+              placeholder="Indirizzo a Montecchio Emilia o Villa Aiola"
+              placeholderTextColor="#999"
+              value={deliveryAddress}
+              onChangeText={setDeliveryAddress}
+            />
+            {looksLikeOutOfDeliveryZone(deliveryAddress) ? (
+              <Text className="text-sm font-semibold text-red-600">{getDeliveryZoneMessage('it')}</Text>
+            ) : (
+              <Text className="text-xs text-muted-foreground">
+                {getDeliveryZoneMessage('it')}
+              </Text>
+            )}
+          </View>
         )}
 
         {/* Payment method */}

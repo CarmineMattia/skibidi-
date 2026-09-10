@@ -476,10 +476,13 @@ export function AppSettingsProvider({ children }: { children: ReactNode }) {
   };
 
   const setOrderWindowMinutes = (value: number) => {
+    // Una sola durata fascia per asporto/sala e delivery (due tetti unità diversi).
+    const normalized = Math.max(5, Math.floor(Number(value) || 5));
     persistOrderSettings(
       {
         ...orderSettings,
-        orderWindowMinutes: Math.max(5, Math.floor(Number(value) || 5)),
+        orderWindowMinutes: normalized,
+        deliveryOrderWindowMinutes: normalized,
       },
       'local'
     );
@@ -496,10 +499,13 @@ export function AppSettingsProvider({ children }: { children: ReactNode }) {
   };
 
   const setDeliveryOrderWindowMinutes = (value: number) => {
+    // Compatibilità: allinea anche la fascia asporto/sala.
+    const normalized = Math.max(5, Math.floor(Number(value) || 5));
     persistOrderSettings(
       {
         ...orderSettings,
-        deliveryOrderWindowMinutes: Math.max(5, Math.floor(Number(value) || 5)),
+        orderWindowMinutes: normalized,
+        deliveryOrderWindowMinutes: normalized,
       },
       'local'
     );

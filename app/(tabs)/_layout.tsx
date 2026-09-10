@@ -1,4 +1,5 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { BottomTabBar } from '@react-navigation/bottom-tabs';
 import { Tabs } from 'expo-router';
 import React from 'react';
 import { Dimensions, Platform, useWindowDimensions } from 'react-native';
@@ -35,7 +36,6 @@ export default function TabLayout() {
     paddingBottom: compactTabBar ? 4 : 8,
     paddingTop: 4,
   } as const;
-  const hiddenTabBarStyle = { display: 'none' } as const;
 
   // Role-based tab visibility
   // Kiosk/Guest/Customer: Home + Menu + Account
@@ -48,6 +48,15 @@ export default function TabLayout() {
 
   return (
     <Tabs
+      tabBar={(props) => {
+        // On the desktop landing screen the bottom bar is hidden (the page has its
+        // own header nav). Returning null removes the bar for that route, so
+        // navigating to a regular tab mounts a fresh bar instead of leaving a stuck
+        // `display: none` that React Native Web does not reliably reset.
+        const focused = props.state.routes[props.state.index];
+        if (isWebDesktop && focused.name === 'index') return null;
+        return <BottomTabBar {...props} />;
+      }}
       screenOptions={{
         tabBarActiveTintColor: palette.tint,
         tabBarInactiveTintColor: palette.tabIconDefault,
@@ -63,8 +72,6 @@ export default function TabLayout() {
           title: 'Home',
           tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} size={tabIconSize} />,
           href: showHome ? '/(tabs)' : null,
-          // Desktop landing uses its own header navigation.
-          tabBarStyle: isWebDesktop ? hiddenTabBarStyle : tabBarStyle,
         }}
       />
       <Tabs.Screen

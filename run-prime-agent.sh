@@ -5,11 +5,11 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 cd "$ROOT"
 
-LLAMA_BIN="${LLAMA_BIN:-/home/cr1m3/LocalAI/llama.cpp/build-strix-halo/bin/llama-server}"
+LLAMA_BIN="${LLAMA_BIN:-/home/cr1m3/localai/llama.cpp/build-strix-halo/bin/llama-server}"
 LLAMA_PORT="${LLAMA_PORT:-8090}"
 LLAMA_URL="http://127.0.0.1:${LLAMA_PORT}"
 MODEL_ALIAS="qwen3-coder-30b"
-LOG_DIR="/home/cr1m3/LocalAI/logs"
+LOG_DIR="/home/cr1m3/localai/logs"
 HF_REPO="unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF"
 HF_FILE="Qwen3-Coder-30B-A3B-Instruct-Q4_K_M.gguf"
 

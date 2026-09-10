@@ -83,7 +83,6 @@ export default function HomeScreen() {
       </Head>
       <ScrollView
       ref={scrollRef}
-      nativeID="landing-page"
       className="flex-1 bg-[#f9ecdd]"
       contentContainerStyle={{ paddingBottom: isWebDesktop ? 0 : insets.bottom + 88 }}
       refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
