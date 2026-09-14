@@ -6,6 +6,7 @@
 import { useCart } from '@/lib/stores/CartContext';
 import { FontAwesome } from '@expo/vector-icons';
 import { Pressable, ScrollView, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CartItem } from './CartItem';
 
 interface CartSummaryProps {
@@ -14,6 +15,7 @@ interface CartSummaryProps {
 }
 
 export function CartSummary({ onCheckout, isCheckingOut = false }: CartSummaryProps) {
+  const insets = useSafeAreaInsets();
   const { items, updateQuantity, removeItem, clearCart, totalItems, totalAmount } = useCart();
 
   const isEmpty = items.length === 0;
@@ -70,7 +72,10 @@ export function CartSummary({ onCheckout, isCheckingOut = false }: CartSummaryPr
           </ScrollView>
 
           {/* Footer with Total & Checkout */}
-          <View className="p-5 border-t border-[#e1a255]/40 bg-[#f9ecdd] shadow-2xl">
+          <View
+            className="px-5 pt-5 border-t border-[#e1a255]/40 bg-[#f9ecdd] shadow-2xl"
+            style={{ paddingBottom: Math.max(20, insets.bottom + 16) }}
+          >
             {/* Total */}
             <View className="bg-[#f3dabb] rounded-2xl p-5 mb-4 border border-[#e1a255]/60">
               <View className="flex-row justify-between items-center">
@@ -85,7 +90,7 @@ export function CartSummary({ onCheckout, isCheckingOut = false }: CartSummaryPr
 
             {/* Checkout Button */}
             <Pressable
-              className="bg-[#8d171e] rounded-2xl p-5 shadow-xl items-center border border-[#8d171e]"
+              className="min-h-14 bg-[#8d171e] rounded-2xl px-5 py-4 shadow-xl items-center justify-center border border-[#8d171e]"
               style={{
                 opacity: isCheckingOut ? 0.5 : 1,
               }}

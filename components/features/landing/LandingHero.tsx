@@ -51,7 +51,7 @@ export function LandingHero({ isDesktop, onMenu, onContact }: LandingHeroProps) 
               {BRAND.description} Scegli la tua pizza e ordinala direttamente online.
             </Text>
 
-            <View className="mt-8 gap-3 sm:flex-row sm:items-center">
+            <View className="mt-8 gap-4 sm:flex-row sm:items-center sm:gap-3">
               <Pressable
                 accessibilityRole="button"
                 onPress={onMenu}

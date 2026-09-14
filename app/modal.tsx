@@ -21,6 +21,7 @@ import { useRouter, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Image, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type OrderType = 'eat_in' | 'take_away' | 'delivery';
 type CheckoutStep = 'type' | 'time' | 'details' | 'payment';
@@ -200,6 +201,7 @@ export default function CheckoutScreen() {
   const { companyId } = useTenant();
   const { addToQueue, isOnline } = useOfflineQueue();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const createOrder = useCreateOrder();
 
   const [step, setStep] = useState<CheckoutStep>('type');
@@ -1002,7 +1004,11 @@ export default function CheckoutScreen() {
   };
 
   const renderOrderTypeSelection = () => (
-    <ScrollView className="flex-1" contentContainerClassName="p-6">
+    <ScrollView
+      className="flex-1"
+      contentContainerClassName="p-6"
+      contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
+    >
       <View className="flex-1 justify-center">
         <Text className="text-2xl font-black text-center mb-2">{i18n.reviewTitle}</Text>
         <Text className="text-sm text-gray-600 text-center mb-8">
@@ -1066,7 +1072,11 @@ export default function CheckoutScreen() {
   );
 
   const renderTimeSelection = () => (
-    <ScrollView className="flex-1" contentContainerClassName="p-6 pb-10">
+    <ScrollView
+      className="flex-1"
+      contentContainerClassName="p-6"
+      contentContainerStyle={{ paddingBottom: Math.max(40, insets.bottom + 24) }}
+    >
       <View className="w-full max-w-[560px] self-center">
         <Text className="text-3xl font-black text-gray-900 mb-2">{i18n.timeTitle}</Text>
         <Text className="text-base leading-6 text-gray-600 mb-5">{i18n.timeSubtitle}</Text>
@@ -1165,19 +1175,19 @@ export default function CheckoutScreen() {
           </View>
         )}
 
-        <View className="flex-row gap-3 mt-8">
+        <View className="gap-4 mt-8 sm:flex-row sm:gap-3">
           <Button
             title={i18n.back}
             variant="outline"
             onPress={handleBackStep}
-            className="flex-1"
+            className="w-full sm:w-auto sm:flex-1"
             size="lg"
           />
           <Button
             title={i18n.continue}
             onPress={handleNextStep}
             disabled={isCheckingAvailability}
-            className="flex-1"
+            className="w-full sm:w-auto sm:flex-1"
             size="lg"
           />
         </View>
@@ -1186,7 +1196,11 @@ export default function CheckoutScreen() {
   );
 
   const renderDetailsForm = () => (
-    <ScrollView className="flex-1" contentContainerClassName="p-6">
+    <ScrollView
+      className="flex-1"
+      contentContainerClassName="p-6"
+      contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
+    >
       <View className="flex-1 justify-center gap-4">
         <Text className="text-2xl font-bold text-center mb-2">{i18n.detailsTitle}</Text>
 
@@ -1375,18 +1389,18 @@ export default function CheckoutScreen() {
         )}
 
         {/* Buttons */}
-        <View className="flex-row gap-3 mt-4">
+        <View className="gap-4 mt-6 sm:flex-row sm:gap-3">
           <Button
             title={i18n.back}
             variant="outline"
             onPress={handleBackStep}
-            className="flex-1"
+            className="w-full sm:w-auto sm:flex-1"
             size="lg"
           />
           <Button
             title={i18n.continue}
             onPress={handleNextStep}
-            className="flex-1"
+            className="w-full sm:w-auto sm:flex-1"
             size="lg"
           />
         </View>
@@ -1395,7 +1409,11 @@ export default function CheckoutScreen() {
   );
 
   const renderPayment = () => (
-    <ScrollView className="flex-1" contentContainerClassName="p-4">
+    <ScrollView
+      className="flex-1"
+      contentContainerClassName="p-4"
+      contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
+    >
       {/* Order Summary - MOBILE OPTIMIZED (no sidebar) */}
       <View className="bg-card rounded-xl p-4 mb-4 border border-[#e1a255]/40">
         <Text className="text-base font-extrabold mb-3">
@@ -1528,7 +1546,7 @@ export default function CheckoutScreen() {
         </View>
 
         {/* Footer Buttons */}
-        <View className="gap-3 mt-4">
+        <View className="gap-4 mt-6">
           <Button
             title={i18n.back}
             variant="outline"
@@ -1590,7 +1608,10 @@ export default function CheckoutScreen() {
           onRequestClose={() => setShowPhonePrefixModal(false)}
         >
           <View className="flex-1 bg-black/35 justify-end">
-            <View className="bg-white rounded-t-2xl p-4 border-t border-[#e1a255]/40">
+            <View
+              className="bg-white rounded-t-2xl px-4 pt-4 border-t border-[#e1a255]/40"
+              style={{ paddingBottom: insets.bottom + 16 }}
+            >
               <Text className="text-base font-bold mb-3">{i18n.phonePrefixLabel}</Text>
               <TextInput
                 className="bg-background border border-border rounded-xl px-4 py-3 text-base min-h-[52px] mb-3"
@@ -1641,6 +1662,7 @@ export default function CheckoutScreen() {
               <Button
                 title={language === 'en' ? 'Close' : 'Chiudi'}
                 variant="outline"
+                size="lg"
                 onPress={() => {
                   setShowPhonePrefixModal(false);
                   setPhonePrefixSearch('');

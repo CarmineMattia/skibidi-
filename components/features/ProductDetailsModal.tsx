@@ -29,6 +29,7 @@ import type { Product } from '@/types';
 import { FontAwesome } from '@expo/vector-icons';
 import { useEffect, useMemo, useState } from 'react';
 import { Image, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type CookingLevel = 'poco_cotta' | 'normale' | 'ben_cotta';
 type WizardStepId = 'size' | 'gusti' | 'mezzo_gusti' | 'ingredients' | 'finish';
@@ -75,6 +76,7 @@ interface ProductDetailsModalProps {
 }
 
 export function ProductDetailsModal({ visible, onClose, product, categoryName }: ProductDetailsModalProps) {
+    const insets = useSafeAreaInsets();
     const [quantity, setQuantity] = useState(1);
     const [cookingLevel, setCookingLevel] = useState<CookingLevel>('normale');
     const [sizeId, setSizeId] = useState<MenuPizzaSize['id']>(DEFAULT_MENU_PIZZA_SIZE_ID);
@@ -849,23 +851,27 @@ export function ProductDetailsModal({ visible, onClose, product, categoryName }:
                     </ScrollView>
 
                     {/* Footer */}
-                    <View className="p-4 border-t border-border bg-card sm:rounded-b-2xl gap-2">
+                    <View
+                        className="px-4 pt-4 border-t border-border bg-card sm:rounded-b-2xl gap-3"
+                        style={{ paddingBottom: insets.bottom + 16 }}
+                    >
                         {useWizard && currentStep?.id === 'gusti' && selectedGusti.length < maxGusti && (
                             <Text className="text-xs text-amber-800 text-center font-semibold">
                                 Seleziona {maxGusti - selectedGusti.length} gusto
                                 {maxGusti - selectedGusti.length === 1 ? '' : 'i'} per continuare
                             </Text>
                         )}
-                        <View className="flex-row gap-2">
+                        <View className="gap-4 sm:flex-row sm:gap-3">
                             {useWizard && !isFirstStep && (
-                                <Pressable
+                                <Button
+                                    title="Indietro"
+                                    variant="outline"
+                                    size="lg"
                                     onPress={goBack}
-                                    className="h-12 px-4 rounded-xl border border-border bg-secondary items-center justify-center active:opacity-80"
-                                >
-                                    <Text className="font-bold text-foreground">Indietro</Text>
-                                </Pressable>
+                                    className="w-full sm:w-auto"
+                                />
                             )}
-                            <View className="flex-1">
+                            <View className="w-full sm:w-auto sm:flex-1">
                                 <Button
                                     title={footerPrimaryLabel}
                                     variant="default"

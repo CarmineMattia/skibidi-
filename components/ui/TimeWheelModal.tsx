@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/Button';
 import { FontAwesome } from '@expo/vector-icons';
 import { useEffect, useMemo, useState } from 'react';
 import { Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface TimeWheelModalProps {
   readonly visible: boolean;
@@ -38,6 +39,7 @@ export function TimeWheelModal({
   onClose,
   onConfirm,
 }: TimeWheelModalProps) {
+  const insets = useSafeAreaInsets();
   const safeHourMin = clamp(hourMin, 0, 23);
   const safeHourMax = clamp(hourMax, safeHourMin, 23);
   const safeMinuteStep = clamp(minuteStep, 1, 30);
@@ -95,7 +97,10 @@ export function TimeWheelModal({
       onRequestClose={onClose}
     >
       <View className="flex-1 bg-black/40 justify-end">
-        <View className="bg-white rounded-t-2xl p-4 border-t border-[#e1a255]/40">
+        <View
+          className="bg-white rounded-t-2xl px-4 pt-4 border-t border-[#e1a255]/40"
+          style={{ paddingBottom: insets.bottom + 16 }}
+        >
           <Text className="text-base font-bold mb-3">{title}</Text>
 
           {manualMode ? (
@@ -174,9 +179,20 @@ export function TimeWheelModal({
             </Text>
           </View>
 
-          <View className="flex-row gap-2">
-            <Button title={cancelLabel} variant="outline" onPress={onClose} className="flex-1" />
-            <Button title={confirmLabel} onPress={handleConfirm} className="flex-1" />
+          <View className="gap-4 sm:flex-row sm:gap-3">
+            <Button
+              title={cancelLabel}
+              variant="outline"
+              size="lg"
+              onPress={onClose}
+              className="w-full sm:w-auto sm:flex-1"
+            />
+            <Button
+              title={confirmLabel}
+              size="lg"
+              onPress={handleConfirm}
+              className="w-full sm:w-auto sm:flex-1"
+            />
           </View>
         </View>
       </View>
