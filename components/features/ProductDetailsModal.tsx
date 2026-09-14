@@ -861,7 +861,7 @@ export function ProductDetailsModal({ visible, onClose, product, categoryName }:
                                 {maxGusti - selectedGusti.length === 1 ? '' : 'i'} per continuare
                             </Text>
                         )}
-                        <View className="gap-4 sm:flex-row sm:gap-3">
+                        <View className="gap-4 sm:flex-row">
                             {useWizard && !isFirstStep && (
                                 <Button
                                     title="Indietro"
@@ -874,8 +874,8 @@ export function ProductDetailsModal({ visible, onClose, product, categoryName }:
                             <View className="w-full sm:w-auto sm:flex-1">
                                 <Button
                                     title={footerPrimaryLabel}
-                                    variant="default"
-                                    size="lg"
+                                    variant="brand"
+                                    size="cta"
                                     onPress={useWizard ? goNext : handleAddToCart}
                                     disabled={useWizard && !canProceedFromCurrentStep()}
                                     className="w-full"

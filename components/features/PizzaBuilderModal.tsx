@@ -480,8 +480,8 @@ export function PizzaBuilderModal({ visible, onClose, product }: PizzaBuilderMod
                     >
                         <Button
                             title={`Aggiungi al carrello • €${(breakdown.total * quantity).toFixed(2)}`}
-                            variant="default"
-                            size="lg"
+                            variant="brand"
+                            size="cta"
                             onPress={handleAddToCart}
                             className="w-full"
                         />

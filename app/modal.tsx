@@ -1008,71 +1008,81 @@ export default function CheckoutScreen() {
   };
 
   const renderOrderTypeSelection = () => (
-    <ScrollView
-      className="flex-1"
-      contentContainerClassName="p-6"
-      contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
-    >
-      <View className="flex-1 justify-center">
-        <Text className="text-2xl font-black text-center mb-2">{i18n.reviewTitle}</Text>
-        <Text className="text-sm text-gray-600 text-center mb-8">
-          {i18n.reviewSubtitle}
-        </Text>
+    <View className="flex-1">
+      <ScrollView
+        className="flex-1"
+        contentContainerClassName="flex-grow px-6 py-5"
+      >
+        <View className="w-full max-w-[560px] self-center flex-1 justify-center">
+          <Text className="text-2xl font-black text-center mb-2">{i18n.reviewTitle}</Text>
+          <Text className="text-sm text-gray-600 text-center mb-8">
+            {i18n.reviewSubtitle}
+          </Text>
 
-        <View className="gap-4 mb-6">
-          {/* Mangio Qui */}
-          <Pressable
-            className={`p-6 rounded-2xl border-2 items-center gap-3 shadow-sm active:scale-98 transition-transform ${
-              orderType === 'eat_in' ? 'border-[#8d171e] bg-[#f9ecdd]' : 'border-border'
-            }`}
-            onPress={() => setOrderType('eat_in')}
-          >
-            <FontAwesome name="cutlery" size={28} color={orderType === 'eat_in' ? '#8d171e' : '#6b7280'} />
-            <Text className="text-lg font-bold text-center">{i18n.dineInTitle}</Text>
-            <Text className="text-muted-foreground text-sm text-center">{i18n.dineInSubtitle}</Text>
-          </Pressable>
+          <View className="gap-4">
+            {/* Mangio Qui */}
+            <Pressable
+              className={`p-6 rounded-2xl border-2 items-center gap-3 shadow-sm active:scale-98 transition-transform ${
+                orderType === 'eat_in' ? 'border-[#8d171e] bg-[#f9ecdd]' : 'border-border'
+              }`}
+              onPress={() => setOrderType('eat_in')}
+            >
+              <FontAwesome name="cutlery" size={28} color={orderType === 'eat_in' ? '#8d171e' : '#6b7280'} />
+              <Text className="text-lg font-bold text-center">{i18n.dineInTitle}</Text>
+              <Text className="text-muted-foreground text-sm text-center">{i18n.dineInSubtitle}</Text>
+            </Pressable>
 
-          {/* Da Asporto */}
-          <Pressable
-            className={`p-6 rounded-2xl border-2 items-center gap-3 shadow-sm active:scale-98 transition-transform ${
-              orderType === 'take_away' ? 'border-[#8d171e] bg-[#f9ecdd]' : 'border-border'
-            }`}
-            onPress={() => setOrderType('take_away')}
-          >
-            <FontAwesome name="shopping-bag" size={28} color={orderType === 'take_away' ? '#8d171e' : '#6b7280'} />
-            <Text className="text-lg font-bold text-center">{i18n.takeawayTitle}</Text>
-            <Text className="text-muted-foreground text-sm text-center">{i18n.takeawaySubtitle}</Text>
-          </Pressable>
+            {/* Da Asporto */}
+            <Pressable
+              className={`p-6 rounded-2xl border-2 items-center gap-3 shadow-sm active:scale-98 transition-transform ${
+                orderType === 'take_away' ? 'border-[#8d171e] bg-[#f9ecdd]' : 'border-border'
+              }`}
+              onPress={() => setOrderType('take_away')}
+            >
+              <FontAwesome name="shopping-bag" size={28} color={orderType === 'take_away' ? '#8d171e' : '#6b7280'} />
+              <Text className="text-lg font-bold text-center">{i18n.takeawayTitle}</Text>
+              <Text className="text-muted-foreground text-sm text-center">{i18n.takeawaySubtitle}</Text>
+            </Pressable>
 
-          {/* Delivery */}
-          <Pressable
-            className={`p-6 rounded-2xl border-2 items-center gap-3 shadow-sm active:scale-98 transition-transform ${
-              orderType === 'delivery' ? 'border-[#8d171e] bg-[#f9ecdd]' : 'border-border'
-            }`}
-            onPress={() => setOrderType('delivery')}
-          >
-            <FontAwesome name="motorcycle" size={28} color={orderType === 'delivery' ? '#8d171e' : '#6b7280'} />
-            <Text className="text-lg font-bold text-center">{i18n.deliveryTitle}</Text>
-            <Text className="text-muted-foreground text-sm text-center">{i18n.deliverySubtitle}</Text>
-          </Pressable>
-        </View>
-
-        {isRestaurantTemporarilyClosed && (
-          <View className="mb-4 bg-red-50 border border-red-200 rounded-xl p-3">
-            <Text className="text-sm text-red-700">
-              {availabilityError || i18n.unavailableRestaurantClosed}
-            </Text>
+            {/* Delivery */}
+            <Pressable
+              className={`p-6 rounded-2xl border-2 items-center gap-3 shadow-sm active:scale-98 transition-transform ${
+                orderType === 'delivery' ? 'border-[#8d171e] bg-[#f9ecdd]' : 'border-border'
+              }`}
+              onPress={() => setOrderType('delivery')}
+            >
+              <FontAwesome name="motorcycle" size={28} color={orderType === 'delivery' ? '#8d171e' : '#6b7280'} />
+              <Text className="text-lg font-bold text-center">{i18n.deliveryTitle}</Text>
+              <Text className="text-muted-foreground text-sm text-center">{i18n.deliverySubtitle}</Text>
+            </Pressable>
           </View>
-        )}
 
-        <Button
-          title={i18n.continue}
-          onPress={handleNextStep}
-          disabled={isRestaurantTemporarilyClosed}
-          size="lg"
-        />
+          {isRestaurantTemporarilyClosed && (
+            <View className="mt-4 bg-red-50 border border-red-200 rounded-xl p-3">
+              <Text className="text-sm text-red-700">
+                {availabilityError || i18n.unavailableRestaurantClosed}
+              </Text>
+            </View>
+          )}
+        </View>
+      </ScrollView>
+
+      <View
+        className="border-t border-[#e1a255]/50 bg-[#f9ecdd] px-6 pt-4 shadow-2xl"
+        style={{ paddingBottom: Math.max(16, insets.bottom + 12) }}
+      >
+        <View className="w-full max-w-[560px] self-center">
+          <Button
+            title={i18n.continue}
+            variant="brand"
+            size="cta"
+            onPress={handleNextStep}
+            disabled={isRestaurantTemporarilyClosed}
+            className="w-full"
+          />
+        </View>
       </View>
-    </ScrollView>
+    </View>
   );
 
   const renderTimeSelection = () => (
@@ -1179,7 +1189,7 @@ export default function CheckoutScreen() {
           </View>
         )}
 
-        <View className="gap-4 mt-8 sm:flex-row sm:gap-3">
+        <View className="gap-4 mt-8 sm:flex-row">
           <Button
             title={i18n.back}
             variant="outline"
@@ -1189,10 +1199,11 @@ export default function CheckoutScreen() {
           />
           <Button
             title={i18n.continue}
+            variant="brand"
             onPress={handleNextStep}
             disabled={isCheckingAvailability}
             className="w-full sm:w-auto sm:flex-1"
-            size="lg"
+            size="cta"
           />
         </View>
       </View>
@@ -1393,7 +1404,7 @@ export default function CheckoutScreen() {
         )}
 
         {/* Buttons */}
-        <View className="gap-4 mt-6 sm:flex-row sm:gap-3">
+        <View className="gap-4 mt-6 sm:flex-row">
           <Button
             title={i18n.back}
             variant="outline"
@@ -1403,9 +1414,10 @@ export default function CheckoutScreen() {
           />
           <Button
             title={i18n.continue}
+            variant="brand"
             onPress={handleNextStep}
             className="w-full sm:w-auto sm:flex-1"
-            size="lg"
+            size="cta"
           />
         </View>
       </View>
@@ -1576,9 +1588,10 @@ export default function CheckoutScreen() {
           />
           <Button
             title={isProcessing ? '...' : (isOnline ? i18n.confirmOrder : i18n.saveOrder)}
+            variant="brand"
             onPress={handlePayment}
             disabled={isProcessing}
-            size="lg"
+            size="cta"
           />
         </View>
       </View>

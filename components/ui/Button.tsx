@@ -8,11 +8,12 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils/cn';
 
 const buttonVariants = cva(
-  'flex flex-row items-center justify-center rounded-md font-medium transition-colors active:opacity-80',
+  'flex flex-row items-center justify-center rounded-md font-medium transition-colors active:opacity-80 disabled:opacity-50',
   {
     variants: {
       variant: {
         default: 'bg-primary',
+        brand: 'bg-[#8d171e] shadow-xl web:hover:bg-[#741218] web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-[#e1a255]',
         destructive: 'bg-destructive',
         outline: 'border border-input bg-background',
         secondary: 'bg-secondary',
@@ -23,6 +24,7 @@ const buttonVariants = cva(
         default: 'h-10 px-4 py-2',
         sm: 'h-9 rounded-md px-3',
         lg: 'h-14 rounded-xl px-6',
+        cta: 'min-h-[72px] rounded-2xl px-6 py-5',
         icon: 'h-10 w-10',
       },
     },
@@ -37,6 +39,7 @@ const buttonTextVariants = cva('font-medium text-center', {
   variants: {
     variant: {
       default: 'text-primary-foreground',
+      brand: 'text-white',
       destructive: 'text-destructive-foreground',
       outline: 'text-foreground',
       secondary: 'text-secondary-foreground',
@@ -47,6 +50,7 @@ const buttonTextVariants = cva('font-medium text-center', {
       default: 'text-sm',
       sm: 'text-xs',
       lg: 'text-base',
+      cta: 'text-xl font-extrabold',
       icon: 'text-sm',
     },
   },
@@ -71,6 +75,7 @@ export function Button({
 }: ButtonProps) {
   return (
     <Pressable
+      accessibilityRole="button"
       className={cn(buttonVariants({ variant, size, className }))}
       {...props}
     >
