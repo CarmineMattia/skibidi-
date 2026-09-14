@@ -305,7 +305,8 @@ export default function OneScreenCheckout() {
           }
           onPress={handleSubmit}
           disabled={!canSubmit}
-          size="lg"
+          variant="brand"
+          size="cta"
           className="w-full"
         />
       </View>
