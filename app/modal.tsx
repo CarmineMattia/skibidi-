@@ -204,7 +204,7 @@ export default function CheckoutScreen() {
 
   const [step, setStep] = useState<CheckoutStep>('type');
   const [orderType, setOrderType] = useState<OrderType>('eat_in');
-  const [paymentProvider, setPaymentProvider] = useState<PaymentProvider>('stripe');
+  const [paymentProvider, setPaymentProvider] = useState<PaymentProvider>('cash');
   const [isProcessing, setIsProcessing] = useState(false);
   const [showPhonePrefixModal, setShowPhonePrefixModal] = useState(false);
   const [phonePrefixSearch, setPhonePrefixSearch] = useState('');
@@ -280,6 +280,8 @@ export default function CheckoutScreen() {
             paymentMethod: 'Payment method',
             card: 'Credit card',
             cardSubtitle: 'Visa, Mastercard, Amex',
+            paypal: 'PayPal',
+            comingSoon: 'Coming soon',
             satispay: 'Satispay',
             satispaySubtitle: 'Pay with the Satispay app',
             terminal: 'POS at counter',
@@ -370,14 +372,16 @@ export default function CheckoutScreen() {
             deliveryFee: 'Costo consegna',
             total: 'Totale',
             paymentMethod: 'Metodo di pagamento',
-            card: 'Carta di credito',
+            card: 'Carta',
             cardSubtitle: 'Visa, Mastercard, Amex',
+            paypal: 'PayPal',
+            comingSoon: 'In arrivo',
             satispay: 'Satispay',
             satispaySubtitle: "Paga con l'app Satispay",
             terminal: 'POS in cassa',
             terminalSubtitle: 'Terminale fisico',
             cash: 'Contanti',
-            cashSubtitle: 'Paga alla cassa',
+            cashSubtitle: 'Paga in cassa',
             cashDeliverySubtitle: 'Paga alla consegna',
             confirmOrder: 'Conferma ordine',
             saveOrder: 'Salva ordine',
@@ -411,8 +415,8 @@ export default function CheckoutScreen() {
   const isDelivery = orderType === 'delivery';
 
   useEffect(() => {
-    if (isDelivery && paymentProvider === 'terminal') {
-      setPaymentProvider('stripe');
+    if (paymentProvider === 'stripe' || (isDelivery && paymentProvider === 'terminal')) {
+      setPaymentProvider('cash');
     }
   }, [isDelivery, paymentProvider]);
 
@@ -1468,20 +1472,6 @@ export default function CheckoutScreen() {
         <View className="gap-3">
           <Pressable
             className={`p-4 rounded-xl border-2 flex-row items-center gap-3 ${
-              paymentProvider === 'stripe' ? 'bg-[#f9ecdd] border-[#8d171e]' : 'bg-card border-border'
-            }`}
-            onPress={() => setPaymentProvider('stripe')}
-            disabled={isProcessing}
-          >
-            <FontAwesome name="credit-card" size={22} color="#374151" />
-            <View className="flex-1">
-              <Text className="font-bold text-base">{i18n.card}</Text>
-              <Text className="text-muted-foreground text-xs">{i18n.cardSubtitle}</Text>
-            </View>
-          </Pressable>
-
-          <Pressable
-            className={`p-4 rounded-xl border-2 flex-row items-center gap-3 ${
               paymentProvider === 'satispay' ? 'bg-[#f9ecdd] border-[#8d171e]' : 'bg-card border-border'
             }`}
             onPress={() => setPaymentProvider('satispay')}
@@ -1523,6 +1513,36 @@ export default function CheckoutScreen() {
               <Text className="text-muted-foreground text-xs">
                 {isDelivery ? i18n.cashDeliverySubtitle : i18n.cashSubtitle}
               </Text>
+            </View>
+          </Pressable>
+
+          <Pressable
+            className="p-4 rounded-xl border-2 flex-row items-center gap-3 bg-gray-100 border-gray-200 opacity-60"
+            disabled
+            accessibilityState={{ disabled: true }}
+          >
+            <FontAwesome name="credit-card" size={22} color="#6B7280" />
+            <View className="flex-1">
+              <Text className="font-bold text-base text-gray-500">{i18n.card}</Text>
+              <Text className="text-gray-500 text-xs">{i18n.cardSubtitle}</Text>
+            </View>
+            <View className="rounded-full bg-gray-200 px-3 py-1">
+              <Text className="text-gray-600 text-xs font-bold">{i18n.comingSoon}</Text>
+            </View>
+          </Pressable>
+
+          <Pressable
+            className="p-4 rounded-xl border-2 flex-row items-center gap-3 bg-gray-100 border-gray-200 opacity-60"
+            disabled
+            accessibilityState={{ disabled: true }}
+          >
+            <FontAwesome name="paypal" size={22} color="#6B7280" />
+            <View className="flex-1">
+              <Text className="font-bold text-base text-gray-500">{i18n.paypal}</Text>
+              <Text className="text-gray-500 text-xs">{i18n.comingSoon}</Text>
+            </View>
+            <View className="rounded-full bg-gray-200 px-3 py-1">
+              <Text className="text-gray-600 text-xs font-bold">{i18n.comingSoon}</Text>
             </View>
           </Pressable>
         </View>

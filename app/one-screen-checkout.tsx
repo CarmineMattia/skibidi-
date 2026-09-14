@@ -20,7 +20,7 @@ import {
 } from '@/lib/hooks/usePayment';
 import { getCartItemUnitPrice, useCart } from '@/lib/stores/CartContext';
 import { useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 
 type OrderType = 'eat_in' | 'take_away' | 'delivery';
@@ -31,11 +31,29 @@ const ORDER_TYPE_OPTIONS: { value: OrderType; label: string }[] = [
   { value: 'delivery', label: 'Consegna a domicilio' },
 ];
 
-const PAYMENT_OPTIONS: { value: PaymentProvider; label: string }[] = [
-  { value: 'cash', label: 'Contanti' },
-  { value: 'terminal', label: 'Terminale POS' },
-  { value: 'stripe', label: 'Carta' },
-  { value: 'satispay', label: 'Satispay' },
+const PAYMENT_OPTIONS: {
+  id: PaymentProvider | 'paypal';
+  label: string;
+  subtitle: string;
+  selectableValue?: PaymentProvider;
+  availableForDelivery?: boolean;
+}[] = [
+  { id: 'cash', label: 'Contanti', subtitle: 'Paga in cassa', selectableValue: 'cash' },
+  {
+    id: 'terminal',
+    label: 'POS in cassa',
+    subtitle: 'Terminale fisico',
+    selectableValue: 'terminal',
+    availableForDelivery: false,
+  },
+  {
+    id: 'satispay',
+    label: 'Satispay',
+    subtitle: "Paga con l'app Satispay",
+    selectableValue: 'satispay',
+  },
+  { id: 'stripe', label: 'Carta', subtitle: 'Visa, Mastercard, Amex' },
+  { id: 'paypal', label: 'PayPal', subtitle: 'In arrivo' },
 ];
 
 export default function OneScreenCheckout() {
@@ -51,6 +69,12 @@ export default function OneScreenCheckout() {
   const [isProcessing, setIsProcessing] = useState(false);
 
   const canSubmit = items.length > 0 && !isProcessing;
+
+  useEffect(() => {
+    if (orderType === 'delivery' && selectedPayment === 'terminal') {
+      setSelectedPayment('cash');
+    }
+  }, [orderType, selectedPayment]);
 
   const handleSubmit = useCallback(async () => {
     if (items.length === 0) {
@@ -209,28 +233,59 @@ export default function OneScreenCheckout() {
         {/* Payment method */}
         <View className="gap-2">
           <Text className="font-semibold">Metodo di pagamento</Text>
-          <View className="flex-row flex-wrap gap-2">
-            {PAYMENT_OPTIONS.map((opt) => (
-              <Pressable
-                key={opt.value}
-                onPress={() => setSelectedPayment(opt.value)}
-                className={`px-4 py-2 rounded-full border ${
-                  selectedPayment === opt.value
-                    ? 'bg-primary border-primary'
-                    : 'bg-card border-border'
-                }`}
-              >
-                <Text
-                  className={
-                    selectedPayment === opt.value
-                      ? 'text-primary-foreground'
-                      : 'text-foreground'
-                  }
+          <View className="gap-2">
+            {PAYMENT_OPTIONS.filter(
+              (opt) => orderType !== 'delivery' || opt.availableForDelivery !== false
+            ).map((opt) => {
+              const isSelectable = opt.selectableValue !== undefined;
+              const isSelected = opt.selectableValue === selectedPayment;
+
+              return (
+                <Pressable
+                  key={opt.id}
+                  onPress={() => {
+                    if (opt.selectableValue) {
+                      setSelectedPayment(opt.selectableValue);
+                    }
+                  }}
+                  disabled={!isSelectable || isProcessing}
+                  accessibilityState={{ disabled: !isSelectable || isProcessing }}
+                  className={`p-4 rounded-xl border flex-row items-center ${
+                    isSelected
+                      ? 'bg-primary border-primary'
+                      : isSelectable
+                        ? 'bg-card border-border'
+                        : 'bg-gray-100 border-gray-200 opacity-60'
+                  }`}
                 >
-                  {opt.label}
-                </Text>
-              </Pressable>
-            ))}
+                  <View className="flex-1">
+                    <Text
+                      className={`font-bold ${
+                        isSelected
+                          ? 'text-primary-foreground'
+                          : isSelectable
+                            ? 'text-foreground'
+                            : 'text-gray-500'
+                      }`}
+                    >
+                      {opt.label}
+                    </Text>
+                    <Text
+                      className={`text-xs ${
+                        isSelected ? 'text-primary-foreground' : 'text-muted-foreground'
+                      }`}
+                    >
+                      {opt.subtitle}
+                    </Text>
+                  </View>
+                  {!isSelectable && (
+                    <View className="rounded-full bg-gray-200 px-3 py-1">
+                      <Text className="text-gray-600 text-xs font-bold">In arrivo</Text>
+                    </View>
+                  )}
+                </Pressable>
+              );
+            })}
           </View>
         </View>
       </ScrollView>
@@ -241,7 +296,7 @@ export default function OneScreenCheckout() {
           title={
             isProcessing
               ? 'Elaborazione...'
-              : `Paga e ordina (${totalAmount.toFixed(2)}€)`
+              : `Conferma ordine (${totalAmount.toFixed(2)}€)`
           }
           onPress={handleSubmit}
           disabled={!canSubmit}
