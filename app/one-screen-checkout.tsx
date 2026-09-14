@@ -22,6 +22,7 @@ import { getCartItemUnitPrice, useCart } from '@/lib/stores/CartContext';
 import { useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type OrderType = 'eat_in' | 'take_away' | 'delivery';
 
@@ -40,6 +41,7 @@ const PAYMENT_OPTIONS: { value: PaymentProvider; label: string }[] = [
 
 export default function OneScreenCheckout() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { items, totalAmount, clearCart } = useCart();
   const createOrder = useCreateOrder();
 
@@ -115,7 +117,7 @@ export default function OneScreenCheckout() {
     <View className="flex-1 bg-background">
       <ScrollView
         className="flex-1"
-        contentContainerClassName="p-4 gap-4"
+        contentContainerClassName="p-4 pb-6 gap-4"
       >
         {/* Cart summary */}
         <View className="bg-card rounded-xl p-4 gap-2">
@@ -236,7 +238,10 @@ export default function OneScreenCheckout() {
       </ScrollView>
 
       {/* Confirm bar */}
-      <View className="p-4 bg-card border-t border-border">
+      <View
+        className="px-4 pt-4 bg-card border-t border-border"
+        style={{ paddingBottom: insets.bottom + 16 }}
+      >
         <Button
           title={
             isProcessing
@@ -245,6 +250,8 @@ export default function OneScreenCheckout() {
           }
           onPress={handleSubmit}
           disabled={!canSubmit}
+          size="lg"
+          className="w-full"
         />
       </View>
     </View>

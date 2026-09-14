@@ -23,6 +23,7 @@ import type { Product } from '@/types';
 import { FontAwesome } from '@expo/vector-icons';
 import { useEffect, useMemo, useState } from 'react';
 import { Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type CookingLevel = 'poco_cotta' | 'normale' | 'ben_cotta';
 
@@ -45,6 +46,7 @@ interface SelectedIngredient {
 }
 
 export function PizzaBuilderModal({ visible, onClose, product }: PizzaBuilderModalProps) {
+    const insets = useSafeAreaInsets();
     const [quantity, setQuantity] = useState(1);
     const [sizeId, setSizeId] = useState(BUILDER_SIZES[1].id);
     const [doughId, setDoughId] = useState(BUILDER_DOUGHS[0].id);
@@ -472,7 +474,10 @@ export function PizzaBuilderModal({ visible, onClose, product }: PizzaBuilderMod
                     </ScrollView>
 
                     {/* Footer Action */}
-                    <View className="p-4 border-t border-border bg-card sm:rounded-b-2xl">
+                    <View
+                        className="px-4 pt-4 border-t border-border bg-card sm:rounded-b-2xl"
+                        style={{ paddingBottom: insets.bottom + 16 }}
+                    >
                         <Button
                             title={`Aggiungi al carrello • €${(breakdown.total * quantity).toFixed(2)}`}
                             variant="default"
