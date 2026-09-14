@@ -1,14 +1,17 @@
 -- =============================================================================
 -- Pizzeria Ambrosia — menu seed per il go-live
--- Fonte: https://pizzeria-ambrosia.netlify.app/menu (verificata 2026-09-14)
+-- Fonte Bevande e ordine categorie (menu1):
+-- https://pizzeria-ambrosia.netlify.app/.netlify/functions/getAirtableData
+-- (verificata 2026-09-14)
 --
 -- Categorie / prodotti attivi:
---   Crea la tua pizza 1; Classiche 21; Gourmet 9; Gustose 15; Bianche 9;
---   Al metro 6; Supplementi 23; Dolci 6. Totale: 8 categorie, 90 prodotti.
+--   Crea la tua pizza 1; Bevande 26; Dolci 6; Gourmet 9; Gustose 15;
+--   Bianche 9; Classiche 21; Al metro 6; Supplementi 23.
+--   Totale: 9 categorie, 116 prodotti.
 --
--- Bevande e Piadine del vecchio seed non compaiono nel listino pubblico e
--- vengono disattivate. "Componi la tua pizza" resta come voce operativa perché
--- il client la riconosce tramite BUILDER_PRODUCT_NAME.
+-- Piadine non compare nel listino menu1 e resta disattivata. "Componi la tua
+-- pizza" resta come voce operativa perché il client la riconosce tramite
+-- BUILDER_PRODUCT_NAME.
 --
 -- Sicurezza di re-run:
 --   * il target è solo l'unica azienda chiamata esattamente "Pizzeria Ambrosia";
@@ -61,13 +64,14 @@ CREATE TEMP TABLE ambrosia_seed_categories (
 
 INSERT INTO ambrosia_seed_categories (name, description, display_order) VALUES
   ('Crea la tua pizza', 'Componi la tua pizza su misura', 0),
-  ('Classiche', NULL, 1),
-  ('Gourmet', NULL, 2),
-  ('Gustose', NULL, 3),
-  ('Bianche', 'Pizze piccole: € 2 in meno delle pizze normali.', 4),
-  ('Al metro', NULL, 5),
-  ('Supplementi', NULL, 6),
-  ('Dolci', NULL, 7);
+  ('Bevande', NULL, 1),
+  ('Dolci', NULL, 2),
+  ('Gourmet', NULL, 3),
+  ('Gustose', NULL, 4),
+  ('Bianche', 'Pizze piccole: € 2 in meno delle pizze normali.', 5),
+  ('Classiche', NULL, 6),
+  ('Al metro', NULL, 7),
+  ('Supplementi', NULL, 8);
 
 DO $$
 BEGIN
@@ -131,6 +135,37 @@ INSERT INTO ambrosia_seed_products (
   1,
   '{}'
 );
+
+-- Bevande (26). Il payload Airtable non fornisce descrizioni per queste voci.
+INSERT INTO ambrosia_seed_products (
+  category_name, name, description, price, display_order, ingredients
+) VALUES
+  ('Bevande', 'Vino Bianco Malvasia 1/4', NULL, 3.00, 1, '{}'),
+  ('Bevande', 'Heineken 0.66L', NULL, 3.50, 2, '{}'),
+  ('Bevande', 'Ichnusa 0.5L', NULL, 3.50, 3, '{}'),
+  ('Bevande', 'Coca Cola piccola', NULL, 2.00, 4, '{}'),
+  ('Bevande', 'Acqua Pejo nat/gas 0.75L', NULL, 2.00, 5, '{}'),
+  ('Bevande', 'Erdinger Weissbier 0.5L', NULL, 5.00, 6, '{}'),
+  ('Bevande', 'Birra Theresianer 1L', NULL, 10.00, 7, '{}'),
+  ('Bevande', 'Chardonnay', NULL, 10.00, 8, '{}'),
+  ('Bevande', 'Leffe Bionda 0.33L', NULL, 3.50, 9, '{}'),
+  ('Bevande', 'Leffe Rossa 0.33L', NULL, 3.50, 10, '{}'),
+  ('Bevande', 'Birra analcolica', NULL, 3.50, 11, '{}'),
+  ('Bevande', 'Coca Cola 1.5 LT', NULL, 6.00, 12, '{}'),
+  ('Bevande', 'Coca Cola media', NULL, 3.00, 13, '{}'),
+  ('Bevande', 'Birra Theresianer media', NULL, 3.50, 14, '{}'),
+  ('Bevande', 'The Limone/Pesca', NULL, 2.00, 15, '{}'),
+  ('Bevande', 'Coca Cola', NULL, 2.00, 16, '{}'),
+  ('Bevande', 'Fanta', NULL, 2.00, 17, '{}'),
+  ('Bevande', 'Ceres 0.33L', NULL, 3.50, 18, '{}'),
+  ('Bevande', 'Coca Cola Zero', NULL, 2.00, 19, '{}'),
+  ('Bevande', 'Sprite', NULL, 2.00, 20, '{}'),
+  ('Bevande', 'Vino Bianco Malvasia 1L', NULL, 9.00, 21, '{}'),
+  ('Bevande', 'Birra Theresianer piccola', NULL, 2.50, 22, '{}'),
+  ('Bevande', 'Prosecco Contarini', NULL, 10.00, 23, '{}'),
+  ('Bevande', 'Moretti 0.66L', NULL, 3.50, 24, '{}'),
+  ('Bevande', 'Acqua nat/gas 0.50', NULL, 1.00, 25, '{}'),
+  ('Bevande', 'Vino Bianco Malvasia 1/2', NULL, 4.50, 26, '{}');
 
 -- Classiche (21)
 INSERT INTO ambrosia_seed_products (
@@ -327,9 +362,9 @@ BEGIN
   WHERE company_id = (SELECT company_id FROM ambrosia_seed_context)
     AND active;
 
-  IF active_category_count <> 8 OR active_product_count <> 90 THEN
+  IF active_category_count <> 9 OR active_product_count <> 116 THEN
     RAISE EXCEPTION
-      'Seed Ambrosia incompleto: attese 8 categorie/90 prodotti, ottenute %/%',
+      'Seed Ambrosia incompleto: attese 9 categorie/116 prodotti, ottenute %/%',
       active_category_count,
       active_product_count;
   END IF;
