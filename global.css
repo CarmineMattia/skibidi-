@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -64,5 +66,17 @@
   }
   .maplibregl-popup-tip {
     @apply hidden!;
+  }
+}
+
+/* Ambrosia readable type + breathing room on web */
+@media (min-width: 0px) {
+  html, body, #root {
+    font-family: 'DM Sans', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    letter-spacing: 0.01em;
+  }
+  h1, h2, h3, .font-title {
+    font-family: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+    letter-spacing: 0.02em;
   }
 }
