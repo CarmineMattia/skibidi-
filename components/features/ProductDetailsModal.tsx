@@ -371,8 +371,9 @@ export function ProductDetailsModal({ visible, onClose, product, categoryName }:
                         {product.image_url ? (
                             <Image
                                 source={{ uri: product.image_url }}
-                                className="w-full h-full"
+                                style={{ width: '100%', height: '100%' }}
                                 resizeMode="cover"
+                                accessibilityIgnoresInvertColors
                             />
                         ) : (
                             <View className="w-full h-full items-center justify-center bg-secondary/30">

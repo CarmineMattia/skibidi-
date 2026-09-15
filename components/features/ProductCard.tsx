@@ -93,6 +93,7 @@ export function ProductCard({ product, onAddToCart, onPress, onEditPress, quickA
     <View className="flex-1 rounded-3xl overflow-hidden bg-white border border-[#ead8c7] shadow-sm relative">
       <Pressable
         className={isMobile ? 'h-[58%]' : 'h-[60%]'}
+        style={{ minHeight: isMobile ? 160 : 200, width: '100%' }}
         onPress={handlePress}
         disabled={!onPress}
         accessibilityRole="button"
@@ -105,8 +106,9 @@ export function ProductCard({ product, onAddToCart, onPress, onEditPress, quickA
         {product.image_url ? (
           <Image
             source={{ uri: product.image_url }}
-            className="w-full h-full"
+            style={{ width: '100%', height: '100%' }}
             resizeMode="cover"
+            accessibilityIgnoresInvertColors
           />
         ) : (
           <View className="w-full h-full items-center justify-center bg-[#f0daca]">

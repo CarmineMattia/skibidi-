@@ -195,7 +195,8 @@ export function EditProductModal({ visible, onClose, product }: EditProductModal
                             <View className="relative">
                                 <Image
                                     source={{ uri: image }}
-                                    className="w-32 h-32 rounded-xl bg-muted"
+                                    className="rounded-xl bg-muted"
+                                    style={{ width: 128, height: 128 }}
                                     onError={(e) => {
                                         console.error('Image load error:', e.nativeEvent.error);
                                         Alert.alert('Errore', 'Impossibile caricare l\'immagine');
