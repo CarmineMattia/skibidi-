@@ -70,7 +70,8 @@ function OfferPreviewImages({ offer }: { readonly offer: ResolvedComboOffer }) {
         <Image
           key={`${offer.id}-thumb-${idx}`}
           source={{ uri }}
-          className="h-8 w-8 rounded-lg border border-[#ead8c7] bg-[#f9ecdd]"
+          className="rounded-lg border border-[#ead8c7] bg-[#f9ecdd]"
+          style={{ width: 32, height: 32 }}
         />
       ))}
     </View>
