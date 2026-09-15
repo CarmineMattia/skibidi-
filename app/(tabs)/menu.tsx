@@ -639,13 +639,24 @@ export default function MenuScreen() {
                     {featuredProduct && (
                       <Pressable
                         onPress={() => handleProductPress(featuredProduct.id)}
-                        className="bg-white rounded-2xl border border-[#e1a255]/40 p-4 active:opacity-90"
+                        className="overflow-hidden rounded-2xl border border-[#e1a255]/40 bg-white active:opacity-90"
                       >
-                        <Text className="text-xs font-bold text-[#8d171e] uppercase">{i18n.featuredBadge}</Text>
-                        <Text className="text-xl font-extrabold text-gray-900 mt-1">{i18n.featuredTitle}</Text>
-                        <Text className="text-xs text-gray-600 mt-1">
-                          {i18n.featuredDescription}
-                        </Text>
+                        {featuredProduct.image_url ? (
+                          <Image
+                            source={{ uri: featuredProduct.image_url }}
+                            style={{ width: '100%', height: 168 }}
+                            resizeMode="cover"
+                          />
+                        ) : (
+                          <View className="h-[168px] items-center justify-center bg-[#f0daca]">
+                            <FontAwesome name="cutlery" size={40} color="#9ca3af" />
+                          </View>
+                        )}
+                        <View className="p-4">
+                          <Text className="text-xs font-bold uppercase text-[#8d171e]">{i18n.featuredBadge}</Text>
+                          <Text className="mt-1 text-xl font-extrabold text-gray-900">{i18n.featuredTitle}</Text>
+                          <Text className="mt-1 text-xs text-gray-600">{i18n.featuredDescription}</Text>
+                        </View>
                       </Pressable>
                     )}
                   </View>
@@ -667,50 +678,65 @@ export default function MenuScreen() {
                   >
                     <Pressable
                       onPress={() => handleProductPress(item.id)}
-                      className="bg-white rounded-2xl border border-[#e1a255]/40 p-4 active:opacity-90"
+                      className="overflow-hidden rounded-2xl border border-[#e1a255]/40 bg-white active:opacity-90"
                     >
-                      <View className="flex-row items-start justify-between gap-3">
-                        <View className="flex-1">
-                          <Text className="text-[11px] font-bold text-gray-500 uppercase">
-                            {selectedCategoryName}
-                          </Text>
-                          <Text className="text-lg font-extrabold text-gray-900 mt-0.5" numberOfLines={1}>
-                            {item.name}
-                          </Text>
-                          <Text className="text-xs text-gray-600 mt-1" numberOfLines={2}>
-                            {item.description || item.ingredients?.join(', ') || i18n.artisanalRecipe}
-                          </Text>
-                          <Text className="text-lg font-extrabold text-[#8d171e] mt-2">
-                            €{item.price.toFixed(2)}
-                          </Text>
-                        </View>
-                        <View className="flex-row items-center bg-[#f9ecdd] rounded-full border border-[#e1a255]/60">
-                          <Pressable
-                            onPress={(event) => {
-                              event.stopPropagation();
-                              handleQuickDecrement(item);
-                            }}
-                            disabled={quantityInCart <= 0}
-                            className="w-8 h-8 items-center justify-center"
-                          >
-                            <FontAwesome
-                              name="minus"
-                              size={11}
-                              color={quantityInCart > 0 ? '#8d171e' : '#c4a494'}
+                      <View className="flex-row items-stretch gap-0">
+                        <View style={{ width: 104, minHeight: 104 }}>
+                          {item.image_url ? (
+                            <Image
+                              source={{ uri: item.image_url }}
+                              style={{ width: 104, height: '100%', minHeight: 104 }}
+                              resizeMode="cover"
                             />
-                          </Pressable>
-                          <Text className="w-5 text-center text-sm font-extrabold text-[#8d171e]">
-                            {quantityInCart}
-                          </Text>
-                          <Pressable
-                            onPress={(event) => {
-                              event.stopPropagation();
-                              handleQuickAdd(item);
-                            }}
-                            className="w-8 h-8 rounded-full bg-[#8d171e] items-center justify-center"
-                          >
-                            <FontAwesome name="plus" size={11} color="#ffffff" />
-                          </Pressable>
+                          ) : (
+                            <View className="h-full min-h-[104px] items-center justify-center bg-[#f0daca]">
+                              <FontAwesome name="cutlery" size={28} color="#9ca3af" />
+                            </View>
+                          )}
+                        </View>
+                        <View className="min-w-0 flex-1 flex-row items-start justify-between gap-2 p-3">
+                          <View className="min-w-0 flex-1">
+                            <Text className="text-[11px] font-bold uppercase text-gray-500">
+                              {selectedCategoryName}
+                            </Text>
+                            <Text className="mt-0.5 text-base font-extrabold text-gray-900" numberOfLines={2}>
+                              {item.name}
+                            </Text>
+                            <Text className="mt-1 text-xs text-gray-600" numberOfLines={2}>
+                              {item.description || item.ingredients?.join(', ') || i18n.artisanalRecipe}
+                            </Text>
+                            <Text className="mt-2 text-lg font-extrabold text-[#8d171e]">
+                              €{item.price.toFixed(2)}
+                            </Text>
+                          </View>
+                          <View className="flex-row items-center rounded-full border border-[#e1a255]/60 bg-[#f9ecdd]">
+                            <Pressable
+                              onPress={(event) => {
+                                event.stopPropagation();
+                                handleQuickDecrement(item);
+                              }}
+                              disabled={quantityInCart <= 0}
+                              className="h-10 w-10 items-center justify-center"
+                            >
+                              <FontAwesome
+                                name="minus"
+                                size={12}
+                                color={quantityInCart > 0 ? '#8d171e' : '#c4a494'}
+                              />
+                            </Pressable>
+                            <Text className="w-5 text-center text-sm font-extrabold text-[#8d171e]">
+                              {quantityInCart}
+                            </Text>
+                            <Pressable
+                              onPress={(event) => {
+                                event.stopPropagation();
+                                handleQuickAdd(item);
+                              }}
+                              className="h-10 w-10 items-center justify-center rounded-full bg-[#8d171e]"
+                            >
+                              <FontAwesome name="plus" size={12} color="#ffffff" />
+                            </Pressable>
+                          </View>
                         </View>
                       </View>
                     </Pressable>

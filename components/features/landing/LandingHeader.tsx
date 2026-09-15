@@ -27,9 +27,10 @@ function HeaderLink({
       <Pressable
         accessibilityRole="link"
         onPress={onPress}
-        className="rounded-xl border border-[#8d171e]/12 bg-white/80 px-4 py-2 active:opacity-70 web:hover:bg-white web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-[#8d171e]"
+        className="min-h-[48px] items-center justify-center rounded-2xl border border-[#8d171e]/20 bg-white px-5 active:opacity-70 web:hover:bg-white web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-[#8d171e]"
+        style={{ paddingVertical: 12, paddingHorizontal: 18 }}
       >
-        <Text className="text-xs font-bold text-[#453831]">{label}</Text>
+        <Text className="text-base font-extrabold text-[#342b27]">{label}</Text>
       </Pressable>
     );
   }
@@ -125,10 +126,12 @@ export function LandingHeader({
           <Pressable
             accessibilityRole="button"
             onPress={onMenu}
-            className="h-11 flex-row items-center gap-2 rounded-xl bg-[#8d171e] px-4 active:scale-[0.98] active:opacity-90 web:hover:bg-[#741218] web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-[#e1a255]"
+            className={`flex-row items-center gap-2 rounded-xl bg-[#8d171e] px-4 active:scale-[0.98] active:opacity-90 web:hover:bg-[#741218] web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-[#e1a255] ${
+              isDesktop ? 'h-11' : 'h-12 px-5'
+            }`}
           >
-            <FontAwesome name="cutlery" size={14} color="#ffffff" />
-            <Text className="text-sm font-extrabold text-white">Ordina</Text>
+            <FontAwesome name="cutlery" size={isDesktop ? 14 : 16} color="#ffffff" />
+            <Text className={`font-extrabold text-white ${isDesktop ? 'text-sm' : 'text-base'}`}>Ordina</Text>
           </Pressable>
         </View>
       </View>
@@ -138,7 +141,7 @@ export function LandingHeader({
           horizontal
           showsHorizontalScrollIndicator={false}
           className="border-t border-[#8d171e]/8"
-          contentContainerClassName="gap-2 px-4 py-2.5"
+          contentContainerClassName="gap-2.5 px-4 py-3"
         >
           <HeaderLink compact label="Menu" onPress={onMenu} />
           <HeaderLink compact label="Offerte" onPress={onOffers} />
