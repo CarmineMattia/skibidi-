@@ -24,7 +24,7 @@ test.describe('Menu (guest)', () => {
   test('2. Category filter is visible', async () => {
     await menu.expectProductsLoaded();
     await expect(menu.category('Bevande')).toBeVisible();
-    await expect(menu.category('Pizze Gustose')).toBeVisible();
+    await expect(menu.category('Gustose')).toBeVisible();
   });
 
   test('3. Cart summary is visible', async () => {

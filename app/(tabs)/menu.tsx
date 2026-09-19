@@ -1,3 +1,4 @@
+import { isPizzaCategoryName } from '@/lib/utils/menuCategories';
 /**
  * Menu Screen
  * Main POS interface with product grid and cart
@@ -5,6 +6,7 @@
 
 import { CartSummary } from '@/components/features/CartSummary';
 import { CategoryFilter } from '@/components/features/CategoryFilter';
+import { MobileCategoryBar } from '@/components/features/MobileCategoryBar';
 import { EditProductModal } from '@/components/features/EditProductModal';
 import { PizzaBuilderModal } from '@/components/features/PizzaBuilderModal';
 import { ProductCard } from '@/components/features/ProductCard';
@@ -12,6 +14,7 @@ import { ProductDetailsModal } from '@/components/features/ProductDetailsModal';
 import { SkeletonProductCard, SkeletonMenuScreen } from '@/components/ui/Skeleton';
 import { BUILDER_PRODUCT_NAME, getQuickAddPizzaModifiers } from '@/lib/data/pizzaBuilder';
 import { BRAND, BRAND_LOGO } from '@/lib/data/brand';
+import { readJsonStorage, writeJsonStorage } from '@/lib/utils/storage';
 import { useCategories } from '@/lib/hooks/useCategories';
 import { useCreateOrder } from '@/lib/hooks/useCreateOrder';
 import { OfflineIndicator } from '@/lib/hooks/useOfflineQueue';
@@ -51,10 +54,6 @@ function isDrinkCategoryName(categoryName: string): boolean {
   );
 }
 
-function isPizzaCategoryName(categoryName?: string): boolean {
-  if (!categoryName) return false;
-  return categoryName.toLowerCase().includes('pizz');
-}
 
 function isMetroCategoryName(categoryName?: string): boolean {
   if (!categoryName) return false;
@@ -150,6 +149,14 @@ export default function MenuScreen() {
   const effectiveProductColumns = isMobile ? 1 : productColumns;
 
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+  const [menuSearchQuery, setMenuSearchQuery] = useState('');
+  const [selectionHydrated, setSelectionHydrated] = useState(false);
+  useEffect(() => {
+    const saved = readJsonStorage<{ categoryId?: unknown; search?: unknown }>('ambrosia.menu.selection.v1', 'session');
+    setSelectedCategoryId(typeof saved?.categoryId === 'string' ? saved.categoryId : null);
+    setMenuSearchQuery(typeof saved?.search === 'string' ? saved.search : '');
+    setSelectionHydrated(true);
+  }, []);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
@@ -157,13 +164,20 @@ export default function MenuScreen() {
   const [isMobileCategoriesOpen, setIsMobileCategoriesOpen] = useState(false);
   const [showContinueWithoutDrinks, setShowContinueWithoutDrinks] = useState(false);
   const [highlightedDrinkId, setHighlightedDrinkId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!selectionHydrated) return;
+    writeJsonStorage(
+      'ambrosia.menu.selection.v1',
+      { categoryId: selectedCategoryId, search: menuSearchQuery },
+      'session'
+    );
+  }, [selectedCategoryId, menuSearchQuery, selectionHydrated]);
   const productListRef = useRef<FlatList<Product>>(null);
   const insets = useSafeAreaInsets();
 
   const { data: categories = [], isLoading: categoriesLoading } = useCategories();
-  const { data: products = [], isLoading: productsLoading } = useProducts(
-    selectedCategoryId || undefined
-  );
+  const { data: products = [], isLoading: productsLoading } = useProducts();
   const { items, addItem, updateQuantity, totalItems, totalAmount } = useCart();
   const { isAuthenticated, profile, signOut, isGuest, exitGuestMode, isAdmin } = useAuth();
   const { language } = useAppSettings();
@@ -171,7 +185,6 @@ export default function MenuScreen() {
   const createOrder = useCreateOrder();
   const router = useRouter();
   const queryClient = useQueryClient();
-  const selectedCategoryName = categories.find((category) => category.id === selectedCategoryId)?.name || 'Cibo';
   const drinkCategories = useMemo(
     () => categories.filter((category) => isDrinkCategoryName(category.name)),
     [categories]
@@ -182,12 +195,47 @@ export default function MenuScreen() {
   );
   const firstDrinkCategoryId = drinkCategories[0]?.id;
   const displayProducts = useMemo(() => {
-    // Default menu mode: show only food, unless user explicitly selects a drinks category.
-    if (selectedCategoryId === null) {
-      return products.filter((product) => !drinkCategoryIds.has(product.category_id));
+    const query = menuSearchQuery.trim().toLowerCase();
+    let list = products;
+
+    if (query) {
+      list = list.filter((product) => {
+        const hay = [
+          product.name,
+          product.description || '',
+          ...(product.ingredients || []),
+        ]
+          .join(' ')
+          .toLowerCase();
+        return hay.includes(query);
+      });
+    } else if (selectedCategoryId === null) {
+      // Default menu mode: show only food, unless user explicitly selects a drinks category.
+      list = list.filter((product) => !drinkCategoryIds.has(product.category_id));
+    } else {
+      list = list.filter((product) => product.category_id === selectedCategoryId);
     }
-    return products;
-  }, [products, selectedCategoryId, drinkCategoryIds]);
+
+    return list;
+  }, [products, selectedCategoryId, drinkCategoryIds, menuSearchQuery]);
+
+  const categoryImages = useMemo(() => {
+    const map: Record<string, string | undefined> = {};
+    for (const product of products) {
+      if (!product.image_url || map[product.category_id]) continue;
+      map[product.category_id] = product.image_url;
+    }
+    return map;
+  }, [products]);
+
+  useEffect(() => {
+    if (selectedProduct || products.length === 0) return;
+    const saved = readJsonStorage<{ productId: string | null }>('ambrosia.menu.selectedProduct.v1', 'session');
+    if (!saved?.productId) return;
+    const product = products.find((p) => p.id === saved.productId);
+    if (product) setSelectedProduct(product);
+  }, [products, selectedProduct]);
+
   const featuredProduct = displayProducts[0];
   const i18n = useMemo(
     () =>
@@ -310,6 +358,7 @@ export default function MenuScreen() {
   const handleProductPress = (productId: string) => {
     const product = products.find(p => p.id === productId);
     if (product) {
+      writeJsonStorage('ambrosia.menu.selectedProduct.v1', { productId }, 'session');
       setSelectedProduct(product);
     }
   };
@@ -352,6 +401,7 @@ export default function MenuScreen() {
     const cartHasDrinks = items.some((item) => drinkCategoryIds.has(item.product.category_id));
     const isCurrentlyOnDrinks = selectedCategoryId ? drinkCategoryIds.has(selectedCategoryId) : false;
     if (!cartHasDrinks && !isCurrentlyOnDrinks && firstDrinkCategoryId) {
+      setMenuSearchQuery('');
       setSelectedCategoryId(firstDrinkCategoryId);
       setShowContinueWithoutDrinks(true);
       return;
@@ -539,7 +589,8 @@ export default function MenuScreen() {
           <CategoryFilter
             categories={categories}
             selectedCategoryId={selectedCategoryId}
-            onSelectCategory={setSelectedCategoryId}
+            onSelectCategory={(id) => { setMenuSearchQuery(''); setSelectedCategoryId(id); }}
+            categoryImages={categoryImages}
           />
         )}
 
@@ -547,6 +598,17 @@ export default function MenuScreen() {
         <View className="flex-1 bg-[#f9ecdd]">
           {/* Offline Indicator */}
           <OfflineIndicator />
+
+          {!showDesktopSidebars ? (
+            <MobileCategoryBar
+              categories={categories}
+              selectedCategoryId={selectedCategoryId}
+              onSelectCategory={(id) => { setMenuSearchQuery(''); setSelectedCategoryId(id); }}
+              searchQuery={menuSearchQuery}
+              onChangeSearch={setMenuSearchQuery}
+              categoryImages={categoryImages}
+            />
+          ) : null}
 
           {productsLoading ? (
             <FlatList
@@ -568,7 +630,7 @@ export default function MenuScreen() {
             <View className="flex-1 items-center justify-center p-8">
               <FontAwesome name="cutlery" size={44} color="#9ca3af" style={{ marginBottom: 12 }} />
               <Text className="text-muted-foreground text-xl font-medium">
-                Nessun prodotto in questa categoria
+                Nessun prodotto trovato
               </Text>
             </View>
           ) : (
@@ -592,62 +654,29 @@ export default function MenuScreen() {
                 queryClient.invalidateQueries({ queryKey: ['products'] });
               }}
               ListHeaderComponent={
-                !showDesktopSidebars ? (
-                  <View className="mb-3 gap-3">
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-2 pr-2">
-                      <Pressable
-                        key="food-only"
-                        onPress={() => setSelectedCategoryId(null)}
-                        className={`px-3 py-1.5 rounded-full border ${
-                          selectedCategoryId === null
-                            ? 'bg-[#8d171e] border-[#8d171e]'
-                            : 'bg-white border-[#e1a255]/60'
-                        }`}
-                      >
-                        <Text
-                          className={`text-xs font-bold ${
-                            selectedCategoryId === null ? 'text-white' : 'text-[#8d171e]'
-                          }`}
-                        >
-                          Solo mangiare
-                        </Text>
-                      </Pressable>
-
-                      {categories.map((category) => (
-                        <Pressable
-                          key={category.id}
-                          onPress={() => setSelectedCategoryId(category.id)}
-                          className={`px-3 py-1.5 rounded-full border ${
-                            selectedCategoryId === category.id
-                              ? 'bg-[#8d171e] border-[#8d171e]'
-                              : 'bg-white border-[#e1a255]/60'
-                          }`}
-                        >
-                          <Text
-                            className={`text-xs font-bold ${
-                              selectedCategoryId === category.id
-                                ? 'text-white'
-                                : 'text-[#8d171e]'
-                            }`}
-                          >
-                            {category.name}
-                          </Text>
-                        </Pressable>
-                      ))}
-                    </ScrollView>
-
-                    {featuredProduct && (
-                      <Pressable
-                        onPress={() => handleProductPress(featuredProduct.id)}
-                        className="bg-white rounded-2xl border border-[#e1a255]/40 p-4 active:opacity-90"
-                      >
-                        <Text className="text-xs font-bold text-[#8d171e] uppercase">{i18n.featuredBadge}</Text>
-                        <Text className="text-xl font-extrabold text-gray-900 mt-1">{i18n.featuredTitle}</Text>
-                        <Text className="text-xs text-gray-600 mt-1">
-                          {i18n.featuredDescription}
-                        </Text>
-                      </Pressable>
-                    )}
+                !showDesktopSidebars && featuredProduct && menuSearchQuery.trim().length === 0 ? (
+                  <View className="mb-3">
+                    <Pressable
+                      onPress={() => handleProductPress(featuredProduct.id)}
+                      className="overflow-hidden rounded-2xl border border-[#e1a255]/40 bg-white active:opacity-90"
+                    >
+                      {featuredProduct.image_url ? (
+                        <Image
+                          source={{ uri: featuredProduct.image_url }}
+                          style={{ width: '100%', height: 168 }}
+                          resizeMode="cover"
+                        />
+                      ) : (
+                        <View className="h-[168px] items-center justify-center bg-[#f0daca]">
+                          <FontAwesome name="cutlery" size={40} color="#9ca3af" />
+                        </View>
+                      )}
+                      <View className="p-4">
+                        <Text className="text-xs font-bold uppercase text-[#8d171e]">{i18n.featuredBadge}</Text>
+                        <Text className="mt-1 text-xl font-extrabold text-gray-900">{featuredProduct.name}</Text>
+                        <Text className="mt-1 text-xs text-gray-600">{featuredProduct.description || featuredProduct.ingredients?.join(', ') || i18n.artisanalRecipe}</Text>
+                      </View>
+                    </Pressable>
                   </View>
                 ) : null
               }
@@ -667,50 +696,69 @@ export default function MenuScreen() {
                   >
                     <Pressable
                       onPress={() => handleProductPress(item.id)}
-                      className="bg-white rounded-2xl border border-[#e1a255]/40 p-4 active:opacity-90"
+                      className="overflow-hidden rounded-2xl border border-[#e1a255]/40 bg-white active:opacity-90"
                     >
-                      <View className="flex-row items-start justify-between gap-3">
-                        <View className="flex-1">
-                          <Text className="text-[11px] font-bold text-gray-500 uppercase">
-                            {selectedCategoryName}
-                          </Text>
-                          <Text className="text-lg font-extrabold text-gray-900 mt-0.5" numberOfLines={1}>
-                            {item.name}
-                          </Text>
-                          <Text className="text-xs text-gray-600 mt-1" numberOfLines={2}>
-                            {item.description || item.ingredients?.join(', ') || i18n.artisanalRecipe}
-                          </Text>
-                          <Text className="text-lg font-extrabold text-[#8d171e] mt-2">
-                            €{item.price.toFixed(2)}
-                          </Text>
-                        </View>
-                        <View className="flex-row items-center bg-[#f9ecdd] rounded-full border border-[#e1a255]/60">
-                          <Pressable
-                            onPress={(event) => {
-                              event.stopPropagation();
-                              handleQuickDecrement(item);
-                            }}
-                            disabled={quantityInCart <= 0}
-                            className="w-8 h-8 items-center justify-center"
-                          >
-                            <FontAwesome
-                              name="minus"
-                              size={11}
-                              color={quantityInCart > 0 ? '#8d171e' : '#c4a494'}
+                      <View className="flex-row items-stretch gap-0">
+                        <View style={{ width: 104, minHeight: 104 }}>
+                          {item.image_url ? (
+                            <Image
+                              source={{ uri: item.image_url }}
+                              style={{ width: 104, height: '100%', minHeight: 104 }}
+                              resizeMode="cover"
                             />
-                          </Pressable>
-                          <Text className="w-5 text-center text-sm font-extrabold text-[#8d171e]">
-                            {quantityInCart}
-                          </Text>
-                          <Pressable
-                            onPress={(event) => {
-                              event.stopPropagation();
-                              handleQuickAdd(item);
-                            }}
-                            className="w-8 h-8 rounded-full bg-[#8d171e] items-center justify-center"
-                          >
-                            <FontAwesome name="plus" size={11} color="#ffffff" />
-                          </Pressable>
+                          ) : (
+                            <View className="h-full min-h-[104px] items-center justify-center bg-[#f0daca]">
+                              <FontAwesome name="cutlery" size={28} color="#9ca3af" />
+                            </View>
+                          )}
+                        </View>
+                        <View className="min-w-0 flex-1 flex-row items-start justify-between gap-2 p-3">
+                          <View className="min-w-0 flex-1">
+                            <Text className="text-[11px] font-bold uppercase text-gray-500">
+                              {categories.find((category) => category.id === item.category_id)?.name || 'Cibo'}
+                            </Text>
+                            <Text className="mt-0.5 text-base font-extrabold text-gray-900" numberOfLines={2}>
+                              {item.name}
+                            </Text>
+                            <Text className="mt-1 text-xs text-gray-600" numberOfLines={2}>
+                              {item.description || item.ingredients?.join(', ') || i18n.artisanalRecipe}
+                            </Text>
+                            <Text className="mt-2 text-lg font-extrabold text-[#8d171e]">
+                              €{item.price.toFixed(2)}
+                            </Text>
+                          </View>
+                          <View className="flex-row items-center rounded-full border border-[#e1a255]/60 bg-[#f9ecdd]">
+                            <Pressable
+                              onPress={(event) => {
+                                event.stopPropagation();
+                                handleQuickDecrement(item);
+                              }}
+                              accessibilityRole="button"
+                              accessibilityLabel={`Togli una ${item.name}`}
+                              disabled={quantityInCart <= 0}
+                              className="h-10 w-10 items-center justify-center"
+                            >
+                              <FontAwesome
+                                name="minus"
+                                size={12}
+                                color={quantityInCart > 0 ? '#8d171e' : '#c4a494'}
+                              />
+                            </Pressable>
+                            <Text className="w-5 text-center text-sm font-extrabold text-[#8d171e]">
+                              {quantityInCart}
+                            </Text>
+                            <Pressable
+                              onPress={(event) => {
+                                event.stopPropagation();
+                                handleQuickAdd(item);
+                              }}
+                              accessibilityRole="button"
+                              accessibilityLabel={`Aggiungi ${item.name} al carrello`}
+                              className="h-10 w-10 items-center justify-center rounded-full bg-[#8d171e]"
+                            >
+                              <FontAwesome name="plus" size={12} color="#ffffff" />
+                            </Pressable>
+                          </View>
                         </View>
                       </View>
                     </Pressable>
@@ -757,6 +805,8 @@ export default function MenuScreen() {
         >
           <Pressable
             onPress={() => setIsCartVisible(true)}
+            accessibilityRole="button"
+            accessibilityLabel={`${i18n.cart}: ${totalItems}`}
             className="bg-[#8d171e] rounded-2xl p-4 shadow-xl flex-row items-center justify-between active:opacity-80"
           >
             <View className="flex-row items-center gap-2">
@@ -866,13 +916,19 @@ export default function MenuScreen() {
         selectedProduct.name === BUILDER_PRODUCT_NAME ? (
           <PizzaBuilderModal
             visible={!!selectedProduct}
-            onClose={() => setSelectedProduct(null)}
+            onClose={() => {
+              writeJsonStorage('ambrosia.menu.selectedProduct.v1', { productId: null }, 'session');
+              setSelectedProduct(null);
+            }}
             product={selectedProduct}
           />
         ) : (
           <ProductDetailsModal
             visible={!!selectedProduct}
-            onClose={() => setSelectedProduct(null)}
+            onClose={() => {
+              writeJsonStorage('ambrosia.menu.selectedProduct.v1', { productId: null }, 'session');
+              setSelectedProduct(null);
+            }}
             product={selectedProduct}
             categoryName={categories.find((category) => category.id === selectedProduct.category_id)?.name}
           />

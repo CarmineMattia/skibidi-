@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/Button';
 import { TimeWheelModal } from '@/components/ui/TimeWheelModal';
 import { supabase } from '@/lib/api/supabase';
 import { BRAND } from '@/lib/data/brand';
+import { SatispayOpenHint } from '@/components/features/SatispayOpenHint';
 import { useCreateOrder } from '@/lib/hooks/useCreateOrder';
 import { useCustomerLookup, type CustomerLookupOrder } from '@/lib/hooks/useCustomerLookup';
 import { useOfflineQueue } from '@/lib/hooks/useOfflineQueue';
@@ -204,6 +205,7 @@ export default function CheckoutScreen() {
   const insets = useSafeAreaInsets();
   const createOrder = useCreateOrder();
 
+  // Restart validation after a reload: customer and scheduling fields are not persisted.
   const [step, setStep] = useState<CheckoutStep>('type');
   const [orderType, setOrderType] = useState<OrderType>('eat_in');
   const [paymentProvider, setPaymentProvider] = useState<PaymentProvider>('cash');
@@ -899,7 +901,7 @@ export default function CheckoutScreen() {
     if (step === 'payment') setStep('details');
     else if (step === 'details') setStep('time');
     else if (step === 'time') setStep('type');
-    else router.back();
+    else router.replace('/(tabs)/menu');
   };
 
   const handlePayment = async () => {
@@ -971,7 +973,7 @@ export default function CheckoutScreen() {
         Alert.alert(
           i18n.orderSaved,
           i18n.orderSavedSubtitle,
-          [{ text: 'OK', onPress: () => router.replace('/') }]
+          [{ text: 'OK', onPress: () => router.replace('/(tabs)/menu') }]
         );
         return;
       }
@@ -1576,6 +1578,12 @@ export default function CheckoutScreen() {
             </View>
           </Pressable>
         </View>
+
+        {paymentProvider === 'satispay' ? (
+          <View className="mt-4">
+            <SatispayOpenHint />
+          </View>
+        ) : null}
 
         {/* Footer Buttons */}
         <View className="gap-4 mt-6">

@@ -4,6 +4,7 @@
  */
 
 import { usePayment, type PaymentProvider } from '@/lib/hooks/usePayment';
+import { SatispayOpenHint } from '@/components/features/SatispayOpenHint';
 import { Pressable, Text, View } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import type { CartItem } from '@/lib/stores/CartContext';
@@ -154,12 +155,7 @@ export function PaymentSelection({
       )}
 
       {selectedProvider === 'satispay' && (
-        <View className="bg-secondary/20 rounded-xl p-4 flex-row items-center gap-3">
-          <FontAwesome name="lock" size={16} color="#10B981" />
-          <Text className="text-muted-foreground text-sm flex-1">
-            Conferma il pagamento dall'app Satispay sul tuo telefono
-          </Text>
-        </View>
+        <SatispayOpenHint amountLabel={`€${(amount / 100).toFixed(2)}`} />
       )}
 
       {/* Process button */}

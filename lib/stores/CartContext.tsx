@@ -1,24 +1,21 @@
 /**
  * Cart Context
- * Gestisce lo stato del carrello locale (client-side)
+ * Stato carrello client-side, persistito su localStorage (web) così
+ * indietro/refresh non svuotano l'ordine.
  */
 
 import type { Product } from '@/types';
-import { createContext, ReactNode, useCallback, useContext, useState } from 'react';
+import { readJsonStorage, writeJsonStorage } from '@/lib/utils/storage';
+import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
 
 export interface CartItem {
   product: Product;
   quantity: number;
   notes?: string;
-  modifiers?: string[]; // Array of selected ingredient modifications
-  /**
-   * Prezzo unitario effettivo in euro quando diverso dal listino
-   * (es. pizza composta nel builder, taglie con supplementi).
-   */
+  modifiers?: string[];
   unitPriceOverride?: number;
 }
 
-/** Prezzo unitario effettivo di una riga carrello (override o listino). */
 export function getCartItemUnitPrice(item: CartItem): number {
   return item.unitPriceOverride ?? item.product.price;
 }
@@ -32,7 +29,7 @@ interface CartContextType {
     modifiers?: string[],
     unitPriceOverride?: number
   ) => void;
-  removeItem: (index: number) => void; // Changed to index because multiple items can have same productId
+  removeItem: (index: number) => void;
   updateQuantity: (index: number, quantity: number) => void;
   clearCart: () => void;
   totalItems: number;
@@ -40,9 +37,42 @@ interface CartContextType {
 }
 
 const CartContext = createContext<CartContextType | null>(null);
+const CART_STORAGE_KEY = 'ambrosia.cart.v1';
+
+function loadInitialCart(): CartItem[] {
+  const saved = readJsonStorage<CartItem[]>(CART_STORAGE_KEY, 'local');
+  if (!Array.isArray(saved)) return [];
+  return saved.filter(
+    (item) =>
+      item &&
+      item.product &&
+      typeof item.product.id === 'string' &&
+      typeof item.product.name === 'string' &&
+      typeof item.product.price === 'number' &&
+      Number.isFinite(item.product.price) && item.product.price >= 0 &&
+      (item.unitPriceOverride == null || (typeof item.unitPriceOverride === 'number' &&
+        Number.isFinite(item.unitPriceOverride) && item.unitPriceOverride >= 0)) &&
+      (item.notes == null || typeof item.notes === 'string') &&
+      (item.modifiers == null || (Array.isArray(item.modifiers) &&
+        item.modifiers.every((modifier) => typeof modifier === 'string'))) &&
+      typeof item.quantity === 'number' && Number.isSafeInteger(item.quantity) &&
+      item.quantity > 0
+  );
+}
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    setItems(loadInitialCart());
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    writeJsonStorage(CART_STORAGE_KEY, items, 'local');
+  }, [items, hydrated]);
 
   const addItem = useCallback(
     (
@@ -53,16 +83,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
       unitPriceOverride?: number
     ) => {
       setItems((current) => {
-        // Check if exact same item exists (same product, same notes, same modifiers, same price)
-        const existingIndex = current.findIndex((item) =>
-          item.product.id === product.id &&
-          (item.notes || '') === notes &&
-          JSON.stringify(item.modifiers || []) === JSON.stringify(modifiers) &&
-          (item.unitPriceOverride ?? null) === (unitPriceOverride ?? null)
+        const existingIndex = current.findIndex(
+          (item) =>
+            item.product.id === product.id &&
+            (item.notes || '') === notes &&
+            JSON.stringify(item.modifiers || []) === JSON.stringify(modifiers) &&
+            (item.unitPriceOverride ?? null) === (unitPriceOverride ?? null)
         );
 
         if (existingIndex !== -1) {
-          // Exact item exists, update quantity
           const updated = [...current];
           updated[existingIndex] = {
             ...updated[existingIndex],
@@ -71,7 +100,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
           return updated;
         }
 
-        // Add new item
         return [...current, { product, quantity, notes, modifiers, unitPriceOverride }];
       });
     },
@@ -82,24 +110,24 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems((current) => current.filter((_, i) => i !== index));
   }, []);
 
-  const updateQuantity = useCallback((index: number, quantity: number) => {
-    if (quantity <= 0) {
-      removeItem(index);
-      return;
-    }
+  const updateQuantity = useCallback(
+    (index: number, quantity: number) => {
+      if (quantity <= 0) {
+        removeItem(index);
+        return;
+      }
 
-    setItems((current) =>
-      current.map((item, i) =>
-        i === index ? { ...item, quantity } : item
-      )
-    );
-  }, [removeItem]);
+      setItems((current) =>
+        current.map((item, i) => (i === index ? { ...item, quantity } : item))
+      );
+    },
+    [removeItem]
+  );
 
   const clearCart = useCallback(() => {
     setItems([]);
   }, []);
 
-  // Calculated values
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
   const totalAmount = items.reduce(
     (sum, item) => sum + getCartItemUnitPrice(item) * item.quantity,

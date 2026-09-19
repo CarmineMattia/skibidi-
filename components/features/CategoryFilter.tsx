@@ -8,12 +8,13 @@ import { cn } from '@/lib/utils/cn';
 import type { Category } from '@/types';
 import { FontAwesome } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 
 interface CategoryFilterProps {
   readonly categories: Category[];
   readonly selectedCategoryId: string | null;
   readonly onSelectCategory: (categoryId: string | null) => void;
+  readonly categoryImages?: Record<string, string | undefined>;
 }
 
 // Helper function to get vector icon for category
@@ -49,6 +50,7 @@ export function CategoryFilter({
   categories,
   selectedCategoryId,
   onSelectCategory,
+  categoryImages = {},
 }: CategoryFilterProps) {
   const { isAuthenticated, profile, signOut } = useAuth();
   const router = useRouter();
@@ -101,8 +103,16 @@ export function CategoryFilter({
               )}
               onPress={() => onSelectCategory(category.id)}
             >
-              <View className="w-8 h-8 rounded-full bg-white/70 items-center justify-center mb-1">
-                <FontAwesome name={icon as any} size={13} color={isSelected ? '#8d171e' : '#374151'} />
+              <View className="w-10 h-10 rounded-xl bg-white/70 items-center justify-center mb-1 overflow-hidden">
+                {categoryImages[category.id] ? (
+                  <Image
+                    source={{ uri: categoryImages[category.id]! }}
+                    style={{ width: 40, height: 40 }}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <FontAwesome name={icon as any} size={13} color={isSelected ? '#8d171e' : '#374151'} />
+                )}
               </View>
               <Text
                 className={cn(

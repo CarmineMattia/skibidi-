@@ -12,9 +12,9 @@ test.describe('Landing Ambrosia', () => {
     await expect(page.getByText('Tradizione nel forno', { exact: false })).toBeVisible();
     await expect(page.getByText('€2,50').first()).toBeVisible();
 
-    await page.getByRole('link', { name: 'Orari e contatti' }).click();
+    await page.getByRole('link', { name: 'Contatti', exact: true }).click();
     await expect(page.getByText('Orari di apertura')).toBeVisible();
-    await expect(page.getByText('0522 171 7681')).toBeVisible();
+    await expect(page.getByText('0522 171 7681').first()).toBeVisible();
   });
 
   test('porta dal hero al menu ordini', async ({ page }) => {

@@ -15,6 +15,10 @@ export const BRAND = {
   address: 'Via E. Franchini, 51, 42027 Montecchio Emilia (RE)',
   phone: '0522 171 7681',
   phoneHref: 'tel:+3905221717681',
+  /** E.164 senza spazi, per tel/WhatsApp/vCard */
+  phoneE164: '+3905221717681',
+  /** Numero WhatsApp internazionale senza + (es. 393331234567). Null = nascondi CTA WhatsApp. */
+  whatsapp: '3905221717681' as string | null,
   mapsUrl:
     'https://www.google.com/maps/search/?api=1&query=Via%20E.%20Franchini%2051%2C%2042027%20Montecchio%20Emilia%20RE',
   website: 'https://pizzeria-ambrosia.netlify.app',

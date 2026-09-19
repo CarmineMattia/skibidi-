@@ -1,20 +1,71 @@
 import { BRAND } from '@/lib/data/brand';
-import { FontAwesome } from '@expo/vector-icons';
+import { FontAwesome, FontAwesome5, MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ImageBackground, Pressable, Text, View } from 'react-native';
+import { ImageBackground, Linking, Pressable, Text, View } from 'react-native';
 
 const HERO_IMAGE = require('@/assets/images/landing/interior.jpeg') as number;
 
 interface LandingHeroProps {
   readonly isDesktop: boolean;
   readonly onMenu: () => void;
+  /** reserved for scroll-to-contact elsewhere; phone CTA dials directly */
   readonly onContact: () => void;
+}
+
+function openPhone() {
+  void Linking.openURL(BRAND.phoneHref);
+}
+
+/** vCard → sul telefono apre “Aggiungi contatto” con nome già pronto */
+function buildAmbrosiaVCard(): string {
+  const tel = (BRAND.phoneE164 || BRAND.phoneHref.replace('tel:', '')).replace(/\s/g, '');
+  return [
+    'BEGIN:VCARD',
+    'VERSION:3.0',
+    `FN:${BRAND.name}`,
+    `ORG:${BRAND.name}`,
+    `TEL;TYPE=VOICE,WORK:${tel}`,
+    `URL:${BRAND.website}`,
+    `NOTE:${BRAND.tagline} — ${BRAND.address}`,
+    'END:VCARD',
+  ].join('\r\n');
+}
+
+function downloadVCardOnWeb(vcard: string) {
+  if (typeof document === 'undefined') return false;
+  try {
+    const blob = new Blob([vcard], { type: 'text/vcard;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = 'Pizzeria-Ambrosia.vcf';
+    anchor.rel = 'noopener';
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Salva contatto (vCard) + apre chat WhatsApp se il numero è configurato */
+function openWhatsAppOrSaveContact() {
+  const vcard = buildAmbrosiaVCard();
+  downloadVCardOnWeb(vcard);
+
+  const wa = BRAND.whatsapp;
+  if (wa) {
+    const text = encodeURIComponent(`Ciao ${BRAND.name}, vorrei ordinare 🍕`);
+    void Linking.openURL(`https://wa.me/${wa}?text=${text}`);
+  }
 }
 
 // Layout is driven by CSS breakpoints (sm/md), not JS width props: media
 // queries are already correct in the statically-rendered HTML, so the first
 // paint doesn't relayout when hydration learns the real viewport width.
-export function LandingHero({ isDesktop, onMenu, onContact }: LandingHeroProps) {
+export function LandingHero({ isDesktop, onMenu }: LandingHeroProps) {
   return (
     <View className="overflow-hidden bg-[#211713]">
       <ImageBackground
@@ -51,23 +102,71 @@ export function LandingHero({ isDesktop, onMenu, onContact }: LandingHeroProps) 
               {BRAND.description} Scegli la tua pizza e ordinala direttamente online.
             </Text>
 
-            <View className="mt-8 gap-4 sm:flex-row sm:items-center sm:gap-3">
+            <View className="mt-8 gap-3.5 sm:max-w-[420px]">
+              {/* Primary: Menu — most colorful */}
               <Pressable
                 accessibilityRole="button"
+                accessibilityLabel="Ordina dal menu"
                 onPress={onMenu}
-                className="min-h-14 flex-row items-center justify-center gap-3 rounded-xl bg-[#8d171e] px-6 active:scale-[0.98] active:opacity-90 web:hover:bg-[#a51b24] web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-[#f0c486]"
+                className="min-h-[72px] flex-row items-center justify-center gap-3 rounded-2xl px-6 active:scale-[0.98] active:opacity-95 web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-[#f0c486]"
+                style={{
+                  backgroundColor: '#8d171e',
+                  borderWidth: 2,
+                  borderColor: '#e1a255',
+                  shadowColor: '#8d171e',
+                  shadowOpacity: 0.45,
+                  shadowRadius: 12,
+                  shadowOffset: { width: 0, height: 6 },
+                  elevation: 6,
+                }}
               >
-                <Text className="text-base font-extrabold text-white">Ordina dal menu</Text>
-                <FontAwesome name="long-arrow-right" size={17} color="#ffffff" />
+                <View
+                  className="items-center justify-center rounded-xl"
+                  style={{
+                    width: 44,
+                    height: 44,
+                    backgroundColor: 'rgba(243, 201, 142, 0.22)',
+                    borderWidth: 1,
+                    borderColor: 'rgba(243, 201, 142, 0.55)',
+                  }}
+                >
+                  <MaterialIcons name="restaurant-menu" size={28} color="#f3c98e" />
+                </View>
+                <Text className="text-xl font-black tracking-wide text-white">Ordina dal menu</Text>
+                <FontAwesome name="chevron-right" size={16} color="#f3c98e" />
               </Pressable>
+
+              {/* Call */}
               <Pressable
                 accessibilityRole="link"
-                onPress={onContact}
-                className="min-h-14 flex-row items-center justify-center gap-3 rounded-xl border border-[#f5d5aa]/50 bg-black/20 px-6 active:opacity-70 web:hover:bg-white/10 web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-[#f0c486]"
+                accessibilityLabel={`Chiama ${BRAND.phone}`}
+                onPress={openPhone}
+                className="min-h-[64px] flex-row items-center justify-center gap-3 rounded-2xl border-2 border-[#f5d5aa]/55 bg-black/35 px-6 active:opacity-80 web:hover:bg-white/10 web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-[#f0c486]"
               >
-                <FontAwesome name="phone" size={16} color="#f7ddba" />
-                <Text className="text-base font-extrabold text-[#fff8ee]">Orari e contatti</Text>
+                <FontAwesome name="phone" size={20} color="#f3c98e" />
+                <View className="items-center">
+                  <Text className="text-[11px] font-bold uppercase tracking-wider text-[#f7ddba]/80">
+                    Chiama
+                  </Text>
+                  <Text className="text-lg font-extrabold text-[#fff8ee]">{BRAND.phone}</Text>
+                </View>
               </Pressable>
+
+              {/* WhatsApp — only if configured */}
+              {BRAND.whatsapp ? <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Salva Pizzeria Ambrosia nei contatti e apri WhatsApp"
+                onPress={openWhatsAppOrSaveContact}
+                className="min-h-[64px] flex-row items-center justify-center gap-3 rounded-2xl border-2 border-[#25D366]/70 bg-[#128C7E]/90 px-6 active:opacity-90 web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-[#25D366]"
+              >
+                <FontAwesome5 name="whatsapp" size={22} color="#ffffff" />
+                <View className="items-center">
+                  <Text className="text-lg font-extrabold text-white">WhatsApp</Text>
+                  <Text className="text-[11px] font-semibold text-white/85">
+                    Salva contatto · {BRAND.name}
+                  </Text>
+                </View>
+              </Pressable> : null}
             </View>
 
             <View className="mt-8 flex-row items-center gap-5">
