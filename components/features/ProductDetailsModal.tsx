@@ -1,3 +1,4 @@
+import { isPizzaCategoryName } from '@/lib/utils/menuCategories';
 import { Button } from '@/components/ui/Button';
 import { MezzoMetroGustiStep } from '@/components/features/MezzoMetroGustiStep';
 import {
@@ -41,10 +42,6 @@ const COOKING_OPTIONS: { id: CookingLevel; label: string }[] = [
     { id: 'ben_cotta', label: 'Ben cotta' },
 ];
 
-function isPizzaCategoryName(categoryName?: string): boolean {
-    if (!categoryName) return false;
-    return categoryName.toLowerCase().includes('pizz');
-}
 
 function isDrinkCategoryName(categoryName?: string): boolean {
     if (!categoryName) return false;
@@ -362,7 +359,7 @@ export function ProductDetailsModal({ visible, onClose, product, categoryName }:
           : 'Avanti';
 
     return (
-        <Modal visible={visible} animationType="slide" transparent>
+        <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
             <View className="flex-1 bg-black/50 justify-end sm:justify-center sm:items-center">
                 <Pressable className="absolute inset-0" onPress={onClose} />
 

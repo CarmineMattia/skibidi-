@@ -102,49 +102,50 @@ CREATE TEMP TABLE ambrosia_seed_products (
   description text,
   price numeric(10, 2) NOT NULL CHECK (price >= 0),
   display_order integer NOT NULL,
+  image_url text,
   ingredients text[] NOT NULL DEFAULT '{}',
   PRIMARY KEY (category_name, name)
 ) ON COMMIT DROP;
 
 -- Bevande (26)
 INSERT INTO ambrosia_seed_products (
-  category_name, name, description, price, display_order, ingredients
+  category_name, name, image_url, price, display_order, ingredients
 ) VALUES
-  ('Bevande', 'Vino Bianco Malvasia 1/4', 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=600&q=80', 3.00, 1, {}),
-  ('Bevande', 'Heineken 0.66L', 'https://images.unsplash.com/photo-1618885472179-5e474019f2a9?auto=format&fit=crop&w=600&q=80', 3.50, 2, {}),
-  ('Bevande', 'Ichnusa 0.5L', 'https://images.unsplash.com/photo-1608270586620-248524c67de9?auto=format&fit=crop&w=600&q=80', 3.50, 3, {}),
-  ('Bevande', 'Coca Cola piccola', 'https://images.unsplash.com/photo-1554866585-cd94860890b7?auto=format&fit=crop&w=600&q=80', 2.00, 4, {}),
-  ('Bevande', 'Acqua Pejo nat/gas 0.75L', 'https://images.unsplash.com/photo-1548839140-29a749e1cf4d?auto=format&fit=crop&w=600&q=80', 2.00, 5, {}),
-  ('Bevande', 'Erdinger Weissbier 0.5L', 'https://images.unsplash.com/photo-1571613316887-6f8d5cbf7ef7?auto=format&fit=crop&w=600&q=80', 5.00, 6, {}),
-  ('Bevande', 'Birra Theresianer 1L', 'https://images.unsplash.com/photo-1608270586620-248524c67de9?auto=format&fit=crop&w=600&q=80', 10.00, 7, {}),
-  ('Bevande', 'Chardonnay', 'https://images.unsplash.com/photo-1569529465841-dfecdab7503b?auto=format&fit=crop&w=600&q=80', 10.00, 8, {}),
-  ('Bevande', 'Leffe Bionda 0.33L', 'https://images.unsplash.com/photo-1535958636474-b021ee887b13?auto=format&fit=crop&w=600&q=80', 3.50, 9, {}),
-  ('Bevande', 'Leffe Rossa 0.33L', 'https://images.unsplash.com/photo-1535958636474-b021ee887b13?auto=format&fit=crop&w=600&q=80', 3.50, 10, {}),
-  ('Bevande', 'Birra analcolica', 'https://images.unsplash.com/photo-1608270586620-248524c67de9?auto=format&fit=crop&w=600&q=80', 3.50, 11, {}),
-  ('Bevande', 'Coca Cola 1.5 LT', 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=600&q=80', 6.00, 12, {}),
-  ('Bevande', 'Coca Cola media', 'https://images.unsplash.com/photo-1554866585-cd94860890b7?auto=format&fit=crop&w=600&q=80', 3.00, 13, {}),
-  ('Bevande', 'Birra Theresianer media', 'https://images.unsplash.com/photo-1608270586620-248524c67de9?auto=format&fit=crop&w=600&q=80', 3.50, 14, {}),
-  ('Bevande', 'The Limone/Pesca', 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?auto=format&fit=crop&w=600&q=80', 2.00, 15, {}),
-  ('Bevande', 'Coca Cola', 'https://images.unsplash.com/photo-1554866585-cd94860890b7?auto=format&fit=crop&w=600&q=80', 2.00, 16, {}),
-  ('Bevande', 'Fanta', 'https://images.unsplash.com/photo-1624517452488-04869289c4ca?auto=format&fit=crop&w=600&q=80', 2.00, 17, {}),
-  ('Bevande', 'Ceres 0.33L', 'https://images.unsplash.com/photo-1608270586620-248524c67de9?auto=format&fit=crop&w=600&q=80', 3.50, 18, {}),
-  ('Bevande', 'Coca Cola Zero', 'https://images.unsplash.com/photo-1543253687-c931c8e01820?auto=format&fit=crop&w=600&q=80', 2.00, 19, {}),
-  ('Bevande', 'Sprite', 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=600&q=80', 2.00, 20, {}),
-  ('Bevande', 'Vino Bianco Malvasia 1L', 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=600&q=80', 9.00, 21, {}),
-  ('Bevande', 'Birra Theresianer piccola', 'https://images.unsplash.com/photo-1608270586620-248524c67de9?auto=format&fit=crop&w=600&q=80', 2.50, 22, {}),
-  ('Bevande', 'Prosecco Contarini', 'https://images.unsplash.com/photo-1578911373434-0cb395d2cbfb?auto=format&fit=crop&w=600&q=80', 10.00, 23, {}),
-  ('Bevande', 'Moretti 0.66L', 'https://images.unsplash.com/photo-1608270586620-248524c67de9?auto=format&fit=crop&w=600&q=80', 3.50, 24, {}),
-  ('Bevande', 'Acqua nat/gas 0.50', 'https://images.unsplash.com/photo-1548839140-29a749e1cf4d?auto=format&fit=crop&w=600&q=80', 1.00, 25, {}),
-  ('Bevande', 'Vino Bianco Malvasia 1/2', 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=600&q=80', 4.50, 26, {});
+  ('Bevande', 'Vino Bianco Malvasia 1/4', 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=600&q=80', 3.00, 1, '{}'),
+  ('Bevande', 'Heineken 0.66L', 'https://images.unsplash.com/photo-1618885472179-5e474019f2a9?auto=format&fit=crop&w=600&q=80', 3.50, 2, '{}'),
+  ('Bevande', 'Ichnusa 0.5L', 'https://images.unsplash.com/photo-1608270586620-248524c67de9?auto=format&fit=crop&w=600&q=80', 3.50, 3, '{}'),
+  ('Bevande', 'Coca Cola piccola', 'https://images.unsplash.com/photo-1554866585-cd94860890b7?auto=format&fit=crop&w=600&q=80', 2.00, 4, '{}'),
+  ('Bevande', 'Acqua Pejo nat/gas 0.75L', 'https://images.unsplash.com/photo-1548839140-29a749e1cf4d?auto=format&fit=crop&w=600&q=80', 2.00, 5, '{}'),
+  ('Bevande', 'Erdinger Weissbier 0.5L', 'https://images.unsplash.com/photo-1571613316887-6f8d5cbf7ef7?auto=format&fit=crop&w=600&q=80', 5.00, 6, '{}'),
+  ('Bevande', 'Birra Theresianer 1L', 'https://images.unsplash.com/photo-1608270586620-248524c67de9?auto=format&fit=crop&w=600&q=80', 10.00, 7, '{}'),
+  ('Bevande', 'Chardonnay', 'https://images.unsplash.com/photo-1569529465841-dfecdab7503b?auto=format&fit=crop&w=600&q=80', 10.00, 8, '{}'),
+  ('Bevande', 'Leffe Bionda 0.33L', 'https://images.unsplash.com/photo-1535958636474-b021ee887b13?auto=format&fit=crop&w=600&q=80', 3.50, 9, '{}'),
+  ('Bevande', 'Leffe Rossa 0.33L', 'https://images.unsplash.com/photo-1535958636474-b021ee887b13?auto=format&fit=crop&w=600&q=80', 3.50, 10, '{}'),
+  ('Bevande', 'Birra analcolica', 'https://images.unsplash.com/photo-1608270586620-248524c67de9?auto=format&fit=crop&w=600&q=80', 3.50, 11, '{}'),
+  ('Bevande', 'Coca Cola 1.5 LT', 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=600&q=80', 6.00, 12, '{}'),
+  ('Bevande', 'Coca Cola media', 'https://images.unsplash.com/photo-1554866585-cd94860890b7?auto=format&fit=crop&w=600&q=80', 3.00, 13, '{}'),
+  ('Bevande', 'Birra Theresianer media', 'https://images.unsplash.com/photo-1608270586620-248524c67de9?auto=format&fit=crop&w=600&q=80', 3.50, 14, '{}'),
+  ('Bevande', 'The Limone/Pesca', 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?auto=format&fit=crop&w=600&q=80', 2.00, 15, '{}'),
+  ('Bevande', 'Coca Cola', 'https://images.unsplash.com/photo-1554866585-cd94860890b7?auto=format&fit=crop&w=600&q=80', 2.00, 16, '{}'),
+  ('Bevande', 'Fanta', 'https://images.unsplash.com/photo-1624517452488-04869289c4ca?auto=format&fit=crop&w=600&q=80', 2.00, 17, '{}'),
+  ('Bevande', 'Ceres 0.33L', 'https://images.unsplash.com/photo-1608270586620-248524c67de9?auto=format&fit=crop&w=600&q=80', 3.50, 18, '{}'),
+  ('Bevande', 'Coca Cola Zero', 'https://images.unsplash.com/photo-1543253687-c931c8e01820?auto=format&fit=crop&w=600&q=80', 2.00, 19, '{}'),
+  ('Bevande', 'Sprite', 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=600&q=80', 2.00, 20, '{}'),
+  ('Bevande', 'Vino Bianco Malvasia 1L', 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=600&q=80', 9.00, 21, '{}'),
+  ('Bevande', 'Birra Theresianer piccola', 'https://images.unsplash.com/photo-1608270586620-248524c67de9?auto=format&fit=crop&w=600&q=80', 2.50, 22, '{}'),
+  ('Bevande', 'Prosecco Contarini', 'https://images.unsplash.com/photo-1578911373434-0cb395d2cbfb?auto=format&fit=crop&w=600&q=80', 10.00, 23, '{}'),
+  ('Bevande', 'Moretti 0.66L', 'https://images.unsplash.com/photo-1608270586620-248524c67de9?auto=format&fit=crop&w=600&q=80', 3.50, 24, '{}'),
+  ('Bevande', 'Acqua nat/gas 0.50', 'https://images.unsplash.com/photo-1548839140-29a749e1cf4d?auto=format&fit=crop&w=600&q=80', 1.00, 25, '{}'),
+  ('Bevande', 'Vino Bianco Malvasia 1/2', 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=600&q=80', 4.50, 26, '{}');
 -- Dolci (5)
 INSERT INTO ambrosia_seed_products (
   category_name, name, description, price, display_order, ingredients
 ) VALUES
-  ('Dolci', 'Profiterol', NULL, 4.00, 1, {}),
-  ('Dolci', 'Tartufo Bianco / Nero', NULL, 4.00, 2, {}),
-  ('Dolci', 'Tiramisù', NULL, 4.00, 3, {}),
-  ('Dolci', 'Torroncino', NULL, 4.00, 4, {}),
-  ('Dolci', 'Sorbetto al Limone', NULL, 2.00, 5, {});
+  ('Dolci', 'Profiterol', NULL, 4.00, 1, '{}'),
+  ('Dolci', 'Tartufo Bianco / Nero', NULL, 4.00, 2, '{}'),
+  ('Dolci', 'Tiramisù', NULL, 4.00, 3, '{}'),
+  ('Dolci', 'Torroncino', NULL, 4.00, 4, '{}'),
+  ('Dolci', 'Sorbetto al Limone', NULL, 2.00, 5, '{}');
 -- Gourmet (7)
 INSERT INTO ambrosia_seed_products (
   category_name, name, description, price, display_order, ingredients
@@ -181,7 +182,7 @@ INSERT INTO ambrosia_seed_products (
   ('Bianche', 'Tartufata', 'mozz.fior di latte, porcini, crema tartufata', 8.00, 2, ARRAY['mozz.fior di latte', 'porcini', 'crema tartufata']),
   ('Bianche', 'Messicana', 'mozz.fior di latte e di bufala, pancetta, olio piccante', 7.50, 3, ARRAY['mozz.fior di latte e di bufala', 'pancetta', 'olio piccante']),
   ('Bianche', 'Piccantina', 'mozz.fior di latte, spianata calabra, acciughe, friarielli', 8.00, 4, ARRAY['mozz.fior di latte', 'spianata calabra', 'acciughe', 'friarielli']),
-  ('Bianche', 'Stria', NULL, 3.00, 5, {}),
+  ('Bianche', 'Stria', NULL, 3.00, 5, '{}'),
   ('Bianche', 'Beach', 'mozz.fior di latte, rucola, pomodorini, gamberetti', 8.00, 6, ARRAY['mozz.fior di latte', 'rucola', 'pomodorini', 'gamberetti']),
   ('Bianche', 'Pizza del Centro', 'mozz.fior di latte, melanzane, zucchine, peperoni, pomodorini, porcini', 9.50, 7, ARRAY['mozz.fior di latte', 'melanzane', 'zucchine', 'peperoni', 'pomodorini', 'porcini']),
   ('Bianche', 'Gorgonzola e Noci', 'mozz.fior di latte, gorgonzola, noci', 8.00, 8, ARRAY['mozz.fior di latte', 'gorgonzola', 'noci']);
@@ -214,11 +215,11 @@ INSERT INTO ambrosia_seed_products (
 INSERT INTO ambrosia_seed_products (
   category_name, name, description, price, display_order, ingredients
 ) VALUES
-  ('Al metro', 'Margherita', NULL, 13.00, 1, {}),
-  ('Al metro', 'Metà Margherita Metà Farcita', NULL, 16.00, 2, {}),
-  ('Al metro', 'Super Farcita', NULL, 20.00, 3, {}),
-  ('Al metro', 'Gourmet', NULL, 22.00, 4, {}),
-  ('Al metro', 'Farcita', NULL, 18.00, 5, {});
+  ('Al metro', 'Margherita', NULL, 13.00, 1, '{}'),
+  ('Al metro', 'Metà Margherita Metà Farcita', NULL, 16.00, 2, '{}'),
+  ('Al metro', 'Super Farcita', NULL, 20.00, 3, '{}'),
+  ('Al metro', 'Gourmet', NULL, 22.00, 4, '{}'),
+  ('Al metro', 'Farcita', NULL, 18.00, 5, '{}');
 
 DO $$
 BEGIN
@@ -240,7 +241,7 @@ END
 $$;
 
 INSERT INTO public.products (
-  id, category_id, company_id, name, description, price, active, display_order, ingredients
+  id, category_id, company_id, name, description, price, active, display_order, ingredients, image_url
 )
 SELECT
   md5('ambrosia:product:' || seed.category_name || ':' || seed.name)::uuid,
@@ -251,7 +252,8 @@ SELECT
   seed.price,
   true,
   seed.display_order,
-  seed.ingredients
+  seed.ingredients,
+  seed.image_url
 FROM ambrosia_seed_products AS seed
 CROSS JOIN ambrosia_seed_context AS context
 ON CONFLICT (id) DO UPDATE SET
@@ -262,6 +264,7 @@ ON CONFLICT (id) DO UPDATE SET
   active = true,
   display_order = EXCLUDED.display_order,
   ingredients = EXCLUDED.ingredients,
+  image_url = COALESCE(EXCLUDED.image_url, public.products.image_url),
   updated_at = now();
 
 DO $$
@@ -277,11 +280,11 @@ BEGIN
   FROM public.products
   WHERE company_id = (SELECT company_id FROM ambrosia_seed_context) AND active;
 
-  IF active_category_count <> 8 THEN
-    RAISE EXCEPTION 'Seed fallito: attese 8 categorie attive, trovate %', active_category_count;
+  IF active_category_count <> 7 THEN
+    RAISE EXCEPTION 'Seed fallito: attese 7 categorie attive, trovate %', active_category_count;
   END IF;
-  IF active_product_count <> 90 THEN
-    RAISE EXCEPTION 'Seed fallito: attesi 90 prodotti attivi, trovati %', active_product_count;
+  IF active_product_count <> 85 THEN
+    RAISE EXCEPTION 'Seed fallito: attesi 85 prodotti attivi, trovati %', active_product_count;
   END IF;
 END
 $$;

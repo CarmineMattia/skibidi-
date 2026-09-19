@@ -137,7 +137,7 @@ export function PizzaBuilderModal({ visible, onClose, product }: PizzaBuilderMod
     const decrementQuantity = () => setQuantity((q) => Math.max(1, q - 1));
 
     return (
-        <Modal visible={visible} animationType="slide" transparent>
+        <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
             <View className="flex-1 bg-black/50 justify-end sm:justify-center sm:items-center">
                 <Pressable className="absolute inset-0" onPress={onClose} />
 

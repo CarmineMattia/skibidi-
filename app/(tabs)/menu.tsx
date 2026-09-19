@@ -1,3 +1,4 @@
+import { isPizzaCategoryName } from '@/lib/utils/menuCategories';
 /**
  * Menu Screen
  * Main POS interface with product grid and cart
@@ -53,10 +54,6 @@ function isDrinkCategoryName(categoryName: string): boolean {
   );
 }
 
-function isPizzaCategoryName(categoryName?: string): boolean {
-  if (!categoryName) return false;
-  return categoryName.toLowerCase().includes('pizz');
-}
 
 function isMetroCategoryName(categoryName?: string): boolean {
   if (!categoryName) return false;
@@ -188,7 +185,6 @@ export default function MenuScreen() {
   const createOrder = useCreateOrder();
   const router = useRouter();
   const queryClient = useQueryClient();
-  const selectedCategoryName = categories.find((category) => category.id === selectedCategoryId)?.name || 'Cibo';
   const drinkCategories = useMemo(
     () => categories.filter((category) => isDrinkCategoryName(category.name)),
     [categories]
@@ -677,8 +673,8 @@ export default function MenuScreen() {
                       )}
                       <View className="p-4">
                         <Text className="text-xs font-bold uppercase text-[#8d171e]">{i18n.featuredBadge}</Text>
-                        <Text className="mt-1 text-xl font-extrabold text-gray-900">{i18n.featuredTitle}</Text>
-                        <Text className="mt-1 text-xs text-gray-600">{i18n.featuredDescription}</Text>
+                        <Text className="mt-1 text-xl font-extrabold text-gray-900">{featuredProduct.name}</Text>
+                        <Text className="mt-1 text-xs text-gray-600">{featuredProduct.description || featuredProduct.ingredients?.join(', ') || i18n.artisanalRecipe}</Text>
                       </View>
                     </Pressable>
                   </View>
@@ -719,7 +715,7 @@ export default function MenuScreen() {
                         <View className="min-w-0 flex-1 flex-row items-start justify-between gap-2 p-3">
                           <View className="min-w-0 flex-1">
                             <Text className="text-[11px] font-bold uppercase text-gray-500">
-                              {selectedCategoryName}
+                              {categories.find((category) => category.id === item.category_id)?.name || 'Cibo'}
                             </Text>
                             <Text className="mt-0.5 text-base font-extrabold text-gray-900" numberOfLines={2}>
                               {item.name}
@@ -737,6 +733,8 @@ export default function MenuScreen() {
                                 event.stopPropagation();
                                 handleQuickDecrement(item);
                               }}
+                              accessibilityRole="button"
+                              accessibilityLabel={`Togli una ${item.name}`}
                               disabled={quantityInCart <= 0}
                               className="h-10 w-10 items-center justify-center"
                             >
@@ -754,6 +752,8 @@ export default function MenuScreen() {
                                 event.stopPropagation();
                                 handleQuickAdd(item);
                               }}
+                              accessibilityRole="button"
+                              accessibilityLabel={`Aggiungi ${item.name} al carrello`}
                               className="h-10 w-10 items-center justify-center rounded-full bg-[#8d171e]"
                             >
                               <FontAwesome name="plus" size={12} color="#ffffff" />
@@ -805,6 +805,8 @@ export default function MenuScreen() {
         >
           <Pressable
             onPress={() => setIsCartVisible(true)}
+            accessibilityRole="button"
+            accessibilityLabel={`${i18n.cart}: ${totalItems}`}
             className="bg-[#8d171e] rounded-2xl p-4 shadow-xl flex-row items-center justify-between active:opacity-80"
           >
             <View className="flex-row items-center gap-2">
@@ -914,7 +916,10 @@ export default function MenuScreen() {
         selectedProduct.name === BUILDER_PRODUCT_NAME ? (
           <PizzaBuilderModal
             visible={!!selectedProduct}
-            onClose={() => setSelectedProduct(null)}
+            onClose={() => {
+              writeJsonStorage('ambrosia.menu.selectedProduct.v1', { productId: null }, 'session');
+              setSelectedProduct(null);
+            }}
             product={selectedProduct}
           />
         ) : (
