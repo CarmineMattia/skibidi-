@@ -78,7 +78,23 @@ function RootLayoutNav() {
                           <Stack.Screen name="login" options={{ headerShown: false }} />
                           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
                           <Stack.Screen name="admin-options" options={{ headerShown: false }} />
-                          <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+                          <Stack.Screen
+                            name="modal"
+                            options={{
+                              headerShown: true,
+                              title: 'Checkout',
+                              presentation: 'card',
+                              animation: 'slide_from_right',
+                            }}
+                          />
+                          <Stack.Screen
+                            name="one-screen-checkout"
+                            options={{
+                              headerShown: true,
+                              title: 'Checkout',
+                              presentation: 'card',
+                            }}
+                          />
                           <Stack.Screen name="order-success" options={{ headerShown: false }} />
                           <Stack.Screen name="rewards" options={{ headerShown: false }} />
                           <Stack.Screen name="offers" options={{ headerShown: false }} />

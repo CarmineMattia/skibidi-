@@ -9,6 +9,7 @@ import {
     INGREDIENT_CATEGORIES,
 } from '@/lib/data/ingredients';
 import type { IngredientCategoryId } from '@/lib/data/ingredients';
+import { IngredientThumb } from '@/components/features/IngredientThumb';
 import { useCategories } from '@/lib/hooks/useCategories';
 import { useProducts } from '@/lib/hooks/useProducts';
 import {
@@ -564,12 +565,11 @@ export function ProductDetailsModal({ visible, onClose, product, categoryName }:
                                                         key={ingredient}
                                                         className="flex-row items-center justify-between bg-card border border-border rounded-xl p-3"
                                                     >
-                                                        <View className="flex-row items-center flex-1 mr-2">
-                                                            <View
-                                                                className={cn(
-                                                                    'w-2.5 h-2.5 rounded-full mr-2',
-                                                                    categoryInfo.dotClass
-                                                                )}
+                                                        <View className="flex-row items-center flex-1 mr-2 gap-2.5">
+                                                            <IngredientThumb
+                                                                name={ingredient}
+                                                                size={36}
+                                                                fallbackEmoji={categoryInfo.emoji}
                                                             />
                                                             <Text
                                                                 className={`font-medium text-lg flex-1 ${getStatusColor(status)}`}
@@ -632,7 +632,11 @@ export function ProductDetailsModal({ visible, onClose, product, categoryName }:
                                                             categoryInfo.chipClass
                                                         )}
                                                     >
-                                                        <View className={cn('w-2 h-2 rounded-full', categoryInfo.dotClass)} />
+                                                        <IngredientThumb
+                                                            name={ingredient}
+                                                            size={22}
+                                                            fallbackEmoji={categoryInfo.emoji}
+                                                        />
                                                         <Text className={cn('text-sm font-semibold', categoryInfo.textClass)}>
                                                             + {ingredient}
                                                         </Text>
@@ -667,7 +671,11 @@ export function ProductDetailsModal({ visible, onClose, product, categoryName }:
                                                             categoryInfo.chipClass
                                                         )}
                                                     >
-                                                        <View className={cn('w-2 h-2 rounded-full', categoryInfo.dotClass)} />
+                                                        <IngredientThumb
+                                                            name={suggestion.name}
+                                                            size={22}
+                                                            fallbackEmoji={categoryInfo.emoji}
+                                                        />
                                                         <Text className={cn('text-sm font-semibold', categoryInfo.textClass)}>
                                                             {suggestion.name}
                                                         </Text>
@@ -759,7 +767,11 @@ export function ProductDetailsModal({ visible, onClose, product, categoryName }:
                                                         isSelected && 'border-primary border-2'
                                                     )}
                                                 >
-                                                    <View className={cn('w-2 h-2 rounded-full', categoryInfo.dotClass)} />
+                                                    <IngredientThumb
+                                                        name={entry.name}
+                                                        size={22}
+                                                        fallbackEmoji={categoryInfo.emoji}
+                                                    />
                                                     <Text className={cn('text-sm font-semibold', categoryInfo.textClass)}>
                                                         {entry.name}
                                                     </Text>

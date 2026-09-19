@@ -7,6 +7,7 @@
  */
 
 import { Button } from '@/components/ui/Button';
+import { SatispayOpenHint } from '@/components/features/SatispayOpenHint';
 import { useCreateOrder } from '@/lib/hooks/useCreateOrder';
 import {
   finalizeDeliveryAddress,
@@ -289,6 +290,11 @@ export default function OneScreenCheckout() {
               );
             })}
           </View>
+          {selectedPayment === 'satispay' ? (
+            <View className="mt-3">
+              <SatispayOpenHint amountLabel={`${totalAmount.toFixed(2)}€`} />
+            </View>
+          ) : null}
         </View>
       </ScrollView>
 

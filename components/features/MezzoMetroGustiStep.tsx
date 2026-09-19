@@ -7,6 +7,7 @@ import {
   INGREDIENT_CATEGORIES,
 } from '@/lib/data/ingredients';
 import type { IngredientCategoryId } from '@/lib/data/ingredients';
+import { IngredientThumb } from '@/components/features/IngredientThumb';
 import {
   BUILDER_INGREDIENT_PRICES,
   MAX_MEZZO_METRO_GUSTI,
@@ -224,7 +225,11 @@ export function MezzoMetroGustiStep({ gusti, availablePizzas, onChange }: MezzoM
                               className="flex-row items-center justify-between bg-card border border-border rounded-xl p-2.5"
                             >
                               <View className="flex-row items-center flex-1 mr-2">
-                                <View className={cn('w-2 h-2 rounded-full mr-2', categoryInfo.dotClass)} />
+                                <IngredientThumb
+                                  name={ingredient}
+                                  size={24}
+                                  fallbackEmoji={categoryInfo.emoji}
+                                />
                                 <Text
                                   className={cn(
                                     'font-medium flex-1',

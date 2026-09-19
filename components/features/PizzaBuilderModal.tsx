@@ -7,6 +7,7 @@ import {
     INGREDIENT_CATEGORIES,
 } from '@/lib/data/ingredients';
 import type { CatalogIngredient, IngredientCategoryId } from '@/lib/data/ingredients';
+import { IngredientThumb } from '@/components/features/IngredientThumb';
 import {
     BUILDER_DOUGHS,
     BUILDER_INGREDIENT_PRICES,
@@ -270,7 +271,11 @@ export function PizzaBuilderModal({ visible, onClose, product }: PizzaBuilderMod
                                                     categoryInfo.chipClass
                                                 )}
                                             >
-                                                <View className={cn('w-2 h-2 rounded-full', categoryInfo.dotClass)} />
+                                                <IngredientThumb
+                                                    name={ingredient.name}
+                                                    size={22}
+                                                    fallbackEmoji={categoryInfo.emoji}
+                                                />
                                                 <Text className={cn('text-sm font-semibold', categoryInfo.textClass)}>
                                                     {ingredient.name} · {ingredientPriceLabel(ingredient.category)}
                                                 </Text>
@@ -306,7 +311,11 @@ export function PizzaBuilderModal({ visible, onClose, product }: PizzaBuilderMod
                                                     categoryInfo.chipClass
                                                 )}
                                             >
-                                                <View className={cn('w-2 h-2 rounded-full', categoryInfo.dotClass)} />
+                                                <IngredientThumb
+                                                    name={suggestion.name}
+                                                    size={22}
+                                                    fallbackEmoji={categoryInfo.emoji}
+                                                />
                                                 <Text className={cn('text-sm font-semibold', categoryInfo.textClass)}>
                                                     {suggestion.name} · {ingredientPriceLabel(suggestion.category)}
                                                 </Text>
@@ -384,7 +393,11 @@ export function PizzaBuilderModal({ visible, onClose, product }: PizzaBuilderMod
                                                 isSelected && 'border-primary border-2'
                                             )}
                                         >
-                                            <View className={cn('w-2 h-2 rounded-full', categoryInfo.dotClass)} />
+                                            <IngredientThumb
+                                                    name={entry.name}
+                                                    size={22}
+                                                    fallbackEmoji={categoryInfo.emoji}
+                                                />
                                             <Text className={cn('text-sm font-semibold', categoryInfo.textClass)}>
                                                 {entry.name} · {ingredientPriceLabel(entry.category)}
                                             </Text>
