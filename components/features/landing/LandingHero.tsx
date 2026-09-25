@@ -1,7 +1,7 @@
 import { BRAND } from '@/lib/data/brand';
 import { FontAwesome, FontAwesome5, MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ImageBackground, Linking, Pressable, Text, View } from 'react-native';
+import { Image, Linking, Pressable, Text, View } from 'react-native';
 
 const HERO_IMAGE = require('@/assets/images/landing/ambrosia-insegna.jpg') as number;
 
@@ -67,26 +67,36 @@ function openWhatsAppOrSaveContact() {
 // paint doesn't relayout when hydration learns the real viewport width.
 export function LandingHero({ isDesktop, onMenu }: LandingHeroProps) {
   return (
-    <View className="overflow-hidden bg-[#211713]">
-      <ImageBackground
+    <View className="relative min-h-[590px] overflow-hidden bg-[#211713] sm:min-h-[620px] md:min-h-[650px]">
+      <Image
         source={HERO_IMAGE}
         resizeMode="cover"
         accessibilityLabel="Insegna Pizzeria Ambrosia"
-        className="min-h-[590px] sm:min-h-[620px] md:min-h-[650px]"
-      >
-        <LinearGradient
-          colors={
-            isDesktop
-              ? ['rgba(25, 14, 10, 0.92)', 'rgba(45, 22, 15, 0.62)', 'rgba(45, 22, 15, 0.18)']
-              : ['rgba(25, 14, 10, 0.91)', 'rgba(45, 22, 15, 0.7)', 'rgba(45, 22, 15, 0.35)']
-          }
-          start={{ x: 0, y: 0.5 }}
-          end={{ x: 1, y: 0.5 }}
-          style={{ position: 'absolute', inset: 0 }}
-        />
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          width: '100%',
+          height: isDesktop ? '100%' : 250,
+          // @ts-expect-error React Native Web forwards this CSS image property.
+          objectPosition: isDesktop ? 'center' : 'center bottom',
+        }}
+      />
+      <LinearGradient
+        colors={
+          isDesktop
+            ? ['rgba(25, 14, 10, 0.92)', 'rgba(45, 22, 15, 0.62)', 'rgba(45, 22, 15, 0.18)']
+            : ['rgba(25, 14, 10, 0.04)', 'rgba(25, 14, 10, 0.14)', 'rgba(33, 23, 19, 0.96)', '#211713']
+        }
+        locations={isDesktop ? undefined : [0, 0.24, 0.34, 1]}
+        start={isDesktop ? { x: 0, y: 0.5 } : { x: 0.5, y: 0 }}
+        end={isDesktop ? { x: 1, y: 0.5 } : { x: 0.5, y: 1 }}
+        style={{ position: 'absolute', inset: 0 }}
+      />
 
-        <View className="w-full max-w-[1240px] flex-1 self-center justify-center px-5 py-14 sm:px-7 sm:py-20 md:px-8 md:py-24">
-          <View className="max-w-[620px] md:max-w-[710px]">
+      <View className="w-full max-w-[1240px] flex-1 self-center justify-center px-5 pb-14 pt-[270px] sm:px-7 sm:pb-20 sm:pt-[270px] md:px-8 md:py-24">
+        <View className="max-w-[620px] md:max-w-[710px]">
             <View className="mb-5 self-start flex-row items-center gap-2 border-l-2 border-[#e7b577] bg-black/25 px-3 py-2">
               <FontAwesome name="map-marker" size={13} color="#f3c98e" />
               <Text className="text-xs font-extrabold uppercase tracking-[1.6px] text-[#f7ddba]">
@@ -144,7 +154,7 @@ export function LandingHero({ isDesktop, onMenu }: LandingHeroProps) {
                 className="min-h-[64px] flex-row items-center justify-center gap-3 rounded-2xl border border-white/35 px-6 active:opacity-85 web:hover:bg-white/15 web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-[#f0c486]"
                 style={{
                   backgroundColor: 'rgba(255, 248, 238, 0.14)',
-                  // @ts-expect-error web-only glass
+                  // web-only glass
                   backdropFilter: 'blur(14px)',
                   // @ts-expect-error web-only glass
                   WebkitBackdropFilter: 'blur(14px)',
@@ -171,7 +181,7 @@ export function LandingHero({ isDesktop, onMenu }: LandingHeroProps) {
                 className="min-h-[64px] flex-row items-center justify-center gap-3 rounded-2xl border border-[#25D366]/55 px-6 active:opacity-90 web:hover:bg-[#25D366]/20 web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-[#25D366]"
                 style={{
                   backgroundColor: 'rgba(37, 211, 102, 0.18)',
-                  // @ts-expect-error web-only glass
+                  // web-only glass
                   backdropFilter: 'blur(14px)',
                   // @ts-expect-error web-only glass
                   WebkitBackdropFilter: 'blur(14px)',
@@ -202,9 +212,8 @@ export function LandingHero({ isDesktop, onMenu }: LandingHeroProps) {
                 <Text className="text-xs font-semibold text-[#f5e8d7]">impasto fresco</Text>
               </View>
             </View>
-          </View>
         </View>
-      </ImageBackground>
+      </View>
     </View>
   );
 }
