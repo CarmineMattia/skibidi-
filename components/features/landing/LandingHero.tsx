@@ -3,7 +3,7 @@ import { FontAwesome, FontAwesome5, MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ImageBackground, Linking, Pressable, Text, View } from 'react-native';
 
-const HERO_IMAGE = require('@/assets/images/landing/interior.jpeg') as number;
+const HERO_IMAGE = require('@/assets/images/landing/ambrosia-insegna.jpg') as number;
 
 interface LandingHeroProps {
   readonly isDesktop: boolean;
@@ -71,7 +71,7 @@ export function LandingHero({ isDesktop, onMenu }: LandingHeroProps) {
       <ImageBackground
         source={HERO_IMAGE}
         resizeMode="cover"
-        accessibilityLabel="Interno accogliente della Pizzeria Ambrosia"
+        accessibilityLabel="Insegna Pizzeria Ambrosia"
         className="min-h-[590px] sm:min-h-[620px] md:min-h-[650px]"
       >
         <LinearGradient
@@ -141,11 +141,22 @@ export function LandingHero({ isDesktop, onMenu }: LandingHeroProps) {
                 accessibilityRole="link"
                 accessibilityLabel={`Chiama ${BRAND.phone}`}
                 onPress={openPhone}
-                className="min-h-[64px] flex-row items-center justify-center gap-3 rounded-2xl border-2 border-[#f5d5aa]/55 bg-black/35 px-6 active:opacity-80 web:hover:bg-white/10 web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-[#f0c486]"
+                className="min-h-[64px] flex-row items-center justify-center gap-3 rounded-2xl border border-white/35 px-6 active:opacity-85 web:hover:bg-white/15 web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-[#f0c486]"
+                style={{
+                  backgroundColor: 'rgba(255, 248, 238, 0.14)',
+                  // @ts-expect-error web-only glass
+                  backdropFilter: 'blur(14px)',
+                  // @ts-expect-error web-only glass
+                  WebkitBackdropFilter: 'blur(14px)',
+                  shadowColor: '#000',
+                  shadowOpacity: 0.22,
+                  shadowRadius: 16,
+                  shadowOffset: { width: 0, height: 8 },
+                }}
               >
                 <FontAwesome name="phone" size={20} color="#f3c98e" />
                 <View className="items-center">
-                  <Text className="text-[11px] font-bold uppercase tracking-wider text-[#f7ddba]/80">
+                  <Text className="text-[11px] font-bold uppercase tracking-wider text-[#f7ddba]/90">
                     Chiama
                   </Text>
                   <Text className="text-lg font-extrabold text-[#fff8ee]">{BRAND.phone}</Text>
@@ -157,12 +168,23 @@ export function LandingHero({ isDesktop, onMenu }: LandingHeroProps) {
                 accessibilityRole="button"
                 accessibilityLabel="Salva Pizzeria Ambrosia nei contatti e apri WhatsApp"
                 onPress={openWhatsAppOrSaveContact}
-                className="min-h-[64px] flex-row items-center justify-center gap-3 rounded-2xl border-2 border-[#25D366]/70 bg-[#128C7E]/90 px-6 active:opacity-90 web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-[#25D366]"
+                className="min-h-[64px] flex-row items-center justify-center gap-3 rounded-2xl border border-[#25D366]/55 px-6 active:opacity-90 web:hover:bg-[#25D366]/20 web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-[#25D366]"
+                style={{
+                  backgroundColor: 'rgba(37, 211, 102, 0.18)',
+                  // @ts-expect-error web-only glass
+                  backdropFilter: 'blur(14px)',
+                  // @ts-expect-error web-only glass
+                  WebkitBackdropFilter: 'blur(14px)',
+                  shadowColor: '#128C7E',
+                  shadowOpacity: 0.28,
+                  shadowRadius: 16,
+                  shadowOffset: { width: 0, height: 8 },
+                }}
               >
-                <FontAwesome5 name="whatsapp" size={22} color="#ffffff" />
+                <FontAwesome5 name="whatsapp" size={22} color="#d8ffe8" />
                 <View className="items-center">
-                  <Text className="text-lg font-extrabold text-white">WhatsApp</Text>
-                  <Text className="text-[11px] font-semibold text-white/85">
+                  <Text className="text-lg font-extrabold text-[#f4fff8]">WhatsApp</Text>
+                  <Text className="text-[11px] font-semibold text-[#e8fff0]/90">
                     Salva contatto · {BRAND.name}
                   </Text>
                 </View>
