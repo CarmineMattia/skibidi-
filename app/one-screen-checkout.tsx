@@ -9,6 +9,7 @@
 import { Button } from '@/components/ui/Button';
 import { SatispayOpenHint } from '@/components/features/SatispayOpenHint';
 import { useCreateOrder } from '@/lib/hooks/useCreateOrder';
+import { useOrderSubmissionGuard } from '@/lib/hooks/useOrderSubmissionGuard';
 import {
   finalizeDeliveryAddress,
   getDeliveryZoneMessage,
@@ -22,7 +23,7 @@ import {
 import { getCartItemUnitPrice, useCart } from '@/lib/stores/CartContext';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type OrderType = 'eat_in' | 'take_away' | 'delivery';
@@ -69,7 +70,7 @@ export default function OneScreenCheckout() {
   const [customerPhone, setCustomerPhone] = useState('');
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [selectedPayment, setSelectedPayment] = useState<PaymentProvider>('cash');
-  const [isProcessing, setIsProcessing] = useState(false);
+  const { isProcessing, start, complete } = useOrderSubmissionGuard();
 
   const canSubmit = items.length > 0 && !isProcessing;
 
@@ -101,7 +102,7 @@ export default function OneScreenCheckout() {
       return;
     }
 
-    setIsProcessing(true);
+    if (!start()) return;
     try {
       const result = await createOrder.mutateAsync({
         items,
@@ -114,6 +115,7 @@ export default function OneScreenCheckout() {
         paymentMethod: paymentProviderToMethod(selectedPayment),
       });
 
+      await complete(true);
       clearCart();
       router.replace(
         `/order-tracking?orderType=${encodeURIComponent(
@@ -121,10 +123,9 @@ export default function OneScreenCheckout() {
         )}&orderId=${encodeURIComponent(result.orderId)}`
       );
     } catch (error) {
+      await complete(false);
       console.error('Order creation failed:', error);
       Alert.alert('Errore', 'Impossibile creare l\u2019ordine. Riprova.');
-    } finally {
-      setIsProcessing(false);
     }
   }, [
     items,
@@ -136,6 +137,8 @@ export default function OneScreenCheckout() {
     createOrder,
     clearCart,
     router,
+    start,
+    complete,
   ]);
 
   return (
@@ -303,14 +306,22 @@ export default function OneScreenCheckout() {
         className="px-4 pt-4 bg-card border-t border-border"
         style={{ paddingBottom: insets.bottom + 16 }}
       >
+        {isProcessing && (
+          <View accessibilityRole="alert" className="items-center gap-2 pb-4">
+            <ActivityIndicator color="#8d171e" />
+            <Text className="font-bold">Invio dell’ordine in corso…</Text>
+            <Text className="text-center text-sm text-muted-foreground">Attendi la conferma, senza chiudere questa pagina.</Text>
+          </View>
+        )}
         <Button
           title={
             isProcessing
-              ? 'Elaborazione...'
+              ? 'Invio in corso…'
               : `Conferma ordine (${totalAmount.toFixed(2)}€)`
           }
           onPress={handleSubmit}
           disabled={!canSubmit}
+          accessibilityState={{ disabled: !canSubmit, busy: isProcessing }}
           variant="brand"
           size="cta"
           className="w-full"

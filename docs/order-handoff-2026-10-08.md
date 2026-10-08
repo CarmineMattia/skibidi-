@@ -12,11 +12,13 @@ Until this migration exists, the new checkout fails explicitly and keeps the car
 
 Orders and lines now commit together. A stable UUID prevents duplicating a successfully saved order when its response is lost. Repeated UUIDs with different contents are rejected. Empty orders cannot be accepted. The offline queue performs a real submission and preserves failures; queued orders stay scoped to their restaurant. Kitchen status writes require an actual returned row. Tracking polls every five seconds for guests, distinguishes pending from accepted, and shows verification errors instead of inventing a status. The ready delivery state means ready for delivery, not that a courier has departed.
 
+Both checkout screens lock synchronously before submission, including repeated clicks before React updates the button. The sending indicator remains visible for at least five seconds and for the full duration of a slower request. Success keeps confirmation locked until navigation; failure unlocks it for retry. The multi-step checkout uses an animated spinner, and the one-screen checkout shows explicit sending text.
+
 ## Validation
 
 - TypeScript check and Expo web export. The existing lint command could not run because ESLint is not installed in this project.
-- 86 unit tests, including offline reconnect/failure preservation, zero-row kitchen updates, missing/mismatched server acknowledgements, and reuse of the same submission ID after a lost response and reload.
-- Eight Chromium browser tests: menu/cart, guest pending → accepted → ready without Realtime, unavailable backend, truthful success screen, 48 loaded gallery images and a recipe-matched menu photo.
+- 89 unit tests, including offline reconnect/failure preservation, zero-row kitchen updates, missing/mismatched server acknowledgements, reuse of the same submission ID after a lost response and reload, synchronous click locking and minimum loading duration.
+- Nine Chromium browser tests: menu/cart, guest pending → accepted → ready without Realtime, unavailable backend, truthful success screen, 48 loaded gallery images, a recipe-matched menu photo, and disabled confirmation during a slow request with exactly one submission. The four order-related browser checks were rerun after the confirmation-lock change.
 - Disposable PostgreSQL 17 validation using the actual tracking and guest RLS migrations: anonymous atomic insert, rollback on line failure, idempotent retry, invalid input and non-readable direct guest order rows. Separate guest and authenticated staff roles verify kitchen access to saved lines, staff acceptance, guest tracking of that acceptance, and isolation from another restaurant. Staff identity/update access is modeled in the local fixture; hosted profiles and staff write policies remain unverified. A trigger rejects accepting empty orders.
 
 To reproduce SQL validation with Podman, run `bash tests/sql/run-order-handoff.sh`. It creates and removes a disposable PostgreSQL container, applies the fixture and actual migrations, and runs the handoff checks. The fixture creates its own small schema and roles and must never run on a hosted restaurant database.

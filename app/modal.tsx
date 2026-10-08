@@ -5,6 +5,7 @@ import { supabase } from '@/lib/api/supabase';
 import { BRAND } from '@/lib/data/brand';
 import { SatispayOpenHint } from '@/components/features/SatispayOpenHint';
 import { useCreateOrder } from '@/lib/hooks/useCreateOrder';
+import { useOrderSubmissionGuard } from '@/lib/hooks/useOrderSubmissionGuard';
 import { useCustomerLookup, type CustomerLookupOrder } from '@/lib/hooks/useCustomerLookup';
 import { useOfflineQueue } from '@/lib/hooks/useOfflineQueue';
 import { classifyItalianPhone } from '@/lib/utils/phone';
@@ -21,7 +22,7 @@ import { countries } from 'countries-list';
 import { useRouter, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Image, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type OrderType = 'eat_in' | 'take_away' | 'delivery';
@@ -209,7 +210,7 @@ export default function CheckoutScreen() {
   const [step, setStep] = useState<CheckoutStep>('type');
   const [orderType, setOrderType] = useState<OrderType>('eat_in');
   const [paymentProvider, setPaymentProvider] = useState<PaymentProvider>('cash');
-  const [isProcessing, setIsProcessing] = useState(false);
+  const { isProcessing, start, complete } = useOrderSubmissionGuard();
   const [showPhonePrefixModal, setShowPhonePrefixModal] = useState(false);
   const [phonePrefixSearch, setPhonePrefixSearch] = useState('');
   const [fulfillmentMode, setFulfillmentMode] = useState<FulfillmentMode>('asap');
@@ -945,7 +946,7 @@ export default function CheckoutScreen() {
       return;
     }
 
-    setIsProcessing(true);
+    if (!start()) return;
     const fulfillmentToken = buildSchedulingToken(selectedFulfillmentIso);
     const capacityToken = buildCapacityUnitsToken(cartPizzaUnits);
     const fulfillmentLabel =
@@ -969,6 +970,8 @@ export default function CheckoutScreen() {
           paymentMethod: paymentProviderToMethod(paymentProvider),
         });
 
+        // Queuing stays on this screen until the offline notice is dismissed.
+        await complete(false);
         clearCart();
         Alert.alert(
           i18n.orderSaved,
@@ -993,19 +996,19 @@ export default function CheckoutScreen() {
 
       console.log('✅ Order created successfully:', result.orderId);
 
+      await complete(true);
       clearCart();
-      setIsProcessing(false);
       router.replace(
         `/order-tracking?orderType=${encodeURIComponent(orderType)}&orderId=${encodeURIComponent(result.orderId)}`
       );
     } catch (error) {
+      await complete(false);
       console.error('❌ Order creation failed:', error);
       Alert.alert(
         'Errore',
         i18n.cannotCreateOrder,
         [{ text: 'OK' }]
       );
-      setIsProcessing(false);
     }
   };
 
@@ -1595,10 +1598,11 @@ export default function CheckoutScreen() {
             size="lg"
           />
           <Button
-            title={isProcessing ? '...' : (isOnline ? i18n.confirmOrder : i18n.saveOrder)}
+            title={isProcessing ? (language === 'en' ? 'Sending…' : 'Invio in corso…') : (isOnline ? i18n.confirmOrder : i18n.saveOrder)}
             variant="brand"
             onPress={handlePayment}
             disabled={isProcessing}
+            accessibilityState={{ disabled: isProcessing, busy: isProcessing }}
             size="cta"
           />
         </View>
@@ -1752,7 +1756,7 @@ export default function CheckoutScreen() {
           <View className="flex-1 bg-black/45 items-center justify-center p-6">
             <View className="w-full max-w-[360px] bg-white rounded-2xl border border-[#e1a255]/40 p-5">
               <View className="w-12 h-12 rounded-full bg-[#f9ecdd] items-center justify-center self-center mb-3">
-                <FontAwesome name="spinner" size={18} color="#8d171e" />
+                <ActivityIndicator color="#8d171e" />
               </View>
               <Text className="text-xl font-extrabold text-center text-gray-900">
                 {i18n.orderSendingTitle}
