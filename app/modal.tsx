@@ -211,6 +211,7 @@ export default function CheckoutScreen() {
   const [orderType, setOrderType] = useState<OrderType>('eat_in');
   const [paymentProvider, setPaymentProvider] = useState<PaymentProvider>('cash');
   const { isProcessing, start, complete } = useOrderSubmissionGuard();
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
   const [showPhonePrefixModal, setShowPhonePrefixModal] = useState(false);
   const [phonePrefixSearch, setPhonePrefixSearch] = useState('');
   const [fulfillmentMode, setFulfillmentMode] = useState<FulfillmentMode>('asap');
@@ -947,6 +948,7 @@ export default function CheckoutScreen() {
     }
 
     if (!start()) return;
+    setSubmissionError(null);
     const fulfillmentToken = buildSchedulingToken(selectedFulfillmentIso);
     const capacityToken = buildCapacityUnitsToken(cartPizzaUnits);
     const fulfillmentLabel =
@@ -1004,6 +1006,9 @@ export default function CheckoutScreen() {
     } catch (error) {
       await complete(false);
       console.error('❌ Order creation failed:', error);
+      setSubmissionError(language === 'en'
+        ? 'We could not confirm receipt of your order. Please try again. If the problem persists, contact the restaurant.'
+        : 'Non abbiamo ricevuto la conferma del tuo ordine. Riprova. Se il problema continua, contatta la pizzeria.');
       Alert.alert(
         'Errore',
         i18n.cannotCreateOrder,
@@ -1590,6 +1595,12 @@ export default function CheckoutScreen() {
 
         {/* Footer Buttons */}
         <View className="gap-4 mt-6">
+          {submissionError && (
+            <View accessibilityRole="alert" className="rounded-xl bg-red-50 border border-red-200 p-3">
+              <Text className="font-bold text-red-700">{language === 'en' ? 'Submission not confirmed' : 'Invio non confermato'}</Text>
+              <Text className="text-red-700">{submissionError}</Text>
+            </View>
+          )}
           <Button
             title={i18n.back}
             variant="outline"

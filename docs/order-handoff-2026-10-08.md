@@ -14,6 +14,8 @@ Orders and lines now commit together. A stable UUID prevents duplicating a succe
 
 Both checkout screens lock synchronously before submission, including repeated clicks before React updates the button. The sending indicator remains visible for at least five seconds and for the full duration of a slower request. Success keeps confirmation locked until navigation; failure unlocks it for retry. The multi-step checkout uses an animated spinner, and the one-screen checkout shows explicit sending text.
 
+A manual two-session hosted-backend check reproduced `PGRST202` from checkout: the order cannot be persisted until the migration is installed, so there is no order to synchronize to the kitchen. Both checkouts now show a persistent, accessible error message on the page in addition to the native alert (React Native web alerts were not visibly reporting the failure). The cart is retained for a safe retry. Hosted staff acceptance remains pending migration installation.
+
 ## Validation
 
 - TypeScript check and Expo web export. The existing lint command could not run because ESLint is not installed in this project.

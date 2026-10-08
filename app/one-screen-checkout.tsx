@@ -71,6 +71,7 @@ export default function OneScreenCheckout() {
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [selectedPayment, setSelectedPayment] = useState<PaymentProvider>('cash');
   const { isProcessing, start, complete } = useOrderSubmissionGuard();
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
 
   const canSubmit = items.length > 0 && !isProcessing;
 
@@ -103,6 +104,7 @@ export default function OneScreenCheckout() {
     }
 
     if (!start()) return;
+    setSubmissionError(null);
     try {
       const result = await createOrder.mutateAsync({
         items,
@@ -124,6 +126,7 @@ export default function OneScreenCheckout() {
       );
     } catch (error) {
       await complete(false);
+      setSubmissionError('Non abbiamo ricevuto la conferma del tuo ordine. Riprova. Se il problema continua, contatta la pizzeria.');
       console.error('Order creation failed:', error);
       Alert.alert('Errore', 'Impossibile creare l\u2019ordine. Riprova.');
     }
@@ -306,6 +309,12 @@ export default function OneScreenCheckout() {
         className="px-4 pt-4 bg-card border-t border-border"
         style={{ paddingBottom: insets.bottom + 16 }}
       >
+        {submissionError && (
+          <View accessibilityRole="alert" className="rounded-xl bg-red-50 p-3 mb-3">
+            <Text className="font-bold text-red-700">Invio non confermato</Text>
+            <Text className="text-red-700">{submissionError}</Text>
+          </View>
+        )}
         {isProcessing && (
           <View accessibilityRole="alert" className="items-center gap-2 pb-4">
             <ActivityIndicator color="#8d171e" />
