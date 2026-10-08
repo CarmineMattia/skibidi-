@@ -14,7 +14,7 @@ Orders and lines now commit together. A stable UUID prevents duplicating a succe
 
 ## Validation
 
-- TypeScript check and Expo web export.
+- TypeScript check and Expo web export. The existing lint command could not run because ESLint is not installed in this project.
 - 81 unit tests, including offline reconnect/failure preservation and zero-row kitchen updates.
 - Eight Chromium browser tests: menu/cart, guest pending → accepted → ready without Realtime, unavailable backend, truthful success screen, 48 loaded gallery images and a recipe-matched menu photo.
 - Disposable PostgreSQL 17 validation using the actual tracking and guest RLS migrations: anonymous atomic insert, rollback on line failure, idempotent retry, invalid input and non-readable direct guest order rows. A trigger rejects accepting empty orders.

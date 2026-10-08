@@ -11,7 +11,7 @@ BEGIN
  IF r->>'id' <> o->>'id' THEN RAISE EXCEPTION 'Retry missing acknowledgement'; END IF;
  IF EXISTS (SELECT 1 FROM orders) THEN RAISE EXCEPTION 'Guest SELECT leaked orders'; END IF;
  BEGIN
-   PERFORM public.create_order_with_items(o, jsonb_set(i, '{0,quantity}', '1'));
+   PERFORM public.create_order_with_items(o, jsonb_set(jsonb_set(i, '{0,quantity}', '1'), '{0,total_price}', '5'));
    RAISE EXCEPTION 'Expected changed retry to fail';
  EXCEPTION WHEN raise_exception THEN
    IF SQLERRM = 'Expected changed retry to fail' THEN RAISE; END IF;

@@ -19,6 +19,7 @@ import {
 import { formatOrderItemNotes } from '@/lib/utils/orderItemDetails';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRef } from 'react';
+import { readJsonStorage, writeJsonStorage } from '@/lib/utils/storage';
 
 type OrderInsert = Database['public']['Tables']['orders']['Insert'];
 type OrderItemInsert = Database['public']['Tables']['order_items']['Insert'];
@@ -93,7 +94,9 @@ function calculateVatCents(items: CartItem[], deliveryFee: number, orderType: Cr
 
 export function useCreateOrder() {
   const queryClient = useQueryClient();
-  const submissionRef = useRef<{ fingerprint: string; id: string } | null>(null);
+  const submissionRef = useRef<{ fingerprint: string; id: string } | null>(
+    readJsonStorage<{ fingerprint: string; id: string }>('ambrosia.orderSubmission.v1', 'session')
+  );
   const fiscalService = getFiscalService();
   const { companyId } = useTenant();
   const { deliveryFee, language } = useAppSettings();
@@ -146,6 +149,7 @@ export function useCreateOrder() {
       const fingerprint = JSON.stringify({ companyId, customerId: user?.id ?? null, items, normalizedNotes, orderType, customerName, customerPhone, resolvedDeliveryAddress, tableNumber, totalAmount });
       if (!requestedOrderId && submissionRef.current?.fingerprint !== fingerprint) {
         submissionRef.current = { fingerprint, id: crypto.randomUUID() };
+        writeJsonStorage('ambrosia.orderSubmission.v1', submissionRef.current, 'session');
       }
       const orderId = requestedOrderId ?? submissionRef.current!.id;
       let displayCode = generateFallbackOrderDisplayCode(orderId);
@@ -290,6 +294,7 @@ export function useCreateOrder() {
 
     onSuccess: () => {
       submissionRef.current = null;
+      writeJsonStorage('ambrosia.orderSubmission.v1', null, 'session');
       // Invalidate orders cache so they refetch
       queryClient.invalidateQueries({ queryKey: ['orders'] });
       queryClient.invalidateQueries({ queryKey: ['kitchen-orders'] });
