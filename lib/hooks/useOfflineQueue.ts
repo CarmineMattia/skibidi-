@@ -3,11 +3,12 @@
  * Queue orders when offline and auto-sync when connection restored
  */
 
-import { useCart, type CartItem } from '@/lib/stores/CartContext';
-import { generateFallbackOrderDisplayCode } from '@/lib/utils/orderDisplayCode';
+import type { CartItem } from '@/lib/stores/CartContext';
+import { useCreateOrder } from '@/lib/hooks/useCreateOrder';
+import { useTenant } from '@/lib/stores/TenantContext';
 import type { PaymentMethod } from '@/types/fiscal.types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import {
   type ReactNode,
   createContext,
@@ -16,9 +17,11 @@ import {
   useContext,
   useEffect,
   useState,
+  useRef,
 } from 'react';
 import {
   ActivityIndicator,
+  Pressable,
   Alert,
   Text,
   View,
@@ -34,6 +37,7 @@ const OFFLINE_INDICATOR_KEY = 'skibidi_offline_indicator';
 
 export interface PendingOrder {
   id: string;
+  companyId?: string;
   items: CartItem[];
   notes?: string;
   orderType: 'eat_in' | 'take_away' | 'delivery';
@@ -87,250 +91,128 @@ interface OfflineQueueProviderProps {
 
 export function OfflineQueueProvider({ children }: OfflineQueueProviderProps) {
   const [pendingOrders, setPendingOrders] = useState<PendingOrder[]>([]);
-  const [isOnline, setIsOnline] = useState(
-    typeof navigator !== 'undefined' ? navigator.onLine : true,
-  );
+  const ordersRef = useRef<PendingOrder[]>([]);
+  const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
+  const syncingRef = useRef(false);
+  const wasOnlineRef = useRef(false);
+  const initialSyncRef = useRef(false);
+  const storageWriteRef = useRef<Promise<void>>(Promise.resolve());
   const router = useRouter();
+  const { companyId } = useTenant();
+  const { mutateAsync: createOrder } = useCreateOrder();
 
-  // Load pending orders from storage on mount
-  useEffect(() => {
-    const loadPendingOrders = async () => {
-      try {
-        const stored = await AsyncStorage.getItem(PENDING_ORDERS_KEY);
-        if (stored) {
-          const orders: PendingOrder[] = JSON.parse(stored);
-          setPendingOrders(orders);
-          console.log(`[OfflineQueue] Loaded ${orders.length} pending orders`);
-        }
-      } catch (error) {
-        console.error('[OfflineQueue] Failed to load pending orders:', error);
-      }
-    };
-
-    loadPendingOrders();
+  const saveOrders = useCallback(async (orders: PendingOrder[]) => {
+    // Preserve additions made during an in-flight sync; serialize storage writes.
+    ordersRef.current = orders;
+    setPendingOrders(orders);
+    const write = storageWriteRef.current.catch(() => undefined).then(() =>
+      AsyncStorage.setItem(PENDING_ORDERS_KEY, JSON.stringify(orders))
+    );
+    storageWriteRef.current = write;
+    await write;
   }, []);
 
-  // Auto-sync when online and there are pending orders
-  const syncPendingOrders = useCallback(async (): Promise<void> => {
-    if (!isOnline || pendingOrders.length === 0 || isSyncing) {
-      return;
-    }
-
-    setIsSyncing(true);
-    console.log(`[OfflineQueue] Starting sync for ${pendingOrders.length} orders...`);
-
-    const successfulIds: string[] = [];
-    const failedIds: string[] = [];
-
-    for (const order of pendingOrders) {
-      try {
-        const result = await processOrder(order);
-
-        if (result.success) {
-          successfulIds.push(order.id);
-          // Navigate to success screen for this order
-          router.replace(
-            `/order-success?orderId=${result.orderId}&offline=true&displayCode=${encodeURIComponent(result.displayCode || '')}`
-          );
-        } else {
-          failedIds.push(order.id);
-        }
-      } catch {
-        failedIds.push(order.id);
-      }
-    }
-
-    // Remove successful orders from queue
-    if (successfulIds.length > 0) {
-      const updatedOrders = pendingOrders.filter((o) => !successfulIds.includes(o.id));
-      setPendingOrders(updatedOrders);
-      await AsyncStorage.setItem(PENDING_ORDERS_KEY, JSON.stringify(updatedOrders));
-      console.log(`[OfflineQueue] Synced ${successfulIds.length} orders successfully`);
-    }
-
-    // Update failed orders with attempt count
-    if (failedIds.length > 0) {
-      const updatedOrders = pendingOrders.map((o) => {
-        if (failedIds.includes(o.id)) {
-          return {
-            ...o,
-            syncAttempts: o.syncAttempts + 1,
-            lastSyncAttempt: new Date().toISOString(),
-          };
-        }
-        return o;
-      });
-      setPendingOrders(updatedOrders);
-      await AsyncStorage.setItem(PENDING_ORDERS_KEY, JSON.stringify(updatedOrders));
-    }
-
-    setIsSyncing(false);
-  }, [isOnline, pendingOrders, isSyncing, router]);
-
-  // Monitor network status (web-friendly, no native dependency)
   useEffect(() => {
-    const updateStatusAndMaybeSync = () => {
-      const wasOffline = !isOnline;
-      const nowOnline =
-        typeof navigator !== 'undefined' ? navigator.onLine : true;
-
-      setIsOnline(nowOnline);
-
-      if (wasOffline && nowOnline) {
-        console.log('[OfflineQueue] Connection restored, triggering sync...');
-        void syncPendingOrders();
+    let cancelled = false;
+    void (async () => {
+      try {
+        const stored = await AsyncStorage.getItem(PENDING_ORDERS_KEY);
+        const parsed = stored ? JSON.parse(stored) : [];
+        if (!Array.isArray(parsed)) throw new Error('Coda ordini non valida');
+        const orders = parsed.map((order: PendingOrder) => ({
+          ...order,
+          // Migrate old demo ids once, persist before making any request.
+          id: /^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(order.id) ? order.id : crypto.randomUUID(),
+          companyId: order.companyId ?? (order.items?.every(item => item.product.company_id === order.items[0]?.product.company_id)
+            ? order.items[0]?.product.company_id : undefined),
+        }));
+        if (!cancelled) await saveOrders(orders);
+      } catch (error) {
+        console.error('[OfflineQueue] Failed to load orders:', error);
+      } finally {
+        if (!cancelled) setHydrated(true);
       }
-    };
+    })();
+    return () => { cancelled = true; };
+  }, [saveOrders]);
 
-    updateStatusAndMaybeSync();
-
-    if (typeof window === 'undefined') {
-      return;
+  const syncOrders = useCallback(async (onlyOrderId?: string) => {
+    if (!isOnline || !hydrated || syncingRef.current) return;
+    syncingRef.current = true;
+    setIsSyncing(true);
+    try {
+      const candidates = ordersRef.current.filter(order => !onlyOrderId || order.id === onlyOrderId);
+      for (const order of candidates) {
+        // It may have been removed by the user during a previous request.
+        if (!ordersRef.current.some(current => current.id === order.id)) continue;
+        try {
+          if (!companyId || order.companyId !== companyId) {
+            throw new Error('Questo ordine appartiene a un altro ristorante o non ha un ristorante identificato.');
+          }
+          const result = await createOrder({ ...order, orderId: order.id, skipFiscal: true });
+          // Only remove after a real atomic server acknowledgement. A lost
+          // response is retried with the same UUID, which cannot duplicate it.
+          await saveOrders(ordersRef.current.filter(current => current.id !== order.id));
+          router.replace(`/order-tracking?orderId=${encodeURIComponent(result.orderId)}&orderType=${encodeURIComponent(order.orderType)}`);
+        } catch (error) {
+          await saveOrders(ordersRef.current.map(current => current.id === order.id ? {
+            ...current,
+            syncAttempts: current.syncAttempts + 1,
+            lastSyncAttempt: new Date().toISOString(),
+            error: error instanceof Error ? error.message : 'Invio non riuscito. Ordine conservato sul dispositivo.',
+          } : current));
+        }
+      }
+    } finally {
+      syncingRef.current = false;
+      setIsSyncing(false);
     }
+  }, [companyId, createOrder, hydrated, isOnline, router, saveOrders]);
 
-    const handleOnline = () => {
-      console.log('[OfflineQueue] Online event, triggering sync...');
-      updateStatusAndMaybeSync();
-    };
-
-    const handleOffline = () => {
-      console.log('[OfflineQueue] Offline event detected');
-      setIsOnline(false);
-    };
-
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
-
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, [isOnline, syncPendingOrders]);
-
-  // Process a single order (mock implementation - replace with actual API call)
-  const processOrder = async (
-    order: PendingOrder
-  ): Promise<{ success: boolean; orderId?: string; displayCode?: string }> => {
-    // Simulate API call - replace with actual supabase call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    // Simulate 90% success rate for demo
-    const success = Math.random() > 0.1;
-
-    if (success) {
-      return {
-        success: true,
-        orderId: order.id,
-        displayCode: generateFallbackOrderDisplayCode(order.id),
-      };
-    }
-
-    return { success: false };
-  };
-
-  // Add order to queue
-  const addToQueue = useCallback(
-    async (order: Omit<PendingOrder, 'id' | 'createdAt' | 'syncAttempts'>): Promise<void> => {
-      const newOrder: PendingOrder = {
-        ...order,
-        id: `pending_${Date.now()}_${Math.random().toString(36).substring(7)}`,
-        createdAt: new Date().toISOString(),
-        syncAttempts: 0,
-      };
-
-      const updatedOrders = [...pendingOrders, newOrder];
-      setPendingOrders(updatedOrders);
-      await AsyncStorage.setItem(PENDING_ORDERS_KEY, JSON.stringify(updatedOrders));
-      console.log(`[OfflineQueue] Order ${newOrder.id} added to queue`);
-    },
-    [pendingOrders]
-  );
-
-  // Remove specific order from queue
-  const removeFromQueue = useCallback(async (orderId: string): Promise<void> => {
-    const updatedOrders = pendingOrders.filter((o) => o.id !== orderId);
-    setPendingOrders(updatedOrders);
-    await AsyncStorage.setItem(PENDING_ORDERS_KEY, JSON.stringify(updatedOrders));
-    console.log(`[OfflineQueue] Order ${orderId} removed from queue`);
-  }, [pendingOrders]);
-
-  // Clear all orders from queue
-  const clearQueue = useCallback(async (): Promise<void> => {
-    setPendingOrders([]);
-    await AsyncStorage.removeItem(PENDING_ORDERS_KEY);
-    console.log('[OfflineQueue] Queue cleared');
   }, []);
 
-  // Force sync all pending orders
-  const forceSync = useCallback(async (): Promise<void> => {
+  useEffect(() => {
+    const reconnected = isOnline && !wasOnlineRef.current;
+    wasOnlineRef.current = isOnline;
+    if (!hydrated || !companyId || !isOnline) return;
+    if (reconnected || !initialSyncRef.current) {
+      initialSyncRef.current = true;
+      void syncOrders();
+    }
+  }, [companyId, hydrated, isOnline, syncOrders]);
+
+  const addToQueue = useCallback(async (order: Omit<PendingOrder, 'id' | 'createdAt' | 'syncAttempts'>) => {
+    if (!hydrated || !companyId) throw new Error('Attendi il caricamento del ristorante e riprova.');
+    await saveOrders([...ordersRef.current, { ...order, companyId, id: crypto.randomUUID(), createdAt: new Date().toISOString(), syncAttempts: 0 }]);
+  }, [companyId, hydrated, saveOrders]);
+  const removeFromQueue = useCallback(async (id: string) => {
+    await saveOrders(ordersRef.current.filter(order => order.id !== id));
+  }, [saveOrders]);
+  const clearQueue = useCallback(async () => { await saveOrders([]); }, [saveOrders]);
+  const forceSync = useCallback(async () => {
     if (!isOnline) {
-      Alert.alert(
-        'Offline',
-        'Non sei connesso a internet. Gli ordini verranno sincronizzati quando la connessione sarà ripristinata.'
-      );
+      Alert.alert('Offline', 'L’ordine è salvato solo su questo dispositivo e non è ancora arrivato alla pizzeria.');
       return;
     }
-    await syncPendingOrders();
-  }, [isOnline, syncPendingOrders]);
+    await syncOrders();
+  }, [isOnline, syncOrders]);
+  const retryOrder = useCallback(async (id: string) => { await syncOrders(id); }, [syncOrders]);
 
-  // Retry specific order
-  const retryOrder = useCallback(
-    async (orderId: string): Promise<void> => {
-      const order = pendingOrders.find((o) => o.id === orderId);
-      if (!order) return;
-
-      setIsSyncing(true);
-      try {
-        const result = await processOrder(order);
-
-        if (result.success) {
-          const updatedOrders = pendingOrders.filter((o) => o.id !== orderId);
-          setPendingOrders(updatedOrders);
-          await AsyncStorage.setItem(PENDING_ORDERS_KEY, JSON.stringify(updatedOrders));
-          router.replace(
-            `/order-success?orderId=${orderId}&offline=true&displayCode=${encodeURIComponent(result.displayCode || '')}`
-          );
-        } else {
-          // Update attempt count
-          const updatedOrders = pendingOrders.map((o) => {
-            if (o.id === orderId) {
-              return {
-                ...o,
-                syncAttempts: o.syncAttempts + 1,
-                lastSyncAttempt: new Date().toISOString(),
-                error: 'Tentativo di sincronizzazione fallito',
-              };
-            }
-            return o;
-          });
-          setPendingOrders(updatedOrders);
-          await AsyncStorage.setItem(PENDING_ORDERS_KEY, JSON.stringify(updatedOrders));
-        }
-      } finally {
-        setIsSyncing(false);
-      }
-    },
-    [pendingOrders, router]
-  );
-
-  const value: OfflineQueueContextType = {
-    pendingOrders,
-    isOnline,
-    isSyncing,
-    pendingCount: pendingOrders.length,
-    addToQueue,
-    removeFromQueue,
-    clearQueue,
-    forceSync,
-    retryOrder,
-  };
-
-  return createElement(
-    OfflineQueueContext.Provider,
-    { value },
-    children,
-  );
+  return createElement(OfflineQueueContext.Provider, {
+    value: { pendingOrders, isOnline, isSyncing, pendingCount: pendingOrders.length, addToQueue, removeFromQueue, clearQueue, forceSync, retryOrder },
+  }, children);
 }
 
 // ============================================================================
@@ -338,11 +220,9 @@ export function OfflineQueueProvider({ children }: OfflineQueueProviderProps) {
 // ============================================================================
 
 export function OfflineIndicator(): ReactNode {
-  const { isOnline, pendingCount, isSyncing } = useOfflineQueue();
+  const { isOnline, pendingCount, isSyncing, forceSync, pendingOrders } = useOfflineQueue();
 
-  if (isOnline) {
-    return null;
-  }
+  if (isOnline && pendingCount === 0) return null;
 
   return createElement(
     View,
@@ -355,9 +235,12 @@ export function OfflineIndicator(): ReactNode {
       Text,
       { className: 'text-white font-bold text-sm' },
       pendingCount > 0
-        ? `Offline - ${pendingCount} ordini in coda`
+        ? `${isOnline ? 'Invio in sospeso' : 'Offline'} - ${pendingCount} ordini non ancora inviati alla pizzeria${pendingOrders.some(order => order.error) ? '. Invio non riuscito.' : ''}`
         : 'Offline - Connessione assente',
     ),
+    isOnline && pendingCount > 0 && !isSyncing
+      ? createElement(Pressable, { onPress: () => void forceSync(), accessibilityRole: 'button', className: 'px-3 py-2 bg-white rounded-lg' }, createElement(Text, { className: 'font-bold text-amber-900' }, 'Riprova invio'))
+      : null,
     isSyncing
       ? createElement(ActivityIndicator, {
           size: 'small',

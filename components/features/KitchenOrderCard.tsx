@@ -141,7 +141,7 @@ export function KitchenOrderCard({ order }: KitchenOrderCardProps) {
   const statusConfig = STATUS_CONFIG[order.status];
 
   const handleNextStatus = () => {
-    if (!statusConfig.nextStatus) return;
+    if (!statusConfig.nextStatus || (order.status === 'pending' && !order.order_items?.length)) return;
 
     updateStatus.mutate(
       {
@@ -359,7 +359,7 @@ export function KitchenOrderCard({ order }: KitchenOrderCardProps) {
           <Pressable
             className={`${statusConfig.buttonBg} rounded-xl p-4 items-center active:opacity-80 shadow-md`}
             onPress={handleNextStatus}
-            disabled={updateStatus.isPending}
+            disabled={updateStatus.isPending || (order.status === 'pending' && !order.order_items?.length)}
             style={{ opacity: updateStatus.isPending ? 0.5 : 1 }}
           >
             <Text className={`${statusConfig.buttonText} font-bold text-lg`}>

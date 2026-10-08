@@ -1,3 +1,4 @@
+import { withPizzaPhoto } from '@/lib/data/pizzaPhotos';
 import { getCartItemUnitPrice, type CartItem as CartItemType } from '@/lib/stores/CartContext';
 import { FontAwesome } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
@@ -18,7 +19,8 @@ export function CartItem({
   onRemove,
   markedForClear = false,
 }: CartItemProps) {
-  const { product, quantity, notes, modifiers } = item;
+  const { product: storedProduct, quantity, notes, modifiers } = item;
+  const product = withPizzaPhoto(storedProduct);
   const unitPrice = getCartItemUnitPrice(item);
   const subtotal = unitPrice * quantity;
   const [pendingRemove, setPendingRemove] = useState(false);

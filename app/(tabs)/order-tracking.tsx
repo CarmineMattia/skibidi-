@@ -27,7 +27,7 @@ export default function OrderTrackingScreen() {
     orderId?: string;
   }>();
   const orderIdParam = typeof orderId === 'string' ? orderId : undefined;
-  const { data: orderData, isLoading: isOrderLoading } = useOrder(orderIdParam ?? '');
+  const { data: orderData, isLoading: isOrderLoading, isError, isFetching, refetch } = useOrder(orderIdParam ?? '');
   const { playStatusAlert } = useCustomerOrderAlert();
   const lastStatusRef = useRef<string | null>(null);
   const [customerNotice, setCustomerNotice] = useState<{
@@ -54,13 +54,14 @@ export default function OrderTrackingScreen() {
   const rescheduleLabel = formatRescheduleLabel(rescheduleInfo.rescheduleAt);
 
   const estimatedLabel = orderType === 'delivery' ? 'Arrivo stimato' : 'Pronto stimato';
-  const estimatedTime = getEstimatedReadyTime(orderData?.created_at);
+  const estimatedTime = trackedStatus && trackedStatus !== 'pending' && trackedStatus !== 'cancelled'
+    ? getEstimatedReadyTime(orderData?.created_at) : 'Da confermare';
   const trackingSteps = getTrackingSteps(orderType, trackedStatus);
   const statusBadge = getTrackingBadge(orderType, trackedStatus);
   const summaryText = getTrackingSummary(orderRef, orderType, trackedStatus);
 
   let supportTitle = 'Tracking live';
-  let supportDescription = 'Il rider è in viaggio verso di te.';
+  let supportDescription = 'Ti aggiorniamo quando la cucina accetta e prepara il tuo ordine.';
   if (orderType === 'eat_in') {
     supportTitle = 'Servizio al tavolo';
     supportDescription = 'Ti avviseremo appena i piatti saranno serviti al tavolo.';
@@ -176,6 +177,15 @@ export default function OrderTrackingScreen() {
             <SkeletonOrderTracking />
           ) : (
             <>
+          {isError || !orderIdParam ? (
+            <View className="rounded-2xl border border-red-200 bg-red-50 p-4">
+              <Text className="text-base font-extrabold text-red-900">Stato dell’ordine non verificabile</Text>
+              <Text className="text-sm text-red-800 mt-2">Non riusciamo a confermare lo stato con la pizzeria. Non inviare un altro ordine: riprova o contatta il locale.</Text>
+              <Pressable accessibilityRole="button" disabled={isFetching || !orderIdParam} onPress={() => void refetch()} className="mt-3 rounded-xl bg-[#8d171e] p-3 items-center">
+                <Text className="text-white font-bold">{isFetching ? 'Verifica in corso…' : 'Riprova verifica'}</Text>
+              </Pressable>
+            </View>
+          ) : null}
           {customerNotice ? (
             <View
               className={`rounded-2xl border p-4 ${
@@ -202,7 +212,7 @@ export default function OrderTrackingScreen() {
             </View>
           ) : null}
 
-          {trackedStatus === 'pending' || (!trackedStatus && !showSkeleton) ? (
+          {trackedStatus === 'pending' ? (
             <View className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
               <View className="flex-row items-center gap-2">
                 <ActivityIndicator size="small" color="#92400e" />
@@ -211,10 +221,10 @@ export default function OrderTrackingScreen() {
                 </Text>
               </View>
               <Text className="text-base font-extrabold text-gray-900 mt-2">
-                Il tuo ordine è in attesa di conferma. Non chiudere la pagina.
+                Ordine inviato. La cucina deve ancora accettarlo.
               </Text>
               <Text className="text-sm text-amber-800 mt-1">
-                Ti aggiorniamo in tempo reale appena la cucina accetta o rifiuta l&apos;ordine.
+                Questa pagina si aggiorna automaticamente ogni pochi secondi. Conserva il link per tornare a controllare l’ordine.
               </Text>
             </View>
           ) : null}
@@ -224,7 +234,7 @@ export default function OrderTrackingScreen() {
               Ambrosia | Traccia il tuo ordine
             </Text>
             <Text className="text-gray-900 text-[13px]">{estimatedLabel}</Text>
-            <Text className="text-[46px] leading-[48px] font-black text-gray-900">{estimatedTime}</Text>
+            <Text className="text-3xl leading-[40px] font-black text-gray-900">{estimatedTime}</Text>
             <Text className="text-gray-600 text-sm leading-5">{summaryText}</Text>
             <View className="self-start bg-[#f3dabb] rounded-full px-3 py-1.5">
               <View className="flex-row items-center gap-1.5">

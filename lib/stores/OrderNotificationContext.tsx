@@ -205,6 +205,8 @@ export function OrderNotificationProvider({ children }: { children: ReactNode })
       return;
     }
 
+    const pendingIds = new Set((data ?? []).map(row => String(row.id)));
+    setQueue(current => current.filter(order => pendingIds.has(order.id)));
     (data ?? []).forEach((row) => {
       const mapped = mapIncomingOrder(row as Record<string, unknown>);
       if (mapped) enqueueOrder(mapped);
@@ -311,7 +313,7 @@ export function OrderNotificationProvider({ children }: { children: ReactNode })
   }, [statusNotice]);
 
   const handleAccept = () => {
-    if (!activeOrder) return;
+    if (!activeOrder || activeItemsLoading || !activeItems.length) return;
     updateOrderStatus.mutate(
       {
         orderId: activeOrder.id,
@@ -437,6 +439,11 @@ export function OrderNotificationProvider({ children }: { children: ReactNode })
                 Accetta per avviare la preparazione oppure rifiuta indicando il motivo (anche ripianificazione).
               </Text>
 
+              {updateOrderStatus.isError ? (
+                <Text accessibilityRole="alert" className="text-red-800 bg-red-50 rounded-xl p-3 mb-3">
+                  Accettazione o rifiuto non salvato. L’ordine resta in attesa: riprova o aggiorna la cucina.
+                </Text>
+              ) : null}
               <View className="flex-row gap-3">
                 <Pressable
                   className="flex-1 h-12 rounded-xl border border-red-300 bg-red-50 items-center justify-center active:opacity-90"
@@ -448,7 +455,7 @@ export function OrderNotificationProvider({ children }: { children: ReactNode })
                 <Pressable
                   className="flex-1 h-12 rounded-xl bg-emerald-600 items-center justify-center active:opacity-90"
                   onPress={handleAccept}
-                  disabled={updateOrderStatus.isPending}
+                  disabled={updateOrderStatus.isPending || activeItemsLoading || !activeItems.length}
                 >
                   {updateOrderStatus.isPending ? (
                     <ActivityIndicator color="#ffffff" />

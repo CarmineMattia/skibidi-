@@ -31,7 +31,7 @@ const STATUS_RANK: Record<OrderStatus, number> = {
 };
 
 const STATUS_LABEL_IT: Record<OrderStatus, string> = {
-  pending: 'In attesa',
+  pending: 'In attesa di accettazione',
   preparing: 'In preparazione',
   ready: 'Pronto',
   delivered: 'Completato',
@@ -64,7 +64,7 @@ function resolveCompletedPresentation(
 ): { label: string; icon: TrackingStepIcon } {
   switch (key) {
     case 'confirmed':
-      return { label: 'Confermato', icon: 'check-circle' };
+      return { label: 'Accettato', icon: 'check-circle' };
     case 'preparing':
       return { label: 'Preparato', icon: 'check-circle' };
     case 'ready':
@@ -108,15 +108,25 @@ export function getOrderStatusLabel(status: OrderStatus): string {
   return STATUS_LABEL_IT[status];
 }
 
+export function getOrderConfirmation(status?: OrderStatus | null): { title: string; message: string; accepted: boolean } {
+  if (!status) return { title: 'Verifica ordine', message: 'Lo stato non è verificabile. Riprova senza inviare un altro ordine.', accepted: false };
+  if (status === 'pending') return { title: 'Ordine inviato', message: 'L’ordine è salvato nel sistema della pizzeria ed è in attesa di accettazione dalla cucina.', accepted: false };
+  if (status === 'cancelled') return { title: 'Ordine non accettato', message: 'La pizzeria ha rifiutato l’ordine. Apri il dettaglio per vedere il motivo.', accepted: false };
+  if (status === 'preparing') return { title: 'Ordine accettato', message: 'La cucina ha accettato l’ordine e lo sta preparando.', accepted: true };
+  if (status === 'ready') return { title: 'Ordine pronto', message: 'La cucina ha completato la preparazione.', accepted: true };
+  return { title: 'Ordine completato', message: 'L’ordine è stato completato dalla pizzeria.', accepted: true };
+}
+
 export function getTrackingSteps(
   orderType: OrderType,
   status: OrderStatus | null | undefined
 ): TrackingStep[] {
-  const resolvedStatus = status ?? 'pending';
+  if (!status) return [];
+  const resolvedStatus = status;
 
   if (resolvedStatus === 'cancelled') {
     return [
-      buildStep('confirmed', 'Confermato', 'check-circle', 0, 'pending'),
+      { key: 'received', label: 'Ordine inviato', icon: 'check-circle', state: 'completed', subtext: 'Salvato nel sistema' },
       {
         key: 'cancelled',
         label: 'Rifiutato',
@@ -129,7 +139,8 @@ export function getTrackingSteps(
 
   if (orderType === 'eat_in') {
     return [
-      buildStep('confirmed', 'Confermato', 'check-circle', 0, resolvedStatus),
+      { key: 'received', label: 'Ordine inviato', icon: 'check-circle', state: 'completed', subtext: 'Salvato nel sistema' },
+      buildStep('confirmed', resolvedStatus === 'pending' ? 'In attesa di accettazione' : 'Accettato', 'check-circle', 0, resolvedStatus),
       buildStep('preparing', 'In preparazione', 'fire', 1, resolvedStatus),
       // Rank 2 = ready → active "Pronto" while waiting to be served
       buildStep('ready', 'Pronto', 'bell', 2, resolvedStatus),
@@ -138,16 +149,18 @@ export function getTrackingSteps(
 
   if (orderType === 'take_away') {
     return [
-      buildStep('confirmed', 'Confermato', 'check-circle', 0, resolvedStatus),
+      { key: 'received', label: 'Ordine inviato', icon: 'check-circle', state: 'completed', subtext: 'Salvato nel sistema' },
+      buildStep('confirmed', resolvedStatus === 'pending' ? 'In attesa di accettazione' : 'Accettato', 'check-circle', 0, resolvedStatus),
       buildStep('preparing', 'In preparazione', 'fire', 1, resolvedStatus),
       buildStep('pickup', 'Pronto per il ritiro', 'shopping-bag', 2, resolvedStatus),
     ];
   }
 
   return [
-    buildStep('confirmed', 'Confermato', 'check-circle', 0, resolvedStatus),
+    { key: 'received', label: 'Ordine inviato', icon: 'check-circle', state: 'completed', subtext: 'Salvato nel sistema' },
+      buildStep('confirmed', resolvedStatus === 'pending' ? 'In attesa di accettazione' : 'Accettato', 'check-circle', 0, resolvedStatus),
     buildStep('preparing', 'In preparazione', 'fire', 1, resolvedStatus),
-    buildStep('delivery', 'In consegna', 'motorcycle', 2, resolvedStatus),
+    buildStep('delivery', 'Pronto per la consegna', 'motorcycle', 2, resolvedStatus),
     buildStep('delivered', 'Consegnato', 'home', 3, resolvedStatus),
   ];
 }
@@ -156,7 +169,8 @@ export function getTrackingBadge(
   orderType: OrderType,
   status: OrderStatus | null | undefined
 ): { label: string; icon: 'fire' | 'check' | 'motorcycle' | 'bell' | 'shopping-bag' | 'times' } {
-  const resolvedStatus = status ?? 'pending';
+  if (!status) return { label: 'Stato non verificato', icon: 'bell' };
+  const resolvedStatus = status;
 
   if (resolvedStatus === 'cancelled') {
     return { label: 'Ordine rifiutato', icon: 'times' };
@@ -167,12 +181,12 @@ export function getTrackingBadge(
   if (resolvedStatus === 'ready') {
     if (orderType === 'take_away') return { label: 'Pronto per il ritiro', icon: 'shopping-bag' };
     if (orderType === 'eat_in') return { label: 'Pronto — in arrivo al tavolo', icon: 'bell' };
-    return { label: 'In consegna', icon: 'motorcycle' };
+    return { label: 'Pronto per la consegna', icon: 'motorcycle' };
   }
   if (resolvedStatus === 'preparing') {
     return { label: 'In preparazione', icon: 'fire' };
   }
-  return { label: 'Ordine ricevuto', icon: 'check' };
+  return { label: 'In attesa di accettazione', icon: 'bell' };
 }
 
 export function getTrackingSummary(
@@ -180,10 +194,11 @@ export function getTrackingSummary(
   orderType: OrderType,
   status: OrderStatus | null | undefined
 ): string {
-  const resolvedStatus = status ?? 'pending';
+  if (!status) return 'Non è possibile verificare lo stato dell’ordine. Riprova prima di inviare un altro ordine.';
+  const resolvedStatus = status;
 
   if (resolvedStatus === 'pending') {
-    return 'Il tuo ordine è in attesa di conferma. Non chiudere la pagina.';
+    return 'Il tuo ordine è stato inviato al sistema della pizzeria. La cucina deve ancora accettarlo.';
   }
 
   if (resolvedStatus === 'cancelled') {
@@ -197,7 +212,7 @@ export function getTrackingSummary(
   if (resolvedStatus === 'ready') {
     if (orderType === 'take_away') return `L'ordine ${orderRef} è pronto per il ritiro.`;
     if (orderType === 'eat_in') return `L'ordine ${orderRef} è pronto e sta arrivando al tuo tavolo.`;
-    return `L'ordine ${orderRef} è in consegna verso di te.`;
+    return `L'ordine ${orderRef} è pronto e in attesa della consegna.`;
   }
   if (resolvedStatus === 'preparing') {
     if (orderType === 'eat_in') return `L'ordine ${orderRef} è in preparazione per il tavolo.`;

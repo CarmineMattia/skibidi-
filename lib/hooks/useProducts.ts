@@ -6,6 +6,7 @@
 import { supabase } from '@/lib/api/supabase';
 import { useTenant } from '@/lib/stores/TenantContext';
 import type { Product } from '@/types';
+import { withPizzaPhoto } from '@/lib/data/pizzaPhotos';
 import { useQuery } from '@tanstack/react-query';
 
 export function useProducts(categoryId?: string) {
@@ -32,7 +33,7 @@ export function useProducts(categoryId?: string) {
         throw error;
       }
 
-      return data as Product[];
+      return (data as Product[]).map(withPizzaPhoto);
     },
     staleTime: 0, // Always fetch fresh data to ensure updates are seen
     enabled: !!companyId,
@@ -57,7 +58,7 @@ export function useProduct(id: string) {
         throw error;
       }
 
-      return data as Product;
+      return withPizzaPhoto(data as Product);
     },
     enabled: !!id && !!companyId,
   });

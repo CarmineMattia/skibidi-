@@ -18,11 +18,13 @@ import {
 } from '@/lib/utils/deliveryZone';
 import { formatOrderItemNotes } from '@/lib/utils/orderItemDetails';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRef } from 'react';
 
 type OrderInsert = Database['public']['Tables']['orders']['Insert'];
 type OrderItemInsert = Database['public']['Tables']['order_items']['Insert'];
 
 interface CreateOrderInput {
+  orderId?: string; // Stable id for retries after reconnecting
   items: CartItem[];
   notes?: string;
   orderType: 'eat_in' | 'take_away' | 'delivery';
@@ -91,12 +93,14 @@ function calculateVatCents(items: CartItem[], deliveryFee: number, orderType: Cr
 
 export function useCreateOrder() {
   const queryClient = useQueryClient();
+  const submissionRef = useRef<{ fingerprint: string; id: string } | null>(null);
   const fiscalService = getFiscalService();
   const { companyId } = useTenant();
   const { deliveryFee, language } = useAppSettings();
 
   return useMutation({
     mutationFn: async ({
+      orderId: requestedOrderId,
       items,
       notes,
       orderType,
@@ -109,6 +113,8 @@ export function useCreateOrder() {
       paymentMethod = 'cash',
       skipFiscal = false,
     }: CreateOrderInput): Promise<CreateOrderResult> => {
+      if (!companyId) throw new Error("Ristorante non disponibile. Riprova.");
+      if (!items.length) throw new Error("Il carrello è vuoto.");
       const resolvedDeliveryAddress = deliveryAddress
         ? finalizeDeliveryAddress(deliveryAddress)
         : deliveryAddress;
@@ -137,7 +143,11 @@ export function useCreateOrder() {
 
       // 3. Create order record — UUID generated client-side so we never need
       //    a SELECT after insert (which RLS would block for unauthenticated guests).
-      const orderId = crypto.randomUUID();
+      const fingerprint = JSON.stringify({ companyId, customerId: user?.id ?? null, items, normalizedNotes, orderType, customerName, customerPhone, resolvedDeliveryAddress, tableNumber, totalAmount });
+      if (!requestedOrderId && submissionRef.current?.fingerprint !== fingerprint) {
+        submissionRef.current = { fingerprint, id: crypto.randomUUID() };
+      }
+      const orderId = requestedOrderId ?? submissionRef.current!.id;
       let displayCode = generateFallbackOrderDisplayCode(orderId);
 
       const { data: reservedCode, error: displayCodeError } = await supabase.rpc(
@@ -165,25 +175,12 @@ export function useCreateOrder() {
         company_id: companyId!,
       };
 
-      let { error: orderError } = await supabase.from('orders').insert(orderData);
-
-      if (orderError && /display_code/i.test(orderError.message)) {
-        const { display_code: _ignored, ...orderDataWithoutDisplayCode } = orderData;
-        ({ error: orderError } = await supabase.from('orders').insert(orderDataWithoutDisplayCode));
-      }
-
-      if (orderError) {
-        console.error('Order creation error:', orderError);
-        throw new Error(`Errore nella creazione dell'ordine: ${orderError.message}`);
-      }
-
-      const order = { id: orderId, total_amount: totalAmount, fiscal_status: 'pending' as const };
-
-      // 4. Create order items (bulk insert) — modifiers + free notes live on order_items.notes
+      // One database transaction: kitchen never receives an empty order,
+      // and reconnect retries reuse the same order instead of duplicating it.
       const orderItems: OrderItemInsert[] = items.map((item) => {
         const unitPrice = getCartItemUnitPrice(item);
         return {
-          order_id: order.id,
+          order_id: orderId,
           product_id: item.product.id,
           quantity: item.quantity,
           unit_price: unitPrice,
@@ -191,19 +188,17 @@ export function useCreateOrder() {
           notes: formatOrderItemNotes(item.notes, item.modifiers, item.product.name),
         };
       });
-
-      const { error: itemsError } = await supabase
-        .from('order_items')
-        .insert(orderItems);
-
-      if (itemsError) {
-        console.error('Order items creation error:', itemsError);
-
-        // Rollback: delete order if items failed
-        await supabase.from('orders').delete().eq('id', order.id);
-
-        throw new Error(`Errore nell'aggiunta dei prodotti: ${itemsError.message}`);
+      const { data: persisted, error: orderError } = await supabase.rpc('create_order_with_items', {
+        p_order: orderData,
+        p_items: orderItems,
+      });
+      if (orderError || !persisted) {
+        throw new Error(`Impossibile inviare l’ordine: ${orderError?.message ?? 'salvataggio non confermato'}`);
       }
+      const saved = persisted as { id?: string; display_code?: string; total_amount?: number };
+      if (saved.id !== orderId) throw new Error('Il server non ha confermato l’ordine. Riprova.');
+      displayCode = saved.display_code || displayCode;
+      const order = { id: orderId, total_amount: saved.total_amount ?? totalAmount, fiscal_status: 'pending' as const };
 
       // 5. Fiscalize the order (unless skipped)
       let fiscalResult: FiscalProviderResult = { success: true };
@@ -294,8 +289,11 @@ export function useCreateOrder() {
     },
 
     onSuccess: () => {
+      submissionRef.current = null;
       // Invalidate orders cache so they refetch
       queryClient.invalidateQueries({ queryKey: ['orders'] });
+      queryClient.invalidateQueries({ queryKey: ['kitchen-orders'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
     },
 
