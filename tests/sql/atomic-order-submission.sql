@@ -51,4 +51,40 @@ DO $$ BEGIN
   IF SQLERRM <> 'Cannot accept an order without saved items' THEN RAISE; END IF;
  END;
 END $$;
-SELECT 'PASS: guest transaction, real acknowledgement, retry deduplication, rollback, privacy, invalid carts and products';
+-- Separate guest and staff roles share the actual persisted order, not a mock.
+SET ROLE anon;
+DO $$ DECLARE r jsonb; BEGIN
+ r := public.get_order_tracking('00000000-0000-0000-0000-000000000021');
+ IF r->>'status' <> 'pending' OR jsonb_array_length(r->'order_items') <> 1 THEN
+  RAISE EXCEPTION 'Guest tracking did not reflect the saved pending order';
+ END IF;
+END $$;
+RESET ROLE;
+SET ROLE authenticated;
+SET test.staff = 'true';
+SET test.company_id = '00000000-0000-0000-0000-000000000002';
+DO $$ BEGIN
+ IF EXISTS (SELECT 1 FROM orders) OR EXISTS (SELECT 1 FROM order_items) THEN
+  RAISE EXCEPTION 'Other restaurant can read the order';
+ END IF;
+END $$;
+SET test.company_id = '00000000-0000-0000-0000-000000000001';
+DO $$ DECLARE saved_id uuid; BEGIN
+ IF NOT EXISTS (
+  SELECT 1 FROM orders o JOIN order_items i ON i.order_id = o.id
+  WHERE o.id = '00000000-0000-0000-0000-000000000021'
+   AND o.status = 'pending' AND i.quantity = 2 AND i.total_price = 10
+ ) THEN RAISE EXCEPTION 'Kitchen cannot read the submitted order and lines'; END IF;
+ UPDATE orders SET status = 'preparing'
+  WHERE id = '00000000-0000-0000-0000-000000000021' RETURNING id INTO saved_id;
+ IF saved_id IS NULL THEN RAISE EXCEPTION 'Kitchen acceptance was not saved'; END IF;
+END $$;
+RESET ROLE;
+SET ROLE anon;
+DO $$ BEGIN
+ IF public.get_order_tracking('00000000-0000-0000-0000-000000000021')->>'status' <> 'preparing' THEN
+  RAISE EXCEPTION 'Guest cannot see the kitchen acceptance';
+ END IF;
+END $$;
+RESET ROLE;
+SELECT 'PASS: guest save, kitchen reads saved lines, staff acceptance, guest tracking, tenant isolation, retry, rollback and invalid input';
