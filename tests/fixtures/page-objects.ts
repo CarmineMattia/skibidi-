@@ -7,18 +7,9 @@
 // buttons with aria-labels ("Aggiungi <name> al carrello").
 import { expect, type Browser, type Locator, type Page } from '@playwright/test';
 
-const GUEST_KEY = 'skibidi_lastLoginAsGuest';
-const KIOSK_KEY = 'skibidi_kioskModeEnabled';
-
-// Put the app into guest/kiosk mode via its own state keys. Pressable clicks on
-// RN-web are unreliable in headless Chromium (no real pointer capture), so
-// seeding localStorage is the deterministic way to reach guest mode.
-export async function enterGuestMode(page: Page) {
-  await page.goto('/login', { waitUntil: 'domcontentloaded' });
-  await page.evaluate((keys) => {
-    localStorage.setItem(keys[0], 'true');
-    localStorage.setItem(keys[1], 'true');
-  }, [GUEST_KEY, KIOSK_KEY]);
+// Ordinare richiede il login Google; senza sessione il menu resta navigabile.
+// Apre il menu da utente non loggato (ex "modalità ospite", rimossa).
+export async function openMenuLoggedOut(page: Page) {
   await page.goto('/menu', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(1500);
 }
@@ -26,71 +17,41 @@ export async function enterGuestMode(page: Page) {
 export class LoginPage {
   readonly page: Page;
   readonly brand: Locator;
-  readonly emailInput: Locator;
+  readonly googleButton: Locator;   // "Continua con Google"
+  readonly emailInput: Locator;     // solo nel login admin nascosto (/login?admin=1)
   readonly passwordInput: Locator;
-  readonly fullNameInput: Locator;
-  readonly otpButton: Locator;      // "Inviami il codice di accesso" (OTP view)
-  readonly passwordViewToggle: Locator; // "Accedi con email e password"
-  readonly guestButton: Locator;    // "Entra come ospite"
   readonly errorMessage: Locator;
 
   constructor(page: Page) {
     this.page = page;
     this.brand = page.getByText('Pizzeria Ambrosia', { exact: true }).first();
-    this.emailInput = page.locator('input[type="email"]');
+    this.googleButton = page.getByText('Continua con Google');
+    this.emailInput = page.getByPlaceholder('Email admin');
     this.passwordInput = page.locator('input[type="password"]');
-    this.fullNameInput = page.getByPlaceholder(/Mario Rossi/i);
-    this.otpButton = page.getByText(/codice di accesso/i);
-    this.passwordViewToggle = page.getByText(/email e password/i);
-    this.guestButton = page.getByText(/come ospite/i);
     this.errorMessage = page.locator('.text-destructive');
   }
 
   async navigate() {
     await this.page.goto('/login', { waitUntil: 'domcontentloaded' });
-    await this.emailInput.waitFor({ timeout: 15000 });
+    await this.googleButton.first().waitFor({ timeout: 15000 });
   }
 
-  async requestOtpCode(email: string) {
-    await this.emailInput.fill(email);
-    await this.otpButton.click();
-    await this.page.waitForTimeout(1500);
-  }
-
-  // Switch from the default OTP view to the email + password view. The toggle
-  // only exists in the OTP view, so a tap that a slow render swallows is safe to retry.
-  async switchToPasswordView() {
-    for (let attempt = 0; attempt < 3; attempt++) {
-      if ((await this.passwordViewToggle.count()) === 0) break; // already in password view
-      await this.passwordViewToggle.click();
-      if (await this.passwordInput.isVisible()) return;
-      await this.page.waitForTimeout(500);
-    }
-    await this.passwordInput.waitFor({ timeout: 15000 });
-  }
-
-  // shares its label with the form heading, so target the last exact match.
-  async submitPassword() {
-    await this.page.getByText('Accedi', { exact: true }).last().click();
-  }
-
-  // Full email + password login. Returns true if the authenticated menu loaded.
-  async login(email: string, password: string): Promise<boolean> {
-    await this.switchToPasswordView();
-    await this.emailInput.fill(email);
-    await this.passwordInput.fill(password);
-    await this.submitPassword();
-    return this.page
-      .getByText('Ordina online')
-      .first()
-      .waitFor({ timeout: 12000 })
+  // Login admin email+password: esiste solo se l'app è buildata con
+  // EXPO_PUBLIC_ENABLE_ADMIN_PASSWORD_LOGIN=true. Ritorna true se arriva al menu.
+  async adminLogin(email: string, password: string): Promise<boolean> {
+    await this.page.goto('/login?admin=1', { waitUntil: 'domcontentloaded' });
+    const available = await this.emailInput
+      .waitFor({ timeout: 8000 })
       .then(() => true)
       .catch(() => false);
-  }
-
-  async enterGuestMode() {
-    await this.navigate();
-    await enterGuestMode(this.page);
+    if (!available) return false;
+    await this.emailInput.fill(email);
+    await this.passwordInput.fill(password);
+    await this.page.getByText('Accedi come admin').click();
+    return this.page
+      .waitForURL(/menu/, { timeout: 12000 })
+      .then(() => true)
+      .catch(() => false);
   }
 
   async expectError(message: string | RegExp) {
@@ -170,45 +131,27 @@ export class MenuPage {
 export const ADMIN_EMAIL = process.env.SKIBIDI_ADMIN_EMAIL ?? 'admin@skibidi.com';
 export const ADMIN_PASSWORD = process.env.SKIBIDI_ADMIN_PASSWORD ?? 'Admin123!';
 
-export const CUSTOMER_EMAIL = process.env.SKIBIDI_CUSTOMER_EMAIL ?? 'customer@skibidi.com';
-export const CUSTOMER_PASSWORD = process.env.SKIBIDI_CUSTOMER_PASSWORD ?? 'Customer123!';
 
-// Try an admin login on a throwaway page; true if it reaches /admin-options.
+// Try an admin login on a throwaway page; true if it reaches the menu.
 export async function hasAdminAccount(browser: Browser): Promise<boolean> {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const page = await ctx.newPage();
-  page.setDefaultTimeout(8000);
-  let ok = false;
   try {
-    await page.goto('/login', { waitUntil: 'domcontentloaded' });
-    await page.locator('input[type="email"]').waitFor({ timeout: 15000 });
-    await page.getByText(/email e password/i).click();
-    await page.waitForTimeout(500);
-    await page.locator('input[type="email"]').fill(ADMIN_EMAIL);
-    await page.locator('input[type="password"]').fill(ADMIN_PASSWORD);
-    await page.getByText('Accedi', { exact: true }).last().click();
-      ok = await page
-        .waitForURL(/menu/, { timeout: 8000 })
-        .then(() => true)
-        .catch(() => false);
+    return await new LoginPage(page).adminLogin(ADMIN_EMAIL, ADMIN_PASSWORD);
   } catch {
-    ok = false;
+    return false;
   } finally {
     await ctx.close();
   }
-  return ok;
 }
 
-// Log in as admin on the given page; true on success (navigates to dashboard).
+// Log in as admin on the given page; true on success (needs the admin flag).
 export async function loginAsAdmin(page: Page): Promise<boolean> {
-  const lp = new LoginPage(page);
-  await lp.navigate();
-  return lp.login(ADMIN_EMAIL, ADMIN_PASSWORD);
+  return new LoginPage(page).adminLogin(ADMIN_EMAIL, ADMIN_PASSWORD);
 }
 
-// Log in as the known customer; true on success (navigates to /menu).
-export async function loginAsCustomer(page: Page): Promise<boolean> {
-  const lp = new LoginPage(page);
-  await lp.navigate();
-  return lp.login(CUSTOMER_EMAIL, CUSTOMER_PASSWORD);
+// I clienti entrano solo con Google OAuth, non automatizzabile qui:
+// le spec che ne hanno bisogno vengono saltate.
+export async function loginAsCustomer(_page: Page): Promise<boolean> {
+  return false;
 }

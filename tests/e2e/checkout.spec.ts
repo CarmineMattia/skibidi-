@@ -8,7 +8,7 @@
  */
 
 import { test, expect, type Page } from '@playwright/test';
-import { enterGuestMode } from '../fixtures/page-objects';
+import { openMenuLoggedOut } from '../fixtures/page-objects';
 
 /** Add a pizza and a drink so the cart is non-empty and has a drink. */
 async function addPizzaAndDrink(page: Page) {
@@ -29,33 +29,23 @@ async function openCheckout(page: Page) {
 }
 
 test.describe('Checkout Flow', () => {
-  test('1. Guest can open the checkout from the cart', async ({ page }) => {
-    await enterGuestMode(page);
+  test('1. Logged-out user is sent to Google login from the cart', async ({ page }) => {
+    await openMenuLoggedOut(page);
     await addPizzaAndDrink(page);
-    await openCheckout(page);
-    await expect(page.getByText('Come vuoi ordinare?').first()).toBeVisible();
+    await page.getByText('Procedi al Pagamento').first().click();
+    await expect(page).toHaveURL(/\/login/, { timeout: 8000 });
+    await expect(page.getByText('Continua con Google').first()).toBeVisible();
   });
 
-  test('2. Checkout shows the order-type options', async ({ page }) => {
-    await enterGuestMode(page);
+  // 2-3 richiedono una sessione Google reale (OAuth non automatizzabile qui).
+  test.skip('2. Checkout shows the order-type options (needs Google session)', async ({ page }) => {
     await addPizzaAndDrink(page);
     await openCheckout(page);
-    await expect(page.getByText('Mangio qui').first()).toBeVisible();
     await expect(page.getByText('Da asporto').first()).toBeVisible();
-    await expect(page.getByText('Delivery').first()).toBeVisible();
-  });
-
-  test('3. Guest can select take-away and advance to time selection', async ({ page }) => {
-    await enterGuestMode(page);
-    await addPizzaAndDrink(page);
-    await openCheckout(page);
-    await page.getByText('Da asporto').first().click();
-    await page.getByText('Continua', { exact: true }).first().click();
-    await expect(page.getByText('Il prima possibile').first()).toBeVisible({ timeout: 8000 });
   });
 
   test('4. Empty cart does not show the checkout button', async ({ page }) => {
-    await enterGuestMode(page);
+    await openMenuLoggedOut(page);
     const addButtons = page.getByRole('button', { name: /Aggiungi .*al carrello/i });
     await addButtons.first().waitFor({ timeout: 15000 });
     // With an empty cart the CartSummary shows its empty state, not the button.
