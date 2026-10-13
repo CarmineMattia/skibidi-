@@ -1,3 +1,9 @@
+-- Applied to prod (zqubwvhstobaugifzoyb) by hand on 2026-10-08, so it is not in
+-- supabase_migrations.schema_migrations there. Verified 2026-10-13 against the
+-- live pg_get_functiondef of create_order_with_items and
+-- prevent_empty_order_acceptance plus trigger trg_prevent_empty_order_acceptance:
+-- bodies, grants (anon/authenticated execute; trigger fn revoked) match this file.
+-- To register it without re-running: supabase migration repair --status applied 20261008
 -- Apply before deploying the checkout changes. Uses existing RLS and grants.
 -- Order header and all lines commit together. UUID is the retry key.
 BEGIN;
