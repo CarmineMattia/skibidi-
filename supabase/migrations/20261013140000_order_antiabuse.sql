@@ -4,8 +4,9 @@
 --
 -- Cosa aggiunge:
 --  * companies: limiti configurabili per pizzeria (valore max ordine, ordini aperti, rate limit, soglia mancati ritiri, Turnstile).
---  * profiles: blocked / blocked_reason / blocked_at / no_show_count, modificabili solo da admin.
---  * order_no_shows: storico dei "non ritirato" segnati dall'admin; blocco automatico alla soglia.
+--  * customer_restrictions: blocco e contatore mancati ritiri PER PIZZERIA (un admin non tocca altre pizzerie;
+--    profiles non viene modificato).
+--  * order_no_shows: storico dei "non ritirato" segnati dall'admin; blocco automatico alla soglia della pizzeria.
 --  * order_captcha_passes: pass Turnstile monouso scritti dall'edge function verify-turnstile (service role).
 --  * create_order_with_items: login obbligatorio + assert_order_antiabuse prima dell'insert.
 BEGIN;
@@ -18,38 +19,25 @@ ALTER TABLE public.companies
   ADD COLUMN IF NOT EXISTS no_show_block_threshold integer NOT NULL DEFAULT 3,
   ADD COLUMN IF NOT EXISTS require_turnstile boolean NOT NULL DEFAULT false;
 
-ALTER TABLE public.profiles
-  ADD COLUMN IF NOT EXISTS blocked boolean NOT NULL DEFAULT false,
-  ADD COLUMN IF NOT EXISTS blocked_reason text,
-  ADD COLUMN IF NOT EXISTS blocked_at timestamptz,
-  ADD COLUMN IF NOT EXISTS no_show_count integer NOT NULL DEFAULT 0;
-
 CREATE INDEX IF NOT EXISTS orders_customer_created_idx ON public.orders (customer_id, created_at DESC);
 
--- Il cliente non può sbloccarsi da solo né azzerare i mancati ritiri.
-CREATE OR REPLACE FUNCTION public.prevent_profile_abuse_flag_tampering()
-RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
-BEGIN
-  IF coalesce(auth.role(), '') NOT IN ('anon', 'authenticated') OR coalesce(public.is_admin(), false) THEN
-    RETURN NEW;
-  END IF;
-  IF TG_OP = 'INSERT' THEN
-    IF NEW.blocked OR NEW.no_show_count <> 0 OR NEW.blocked_reason IS NOT NULL OR NEW.blocked_at IS NOT NULL THEN
-      RAISE EXCEPTION 'Only an admin can set abuse flags';
-    END IF;
-  ELSIF NEW.blocked IS DISTINCT FROM OLD.blocked
-     OR NEW.blocked_reason IS DISTINCT FROM OLD.blocked_reason
-     OR NEW.blocked_at IS DISTINCT FROM OLD.blocked_at
-     OR NEW.no_show_count IS DISTINCT FROM OLD.no_show_count THEN
-    RAISE EXCEPTION 'Only an admin can change abuse flags';
-  END IF;
-  RETURN NEW;
-END;
-$$;
-REVOKE EXECUTE ON FUNCTION public.prevent_profile_abuse_flag_tampering() FROM anon, authenticated, PUBLIC;
-DROP TRIGGER IF EXISTS trg_prevent_profile_abuse_flag_tampering ON public.profiles;
-CREATE TRIGGER trg_prevent_profile_abuse_flag_tampering BEFORE INSERT OR UPDATE ON public.profiles
-FOR EACH ROW EXECUTE FUNCTION public.prevent_profile_abuse_flag_tampering();
+-- Blocco e mancati ritiri per (pizzeria, cliente). Scrivono solo le RPC admin qui sotto (SECURITY DEFINER).
+CREATE TABLE IF NOT EXISTS public.customer_restrictions (
+  company_id uuid NOT NULL,
+  customer_id uuid NOT NULL,
+  blocked boolean NOT NULL DEFAULT false,
+  blocked_reason text,
+  blocked_at timestamptz,
+  no_show_count integer NOT NULL DEFAULT 0,
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (company_id, customer_id)
+);
+ALTER TABLE public.customer_restrictions ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.customer_restrictions FROM anon, authenticated;
+GRANT SELECT ON public.customer_restrictions TO authenticated;
+DROP POLICY IF EXISTS customer_restrictions_staff_read ON public.customer_restrictions;
+CREATE POLICY customer_restrictions_staff_read ON public.customer_restrictions FOR SELECT TO authenticated
+  USING (coalesce(public.is_admin(), false) AND company_id = public.get_my_company_id());
 
 CREATE TABLE IF NOT EXISTS public.order_no_shows (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -90,7 +78,8 @@ BEGIN
   END IF;
   PERFORM pg_advisory_xact_lock(hashtextextended('order-antiabuse:' || v_uid::text, 0));
 
-  IF EXISTS (SELECT 1 FROM public.profiles WHERE id = v_uid AND blocked) THEN
+  IF EXISTS (SELECT 1 FROM public.customer_restrictions
+             WHERE company_id = p_company AND customer_id = v_uid AND blocked) THEN
     RAISE EXCEPTION 'ANTIABUSE_ACCOUNT_BLOCKED';
   END IF;
 
@@ -246,15 +235,22 @@ BEGIN
   VALUES (o.id, o.customer_id, o.company_id, auth.uid(), p_note)
   ON CONFLICT (order_id) DO NOTHING;
 
-  SELECT count(*) INTO v_count FROM public.order_no_shows WHERE customer_id = o.customer_id;
+  -- Conteggio e soglia della stessa pizzeria.
+  SELECT count(*) INTO v_count FROM public.order_no_shows
+   WHERE customer_id = o.customer_id AND company_id = o.company_id;
   SELECT no_show_block_threshold INTO v_threshold FROM public.companies WHERE id = o.company_id;
 
-  UPDATE public.profiles
-     SET no_show_count = v_count,
-         blocked = blocked OR (v_threshold > 0 AND v_count >= v_threshold),
-         blocked_reason = CASE WHEN NOT blocked AND v_threshold > 0 AND v_count >= v_threshold THEN 'no_show' ELSE blocked_reason END,
-         blocked_at = CASE WHEN NOT blocked AND v_threshold > 0 AND v_count >= v_threshold THEN now() ELSE blocked_at END
-   WHERE id = o.customer_id
+  INSERT INTO public.customer_restrictions AS r (company_id, customer_id, no_show_count, blocked, blocked_reason, blocked_at)
+  VALUES (o.company_id, o.customer_id, v_count,
+          v_threshold > 0 AND v_count >= v_threshold,
+          CASE WHEN v_threshold > 0 AND v_count >= v_threshold THEN 'no_show' END,
+          CASE WHEN v_threshold > 0 AND v_count >= v_threshold THEN now() END)
+  ON CONFLICT (company_id, customer_id) DO UPDATE SET
+    no_show_count = EXCLUDED.no_show_count,
+    blocked = r.blocked OR EXCLUDED.blocked,
+    blocked_reason = CASE WHEN NOT r.blocked AND EXCLUDED.blocked THEN 'no_show' ELSE r.blocked_reason END,
+    blocked_at = CASE WHEN NOT r.blocked AND EXCLUDED.blocked THEN now() ELSE r.blocked_at END,
+    updated_at = now()
   RETURNING blocked INTO v_blocked;
 
   RETURN jsonb_build_object('customer_id', o.customer_id, 'no_show_count', v_count, 'blocked', coalesce(v_blocked, false));
@@ -263,21 +259,29 @@ $$;
 REVOKE ALL ON FUNCTION public.mark_order_no_show(uuid, text) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.mark_order_no_show(uuid, text) TO authenticated;
 
--- Admin: blocca/sblocca un cliente che ha ordinato nella propria pizzeria.
+-- Admin: blocca/sblocca un cliente SOLO nella propria pizzeria e solo se ci ha già ordinato.
 CREATE OR REPLACE FUNCTION public.set_customer_blocked(p_customer_id uuid, p_blocked boolean, p_reason text DEFAULT NULL)
 RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE
+  v_company uuid := public.get_my_company_id();
 BEGIN
   IF NOT coalesce(public.is_admin(), false) THEN
     RAISE EXCEPTION 'Only an admin can block customers';
   END IF;
-  IF NOT EXISTS (SELECT 1 FROM public.orders WHERE customer_id = p_customer_id AND company_id = public.get_my_company_id()) THEN
+  IF v_company IS NULL OR NOT EXISTS (
+    SELECT 1 FROM public.orders WHERE customer_id = p_customer_id AND company_id = v_company
+  ) THEN
     RAISE EXCEPTION 'Customer not found';
   END IF;
-  UPDATE public.profiles
-     SET blocked = p_blocked,
-         blocked_reason = CASE WHEN p_blocked THEN coalesce(p_reason, 'manual') ELSE NULL END,
-         blocked_at = CASE WHEN p_blocked THEN now() ELSE NULL END
-   WHERE id = p_customer_id;
+  INSERT INTO public.customer_restrictions AS r (company_id, customer_id, blocked, blocked_reason, blocked_at)
+  VALUES (v_company, p_customer_id, p_blocked,
+          CASE WHEN p_blocked THEN coalesce(p_reason, 'manual') END,
+          CASE WHEN p_blocked THEN now() END)
+  ON CONFLICT (company_id, customer_id) DO UPDATE SET
+    blocked = EXCLUDED.blocked,
+    blocked_reason = EXCLUDED.blocked_reason,
+    blocked_at = EXCLUDED.blocked_at,
+    updated_at = now();
 END;
 $$;
 REVOKE ALL ON FUNCTION public.set_customer_blocked(uuid, boolean, text) FROM PUBLIC, anon;

@@ -59,11 +59,11 @@ SELECT pg_temp.expect_error(pg_temp.ord(113, '00000000-0000-0000-0000-0000000000
 RESET ROLE;
 
 -- 4) Rate limit: 3 ordini / 10 min anche se i precedenti sono chiusi.
-UPDATE orders SET status = 'delivered' WHERE customer_id = '00000000-0000-0000-0000-0000000000a1';
+UPDATE orders SET status = 'cancelled' WHERE customer_id = '00000000-0000-0000-0000-0000000000a1';
 SET ROLE authenticated;
 DO $$ BEGIN EXECUTE pg_temp.ord(114, '00000000-0000-0000-0000-0000000000a1'); END $$;
 RESET ROLE;
-UPDATE orders SET status = 'delivered' WHERE customer_id = '00000000-0000-0000-0000-0000000000a1';
+UPDATE orders SET status = 'cancelled' WHERE customer_id = '00000000-0000-0000-0000-0000000000a1';
 SET ROLE authenticated;
 SELECT pg_temp.expect_error(pg_temp.ord(115, '00000000-0000-0000-0000-0000000000a1'), 'ANTIABUSE_RATE_LIMITED');
 RESET ROLE;
@@ -72,9 +72,8 @@ UPDATE orders SET created_at = now() - interval '11 minutes' WHERE customer_id =
 SET ROLE authenticated;
 DO $$ BEGIN EXECUTE pg_temp.ord(116, '00000000-0000-0000-0000-0000000000a1'); END $$;
 
--- 5) Il cliente non può sbloccarsi né azzerare il contatore dei mancati ritiri.
-SELECT pg_temp.expect_error($q$UPDATE profiles SET blocked = true WHERE id = '00000000-0000-0000-0000-0000000000a1'$q$, 'Only an admin can change abuse flags');
-SELECT pg_temp.expect_error($q$UPDATE profiles SET no_show_count = 5 WHERE id = '00000000-0000-0000-0000-0000000000a1'$q$, 'Only an admin can change abuse flags');
+-- 5) Il cliente non può scrivere né sbloccarsi in customer_restrictions.
+SELECT pg_temp.expect_error($q$INSERT INTO customer_restrictions(company_id, customer_id) VALUES ('00000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-0000000000a1')$q$, 'permission denied for table customer_restrictions');
 -- 6) Il cliente non può segnare "non ritirato" né bloccare altri.
 SELECT pg_temp.expect_error($q$SELECT public.mark_order_no_show('00000000-0000-0000-0000-000000000111')$q$, 'Only an admin can mark a no-show');
 SELECT pg_temp.expect_error($q$SELECT public.set_customer_blocked('00000000-0000-0000-0000-0000000000a1', true)$q$, 'Only an admin can block customers');
@@ -99,11 +98,12 @@ END $$;
 RESET test.staff;
 RESET ROLE;
 DO $$ BEGIN
-  IF (SELECT blocked_reason FROM profiles WHERE id = '00000000-0000-0000-0000-0000000000a1') <> 'no_show' THEN
+  IF (SELECT blocked_reason FROM customer_restrictions
+      WHERE company_id = '00000000-0000-0000-0000-000000000001' AND customer_id = '00000000-0000-0000-0000-0000000000a1') <> 'no_show' THEN
     RAISE EXCEPTION 'blocked_reason missing';
   END IF;
 END $$;
-UPDATE orders SET created_at = now() - interval '1 day', status = 'delivered';
+UPDATE orders SET created_at = now() - interval '1 day', status = 'cancelled';
 
 -- 9) Account bloccato: non può ordinare.
 SET ROLE authenticated;
@@ -111,6 +111,31 @@ SET test.staff = 'false';
 SELECT set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a1', false);
 SELECT pg_temp.expect_error(pg_temp.ord(120, '00000000-0000-0000-0000-0000000000a1'), 'ANTIABUSE_ACCOUNT_BLOCKED');
 RESET ROLE;
+-- 9b) Il blocco vale solo per quella pizzeria: in un'altra pizzeria il cliente può ordinare.
+INSERT INTO companies VALUES ('00000000-0000-0000-0000-000000000002', true);
+INSERT INTO products VALUES ('00000000-0000-0000-0000-000000000013','00000000-0000-0000-0000-000000000002',true,5);
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a1', false);
+DO $$ BEGIN
+  EXECUTE replace(pg_temp.ord(122, '00000000-0000-0000-0000-0000000000a1', 5, '00000000-0000-0000-0000-000000000013'),
+    '00000000-0000-0000-0000-000000000001"', '00000000-0000-0000-0000-000000000002"');
+END $$;
+-- Admin della pizzeria 2 non può bloccare un cliente che lì non ha mai ordinato.
+SET test.staff = 'true';
+SET test.company_id = '00000000-0000-0000-0000-000000000002';
+SELECT set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000ff', false);
+SELECT pg_temp.expect_error($q$SELECT public.set_customer_blocked('00000000-0000-0000-0000-0000000000a3', true)$q$, 'Customer not found');
+-- e lo storico dei mancati ritiri della pizzeria 1 non le è visibile
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM customer_restrictions) OR EXISTS (SELECT 1 FROM order_no_shows) THEN
+    RAISE EXCEPTION 'other company sees restrictions';
+  END IF;
+END $$;
+SET test.company_id = '00000000-0000-0000-0000-000000000001';
+SET test.staff = 'false';
+RESET ROLE;
+UPDATE orders SET status = 'cancelled', created_at = now() - interval '1 day';
+
 -- 10) Admin sblocca manualmente -> può ordinare di nuovo.
 SET ROLE authenticated;
 SET test.staff = 'true';
