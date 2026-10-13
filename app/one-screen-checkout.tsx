@@ -3,11 +3,10 @@
  * Consolidates the entire checkout (order type, customer details, payment)
  * into a single screen so an order can be placed with the minimum number of
  * clicks. It reuses the same order-creation pipeline as the multi-step modal
- * checkout (useCreateOrder + paymentProviderToMethod).
+ * checkout (useCreateOrder + pagamento alla cassa).
  */
 
 import { Button } from '@/components/ui/Button';
-import { SatispayOpenHint } from '@/components/features/SatispayOpenHint';
 import { useCreateOrder } from '@/lib/hooks/useCreateOrder';
 import { useOrderSubmissionGuard } from '@/lib/hooks/useOrderSubmissionGuard';
 import {
@@ -16,10 +15,7 @@ import {
   isAddressInDeliveryZone,
   looksLikeOutOfDeliveryZone,
 } from '@/lib/utils/deliveryZone';
-import {
-  paymentProviderToMethod,
-  type PaymentProvider,
-} from '@/lib/hooks/usePayment';
+import { PAY_AT_TILL_LABEL_IT, PAY_AT_TILL_METHOD, PAY_AT_TILL_NOTE } from '@/lib/payments/payAtTill';
 import { getCartItemUnitPrice, useCart } from '@/lib/stores/CartContext';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
@@ -34,31 +30,6 @@ const ORDER_TYPE_OPTIONS: { value: OrderType; label: string }[] = [
   { value: 'delivery', label: 'Consegna a domicilio' },
 ];
 
-const PAYMENT_OPTIONS: {
-  id: PaymentProvider | 'paypal';
-  label: string;
-  subtitle: string;
-  selectableValue?: PaymentProvider;
-  availableForDelivery?: boolean;
-}[] = [
-  { id: 'cash', label: 'Contanti', subtitle: 'Paga in cassa', selectableValue: 'cash' },
-  {
-    id: 'terminal',
-    label: 'POS in cassa',
-    subtitle: 'Terminale fisico',
-    selectableValue: 'terminal',
-    availableForDelivery: false,
-  },
-  {
-    id: 'satispay',
-    label: 'Satispay',
-    subtitle: "Paga con l'app Satispay",
-    selectableValue: 'satispay',
-  },
-  { id: 'stripe', label: 'Carta', subtitle: 'Visa, Mastercard, Amex' },
-  { id: 'paypal', label: 'PayPal', subtitle: 'In arrivo' },
-];
-
 export default function OneScreenCheckout() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -69,17 +40,11 @@ export default function OneScreenCheckout() {
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [deliveryAddress, setDeliveryAddress] = useState('');
-  const [selectedPayment, setSelectedPayment] = useState<PaymentProvider>('cash');
   const { isProcessing, start, complete } = useOrderSubmissionGuard();
   const [submissionError, setSubmissionError] = useState<string | null>(null);
 
   const canSubmit = items.length > 0 && !isProcessing;
 
-  useEffect(() => {
-    if (orderType === 'delivery' && selectedPayment === 'terminal') {
-      setSelectedPayment('cash');
-    }
-  }, [orderType, selectedPayment]);
 
   const handleSubmit = useCallback(async () => {
     if (items.length === 0) {
@@ -108,13 +73,15 @@ export default function OneScreenCheckout() {
     try {
       const result = await createOrder.mutateAsync({
         items,
+        // Stessa nota del checkout /modal: lo scontrino stampa "Pagamento alla cassa".
+        notes: PAY_AT_TILL_NOTE,
         orderType,
         customerName: customerName.trim(),
         customerPhone: customerPhone.trim(),
         deliveryAddress:
           orderType === 'delivery' ? resolvedDeliveryAddress.trim() : undefined,
         fulfillmentMode: 'asap',
-        paymentMethod: paymentProviderToMethod(selectedPayment),
+        paymentMethod: PAY_AT_TILL_METHOD,
       });
 
       await complete(true);
@@ -136,7 +103,6 @@ export default function OneScreenCheckout() {
     customerName,
     customerPhone,
     deliveryAddress,
-    selectedPayment,
     createOrder,
     clearCart,
     router,
@@ -239,68 +205,13 @@ export default function OneScreenCheckout() {
           </View>
         )}
 
-        {/* Payment method */}
+        {/* Pagamento: v1 solo alla cassa */}
         <View className="gap-2">
-          <Text className="font-semibold">Metodo di pagamento</Text>
-          <View className="gap-2">
-            {PAYMENT_OPTIONS.filter(
-              (opt) => orderType !== 'delivery' || opt.availableForDelivery !== false
-            ).map((opt) => {
-              const isSelectable = opt.selectableValue !== undefined;
-              const isSelected = opt.selectableValue === selectedPayment;
-
-              return (
-                <Pressable
-                  key={opt.id}
-                  onPress={() => {
-                    if (opt.selectableValue) {
-                      setSelectedPayment(opt.selectableValue);
-                    }
-                  }}
-                  disabled={!isSelectable || isProcessing}
-                  accessibilityState={{ disabled: !isSelectable || isProcessing }}
-                  className={`p-4 rounded-xl border flex-row items-center ${
-                    isSelected
-                      ? 'bg-primary border-primary'
-                      : isSelectable
-                        ? 'bg-card border-border'
-                        : 'bg-gray-100 border-gray-200 opacity-60'
-                  }`}
-                >
-                  <View className="flex-1">
-                    <Text
-                      className={`font-bold ${
-                        isSelected
-                          ? 'text-primary-foreground'
-                          : isSelectable
-                            ? 'text-foreground'
-                            : 'text-gray-500'
-                      }`}
-                    >
-                      {opt.label}
-                    </Text>
-                    <Text
-                      className={`text-xs ${
-                        isSelected ? 'text-primary-foreground' : 'text-muted-foreground'
-                      }`}
-                    >
-                      {opt.subtitle}
-                    </Text>
-                  </View>
-                  {!isSelectable && (
-                    <View className="rounded-full bg-gray-200 px-3 py-1">
-                      <Text className="text-gray-600 text-xs font-bold">In arrivo</Text>
-                    </View>
-                  )}
-                </Pressable>
-              );
-            })}
+          <Text className="font-semibold">Pagamento</Text>
+          <View testID="pay-at-till-notice" className="p-4 rounded-xl border bg-primary border-primary">
+            <Text className="font-bold text-primary-foreground">{PAY_AT_TILL_LABEL_IT}</Text>
+            <Text className="text-xs text-primary-foreground">Contanti o carta al banco. Nessun pagamento online.</Text>
           </View>
-          {selectedPayment === 'satispay' ? (
-            <View className="mt-3">
-              <SatispayOpenHint amountLabel={`${totalAmount.toFixed(2)}€`} />
-            </View>
-          ) : null}
         </View>
       </ScrollView>
 
