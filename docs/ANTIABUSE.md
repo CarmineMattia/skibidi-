@@ -9,13 +9,15 @@ L'app mostra solo i messaggi (`lib/utils/antiabuse.ts`).
 | Valore massimo ordine | `assert_order_antiabuse` | `max_order_total = 150` |
 | Ordini aperti per utente (pending/accepted/preparing/ready) | `assert_order_antiabuse` | `max_open_orders_per_user = 2` |
 | Rate limit | `assert_order_antiabuse` | `order_rate_limit_count = 3` in `order_rate_limit_window = 10 min` |
-| Account bloccato | `profiles.blocked` (solo admin lo cambia) | — |
-| Mancati ritiri | `order_no_shows` + `profiles.no_show_count`, RPC `mark_order_no_show` | blocco a `no_show_block_threshold = 3` |
+| Account bloccato (per pizzeria) | `customer_restrictions(company_id, customer_id)`, RPC `set_customer_blocked` | — |
+| Mancati ritiri (contati per pizzeria) | `order_no_shows` + `customer_restrictions.no_show_count`, RPC `mark_order_no_show` | blocco a `no_show_block_threshold = 3` |
 | Cloudflare Turnstile | edge function `verify-turnstile` + `order_captcha_passes` | `require_turnstile = false` |
 
 I retry idempotenti dello stesso ordine (stesso UUID) passano sempre: i limiti valgono solo per ordini nuovi.
 
 Admin: `mark_order_no_show(order_id, note)` segna "non ritirato"; `set_customer_blocked(customer_id, blocked, reason)` blocca/sblocca.
+
+Blocchi e mancati ritiri valgono **solo per la pizzeria dell'admin**: un cliente bloccato da Ambrosia può ancora ordinare da un'altra pizzeria, e un admin può bloccare solo chi ha già ordinato da lui. `profiles` non viene toccato. Un blocco globale (es. abuso su più pizzerie) resta fuori da v1: andrebbe fatto da service role.
 
 ## Cosa deve configurare Carmine (nessun segreto nel repo)
 
@@ -31,5 +33,6 @@ Admin: `mark_order_no_show(order_id, note)` segna "non ritirato"; `set_customer_
 
 ## Test
 
-- SQL (PGlite, nessun DB ospitato): `npm i --no-save @electric-sql/pglite && node tests/sql/run-antiabuse-pglite.mjs`
+- SQL (PGlite, nessun DB ospitato): `npm i --no-save @electric-sql/pglite && node tests/sql/run-antiabuse-pglite.mjs`. Se nel checkout c'è anche #18 applica le sue migration e il suo test (combo #11+#18+#20).
+- Merge con #18: in `tests/sql/atomic-order-submission.sql` tenere la versione di #20 (funziona con e senza #18).
 - Unit: `npx vitest run tests/unit`
