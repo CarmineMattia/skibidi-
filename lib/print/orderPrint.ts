@@ -95,6 +95,9 @@ export function extractPaymentLabel(notes?: string | null): string {
   if (normalized.includes('pagamento: cash') || normalized.includes('pagamento: contant') || normalized.includes('metodo di pagamento: cash')) {
     return 'Pagamento contante';
   }
+  if (normalized.includes('pagamento: alla cassa')) {
+    return 'Pagamento alla cassa';
+  }
   if (normalized.includes('satispay')) {
     return 'Pagamento elettronico (Satispay)';
   }
