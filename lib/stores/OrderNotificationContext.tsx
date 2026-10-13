@@ -437,7 +437,7 @@ export function OrderNotificationProvider({ children }: { children: ReactNode })
               </View>
 
               <Text className="text-sm text-gray-600 mb-4">
-                Accetta per avviare la preparazione oppure rifiuta indicando il motivo (anche ripianificazione).
+                Accetta l'ordine: poi la cucina potrà iniziare la preparazione. Oppure rifiuta indicando il motivo (anche ripianificazione).
               </Text>
 
               {updateOrderStatus.isError ? (

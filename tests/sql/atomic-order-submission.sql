@@ -45,7 +45,7 @@ DO $$ BEGIN
  BEGIN
   INSERT INTO orders(id,company_id,status,fiscal_status,total_amount)
     VALUES ('00000000-0000-0000-0000-000000000025','00000000-0000-0000-0000-000000000001','pending','pending',5);
-  UPDATE orders SET status='preparing' WHERE id='00000000-0000-0000-0000-000000000025';
+  UPDATE orders SET status='accepted' WHERE id='00000000-0000-0000-0000-000000000025';
   RAISE EXCEPTION 'Expected empty order acceptance to fail';
  EXCEPTION WHEN raise_exception THEN
   IF SQLERRM <> 'Cannot accept an order without saved items' THEN RAISE; END IF;
@@ -75,7 +75,7 @@ DO $$ DECLARE saved_id uuid; BEGIN
   WHERE o.id = '00000000-0000-0000-0000-000000000021'
    AND o.status = 'pending' AND i.quantity = 2 AND i.total_price = 10
  ) THEN RAISE EXCEPTION 'Kitchen cannot read the submitted order and lines'; END IF;
- UPDATE orders SET status = 'preparing'
+ UPDATE orders SET status = 'accepted' WHERE id = '00000000-0000-0000-0000-000000000021'; UPDATE orders SET status = 'preparing'
   WHERE id = '00000000-0000-0000-0000-000000000021' RETURNING id INTO saved_id;
  IF saved_id IS NULL THEN RAISE EXCEPTION 'Kitchen acceptance was not saved'; END IF;
 END $$;
