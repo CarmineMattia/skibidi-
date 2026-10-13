@@ -133,7 +133,9 @@ export function useKitchenOrders(options: UseKitchenOrdersOptions = {}) {
           invalidate();
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') invalidate();
+      });
 
     return () => {
       supabase.removeChannel(channel);

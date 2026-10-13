@@ -13,6 +13,7 @@ import { DigitalReceipt } from '@/components/features/DigitalReceipt';
 import { FontAwesome } from '@expo/vector-icons';
 import { useOrder } from '@/lib/hooks/useOrders';
 import { formatCustomerOrderCode } from '@/lib/utils/orderDisplayCode';
+import { getOrderConfirmation } from '@/lib/utils/orderTracking';
 
 export default function OrderSuccessScreen() {
     const router = useRouter();
@@ -21,7 +22,8 @@ export default function OrderSuccessScreen() {
         orderType?: string;
         displayCode?: string;
     }>();
-    const { data: orderData } = useOrder(orderId || '');
+    const { data: orderData, isError, refetch } = useOrder(orderId || '');
+    const confirmation = getOrderConfirmation(orderData?.status);
     const orderLabel = displayCode
         ? `🍕 ${displayCode}`
         : orderData
@@ -58,18 +60,17 @@ export default function OrderSuccessScreen() {
         <View className="flex-1 bg-primary items-center justify-center px-4 sm:px-8">
             <View className="bg-card p-6 sm:p-8 md:p-12 rounded-3xl items-center shadow-2xl w-full max-w-md">
                 <Animated.View style={[animatedIconStyle]} className="mb-6">
-                    <View className="bg-green-500 h-24 w-24 sm:h-32 sm:w-32 md:h-40 md:w-40 rounded-full items-center justify-center shadow-lg">
-                        <Text className="text-white text-5xl sm:text-6xl md:text-8xl">✓</Text>
+                    <View className={`${confirmation.accepted ? 'bg-green-500' : orderData?.status === 'cancelled' || isError ? 'bg-red-500' : 'bg-amber-500'} h-24 w-24 sm:h-32 sm:w-32 md:h-40 md:w-40 rounded-full items-center justify-center shadow-lg`}>
+                        <Text className="text-white text-5xl sm:text-6xl md:text-8xl">{confirmation.accepted ? '✓' : '!'}</Text>
                     </View>
                 </Animated.View>
 
                 <Animated.View style={[animatedTextStyle]} className="items-center w-full">
                     <Text className="text-foreground font-extrabold text-2xl sm:text-3xl md:text-4xl mb-3 text-center">
-                        Order Confirmed!
+                        {confirmation.title}
                     </Text>
                     <Text className="text-muted-foreground text-base sm:text-lg md:text-xl text-center mb-8 leading-relaxed">
-                        Your order {orderLabel} is now in preparation.
-                        View your digital receipt below.
+                        {orderLabel}{'\n'}{confirmation.message}
                     </Text>
 
                     <View className="w-full gap-3 mb-6">
@@ -82,7 +83,7 @@ export default function OrderSuccessScreen() {
                             }
                         >
                             <Text className="text-white font-bold text-base sm:text-lg">
-                                Track Order
+                                Segui l’ordine
                             </Text>
                         </Pressable>
                         <Pressable
@@ -91,7 +92,7 @@ export default function OrderSuccessScreen() {
                         >
                             <FontAwesome name="file-text-o" size={20} color="white" style={{ marginRight: 8 }} />
                             <Text className="text-background font-bold text-base sm:text-lg">
-                                View Receipt
+                                Riepilogo ordine
                             </Text>
                         </Pressable>
 
@@ -100,10 +101,11 @@ export default function OrderSuccessScreen() {
                             onPress={() => router.replace('/(tabs)/menu')}
                         >
                             <Text className="text-background font-bold text-lg sm:text-xl">
-                                Back to Menu
+                                Torna al menu
                             </Text>
                         </Pressable>
                     </View>
+                    {isError ? <Pressable accessibilityRole="button" onPress={() => void refetch()}><Text className="text-primary font-bold">Riprova verifica</Text></Pressable> : null}
                 </Animated.View>
             </View>
 

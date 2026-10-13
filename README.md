@@ -29,6 +29,16 @@ For a full local Supabase + Auth setup (migrations, OTP login, admin user), see 
 
 To contribute via pull request, see **[CONTRIBUTING.md](./CONTRIBUTING.md)**.
 
+## Current Ambrosia status (2026-10-08)
+
+- 48 recipe-matched illustrative pizza photos are bundled with the app. Preview them at `/pizza-foto`. Stria and configurable al-metro products still need fixed recipes before adding photos.
+- Checkout saves the order and its lines in one database transaction. Confirmation locks immediately, stays visibly busy for at least five seconds, and keeps the cart when receipt cannot be confirmed.
+- Customer tracking distinguishes saved, awaiting kitchen acceptance and accepted orders. A live test against the configured Supabase database verified a three-line delivery order reaching the admin, admin acceptance, and automatic customer updates.
+- `20261008_atomic_order_submission.sql` is installed on the configured hosted database. Apply it, with the earlier tracking/RLS migrations, when setting up another environment.
+- Frontend changes are pushed on `codex/pizza-photos-order-handoff`; the public site's release through the PR workflow is still pending. Hosted guest checkout, price-changing extras, ready and decline paths still need dedicated checks.
+
+See [the order handoff notes](./docs/order-handoff-2026-10-08.md) for validation and remaining release work. For local database validation with Podman, run `bash tests/sql/run-order-handoff.sh`; this uses a disposable database and must not be pointed at the hosted restaurant database.
+
 ## Requirements
 
 | Tool | Version |

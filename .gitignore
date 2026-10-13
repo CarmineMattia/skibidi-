@@ -67,3 +67,6 @@ supabase/.temp/
 
 # root memory file (managed outside git)
 memory.md
+
+# Local recipe-photo QA and preview artifacts
+tmp/

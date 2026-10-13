@@ -1,0 +1,399 @@
+{
+  "source": "https://pizzeria-ambrosia.netlify.app/.netlify/functions/getAirtableData",
+  "type": "AI-generated illustrative recipe photos",
+  "generator": "built-in image_gen",
+  "recipes": [
+    {
+      "id": "4eaf1dc3-1b0a-b1f7-8206-8a89b69c5729",
+      "category": "Gourmet",
+      "name": "La Rustica",
+      "recipe": "mozz.fior di latte, pancetta, stracchino, patate al forno",
+      "slug": "la-rustica",
+      "asset": "assets/images/products/la-rustica-generated-v1.webp"
+    },
+    {
+      "id": "7758ee2c-0404-8d96-079e-d94d5c65b220",
+      "category": "Gourmet",
+      "name": "La Zuccotta",
+      "recipe": "crema di zucca, mozz.fior di latte, gorgonzola, pancetta, pepe nero",
+      "slug": "la-zuccotta",
+      "asset": "assets/images/products/la-zuccotta-generated-v1.webp"
+    },
+    {
+      "id": "7bbdfd63-3bbe-eaf1-2025-5be3178dcc6e",
+      "category": "Gourmet",
+      "name": "Ambrosia",
+      "recipe": "mozz. di bufala, pomodorini, pesto alla genovese",
+      "slug": "ambrosia",
+      "asset": "assets/images/products/ambrosia-generated-v1.webp"
+    },
+    {
+      "id": "0660b53c-4621-173d-3dfd-0322f1589119",
+      "category": "Gourmet",
+      "name": "Carbonara",
+      "recipe": "mozz. di bufala, pancetta, uovo, pepe nero",
+      "slug": "carbonara",
+      "asset": "assets/images/products/carbonara-generated-v1.webp"
+    },
+    {
+      "id": "25b3b1a9-9892-80b3-ab42-c7eb687ab48f",
+      "category": "Gourmet",
+      "name": "Crudo e Burrata",
+      "recipe": "pomodoro, mozz.fior di latte, fuori cottura: crudo di Parma, burrata Pugliese, olio",
+      "slug": "crudo-e-burrata",
+      "asset": "assets/images/products/crudo-e-burrata-generated-v1.webp"
+    },
+    {
+      "id": "c4cc87ed-28c9-017d-eca3-12c08d01776a",
+      "category": "Gourmet",
+      "name": "Cantabrico",
+      "recipe": "pomodoro, mozz.fior di latte, fuori cottura: acciughe del mar Cantabrico",
+      "slug": "cantabrico",
+      "asset": "assets/images/products/cantabrico-generated-v1.webp"
+    },
+    {
+      "id": "e15e4f9e-2c4c-dac7-cc60-4718af1d1c3b",
+      "category": "Gourmet",
+      "name": "Bologna",
+      "recipe": "Stria, fuori cottura: mortadella, straciatella, crema di pistacchio",
+      "slug": "bologna",
+      "asset": "assets/images/products/bologna-generated-v1.webp"
+    },
+    {
+      "id": "5bba5ee7-2027-0ba7-63aa-e40836611a97",
+      "category": "Gustose",
+      "name": "Nord e Sud",
+      "recipe": "pomodoro, mozz.fior di latte, 'nduja e gorgonzola",
+      "slug": "nord-e-sud",
+      "asset": "assets/images/products/nord-e-sud-generated-v1.webp"
+    },
+    {
+      "id": "55d27bcb-fdb1-eceb-cac1-4c7875927e5e",
+      "category": "Gustose",
+      "name": "Valtellina",
+      "recipe": "pomodoro, mozz.fior di latte, bresaola, rucola, scaglie di grana",
+      "slug": "valtellina",
+      "asset": "assets/images/products/valtellina-generated-v2.webp"
+    },
+    {
+      "id": "8a1fb53c-4a9f-8af3-8484-9ac1e1b71ba0",
+      "category": "Gustose",
+      "name": "La fumè",
+      "recipe": "pomodoro, mozz.fior di latte, speck, scamorza affumicata",
+      "slug": "la-fume",
+      "asset": "assets/images/products/la-fume-generated-v1.webp"
+    },
+    {
+      "id": "48c851ca-a589-0737-4574-ad4e2cd5a2eb",
+      "category": "Gustose",
+      "name": "Vegetariana",
+      "recipe": "pomodoro, mozz.fior di latte, melanzane, peperoni, zucchine",
+      "slug": "vegetariana",
+      "asset": "assets/images/products/vegetariana-generated-v1.webp"
+    },
+    {
+      "id": "83c6feb1-5c4a-084f-56d9-33acb4bc31c5",
+      "category": "Gustose",
+      "name": "Miami",
+      "recipe": "pomodoro, mozz.fior di latte, gamberetti, zucchine",
+      "slug": "miami",
+      "asset": "assets/images/products/miami-generated-v1.webp"
+    },
+    {
+      "id": "c54c0b8a-4ea7-0a43-9f1e-52eeaf685091",
+      "category": "Gustose",
+      "name": "La Corte Vecia",
+      "recipe": "pomodoro, mozz.fior di latte, rucola, scaglie di grana, glassa di aceto balsamico",
+      "slug": "la-corte-vecia",
+      "asset": "assets/images/products/la-corte-vecia-generated-v1.webp"
+    },
+    {
+      "id": "50bc1973-f42f-d472-9003-58d321a67c91",
+      "category": "Gustose",
+      "name": "Canossa",
+      "recipe": "pomodoro, mozz.fior di latte, prosciutto crudo di parma, rucola, scaglie di grana, glassa di aceto balsamico",
+      "slug": "canossa",
+      "asset": "assets/images/products/canossa-generated-v1.webp"
+    },
+    {
+      "id": "60dc8568-fc82-4ea9-4b07-18f9275ac214",
+      "category": "Gustose",
+      "name": "Frutti di Mare",
+      "recipe": "pomodoro, mozz.fior di latte, seppie, calamari, vongole, cozze, polpi, surimi",
+      "slug": "frutti-di-mare",
+      "asset": "assets/images/products/frutti-di-mare-generated-v1.webp"
+    },
+    {
+      "id": "6ed0c042-e272-74a2-1b9e-8e35b5ac40fe",
+      "category": "Gustose",
+      "name": "Amalfi",
+      "recipe": "pomodoro, mozz.fior di latte, scamorza affumicata, pomodorini",
+      "slug": "amalfi",
+      "asset": "assets/images/products/amalfi-generated-v1.webp"
+    },
+    {
+      "id": "d91f0e5d-7a7e-dd4e-3dfe-f6467cab8c2f",
+      "category": "Gustose",
+      "name": "Trentina",
+      "recipe": "pomodoro, mozz.fior di latte, gorgonzola, speck",
+      "slug": "trentina",
+      "asset": "assets/images/products/trentina-generated-v1.webp"
+    },
+    {
+      "id": "ed918e23-e4db-f042-2f1d-0f3bbb86fd4e",
+      "category": "Gustose",
+      "name": "Francescana",
+      "recipe": "pomodoro, mozz.fior di latte, gorgonzola, porcini trifolati",
+      "slug": "francescana",
+      "asset": "assets/images/products/francescana-generated-v1.webp"
+    },
+    {
+      "id": "d8585032-7b09-e145-17d2-6fa01a49441b",
+      "category": "Gustose",
+      "name": "Tirolese",
+      "recipe": "pomodoro, mozz.fior di latte e di bufala, porcini trifolati, speck",
+      "slug": "tirolese",
+      "asset": "assets/images/products/tirolese-generated-v1.webp"
+    },
+    {
+      "id": "42f86782-d03a-633c-260d-0494e2e66c70",
+      "category": "Gustose",
+      "name": "Matildica",
+      "recipe": "pomodoro, mozz.fior di latte, funghi porcini trifolati, pomodorini, parmigiano reggiano",
+      "slug": "matildica",
+      "asset": "assets/images/products/matildica-generated-v1.webp"
+    },
+    {
+      "id": "cb87873f-000c-2283-bab2-bf021f9b5eb7",
+      "category": "Bianche",
+      "name": "Buna",
+      "recipe": "mozz.fior di latte, salsiccia, friarielli",
+      "slug": "buna",
+      "asset": "assets/images/products/buna-generated-v1.webp"
+    },
+    {
+      "id": "638ef407-8372-1dde-1281-8f0c49e4bae7",
+      "category": "Bianche",
+      "name": "Tartufata",
+      "recipe": "mozz.fior di latte, porcini, crema tartufata",
+      "slug": "tartufata",
+      "asset": "assets/images/products/tartufata-generated-v1.webp"
+    },
+    {
+      "id": "4f5d8d14-972c-247e-180b-fbe667d11888",
+      "category": "Bianche",
+      "name": "Messicana",
+      "recipe": "mozz.fior di latte e di bufala, pancetta, olio piccante",
+      "slug": "messicana",
+      "asset": "assets/images/products/messicana-generated-v1.webp"
+    },
+    {
+      "id": "d5cf8733-16e6-0f92-23f2-bc1ce260903a",
+      "category": "Bianche",
+      "name": "Piccantina",
+      "recipe": "mozz.fior di latte, spianata calabra, acciughe, friarielli",
+      "slug": "piccantina",
+      "asset": "assets/images/products/piccantina-generated-v2.webp"
+    },
+    {
+      "id": "6fe456ff-2489-0d9c-817e-796a07a06412",
+      "category": "Bianche",
+      "name": "Beach",
+      "recipe": "mozz.fior di latte, rucola, pomodorini, gamberetti",
+      "slug": "beach",
+      "asset": "assets/images/products/beach-generated-v1.webp"
+    },
+    {
+      "id": "80ab95e6-647b-d8c6-5906-b63096fa0fb5",
+      "category": "Bianche",
+      "name": "Pizza del Centro",
+      "recipe": "mozz.fior di latte, melanzane, zucchine, peperoni, pomodorini, porcini",
+      "slug": "pizza-del-centro",
+      "asset": "assets/images/products/pizza-del-centro-generated-v2.webp"
+    },
+    {
+      "id": "9f0d44a9-07b8-7371-1884-ffe12d66d699",
+      "category": "Bianche",
+      "name": "Gorgonzola e Noci",
+      "recipe": "mozz.fior di latte, gorgonzola, noci",
+      "slug": "gorgonzola-e-noci",
+      "asset": "assets/images/products/gorgonzola-e-noci-generated-v1.webp"
+    },
+    {
+      "id": "05e8aca4-c6cb-31f4-dfdc-f786907c6989",
+      "category": "Classiche",
+      "name": "Margherita",
+      "recipe": "pomodoro, mozz.fior di latte",
+      "slug": "margherita",
+      "asset": "assets/images/products/margherita-generated-v1.webp"
+    },
+    {
+      "id": "4b1a90b1-a400-9f0b-bdbf-3c98e4488fc4",
+      "category": "Classiche",
+      "name": "Romana",
+      "recipe": "pomodoro, mozz.fior di latte, acciughe, capperi, origano, olive",
+      "slug": "romana",
+      "asset": "assets/images/products/romana-generated-v1.webp"
+    },
+    {
+      "id": "1061fbe6-509a-62e0-ae37-3f90cc918671",
+      "category": "Classiche",
+      "name": "Marinara",
+      "recipe": "pomodoro, aglio, origano",
+      "slug": "marinara",
+      "asset": "assets/images/products/marinara-generated-v1.webp"
+    },
+    {
+      "id": "21e5edaf-f9f9-90f2-d4da-71b5ee01360d",
+      "category": "Classiche",
+      "name": "Diavola",
+      "recipe": "pomodoro, mozz.fior di latte, spianata calabra",
+      "slug": "diavola",
+      "asset": "assets/images/products/diavola-generated-v1.webp"
+    },
+    {
+      "id": "2f6ad905-62dc-47c9-2b68-8e9542812ee1",
+      "category": "Classiche",
+      "name": "Stracchino e Rucola",
+      "recipe": "pomodoro, mozz.fior di latte, stracchino, rucola",
+      "slug": "stracchino-e-rucola",
+      "asset": "assets/images/products/stracchino-e-rucola-generated-v1.webp"
+    },
+    {
+      "id": "2d2e53df-ec08-225c-c4ba-7daf6f4af516",
+      "category": "Classiche",
+      "name": "Napoli",
+      "recipe": "pomodoro, mozz.fior di latte, acciughe, origano",
+      "slug": "napoli",
+      "asset": "assets/images/products/napoli-generated-v1.webp"
+    },
+    {
+      "id": "87f43a21-0340-b4c2-ea2c-fbdacfb41127",
+      "category": "Classiche",
+      "name": "Calzone",
+      "recipe": "pomodoro, mozz.fior di latte, prosciutto cotto",
+      "slug": "calzone",
+      "asset": "assets/images/products/calzone-generated-v1.webp"
+    },
+    {
+      "id": "8b850d81-139f-841c-d853-2706cefe3153",
+      "category": "Classiche",
+      "name": "Calzone farcito",
+      "recipe": "pomodoro, mozz.fior di latte, prosciutto cotto, funghi",
+      "slug": "calzone-farcito",
+      "asset": "assets/images/products/calzone-farcito-generated-v1.webp"
+    },
+    {
+      "id": "749f03a8-2b46-d080-faf2-d6b375e2228b",
+      "category": "Classiche",
+      "name": "Quattro Stagioni",
+      "recipe": "pomodoro, mozz.fior di latte, prosciutto cotto, funghi, carciofi, salsiccia",
+      "slug": "quattro-stagioni",
+      "asset": "assets/images/products/quattro-stagioni-generated-v1.webp"
+    },
+    {
+      "id": "5576b740-1edb-5307-f2f6-4d7b8e2ff0aa",
+      "category": "Classiche",
+      "name": "Crudo di Parma",
+      "recipe": "pomodoro, mozz.fior di latte, prosciutto crudo di Parma",
+      "slug": "crudo-di-parma",
+      "asset": "assets/images/products/crudo-di-parma-generated-v1.webp"
+    },
+    {
+      "id": "9b363f85-a930-d75f-3160-2a98996142b1",
+      "category": "Classiche",
+      "name": "Pancetta",
+      "recipe": "pomodoro, mozz.fior di latte, pancetta",
+      "slug": "pancetta",
+      "asset": "assets/images/products/pancetta-generated-v1.webp"
+    },
+    {
+      "id": "8588a45b-f05b-da59-aeeb-e8aa336b06a6",
+      "category": "Classiche",
+      "name": "Prosciutto",
+      "recipe": "pomodoro, mozz.fior di latte, prosciutto cotto",
+      "slug": "prosciutto",
+      "asset": "assets/images/products/prosciutto-generated-v1.webp"
+    },
+    {
+      "id": "c275e551-dcf3-12f3-c9f4-9f8a55351ce1",
+      "category": "Classiche",
+      "name": "Würstel",
+      "recipe": "pomodoro, mozz.fior di latte, Würstel",
+      "slug": "wurstel",
+      "asset": "assets/images/products/wurstel-generated-v1.webp"
+    },
+    {
+      "id": "d71787f2-8190-e631-51b3-5250e289efdf",
+      "category": "Classiche",
+      "name": "Speck",
+      "recipe": "pomodoro, mozz.fior di latte, speck",
+      "slug": "speck",
+      "asset": "assets/images/products/speck-generated-v1.webp"
+    },
+    {
+      "id": "911dca27-294f-f4ac-1e63-d4923f96b154",
+      "category": "Classiche",
+      "name": "Funghi",
+      "recipe": "pomodoro, mozz.fior di latte, funghi",
+      "slug": "funghi",
+      "asset": "assets/images/products/funghi-generated-v1.webp"
+    },
+    {
+      "id": "17c5fe9c-fc81-90f8-5a03-c5b4a0b9e573",
+      "category": "Classiche",
+      "name": "Tonno",
+      "recipe": "pomodoro, mozz.fior di latte, tonno",
+      "slug": "tonno",
+      "asset": "assets/images/products/tonno-generated-v1.webp"
+    },
+    {
+      "id": "0348bd5e-ec70-3df8-3540-b81fcd9cff68",
+      "category": "Classiche",
+      "name": "Salsiccia",
+      "recipe": "pomodoro, mozz.fior di latte, salsiccia",
+      "slug": "salsiccia",
+      "asset": "assets/images/products/salsiccia-generated-v1.webp"
+    },
+    {
+      "id": "a85dece1-5bb3-b377-1719-7f9e936f9532",
+      "category": "Classiche",
+      "name": "Quattro Formaggi",
+      "recipe": "pomodoro, mozz.fior di latte, pecorino, emmental, gorgonzola",
+      "slug": "quattro-formaggi",
+      "asset": "assets/images/products/quattro-formaggi-generated-v2.webp"
+    },
+    {
+      "id": "ded35530-96c1-52e7-421c-20876b27124b",
+      "category": "Classiche",
+      "name": "Hanz",
+      "recipe": "pomodoro, mozz.fior di latte, würstel, patatine fritte",
+      "slug": "hanz",
+      "asset": "assets/images/products/hanz-generated-v1.webp"
+    },
+    {
+      "id": "4acc4693-1c18-e39a-10bb-70f130b2e8e4",
+      "category": "Classiche",
+      "name": "Capricciosa",
+      "recipe": "pomodoro, mozz.fior di latte, prosciutto cotto, funghi, carciofi, salsiccia, olive",
+      "slug": "capricciosa",
+      "asset": "assets/images/products/capricciosa-generated-v1.webp"
+    },
+    {
+      "id": "3f3c8d25-16be-242d-7fac-f7430168ee69",
+      "category": "Classiche",
+      "name": "Speciale",
+      "recipe": "pomodoro, mozz.fior di latte di bufala, pomodorini, basilico",
+      "slug": "speciale",
+      "asset": "assets/images/products/speciale-generated-v1.webp"
+    }
+  ],
+  "undefinedRecipes": [
+    "Stria",
+    "Al metro: Margherita",
+    "Al metro: Metà Margherita Metà Farcita",
+    "Al metro: Super Farcita",
+    "Al metro: Gourmet",
+    "Al metro: Farcita"
+  ]
+}
