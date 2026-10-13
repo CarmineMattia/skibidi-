@@ -317,7 +317,8 @@ export function OrderNotificationProvider({ children }: { children: ReactNode })
     updateOrderStatus.mutate(
       {
         orderId: activeOrder.id,
-        status: 'preparing',
+        // Manual approval: Accetta only moves to 'accepted'; preparation is a separate kitchen step.
+        status: 'accepted',
       },
       {
         onSuccess: () => dequeueOrder(activeOrder.id),
@@ -330,7 +331,7 @@ export function OrderNotificationProvider({ children }: { children: ReactNode })
     updateOrderStatus.mutate(
       {
         orderId: activeOrder.id,
-        status: 'cancelled',
+        status: 'rejected',
         declineReasonPreset: payload.preset,
         declineReasonNote: payload.note || null,
       },

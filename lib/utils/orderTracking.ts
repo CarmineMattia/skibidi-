@@ -1,4 +1,5 @@
 import type { OrderStatus } from '@/types/database.types';
+import { ORDER_STATUS_LABEL_IT } from '@/lib/utils/orderStatus';
 
 export type OrderType = 'eat_in' | 'take_away' | 'delivery';
 
@@ -24,19 +25,15 @@ export interface TrackingStep {
 
 const STATUS_RANK: Record<OrderStatus, number> = {
   pending: 0,
+  accepted: 0.5,
   preparing: 1,
   ready: 2,
   delivered: 3,
+  rejected: -1,
   cancelled: -1,
 };
 
-const STATUS_LABEL_IT: Record<OrderStatus, string> = {
-  pending: 'In attesa di accettazione',
-  preparing: 'In preparazione',
-  ready: 'Pronto',
-  delivered: 'Completato',
-  cancelled: 'Rifiutato',
-};
+const STATUS_LABEL_IT: Record<OrderStatus, string> = ORDER_STATUS_LABEL_IT;
 
 const STEP_SUBTEXT: Record<TrackingStepState, string> = {
   completed: 'Fatto',
@@ -49,7 +46,7 @@ function getStepState(
   status: OrderStatus
 ): TrackingStepState {
   if (status === 'delivered') return 'completed';
-  if (status === 'cancelled') return 'upcoming';
+  if (status === 'cancelled' || status === 'rejected') return 'upcoming';
 
   const currentRank = STATUS_RANK[status];
   if (currentRank > stepMinRank) return 'completed';
@@ -110,11 +107,13 @@ export function getOrderStatusLabel(status: OrderStatus): string {
 
 export function getOrderConfirmation(status?: OrderStatus | null): { title: string; message: string; accepted: boolean } {
   if (!status) return { title: 'Verifica ordine', message: 'Lo stato non è verificabile. Riprova senza inviare un altro ordine.', accepted: false };
-  if (status === 'pending') return { title: 'Ordine inviato', message: 'L’ordine è salvato nel sistema della pizzeria ed è in attesa di accettazione dalla cucina.', accepted: false };
-  if (status === 'cancelled') return { title: 'Ordine non accettato', message: 'La pizzeria ha rifiutato l’ordine. Apri il dettaglio per vedere il motivo.', accepted: false };
+  if (status === 'pending') return { title: 'Ordine inviato', message: 'L’ordine è salvato nel sistema della pizzeria ed è in attesa di conferma da parte della pizzeria.', accepted: false };
+  if (status === 'rejected') return { title: 'Ordine rifiutato', message: 'La pizzeria ha rifiutato l’ordine. Apri il dettaglio per vedere il motivo.', accepted: false };
+  if (status === 'cancelled') return { title: 'Ordine annullato', message: 'L’ordine è stato annullato. Apri il dettaglio per vedere il motivo.', accepted: false };
+  if (status === 'accepted') return { title: 'Ordine accettato', message: 'La pizzeria ha accettato l’ordine. La preparazione inizia a breve.', accepted: true };
   if (status === 'preparing') return { title: 'Ordine accettato', message: 'La cucina ha accettato l’ordine e lo sta preparando.', accepted: true };
   if (status === 'ready') return { title: 'Ordine pronto', message: 'La cucina ha completato la preparazione.', accepted: true };
-  return { title: 'Ordine completato', message: 'L’ordine è stato completato dalla pizzeria.', accepted: true };
+  return { title: 'Ritirato e pagato', message: 'L’ordine è stato ritirato e pagato alla cassa.', accepted: true };
 }
 
 export function getTrackingSteps(
@@ -124,15 +123,16 @@ export function getTrackingSteps(
   if (!status) return [];
   const resolvedStatus = status;
 
-  if (resolvedStatus === 'cancelled') {
+  if (resolvedStatus === 'cancelled' || resolvedStatus === 'rejected') {
+    const label = resolvedStatus === 'rejected' ? 'Rifiutato' : 'Annullato';
     return [
       { key: 'received', label: 'Ordine inviato', icon: 'check-circle', state: 'completed', subtext: 'Salvato nel sistema' },
       {
-        key: 'cancelled',
-        label: 'Rifiutato',
+        key: resolvedStatus,
+        label,
         icon: 'times-circle',
         state: 'active',
-        subtext: 'Ordine rifiutato',
+        subtext: resolvedStatus === 'rejected' ? 'Ordine rifiutato' : 'Ordine annullato',
       },
     ];
   }
@@ -140,7 +140,7 @@ export function getTrackingSteps(
   if (orderType === 'eat_in') {
     return [
       { key: 'received', label: 'Ordine inviato', icon: 'check-circle', state: 'completed', subtext: 'Salvato nel sistema' },
-      buildStep('confirmed', resolvedStatus === 'pending' ? 'In attesa di accettazione' : 'Accettato', 'check-circle', 0, resolvedStatus),
+      buildStep('confirmed', resolvedStatus === 'pending' ? 'In attesa di conferma' : 'Accettato', 'check-circle', 0, resolvedStatus),
       buildStep('preparing', 'In preparazione', 'fire', 1, resolvedStatus),
       // Rank 2 = ready → active "Pronto" while waiting to be served
       buildStep('ready', 'Pronto', 'bell', 2, resolvedStatus),
@@ -150,7 +150,7 @@ export function getTrackingSteps(
   if (orderType === 'take_away') {
     return [
       { key: 'received', label: 'Ordine inviato', icon: 'check-circle', state: 'completed', subtext: 'Salvato nel sistema' },
-      buildStep('confirmed', resolvedStatus === 'pending' ? 'In attesa di accettazione' : 'Accettato', 'check-circle', 0, resolvedStatus),
+      buildStep('confirmed', resolvedStatus === 'pending' ? 'In attesa di conferma' : 'Accettato', 'check-circle', 0, resolvedStatus),
       buildStep('preparing', 'In preparazione', 'fire', 1, resolvedStatus),
       buildStep('pickup', 'Pronto per il ritiro', 'shopping-bag', 2, resolvedStatus),
     ];
@@ -158,7 +158,7 @@ export function getTrackingSteps(
 
   return [
     { key: 'received', label: 'Ordine inviato', icon: 'check-circle', state: 'completed', subtext: 'Salvato nel sistema' },
-      buildStep('confirmed', resolvedStatus === 'pending' ? 'In attesa di accettazione' : 'Accettato', 'check-circle', 0, resolvedStatus),
+      buildStep('confirmed', resolvedStatus === 'pending' ? 'In attesa di conferma' : 'Accettato', 'check-circle', 0, resolvedStatus),
     buildStep('preparing', 'In preparazione', 'fire', 1, resolvedStatus),
     buildStep('delivery', 'Pronto per la consegna', 'motorcycle', 2, resolvedStatus),
     buildStep('delivered', 'Consegnato', 'home', 3, resolvedStatus),
@@ -172,11 +172,17 @@ export function getTrackingBadge(
   if (!status) return { label: 'Stato non verificato', icon: 'bell' };
   const resolvedStatus = status;
 
-  if (resolvedStatus === 'cancelled') {
+  if (resolvedStatus === 'rejected') {
     return { label: 'Ordine rifiutato', icon: 'times' };
   }
+  if (resolvedStatus === 'cancelled') {
+    return { label: 'Ordine annullato', icon: 'times' };
+  }
   if (resolvedStatus === 'delivered') {
-    return { label: 'Completato', icon: 'check' };
+    return { label: 'Ritirato e pagato', icon: 'check' };
+  }
+  if (resolvedStatus === 'accepted') {
+    return { label: 'Accettato', icon: 'check' };
   }
   if (resolvedStatus === 'ready') {
     if (orderType === 'take_away') return { label: 'Pronto per il ritiro', icon: 'shopping-bag' };
@@ -186,7 +192,7 @@ export function getTrackingBadge(
   if (resolvedStatus === 'preparing') {
     return { label: 'In preparazione', icon: 'fire' };
   }
-  return { label: 'In attesa di accettazione', icon: 'bell' };
+  return { label: 'In attesa di conferma', icon: 'bell' };
 }
 
 export function getTrackingSummary(
@@ -201,12 +207,15 @@ export function getTrackingSummary(
     return 'Il tuo ordine è stato inviato al sistema della pizzeria. La cucina deve ancora accettarlo.';
   }
 
-  if (resolvedStatus === 'cancelled') {
+  if (resolvedStatus === 'rejected') {
     return `L'ordine ${orderRef} è stato rifiutato dal ristorante.`;
+  }
+  if (resolvedStatus === 'cancelled') {
+    return `L'ordine ${orderRef} è stato annullato.`;
   }
   if (resolvedStatus === 'delivered') {
     if (orderType === 'eat_in') return `L'ordine ${orderRef} è stato servito al tavolo.`;
-    if (orderType === 'take_away') return `L'ordine ${orderRef} è stato ritirato.`;
+    if (orderType === 'take_away') return `L'ordine ${orderRef} è stato ritirato e pagato.`;
     return `L'ordine ${orderRef} è stato consegnato.`;
   }
   if (resolvedStatus === 'ready') {
@@ -241,12 +250,15 @@ export function getStatusBadgeColors(status: OrderStatus): {
   switch (status) {
     case 'pending':
       return { container: 'bg-amber-100', text: 'text-amber-700' };
+    case 'accepted':
+      return { container: 'bg-indigo-100', text: 'text-indigo-700' };
     case 'preparing':
       return { container: 'bg-sky-100', text: 'text-sky-700' };
     case 'ready':
       return { container: 'bg-emerald-100', text: 'text-emerald-700' };
     case 'delivered':
       return { container: 'bg-emerald-100', text: 'text-emerald-700' };
+    case 'rejected':
     case 'cancelled':
       return { container: 'bg-red-100', text: 'text-red-700' };
     default:

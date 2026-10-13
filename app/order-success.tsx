@@ -60,7 +60,7 @@ export default function OrderSuccessScreen() {
         <View className="flex-1 bg-primary items-center justify-center px-4 sm:px-8">
             <View className="bg-card p-6 sm:p-8 md:p-12 rounded-3xl items-center shadow-2xl w-full max-w-md">
                 <Animated.View style={[animatedIconStyle]} className="mb-6">
-                    <View className={`${confirmation.accepted ? 'bg-green-500' : orderData?.status === 'cancelled' || isError ? 'bg-red-500' : 'bg-amber-500'} h-24 w-24 sm:h-32 sm:w-32 md:h-40 md:w-40 rounded-full items-center justify-center shadow-lg`}>
+                    <View className={`${confirmation.accepted ? 'bg-green-500' : orderData?.status === 'cancelled' || orderData?.status === 'rejected' || isError ? 'bg-red-500' : 'bg-amber-500'} h-24 w-24 sm:h-32 sm:w-32 md:h-40 md:w-40 rounded-full items-center justify-center shadow-lg`}>
                         <Text className="text-white text-5xl sm:text-6xl md:text-8xl">{confirmation.accepted ? '✓' : '!'}</Text>
                     </View>
                 </Animated.View>
