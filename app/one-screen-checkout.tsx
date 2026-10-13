@@ -15,7 +15,7 @@ import {
   isAddressInDeliveryZone,
   looksLikeOutOfDeliveryZone,
 } from '@/lib/utils/deliveryZone';
-import { PAY_AT_TILL_LABEL_IT, PAY_AT_TILL_METHOD } from '@/lib/payments/payAtTill';
+import { PAY_AT_TILL_LABEL_IT, PAY_AT_TILL_METHOD, PAY_AT_TILL_NOTE } from '@/lib/payments/payAtTill';
 import { getCartItemUnitPrice, useCart } from '@/lib/stores/CartContext';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
@@ -73,6 +73,8 @@ export default function OneScreenCheckout() {
     try {
       const result = await createOrder.mutateAsync({
         items,
+        // Stessa nota del checkout /modal: lo scontrino stampa "Pagamento alla cassa".
+        notes: PAY_AT_TILL_NOTE,
         orderType,
         customerName: customerName.trim(),
         customerPhone: customerPhone.trim(),
