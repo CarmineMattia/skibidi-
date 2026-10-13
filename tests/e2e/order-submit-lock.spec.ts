@@ -1,4 +1,19 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
+
+// The web build uses static output: the server-rendered inputs are visible
+// before React hydrates, and hydration resets anything typed into them.
+// Retry until the values survive a re-render so the click hits a live form.
+async function fillCustomer(page: Page) {
+  const name = page.getByPlaceholder('Nome', { exact: true });
+  const phone = page.getByPlaceholder('Telefono', { exact: true });
+  await expect(async () => {
+    await name.fill('Cliente di prova');
+    await phone.fill('3331234567');
+    await page.waitForTimeout(500);
+    await expect(name).toHaveValue('Cliente di prova', { timeout: 100 });
+    await expect(phone).toHaveValue('3331234567', { timeout: 100 });
+  }).toPass({ timeout: 30000 });
+}
 
 test('a rejected submission shows a visible error, preserves the cart and allows retry', async ({ page }) => {
   await page.route('**/rest/v1/**', route => route.fulfill({ json: [] }));
@@ -13,8 +28,7 @@ test('a rejected submission shows a visible error, preserves the cart and allows
     ]));
   });
   await page.goto('/one-screen-checkout');
-  await page.getByPlaceholder('Nome', { exact: true }).fill('Cliente di prova');
-  await page.getByPlaceholder('Telefono', { exact: true }).fill('3331234567');
+  await fillCustomer(page);
   await page.getByRole('button', { name: /Conferma ordine/ }).click();
   await expect(page.getByRole('alert')).toContainText('Invio non confermato', { timeout: 10000 });
   await expect(page.getByRole('button', { name: /Conferma ordine/ })).toBeEnabled();
@@ -47,8 +61,7 @@ test('confirmation stays disabled through a slow submission and sends one order'
     ]));
   });
   await page.goto('/one-screen-checkout');
-  await page.getByPlaceholder('Nome', { exact: true }).fill('Cliente di prova');
-  await page.getByPlaceholder('Telefono', { exact: true }).fill('3331234567');
+  await fillCustomer(page);
   await page.getByRole('button', { name: /Conferma ordine/ }).click();
   const sending = page.getByRole('button', { name: 'Invio in corso…' });
   await expect(sending).toBeDisabled();
