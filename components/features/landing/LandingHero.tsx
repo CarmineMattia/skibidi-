@@ -1,7 +1,7 @@
 import { BRAND } from '@/lib/data/brand';
 import { FontAwesome, FontAwesome5, MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Image, Linking, Pressable, Text, View } from 'react-native';
+import { Image, Linking, Pressable, Text, View, type ViewStyle } from 'react-native';
 
 const HERO_IMAGE = require('@/assets/images/landing/ambrosia-insegna.jpg') as number;
 
@@ -65,6 +65,14 @@ function openWhatsAppOrSaveContact() {
 // Layout is driven by CSS breakpoints (sm/md), not JS width props: media
 // queries are already correct in the statically-rendered HTML, so the first
 // paint doesn't relayout when hydration learns the real viewport width.
+
+// Web-only glass. react-native-web forwards these CSS props, but they are not in
+// ViewStyle; the cast keeps tsc green with or without generated expo-env types.
+const WEB_GLASS = {
+  backdropFilter: 'blur(14px)',
+  WebkitBackdropFilter: 'blur(14px)',
+} as unknown as ViewStyle;
+
 export function LandingHero({ isDesktop, onMenu }: LandingHeroProps) {
   return (
     <View className="relative min-h-[590px] overflow-hidden bg-[#211713] sm:min-h-[620px] md:min-h-[650px]">
@@ -154,10 +162,7 @@ export function LandingHero({ isDesktop, onMenu }: LandingHeroProps) {
                 className="min-h-[64px] flex-row items-center justify-center gap-3 rounded-2xl border border-white/35 px-6 active:opacity-85 web:hover:bg-white/15 web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-[#f0c486]"
                 style={{
                   backgroundColor: 'rgba(255, 248, 238, 0.14)',
-                  // web-only glass
-                  backdropFilter: 'blur(14px)',
-                  // @ts-expect-error web-only glass
-                  WebkitBackdropFilter: 'blur(14px)',
+                  ...WEB_GLASS,
                   shadowColor: '#000',
                   shadowOpacity: 0.22,
                   shadowRadius: 16,
@@ -181,10 +186,7 @@ export function LandingHero({ isDesktop, onMenu }: LandingHeroProps) {
                 className="min-h-[64px] flex-row items-center justify-center gap-3 rounded-2xl border border-[#25D366]/55 px-6 active:opacity-90 web:hover:bg-[#25D366]/20 web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-[#25D366]"
                 style={{
                   backgroundColor: 'rgba(37, 211, 102, 0.18)',
-                  // web-only glass
-                  backdropFilter: 'blur(14px)',
-                  // @ts-expect-error web-only glass
-                  WebkitBackdropFilter: 'blur(14px)',
+                  ...WEB_GLASS,
                   shadowColor: '#128C7E',
                   shadowOpacity: 0.28,
                   shadowRadius: 16,
