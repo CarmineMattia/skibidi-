@@ -46,6 +46,13 @@ export default defineConfig({
         url: 'http://localhost:8081',
         reuseExistingServer: !process.env.CI,
         timeout: 120000,
+        // Hermetic e2e: the app crashes at import time (createClient throws
+        // "supabaseUrl is required") when these are unset, so the checkout never
+        // renders. Specs mock every Supabase route; this host is never reached.
+        env: {
+          EXPO_PUBLIC_SUPABASE_URL: process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://e2e-placeholder.supabase.co',
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || 'e2e-placeholder-anon-key',
+        },
       },
   expect: {
     toHaveScreenshot: {
