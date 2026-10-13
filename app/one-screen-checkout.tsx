@@ -8,6 +8,8 @@
 
 import { Button } from '@/components/ui/Button';
 import { SatispayOpenHint } from '@/components/features/SatispayOpenHint';
+import { TurnstileWidget } from '@/components/features/TurnstileWidget';
+import { isAntiabuseError } from '@/lib/utils/antiabuse';
 import { useCreateOrder } from '@/lib/hooks/useCreateOrder';
 import { useOrderSubmissionGuard } from '@/lib/hooks/useOrderSubmissionGuard';
 import {
@@ -64,6 +66,7 @@ export default function OneScreenCheckout() {
   const insets = useSafeAreaInsets();
   const { items, totalAmount, clearCart } = useCart();
   const createOrder = useCreateOrder();
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
   const [orderType, setOrderType] = useState<OrderType>('take_away');
   const [customerName, setCustomerName] = useState('');
@@ -115,6 +118,7 @@ export default function OneScreenCheckout() {
           orderType === 'delivery' ? resolvedDeliveryAddress.trim() : undefined,
         fulfillmentMode: 'asap',
         paymentMethod: paymentProviderToMethod(selectedPayment),
+        turnstileToken,
       });
 
       await complete(true);
@@ -128,7 +132,7 @@ export default function OneScreenCheckout() {
       await complete(false);
       setSubmissionError('Non abbiamo ricevuto la conferma del tuo ordine. Riprova. Se il problema continua, contatta la pizzeria.');
       console.error('Order creation failed:', error);
-      Alert.alert('Errore', 'Impossibile creare l\u2019ordine. Riprova.');
+      Alert.alert('Errore', isAntiabuseError(error) ? error.message : 'Impossibile creare l\u2019ordine. Riprova.');
     }
   }, [
     items,
@@ -137,6 +141,7 @@ export default function OneScreenCheckout() {
     customerPhone,
     deliveryAddress,
     selectedPayment,
+    turnstileToken,
     createOrder,
     clearCart,
     router,
@@ -302,6 +307,7 @@ export default function OneScreenCheckout() {
             </View>
           ) : null}
         </View>
+        <TurnstileWidget onToken={setTurnstileToken} />
       </ScrollView>
 
       {/* Confirm bar */}
