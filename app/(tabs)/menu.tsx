@@ -93,48 +93,64 @@ function DrinkSpotlightWrap({
   children: ReactNode;
 }) {
   return (
-    <View className="relative flex-1">
-      {children}
+    <View className="flex-1">
       {active ? (
-        <>
+        // Fumetto in flusso SOPRA la card: non la copre (niente overlay assoluto).
+        <View testID="drink-upsell-bubble" className="items-center mb-1.5" pointerEvents="box-none">
+          <View
+            pointerEvents="box-none"
+            className="flex-row items-center gap-2 bg-[#8d171e] rounded-3xl pl-4 pr-2 py-2 max-w-full"
+          >
+            <View pointerEvents="none" className="flex-row items-center gap-2 flex-shrink">
+              <FontAwesome name="glass" size={14} color="#f9ecdd" />
+              <Text className="text-white font-extrabold text-sm" numberOfLines={1}>
+                {title}
+              </Text>
+            </View>
+            <Pressable
+              onPress={onContinue}
+              accessibilityRole="button"
+              accessibilityLabel={continueLabel}
+              className="rounded-full bg-white px-3 py-1.5 active:opacity-80"
+            >
+              <Text className="text-[#8d171e] font-bold text-xs" numberOfLines={1}>
+                {continueLabel}
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={onDismiss}
+              hitSlop={12}
+              accessibilityRole="button"
+              accessibilityLabel={closeLabel}
+              className="w-7 h-7 rounded-full bg-white/20 items-center justify-center"
+            >
+              <FontAwesome name="close" size={12} color="#f9ecdd" />
+            </Pressable>
+          </View>
           <View
             pointerEvents="none"
-            className="absolute inset-0 rounded-3xl border-2 border-[#8d171e]"
+            style={{
+              width: 0,
+              height: 0,
+              borderLeftWidth: 8,
+              borderRightWidth: 8,
+              borderTopWidth: 8,
+              borderLeftColor: 'transparent',
+              borderRightColor: 'transparent',
+              borderTopColor: '#8d171e',
+            }}
           />
-          <View className="absolute left-3 right-3 -top-3 z-40 items-center" pointerEvents="box-none">
-            <View
-              pointerEvents="box-none"
-              className="flex-row items-center gap-2 bg-[#8d171e] rounded-3xl pl-4 pr-2 py-2 max-w-full"
-            >
-              <View pointerEvents="none" className="flex-row items-center gap-2 flex-shrink">
-                <FontAwesome name="glass" size={14} color="#f9ecdd" />
-                <Text className="text-white font-extrabold text-sm" numberOfLines={1}>
-                  {title}
-                </Text>
-              </View>
-              <Pressable
-                onPress={onContinue}
-                accessibilityRole="button"
-                accessibilityLabel={continueLabel}
-                className="rounded-full bg-white px-3 py-1.5 active:opacity-80"
-              >
-                <Text className="text-[#8d171e] font-bold text-xs" numberOfLines={1}>
-                  {continueLabel}
-                </Text>
-              </Pressable>
-              <Pressable
-                onPress={onDismiss}
-                hitSlop={12}
-                accessibilityRole="button"
-                accessibilityLabel={closeLabel}
-                className="w-7 h-7 rounded-full bg-white/20 items-center justify-center"
-              >
-                <FontAwesome name="close" size={12} color="#f9ecdd" />
-              </Pressable>
-            </View>
-          </View>
-        </>
+        </View>
       ) : null}
+      <View className="relative flex-1">
+        {children}
+        {active ? (
+          <View
+            pointerEvents="none"
+            className="absolute inset-0 rounded-2xl border-2 border-[#8d171e]"
+          />
+        ) : null}
+      </View>
     </View>
   );
 }

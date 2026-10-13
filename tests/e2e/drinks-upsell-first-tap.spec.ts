@@ -37,6 +37,13 @@ test.describe('upsell bevande', () => {
     await page.getByText(/Procedi/).first().click();
     await expect(page.getByText('Scegli una bevanda!')).toBeVisible();
 
+    // Il fumetto sta sopra la card, non la copre.
+    const bubbleBox = await page.getByTestId('drink-upsell-bubble').boundingBox();
+    const plusBox = await page.getByRole('button', { name: 'Aggiungi Acqua al carrello' }).boundingBox();
+    const nameBox = await page.getByText('Acqua', { exact: true }).last().boundingBox();
+    if (!bubbleBox || !plusBox || !nameBox) throw new Error('layout non misurabile');
+    expect(bubbleBox.y + bubbleBox.height).toBeLessThanOrEqual(Math.min(plusBox.y, nameBox.y));
+
     // Un solo tap sul "+" della bevanda: deve finire nel carrello.
     await page.getByRole('button', { name: 'Aggiungi Acqua al carrello' }).tap({ timeout: 3000 });
     await expect.poll(() => cartCount(page), { timeout: 2000 }).toBe(2);
