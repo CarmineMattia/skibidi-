@@ -1,48 +1,128 @@
 /**
- * Guardia prod per gli e2e.
+ * Guardia prod per gli e2e (vedi docs/e2e-prod-guard.md).
  *
- * I test che fanno login reali (admin@skibidi.com, customer@skibidi.com) o
- * scritture via API NON devono mai girare contro il progetto Supabase di
- * produzione. Se il target è prod vengono saltati, a meno di un opt-in esplicito:
+ * I test che fanno login reali o scritture NON devono mai girare contro il
+ * progetto Supabase di produzione. Se il target è prod vengono saltati, a meno
+ * di un opt-in esplicito: E2E_ALLOW_PROD=1 (solo con OK di Carmine, mai in CI).
  *
- *   E2E_ALLOW_PROD=1   (solo con OK di Carmine, mai in CI)
- *
- * Il target è considerato prod se EXPO_PUBLIC_SUPABASE_URL (env o .env)
- * contiene il ref di prod, oppure se PLAYWRIGHT_BASE_URL punta al sito di prod.
+ * Il target è prod se uno qualsiasi di questi segnali lo indica:
+ * - un Supabase URL (EXPO_PUBLIC_SUPABASE_URL o SUPABASE_URL, da env, .env o
+ *   .env.local) contiene il ref di prod, senza distinzione maiuscole/minuscole;
+ * - il Supabase URL è un custom domain di prod (PROD_SUPABASE_HOSTS o
+ *   E2E_PROD_SUPABASE_HOSTS, separati da virgola);
+ * - la anon key (EXPO_PUBLIC_SUPABASE_ANON_KEY o SUPABASE_ANON_KEY) è un JWT
+ *   con ref di prod;
+ * - PLAYWRIGHT_BASE_URL punta al sito di prod o a una preview Vercel del progetto.
  */
 import fs from 'node:fs';
 import path from 'node:path';
 
 export const PROD_SUPABASE_REF = 'zqubwvhstobaugifzoyb';
+export const PROD_SUPABASE_HOSTS: string[] = [];
 export const PROD_SITE_HOSTS = ['skibidi-eight-virid.vercel.app'];
+/** Preview Vercel del progetto: skibidi-<hash>-carminemattias-projects.vercel.app, skibidi-git-<branch>-... */
+export const VERCEL_PREVIEW_PATTERNS = [/^skibidi-[a-z0-9-]+\.vercel\.app$/i, /carminemattias-projects\.vercel\.app$/i];
 export const PROD_OPT_IN_ENV = 'E2E_ALLOW_PROD';
 
-function supabaseUrlFromDotEnv(): string | undefined {
+const URL_KEYS = ['EXPO_PUBLIC_SUPABASE_URL', 'SUPABASE_URL'];
+const KEY_KEYS = ['EXPO_PUBLIC_SUPABASE_ANON_KEY', 'SUPABASE_ANON_KEY'];
+const ENV_FILES = ['.env', '.env.local'];
+
+type Env = Record<string, string | undefined>;
+
+export function parseDotEnv(content: string): Env {
+  const out: Env = {};
+  for (const line of content.split(/\r?\n/)) {
+    const m = line.match(/^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/);
+    if (!m) continue;
+    out[m[1]] = m[2].trim().replace(/^(['"])(.*)\1$/, '$2');
+  }
+  return out;
+}
+
+export function readEnvFiles(cwd = process.cwd()): Env[] {
+  return ENV_FILES.map((f) => {
+    try {
+      return parseDotEnv(fs.readFileSync(path.resolve(cwd, f), 'utf-8'));
+    } catch {
+      return {};
+    }
+  });
+}
+
+function hostOf(value: string): string {
   try {
-    const env = fs.readFileSync(path.resolve(process.cwd(), '.env'), 'utf-8');
-    return env.match(/^EXPO_PUBLIC_SUPABASE_URL=(.+)$/m)?.[1]?.trim();
+    return new URL(value.includes('://') ? value : `https://${value}`).hostname.toLowerCase();
   } catch {
-    return undefined;
+    return value.toLowerCase();
   }
 }
 
-export function resolvedSupabaseUrl(): string {
-  return process.env.EXPO_PUBLIC_SUPABASE_URL || supabaseUrlFromDotEnv() || '';
+/** Ref Supabase dal payload della anon key (claim "ref"), o null. */
+export function refFromJwt(token: string | undefined): string | null {
+  if (!token) return null;
+  const parts = token.split('.');
+  if (parts.length < 2) return null;
+  try {
+    const payload = JSON.parse(Buffer.from(parts[1].replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf-8'));
+    return typeof payload?.ref === 'string' ? payload.ref.toLowerCase() : null;
+  } catch {
+    return null;
+  }
 }
 
-export function targetsProd(): boolean {
-  const url = resolvedSupabaseUrl();
-  const base = process.env.PLAYWRIGHT_BASE_URL || '';
-  return url.includes(PROD_SUPABASE_REF) || PROD_SITE_HOSTS.some((h) => base.includes(h));
+export function isVercelPreviewOrProdSite(baseUrl: string | undefined): boolean {
+  if (!baseUrl) return false;
+  const host = hostOf(baseUrl);
+  return PROD_SITE_HOSTS.includes(host) || VERCEL_PREVIEW_PATTERNS.some((re) => re.test(host));
 }
 
-export function prodWritesAllowed(): boolean {
-  return process.env[PROD_OPT_IN_ENV] === '1';
+/** Logica pura: true se uno dei segnali punta a prod. */
+export function detectProd(sources: Env[]): boolean {
+  const ref = PROD_SUPABASE_REF.toLowerCase();
+  const customHosts = [
+    ...PROD_SUPABASE_HOSTS,
+    ...sources.flatMap((s) => (s.E2E_PROD_SUPABASE_HOSTS || '').split(',')),
+  ]
+    .map((h) => h.trim().toLowerCase())
+    .filter(Boolean)
+    .map(hostOf);
+
+  for (const s of sources) {
+    for (const k of URL_KEYS) {
+      const v = s[k];
+      if (!v) continue;
+      if (v.toLowerCase().includes(ref)) return true;
+      if (customHosts.includes(hostOf(v))) return true;
+    }
+    for (const k of KEY_KEYS) {
+      if (refFromJwt(s[k]) === ref) return true;
+    }
+    if (isVercelPreviewOrProdSite(s.PLAYWRIGHT_BASE_URL)) return true;
+  }
+  return false;
+}
+
+export function targetsProd(env: Env = process.env, cwd = process.cwd()): boolean {
+  return detectProd([env, ...readEnvFiles(cwd)]);
+}
+
+/** Supabase URL effettivo (env, poi .env.local, poi .env). */
+export function resolvedSupabaseUrl(env: Env = process.env, cwd = process.cwd()): string {
+  const [dotEnv, dotEnvLocal] = readEnvFiles(cwd);
+  for (const s of [env, dotEnvLocal, dotEnv]) {
+    for (const k of URL_KEYS) if (s[k]) return s[k] as string;
+  }
+  return '';
+}
+
+export function prodWritesAllowed(env: Env = process.env): boolean {
+  return env[PROD_OPT_IN_ENV] === '1';
 }
 
 /** true se i test con login reali/scritture devono essere saltati. */
-export function mustSkipRealAuth(): boolean {
-  return targetsProd() && !prodWritesAllowed();
+export function mustSkipRealAuth(env: Env = process.env, cwd = process.cwd()): boolean {
+  return targetsProd(env, cwd) && !prodWritesAllowed(env);
 }
 
 export const PROD_SKIP_REASON = `Target Supabase di produzione: login reali e scritture disattivati (opt-in: ${PROD_OPT_IN_ENV}=1)`;
