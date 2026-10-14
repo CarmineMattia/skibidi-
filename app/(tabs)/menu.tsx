@@ -69,67 +69,87 @@ function isStandardMenuPizza(product: Product, categoryName?: string): boolean {
   );
 }
 
+/**
+ * Evidenzia una bevanda dopo il primo "Procedi" senza bevande nel carrello.
+ * - Il wrapper è sempre lo stesso View (niente remount della card quando l'evidenziazione cambia).
+ * - Il fumetto non intercetta i tap (pointerEvents box-none): solo "Continua" e "Chiudi" sono cliccabili,
+ *   così il primo tap sulla card o sul "+" arriva sempre a destinazione.
+ */
 function DrinkSpotlightWrap({
   active,
   title,
   closeLabel,
+  continueLabel,
   onDismiss,
+  onContinue,
   children,
 }: {
   active: boolean;
   title: string;
   closeLabel: string;
+  continueLabel: string;
   onDismiss: () => void;
+  onContinue: () => void;
   children: ReactNode;
 }) {
-  const [hovered, setHovered] = useState(false);
-
-  if (!active) {
-    return <>{children}</>;
-  }
-
   return (
-    <View className="relative flex-1">
-      {children}
-      <View
-        pointerEvents="none"
-        className="absolute inset-0 rounded-3xl border-2 border-[#8d171e]"
-      />
-      <View className="absolute left-3 right-3 top-4 z-40 items-center" pointerEvents="box-none">
-        <Pressable
-          onHoverIn={() => setHovered(true)}
-          onHoverOut={() => setHovered(false)}
-          className="flex-row items-center gap-3 bg-[#8d171e] rounded-3xl px-5 py-3.5 max-w-full"
-        >
-          <FontAwesome name="glass" size={hovered ? 20 : 16} color="#f9ecdd" />
-          <Text
-            className={`text-white font-extrabold ${hovered ? 'text-2xl' : 'text-lg'}`}
-            numberOfLines={1}
+    <View className="flex-1">
+      {active ? (
+        // Fumetto in flusso SOPRA la card: non la copre (niente overlay assoluto).
+        <View testID="drink-upsell-bubble" className="items-center mb-1.5" pointerEvents="box-none">
+          <View
+            pointerEvents="box-none"
+            className="flex-row items-center gap-2 bg-[#8d171e] rounded-3xl pl-4 pr-2 py-2 max-w-full"
           >
-            {title}
-          </Text>
-          <Pressable
-            onPress={onDismiss}
-            hitSlop={12}
-            accessibilityRole="button"
-            accessibilityLabel={closeLabel}
-            className="w-8 h-8 rounded-full bg-white/20 items-center justify-center"
-          >
-            <FontAwesome name="close" size={14} color="#f9ecdd" />
-          </Pressable>
-        </Pressable>
-        <View
-          style={{
-            width: 0,
-            height: 0,
-            borderLeftWidth: 10,
-            borderRightWidth: 10,
-            borderTopWidth: 12,
-            borderLeftColor: 'transparent',
-            borderRightColor: 'transparent',
-            borderTopColor: '#8d171e',
-          }}
-        />
+            <View pointerEvents="none" className="flex-row items-center gap-2 flex-shrink">
+              <FontAwesome name="glass" size={14} color="#f9ecdd" />
+              <Text className="text-white font-extrabold text-sm" numberOfLines={1}>
+                {title}
+              </Text>
+            </View>
+            <Pressable
+              onPress={onContinue}
+              accessibilityRole="button"
+              accessibilityLabel={continueLabel}
+              className="rounded-full bg-white px-3 py-1.5 active:opacity-80"
+            >
+              <Text className="text-[#8d171e] font-bold text-xs" numberOfLines={1}>
+                {continueLabel}
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={onDismiss}
+              hitSlop={12}
+              accessibilityRole="button"
+              accessibilityLabel={closeLabel}
+              className="w-7 h-7 rounded-full bg-white/20 items-center justify-center"
+            >
+              <FontAwesome name="close" size={12} color="#f9ecdd" />
+            </Pressable>
+          </View>
+          <View
+            pointerEvents="none"
+            style={{
+              width: 0,
+              height: 0,
+              borderLeftWidth: 8,
+              borderRightWidth: 8,
+              borderTopWidth: 8,
+              borderLeftColor: 'transparent',
+              borderRightColor: 'transparent',
+              borderTopColor: '#8d171e',
+            }}
+          />
+        </View>
+      ) : null}
+      <View className="relative flex-1">
+        {children}
+        {active ? (
+          <View
+            pointerEvents="none"
+            className="absolute inset-0 rounded-2xl border-2 border-[#8d171e]"
+          />
+        ) : null}
       </View>
     </View>
   );
@@ -254,6 +274,7 @@ export default function MenuScreen() {
             yourOrder: 'Your Order',
             itemsLabel: 'items',
             drinkPromptTitle: 'Pick a drink!',
+            continueWithoutDrinks: 'Continue without',
           }
         : {
             menuSubtitle: 'Ordina online',
@@ -269,6 +290,7 @@ export default function MenuScreen() {
             yourOrder: 'Il tuo ordine',
             itemsLabel: 'articoli',
             drinkPromptTitle: 'Scegli una bevanda!',
+            continueWithoutDrinks: 'Continua senza',
           },
     [language]
   );
@@ -349,11 +371,6 @@ export default function MenuScreen() {
     setHighlightedDrinkId(null);
   }, []);
 
-  useEffect(() => {
-    if (!showContinueWithoutDrinks || !highlightedDrinkId) return;
-    const timer = setTimeout(dismissDrinkHint, 4000);
-    return () => clearTimeout(timer);
-  }, [showContinueWithoutDrinks, highlightedDrinkId, dismissDrinkHint]);
 
   const handleProductPress = (productId: string) => {
     const product = products.find(p => p.id === productId);
@@ -408,6 +425,12 @@ export default function MenuScreen() {
     }
 
     setShowContinueWithoutDrinks(false);
+    router.push('/modal');
+  };
+
+  const continueWithoutDrinks = () => {
+    setShowContinueWithoutDrinks(false);
+    setHighlightedDrinkId(null);
     router.push('/modal');
   };
 
@@ -645,6 +668,7 @@ export default function MenuScreen() {
               columnWrapperClassName={effectiveProductColumns > 1 ? (isMobile ? 'gap-3' : 'gap-6') : undefined}
               ItemSeparatorComponent={() => <View className={isMobile ? 'h-3' : 'h-4 md:h-6'} />}
               showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
               refreshing={productsLoading}
               onScrollToIndexFailed={(info) => {
                 const offset = Math.max(0, info.averageItemLength * info.index);
@@ -692,7 +716,9 @@ export default function MenuScreen() {
                     active={isSpotlight}
                     title={i18n.drinkPromptTitle}
                     closeLabel={language === 'en' ? 'Close' : 'Chiudi'}
+                    continueLabel={i18n.continueWithoutDrinks}
                     onDismiss={dismissDrinkHint}
+                    onContinue={continueWithoutDrinks}
                   >
                     <Pressable
                       onPress={() => handleProductPress(item.id)}
@@ -769,7 +795,9 @@ export default function MenuScreen() {
                       active={isSpotlight}
                       title={i18n.drinkPromptTitle}
                       closeLabel={language === 'en' ? 'Close' : 'Chiudi'}
+                      continueLabel={i18n.continueWithoutDrinks}
                       onDismiss={dismissDrinkHint}
+                      onContinue={continueWithoutDrinks}
                     >
                       <ProductCard
                         product={item}

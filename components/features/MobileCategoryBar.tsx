@@ -19,7 +19,7 @@ const FALLBACK_BY_NAME: Record<string, string> = {
   metro: 'https://images.unsplash.com/photo-1600628421066-f6bda6a7b976?auto=format&fit=crop&w=200&q=70',
   bevand: 'https://images.unsplash.com/photo-1527960471264-932f39eb5846?auto=format&fit=crop&w=200&q=70',
   dolc: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=200&q=70',
-  frit: 'https://images.unsplash.com/photo-1630384066600-4f4f0c5b1b1a?auto=format&fit=crop&w=200&q=70',
+  frit: 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?auto=format&fit=crop&w=200&q=70',
   default:
     'https://images.unsplash.com/photo-1548369937-47519962c11a?auto=format&fit=crop&w=200&q=70',
 };

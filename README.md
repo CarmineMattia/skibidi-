@@ -29,6 +29,12 @@ For a full local Supabase + Auth setup (migrations, OTP login, admin user), see 
 
 To contribute via pull request, see **[CONTRIBUTING.md](./CONTRIBUTING.md)**.
 
+## Decisioni di prodotto (ottobre 2026)
+
+Skibidi è un **canale aggiuntivo per ordini d'asporto online** per Pizzeria Ambrosia: non sostituisce POS/cassa, pagamento **solo alla cassa** (v1 niente pagamento online), login **solo Google** (niente guest né email+password), ogni ordine richiede **approvazione manuale** prima della preparazione. Obiettivo finale: ordini nel POS esistente (Windows 10); nel frattempo dashboard su Chrome. Bot WhatsApp rimandato.
+
+Dettagli: [piano](./docs/SKIBIDI-ORDERS-PLAN.md) · [todo](./docs/TODO.md). Alcune parti di `roadmap.md` (pagamenti online, fiscalità) sono superate.
+
 ## Current Ambrosia status (2026-10-08)
 
 - 48 recipe-matched illustrative pizza photos are bundled with the app. Preview them at `/pizza-foto`. Stria and configurable al-metro products still need fixed recipes before adding photos.
