@@ -13,7 +13,9 @@ import {
 } from '@/lib/utils/deliveryZone';
 import { useAppSettings } from '@/lib/stores/AppSettingsContext';
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
-import { Pressable, Text, TextInput, View } from 'react-native';
+import { getCurrentDeviceCoordinates } from '@/lib/utils/deviceLocation';
+import { FontAwesome } from '@expo/vector-icons';
+import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
 
 // Lazy chunk: maplibre-gl (WebGL) stays out of the initial checkout bundle.
 // The Suspense fallback fills the same reserved 220 px box, so the map
@@ -63,6 +65,9 @@ export function DeliveryAddressField({
   const [isResolvingLocation, setIsResolvingLocation] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [zoneError, setZoneError] = useState<string | null>(null);
+  const [isLocating, setIsLocating] = useState(false);
+  const [locateError, setLocateError] = useState<string | null>(null);
+
   const skipSearchRef = useRef(false);
   const searchRequestRef = useRef(0);
 
@@ -150,13 +155,48 @@ export function DeliveryAddressField({
     void applyCoordinates(suggestion.coordinates, { skipReverse: true });
   };
 
+  const handleUseMyLocation = async () => {
+    setLocateError(null);
+    setIsLocating(true);
+    try {
+      const result = await getCurrentDeviceCoordinates();
+      if (!result.ok) {
+        setLocateError(result.message);
+        return;
+      }
+      await applyCoordinates(result.coordinates);
+    } finally {
+      setIsLocating(false);
+    }
+  };
+
   return (
-    <View>
-      <Text className="text-sm font-medium mb-2">{label}</Text>
+    <View className="gap-1">
+      <View className="flex-row items-center justify-between mb-2 gap-3">
+        <Text className="text-base font-semibold text-foreground flex-1">{label}</Text>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Usa la mia posizione"
+          className="flex-row items-center gap-2 rounded-full bg-primary/10 px-4 py-2.5 active:opacity-80"
+          onPress={() => {
+            void handleUseMyLocation();
+          }}
+          disabled={isLocating || isResolvingLocation}
+        >
+          {isLocating || isResolvingLocation ? (
+            <ActivityIndicator size="small" color="#8d171e" />
+          ) : (
+            <FontAwesome name="location-arrow" size={14} color="#8d171e" />
+          )}
+          <Text className="text-sm font-bold text-primary">
+            {isLocating || isResolvingLocation ? 'Cerco…' : 'Usa posizione'}
+          </Text>
+        </Pressable>
+      </View>
 
       <View className="relative z-20">
         <TextInput
-          className={`bg-background border rounded-xl px-4 py-3 text-base min-h-[80px] ${
+          className={`bg-background border rounded-2xl px-4 py-4 text-base leading-6 min-h-[88px] ${
             hasError || zoneError ? 'border-red-500 bg-red-50' : 'border-border'
           }`}
           placeholder={placeholder}
@@ -164,6 +204,7 @@ export function DeliveryAddressField({
           value={address}
           onChangeText={(value) => {
             setShowSuggestions(true);
+            setLocateError(null);
             setZoneError(looksLikeOutOfDeliveryZone(value) ? zoneMessage : null);
             onAddressChange(value);
           }}
@@ -191,15 +232,15 @@ export function DeliveryAddressField({
       </View>
 
       {isSearching ? <Text className="text-xs text-muted-foreground mt-1">{searchingLabel}</Text> : null}
-      {error || zoneError ? (
-        <Text className="text-red-600 text-sm font-semibold mt-1">{error || zoneError}</Text>
+      {error || zoneError || locateError ? (
+        <Text className="text-red-600 text-sm font-semibold mt-2">{error || zoneError || locateError}</Text>
       ) : (
-        <Text className="text-xs text-muted-foreground mt-2">{hint || zoneMessage}</Text>
+        <Text className="text-sm text-muted-foreground mt-2 leading-5">{hint || zoneMessage}</Text>
       )}
 
-      <Text className="text-sm font-medium mb-2 mt-3">{civicoLabel}</Text>
+      <Text className="text-base font-semibold text-foreground mb-2 mt-5">{civicoLabel}</Text>
       <TextInput
-        className={`bg-background border rounded-xl px-4 py-3 text-base ${
+        className={`bg-background border rounded-2xl px-4 py-4 text-base ${
           hasCivicoError ? 'border-red-500 bg-red-50' : 'border-border'
         }`}
         placeholder={civicoPlaceholder}

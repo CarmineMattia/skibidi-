@@ -14,7 +14,10 @@
       "backgroundColor": "#f9ecdd"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Usiamo la tua posizione solo per compilare l’indirizzo di consegna a Montecchio Emilia / Villa Aiola."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -22,7 +25,11 @@
         "backgroundColor": "#f9ecdd"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -30,7 +37,13 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Usiamo la tua posizione solo per compilare l’indirizzo di consegna a Montecchio Emilia / Villa Aiola."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

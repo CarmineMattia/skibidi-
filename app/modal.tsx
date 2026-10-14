@@ -3,8 +3,8 @@ import { Button } from '@/components/ui/Button';
 import { TimeWheelModal } from '@/components/ui/TimeWheelModal';
 import { supabase } from '@/lib/api/supabase';
 import { BRAND } from '@/lib/data/brand';
-import { SatispayOpenHint } from '@/components/features/SatispayOpenHint';
 import { useCreateOrder } from '@/lib/hooks/useCreateOrder';
+import { useOrderSubmissionGuard } from '@/lib/hooks/useOrderSubmissionGuard';
 import { useCustomerLookup, type CustomerLookupOrder } from '@/lib/hooks/useCustomerLookup';
 import { useOfflineQueue } from '@/lib/hooks/useOfflineQueue';
 import { classifyItalianPhone } from '@/lib/utils/phone';
@@ -15,13 +15,13 @@ import { useTenant } from '@/lib/stores/TenantContext';
 import { finalizeDeliveryAddress, isAddressInDeliveryZone } from '@/lib/utils/deliveryZone';
 import { isOpenAt, getNextOpening } from '@/lib/utils/businessHours';
 import { buildCapacityUnitsToken, sumCartPizzaCapacity } from '@/lib/utils/pizzaCapacity';
-import { paymentProviderToMethod, type PaymentProvider } from '@/lib/hooks/usePayment';
+import { PAY_AT_TILL_LABEL_EN, PAY_AT_TILL_LABEL_IT, PAY_AT_TILL_METHOD, PAY_AT_TILL_NOTE } from '@/lib/payments/payAtTill';
 import { FontAwesome } from '@expo/vector-icons';
 import { countries } from 'countries-list';
 import { useRouter, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Image, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type OrderType = 'eat_in' | 'take_away' | 'delivery';
@@ -208,8 +208,8 @@ export default function CheckoutScreen() {
   // Restart validation after a reload: customer and scheduling fields are not persisted.
   const [step, setStep] = useState<CheckoutStep>('type');
   const [orderType, setOrderType] = useState<OrderType>('eat_in');
-  const [paymentProvider, setPaymentProvider] = useState<PaymentProvider>('cash');
-  const [isProcessing, setIsProcessing] = useState(false);
+  const { isProcessing, start, complete } = useOrderSubmissionGuard();
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
   const [showPhonePrefixModal, setShowPhonePrefixModal] = useState(false);
   const [phonePrefixSearch, setPhonePrefixSearch] = useState('');
   const [fulfillmentMode, setFulfillmentMode] = useState<FulfillmentMode>('asap');
@@ -282,12 +282,7 @@ export default function CheckoutScreen() {
             deliveryFee: 'Delivery fee',
             total: 'Total',
             paymentMethod: 'Payment method',
-            card: 'Credit card',
-            cardSubtitle: 'Visa, Mastercard, Amex',
-            paypal: 'PayPal',
             comingSoon: 'Coming soon',
-            satispay: 'Satispay',
-            satispaySubtitle: 'Pay with the Satispay app',
             terminal: 'POS at counter',
             terminalSubtitle: 'Physical terminal',
             cash: 'Cash',
@@ -376,12 +371,7 @@ export default function CheckoutScreen() {
             deliveryFee: 'Costo consegna',
             total: 'Totale',
             paymentMethod: 'Metodo di pagamento',
-            card: 'Carta',
-            cardSubtitle: 'Visa, Mastercard, Amex',
-            paypal: 'PayPal',
             comingSoon: 'In arrivo',
-            satispay: 'Satispay',
-            satispaySubtitle: "Paga con l'app Satispay",
             terminal: 'POS in cassa',
             terminalSubtitle: 'Terminale fisico',
             cash: 'Contanti',
@@ -418,11 +408,6 @@ export default function CheckoutScreen() {
   const checkoutTotal = totalAmount + appliedDeliveryFee;
   const isDelivery = orderType === 'delivery';
 
-  useEffect(() => {
-    if (paymentProvider === 'stripe' || (isDelivery && paymentProvider === 'terminal')) {
-      setPaymentProvider('cash');
-    }
-  }, [isDelivery, paymentProvider]);
 
   // Customer Details
   const [name, setName] = useState('');
@@ -950,14 +935,15 @@ export default function CheckoutScreen() {
       return;
     }
 
-    setIsProcessing(true);
+    if (!start()) return;
+    setSubmissionError(null);
     const fulfillmentToken = buildSchedulingToken(selectedFulfillmentIso);
     const capacityToken = buildCapacityUnitsToken(cartPizzaUnits);
     const fulfillmentLabel =
       fulfillmentMode === 'asap'
         ? `ASAP (${formatLocalHourMinute(new Date(selectedFulfillmentIso))})`
         : formatLocalHourMinute(new Date(selectedFulfillmentIso));
-    const baseNotes = `Metodo di pagamento: ${paymentProvider}${appliedDeliveryFee > 0 ? ` | Delivery fee: €${appliedDeliveryFee.toFixed(2)}` : ''}`;
+    const baseNotes = `${PAY_AT_TILL_NOTE}${appliedDeliveryFee > 0 ? ` | Delivery fee: €${appliedDeliveryFee.toFixed(2)}` : ''}`;
     const notesWithFulfillment = `${baseNotes} | Fulfillment: ${fulfillmentLabel} | ${fulfillmentToken} | ${capacityToken}`;
 
     try {
@@ -971,9 +957,11 @@ export default function CheckoutScreen() {
           customerPhone: fullPhoneNumber,
           deliveryAddress: fullDeliveryAddress,
           tableNumber: tableNumber,
-          paymentMethod: paymentProviderToMethod(paymentProvider),
+          paymentMethod: PAY_AT_TILL_METHOD,
         });
 
+        // Queuing stays on this screen until the offline notice is dismissed.
+        await complete(false);
         clearCart();
         Alert.alert(
           i18n.orderSaved,
@@ -993,24 +981,27 @@ export default function CheckoutScreen() {
         tableNumber: tableNumber,
         fulfillmentMode,
         fulfillmentAt: selectedFulfillmentIso,
-        paymentMethod: paymentProviderToMethod(paymentProvider),
+        paymentMethod: PAY_AT_TILL_METHOD,
       });
 
       console.log('✅ Order created successfully:', result.orderId);
 
+      await complete(true);
       clearCart();
-      setIsProcessing(false);
       router.replace(
         `/order-tracking?orderType=${encodeURIComponent(orderType)}&orderId=${encodeURIComponent(result.orderId)}`
       );
     } catch (error) {
+      await complete(false);
       console.error('❌ Order creation failed:', error);
+      setSubmissionError(language === 'en'
+        ? 'We could not confirm receipt of your order. Please try again. If the problem persists, contact the restaurant.'
+        : 'Non abbiamo ricevuto la conferma del tuo ordine. Riprova. Se il problema continua, contatta la pizzeria.');
       Alert.alert(
         'Errore',
         i18n.cannotCreateOrder,
         [{ text: 'OK' }]
       );
-      setIsProcessing(false);
     }
   };
 
@@ -1506,92 +1497,29 @@ export default function CheckoutScreen() {
       <View className="mb-4">
         <Text className="text-lg font-bold mb-3">{i18n.paymentMethod}</Text>
         
-        <View className="gap-3">
-          <Pressable
-            className={`p-4 rounded-xl border-2 flex-row items-center gap-3 ${
-              paymentProvider === 'satispay' ? 'bg-[#f9ecdd] border-[#8d171e]' : 'bg-card border-border'
-            }`}
-            onPress={() => setPaymentProvider('satispay')}
-            disabled={isProcessing}
-          >
-            <FontAwesome name="qrcode" size={22} color="#f94c43" />
-            <View className="flex-1">
-              <Text className="font-bold text-base">{i18n.satispay}</Text>
-              <Text className="text-muted-foreground text-xs">{i18n.satispaySubtitle}</Text>
-            </View>
-          </Pressable>
-
-          {!isDelivery && (
-            <Pressable
-              className={`p-4 rounded-xl border-2 flex-row items-center gap-3 ${
-                paymentProvider === 'terminal' ? 'bg-[#f9ecdd] border-[#8d171e]' : 'bg-card border-border'
-              }`}
-              onPress={() => setPaymentProvider('terminal')}
-              disabled={isProcessing}
-            >
-              <FontAwesome name="building-o" size={22} color="#374151" />
-              <View className="flex-1">
-                <Text className="font-bold text-base">{i18n.terminal}</Text>
-                <Text className="text-muted-foreground text-xs">{i18n.terminalSubtitle}</Text>
-              </View>
-            </Pressable>
-          )}
-
-          <Pressable
-            className={`p-4 rounded-xl border-2 flex-row items-center gap-3 ${
-              paymentProvider === 'cash' ? 'bg-[#f9ecdd] border-[#8d171e]' : 'bg-card border-border'
-            }`}
-            onPress={() => setPaymentProvider('cash')}
-            disabled={isProcessing}
-          >
-            <FontAwesome name="money" size={22} color="#374151" />
-            <View className="flex-1">
-              <Text className="font-bold text-base">{i18n.cash}</Text>
-              <Text className="text-muted-foreground text-xs">
-                {isDelivery ? i18n.cashDeliverySubtitle : i18n.cashSubtitle}
-              </Text>
-            </View>
-          </Pressable>
-
-          <Pressable
-            className="p-4 rounded-xl border-2 flex-row items-center gap-3 bg-gray-100 border-gray-200 opacity-60"
-            disabled
-            accessibilityState={{ disabled: true }}
-          >
-            <FontAwesome name="credit-card" size={22} color="#6B7280" />
-            <View className="flex-1">
-              <Text className="font-bold text-base text-gray-500">{i18n.card}</Text>
-              <Text className="text-gray-500 text-xs">{i18n.cardSubtitle}</Text>
-            </View>
-            <View className="rounded-full bg-gray-200 px-3 py-1">
-              <Text className="text-gray-600 text-xs font-bold">{i18n.comingSoon}</Text>
-            </View>
-          </Pressable>
-
-          <Pressable
-            className="p-4 rounded-xl border-2 flex-row items-center gap-3 bg-gray-100 border-gray-200 opacity-60"
-            disabled
-            accessibilityState={{ disabled: true }}
-          >
-            <FontAwesome name="paypal" size={22} color="#6B7280" />
-            <View className="flex-1">
-              <Text className="font-bold text-base text-gray-500">{i18n.paypal}</Text>
-              <Text className="text-gray-500 text-xs">{i18n.comingSoon}</Text>
-            </View>
-            <View className="rounded-full bg-gray-200 px-3 py-1">
-              <Text className="text-gray-600 text-xs font-bold">{i18n.comingSoon}</Text>
-            </View>
-          </Pressable>
-        </View>
-
-        {paymentProvider === 'satispay' ? (
-          <View className="mt-4">
-            <SatispayOpenHint />
+        <View
+          testID="pay-at-till-notice"
+          className="p-4 rounded-xl border-2 flex-row items-center gap-3 bg-[#f9ecdd] border-[#8d171e]"
+        >
+          <FontAwesome name="money" size={22} color="#374151" />
+          <View className="flex-1">
+            <Text className="font-bold text-base">
+              {language === 'en' ? PAY_AT_TILL_LABEL_EN : PAY_AT_TILL_LABEL_IT}
+            </Text>
+            <Text className="text-muted-foreground text-xs">
+              {language === 'en' ? 'Cash or card at the counter. No online payment.' : 'Contanti o carta al banco. Nessun pagamento online.'}
+            </Text>
           </View>
-        ) : null}
+        </View>
 
         {/* Footer Buttons */}
         <View className="gap-4 mt-6">
+          {submissionError && (
+            <View accessibilityRole="alert" className="rounded-xl bg-red-50 border border-red-200 p-3">
+              <Text className="font-bold text-red-700">{language === 'en' ? 'Submission not confirmed' : 'Invio non confermato'}</Text>
+              <Text className="text-red-700">{submissionError}</Text>
+            </View>
+          )}
           <Button
             title={i18n.back}
             variant="outline"
@@ -1600,10 +1528,11 @@ export default function CheckoutScreen() {
             size="lg"
           />
           <Button
-            title={isProcessing ? '...' : (isOnline ? i18n.confirmOrder : i18n.saveOrder)}
+            title={isProcessing ? (language === 'en' ? 'Sending…' : 'Invio in corso…') : (isOnline ? i18n.confirmOrder : i18n.saveOrder)}
             variant="brand"
             onPress={handlePayment}
             disabled={isProcessing}
+            accessibilityState={{ disabled: isProcessing, busy: isProcessing }}
             size="cta"
           />
         </View>
@@ -1757,7 +1686,7 @@ export default function CheckoutScreen() {
           <View className="flex-1 bg-black/45 items-center justify-center p-6">
             <View className="w-full max-w-[360px] bg-white rounded-2xl border border-[#e1a255]/40 p-5">
               <View className="w-12 h-12 rounded-full bg-[#f9ecdd] items-center justify-center self-center mb-3">
-                <FontAwesome name="spinner" size={18} color="#8d171e" />
+                <ActivityIndicator color="#8d171e" />
               </View>
               <Text className="text-xl font-extrabold text-center text-gray-900">
                 {i18n.orderSendingTitle}

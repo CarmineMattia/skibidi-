@@ -35,7 +35,7 @@ const PIZZA_FALLBACK =
 const DRINK_FALLBACK =
   'https://images.unsplash.com/photo-1527960471264-932f39eb5846?auto=format&fit=crop&w=400&q=80';
 const ANTIPASTO_FALLBACK =
-  'https://images.unsplash.com/photo-1572441713132-51b4c812c89e?auto=format&fit=crop&w=400&q=80';
+  'https://images.unsplash.com/photo-1572695157366-5e585ab2b69f?auto=format&fit=crop&w=400&q=80';
 const DESSERT_FALLBACK =
   'https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=400&q=80';
 
@@ -81,7 +81,7 @@ export const COMBO_OFFERS: ComboOfferDefinition[] = [
     includes: ['Pizza', 'Acqua'],
     productMatchers: ['Marinara', 'Acqua Naturale'],
     fallbackImageUrl:
-      'https://images.unsplash.com/photo-1594007654729-407eedc4fe0f?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=1200&q=80',
     discount: 0.08,
   },
   {

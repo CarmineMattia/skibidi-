@@ -136,7 +136,10 @@ export function useOrder(orderId: string) {
     },
 
     enabled: !!orderId, // Only run if orderId is provided
-    staleTime: 10 * 1000,
-    refetchInterval: 15 * 1000,
+    staleTime: 0,
+    // Guests cannot receive protected order rows over Realtime: poll the
+    // tracking RPC so acceptance remains visible without a WebSocket.
+    refetchInterval: 5 * 1000,
+    retry: 1,
   });
 }

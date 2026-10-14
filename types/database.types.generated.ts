@@ -477,6 +477,7 @@ export type Database = {
         Returns: number
       }
       get_my_company_id: { Args: never; Returns: string }
+      create_order_with_items: { Args: { p_order: Json; p_items: Json }; Returns: Json }
       get_order_tracking: { Args: { p_order_id: string }; Returns: Json }
       reserve_order_display_code: { Args: { p_company_id: string }; Returns: string }
       is_admin: { Args: never; Returns: boolean }
