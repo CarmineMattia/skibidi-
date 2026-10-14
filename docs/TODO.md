@@ -1,6 +1,6 @@
 # TODO — Skibidi Orders (Ambrosia)
 
-Riferimento: [piano](./SKIBIDI-ORDERS-PLAN.md). Stato del codice verificato con grep il 2026-10-13.
+Riferimento: [piano](./SKIBIDI-ORDERS-PLAN.md). Stato aggiornato il 2026-10-14 (main @ `0add321`).
 
 ## POS / integrazione
 - [ ] Chiedere al proprietario nome del gestionale/POS
@@ -9,30 +9,31 @@ Riferimento: [piano](./SKIBIDI-ORDERS-PLAN.md). Stato del codice verificato con 
 - [ ] Scegliere integrazione (API > import file > fornitore > Rakijazios GUI)
 - [ ] Fase temporanea: dashboard ordini su Chrome alla cassa
 
-## Auth (gap tra decisioni e codice)
-- [ ] Aggiungere login Google (`signInWithOAuth` assente nel codice)
-- [ ] Rimuovere email+password / signup (`signInWithPassword`, `signUp` in `lib/stores/AuthContext.tsx`, `app/login.tsx`)
-- [ ] Decidere su OTP email (`signInWithOtp` in `AuthContext.tsx`): non previsto dalle decisioni
-- [ ] Rimuovere flusso guest (riferimenti in `app/login.tsx`, `app/_layout.tsx`, `app/(tabs)/*`, `app/modal.tsx`, `lib/hooks/useCreateOrder.ts`, `lib/hooks/useOrders.ts`, `HomeGuestHero.tsx`)
+## Stato PR (2026-10-14)
 
-## Pagamenti
-- [ ] Nascondere/rimuovere UI Satispay e carta/Stripe (`components/features/PaymentSelection.tsx`, `SatispayOpenHint.tsx`, `lib/hooks/usePayment.ts`, `useRealPayment.ts`, `app/one-screen-checkout.tsx`, `app/modal.tsx`): v1 = solo pagamento alla cassa
+### Unite su main
+- [x] #16 fix errori TypeScript `LandingHero.tsx`
+- [x] #11 invio ordine atomico (`create_order_with_items`) + foto pizze
+- [x] #12 documentazione decisioni (piano, todo, README)
+- [x] #13 "Usa posizione" e tipografia più leggibile
+- [x] #14 RLS su `order_daily_counters`
+- [x] #15 immagini Unsplash morte sostituite
+- [x] #19 checkout solo pagamento alla cassa (via Satispay, carta, PayPal)
+- [x] #21 upsell bevande: primo tap non perso, "Continua senza"
 
-## Stati ordine
-- [ ] Allineare enum: oggi `pending, confirmed, preparing, ready, delivered, completed, cancelled`; servono "ritirato e pagato" e "rifiutato" distinti
-- [ ] Bloccare passaggio a `preparing` senza accettazione manuale (vincolo lato DB/server)
+### In attesa
+- [ ] #17 login solo Google: provider Google attivo su Supabase prod dal 2026-10-14 10:50 (google=true). Gli e2e del checkout ora usano una sessione mockata (`tests/e2e/fixtures/mockSession.ts`), niente auth reale
+- [ ] #18 approvazione manuale con nuovi stati: migration da applicare live solo con OK di Carmine
+- [ ] #20 antiabuso: migration da applicare live solo con OK di Carmine; richiede #17 attivo. Se combinata con #18 tenere la versione di #20 di `tests/sql/atomic-order-submission.sql`
+- [ ] #11: registrare la migration `20261008_atomic_order_submission.sql` su prod (`migration repair`, funzioni già presenti live)
 
-## Antiabuso (nulla implementato lato server)
-- [ ] Limite ordini aperti per account
-- [ ] Rate limit server sugli ordini (oggi solo gestione del rate limit email di Supabase in `app/login.tsx`)
-- [ ] Turnstile (assente)
-- [ ] Valore massimo dell'ordine
-- [ ] Blocco account
-- [ ] Storico mancati ritiri
-
-## Bug noti
-- [ ] Ordini creati senza `order_items`: Marinara #1 e Gamberi #2 (2026-09-25) avevano 0 righe. Verificare che l'invio atomico (`20261008_atomic_order_submission.sql`) copra tutti i percorsi e pulire gli ordini fantasma
-- [ ] `order_daily_counters` con RLS disattivata (esposta all'anon key): abilitare RLS
+## Da decidere / aperti
+- [ ] Bottone admin "non ritirato" (mancato ritiro) nella dashboard
+- [ ] Edge function Stripe: tenere per la v2 o cancellare
+- [ ] Chi può annullare un ordine dopo l'accettazione (solo admin o anche cliente)
+- [ ] Confermare i limiti antiabuso (€150, 2 ordini aperti, 3 ogni 10 min, blocco dopo 3 mancati ritiri)
+- [ ] Errore React #418 (hydration) a ogni caricamento, presente anche in prod
+- [ ] 16 vecchi ordini senza `order_items` su prod (12/06–25/09: 7 consegnati, 9 annullati): decidere se pulire
 
 ## Rimandato
 - Bot WhatsApp
