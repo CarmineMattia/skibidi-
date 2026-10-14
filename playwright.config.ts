@@ -11,6 +11,8 @@ const externalBaseURL = process.env.PLAYWRIGHT_BASE_URL;
 export default defineConfig({
   testDir: './tests',
   testIgnore: ['**/unit/**'],
+  // Guardia prod: vedi tests/fixtures/prodGuard.ts e docs/e2e-prod-guard.md
+  globalSetup: './tests/global-setup.ts',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,

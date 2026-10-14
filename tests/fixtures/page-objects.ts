@@ -6,6 +6,7 @@
 // (input[type=email|password]) and the product "add" controls are native
 // buttons with aria-labels ("Aggiungi <name> al carrello").
 import { expect, type Browser, type Locator, type Page } from '@playwright/test';
+import { mustSkipRealAuth } from './prodGuard';
 
 const GUEST_KEY = 'skibidi_lastLoginAsGuest';
 const KIOSK_KEY = 'skibidi_kioskModeEnabled';
@@ -175,6 +176,7 @@ export const CUSTOMER_PASSWORD = process.env.SKIBIDI_CUSTOMER_PASSWORD ?? 'Custo
 
 // Try an admin login on a throwaway page; true if it reaches /admin-options.
 export async function hasAdminAccount(browser: Browser): Promise<boolean> {
+  if (mustSkipRealAuth()) return false;
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const page = await ctx.newPage();
   page.setDefaultTimeout(8000);
@@ -201,6 +203,8 @@ export async function hasAdminAccount(browser: Browser): Promise<boolean> {
 
 // Log in as admin on the given page; true on success (navigates to dashboard).
 export async function loginAsAdmin(page: Page): Promise<boolean> {
+  // Guardia prod: niente login reali contro produzione (il test si salta).
+  if (mustSkipRealAuth()) return false;
   const lp = new LoginPage(page);
   await lp.navigate();
   return lp.login(ADMIN_EMAIL, ADMIN_PASSWORD);
@@ -208,6 +212,7 @@ export async function loginAsAdmin(page: Page): Promise<boolean> {
 
 // Log in as the known customer; true on success (navigates to /menu).
 export async function loginAsCustomer(page: Page): Promise<boolean> {
+  if (mustSkipRealAuth()) return false;
   const lp = new LoginPage(page);
   await lp.navigate();
   return lp.login(CUSTOMER_EMAIL, CUSTOMER_PASSWORD);
