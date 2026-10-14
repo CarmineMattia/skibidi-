@@ -13,20 +13,37 @@ const storageKey = `sb-${new URL(supabaseUrl).hostname.split('.')[0]}-auth-token
 
 const b64url = (o: object) => Buffer.from(JSON.stringify(o)).toString('base64url');
 
+export const MOCK_ADMIN_ID = '22222222-2222-4222-8222-222222222222';
+export const MOCK_COMPANY_ID = '00000000-0000-0000-0000-000000000001';
+
+export type MockRole = 'customer' | 'admin';
+
 export async function mockLoggedInCustomer(page: Page) {
+  return mockLoggedInUser(page, 'customer');
+}
+
+/** Admin (anche cucina: la cucina è riservata al ruolo admin). */
+export async function mockLoggedInAdmin(page: Page) {
+  return mockLoggedInUser(page, 'admin');
+}
+
+export async function mockLoggedInUser(page: Page, role: MockRole) {
+  const userId = role === 'admin' ? MOCK_ADMIN_ID : MOCK_USER_ID;
+  const email = role === 'admin' ? 'admin.e2e@example.com' : 'cliente.e2e@example.com';
+  const fullName = role === 'admin' ? 'Admin di prova' : 'Cliente di prova';
   const exp = Math.floor(Date.now() / 1000) + 3600;
   const user = {
-    id: MOCK_USER_ID,
+    id: userId,
     aud: 'authenticated',
     role: 'authenticated',
-    email: 'cliente.e2e@example.com',
+    email,
     app_metadata: { provider: 'google', providers: ['google'] },
-    user_metadata: { full_name: 'Cliente di prova' },
+    user_metadata: { full_name: fullName },
     created_at: '2026-01-01T00:00:00Z',
   };
-  const accessToken = `${b64url({ alg: 'HS256', typ: 'JWT' })}.${b64url({ sub: MOCK_USER_ID, role: 'authenticated', aud: 'authenticated', exp })}.e2e`;
+  const accessToken = `${b64url({ alg: 'HS256', typ: 'JWT' })}.${b64url({ sub: userId, role: 'authenticated', aud: 'authenticated', exp })}.e2e`;
   const session = { access_token: accessToken, refresh_token: 'e2e-refresh', token_type: 'bearer', expires_in: 3600, expires_at: exp, user };
-  const profile = { id: MOCK_USER_ID, role: 'customer', email: user.email, full_name: 'Cliente di prova', company_id: null, created_at: user.created_at, updated_at: user.created_at };
+  const profile = { id: userId, role, email: user.email, full_name: fullName, company_id: role === 'admin' ? MOCK_COMPANY_ID : null, created_at: user.created_at, updated_at: user.created_at };
 
   await page.route('**/auth/v1/**', (route) => {
     const url = route.request().url();

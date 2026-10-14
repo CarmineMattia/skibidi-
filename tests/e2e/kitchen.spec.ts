@@ -5,16 +5,19 @@
  * non-admin users (including unauthenticated guests) are redirected away.
  */
 
-import { test, expect } from '@playwright/test';
-import { loginAsAdmin } from '../fixtures/page-objects';
+import { test, expect, type Page } from '@playwright/test';
+import { mockEmptyBackend } from './fixtures/mockBackend';
+import { mockLoggedInAdmin } from './fixtures/mockSession';
+
+// Sessione admin mockata (login solo Google): nessun login reale, backend intercettato.
+async function asAdmin(page: Page) {
+  await mockEmptyBackend(page);
+  await mockLoggedInAdmin(page);
+}
 
 test.describe('Kitchen Dashboard', () => {
   test('1. Kitchen shows the active orders queue', async ({ page }) => {
-    const ok = await loginAsAdmin(page);
-    if (!ok) {
-      test.skip(true, 'Admin account not reachable');
-      return;
-    }
+    await asAdmin(page);
     await page.goto('/(tabs)/kitchen', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
     await expect(page.getByText('Cucina').first()).toBeVisible();
@@ -22,11 +25,7 @@ test.describe('Kitchen Dashboard', () => {
   });
 
   test('2. Kitchen shows status tabs', async ({ page }) => {
-    const ok = await loginAsAdmin(page);
-    if (!ok) {
-      test.skip(true, 'Admin account not reachable');
-      return;
-    }
+    await asAdmin(page);
     await page.goto('/(tabs)/kitchen', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(1500);
     await expect(page.getByText('Attivi', { exact: true }).first()).toBeVisible();
