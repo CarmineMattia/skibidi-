@@ -22,7 +22,7 @@ Riferimento: [piano](./SKIBIDI-ORDERS-PLAN.md). Stato aggiornato il 2026-10-14 (
 - [x] #21 upsell bevande: primo tap non perso, "Continua senza"
 
 ### In attesa
-- [ ] #17 login solo Google: attivare prima il provider Google su Supabase (oggi google=false, email=true). Gli e2e del checkout ora usano una sessione mockata (`tests/e2e/fixtures/mockSession.ts`), niente auth reale
+- [ ] #17 login solo Google: provider Google attivo su Supabase prod dal 2026-10-14 10:50 (google=true). Gli e2e del checkout ora usano una sessione mockata (`tests/e2e/fixtures/mockSession.ts`), niente auth reale
 - [ ] #18 approvazione manuale con nuovi stati: migration da applicare live solo con OK di Carmine
 - [ ] #20 antiabuso: migration da applicare live solo con OK di Carmine; richiede #17 attivo. Se combinata con #18 tenere la versione di #20 di `tests/sql/atomic-order-submission.sql`
 - [ ] #11: registrare la migration `20261008_atomic_order_submission.sql` su prod (`migration repair`, funzioni già presenti live)
