@@ -8,13 +8,14 @@ solo `last_sign_in_at`). Da qui la guardia.
 
 ## Come funziona
 - `tests/fixtures/prodGuard.ts` decide se il target è prod. Basta uno di questi segnali:
-  - un Supabase URL (`EXPO_PUBLIC_SUPABASE_URL` o `SUPABASE_URL`, da env, `.env` o `.env.local`)
+  - un Supabase URL (`EXPO_PUBLIC_SUPABASE_URL` o `SUPABASE_URL`, da env, `.env`, `.env.local`, `.env.production[.local]` o `.env.development[.local]`)
     contiene `zqubwvhstobaugifzoyb`, senza distinzione maiuscole/minuscole;
   - il Supabase URL è un custom domain di prod (`PROD_SUPABASE_HOSTS` nel file, oppure
     `E2E_PROD_SUPABASE_HOSTS=host1,host2`);
   - la anon key (`EXPO_PUBLIC_SUPABASE_ANON_KEY` o `SUPABASE_ANON_KEY`) è un JWT con `ref` di prod;
-  - `PLAYWRIGHT_BASE_URL` punta a `skibidi-eight-virid.vercel.app` o a una preview Vercel del
-    progetto (`skibidi-*.vercel.app`, `*-carminemattias-projects.vercel.app`).
+  - `PLAYWRIGHT_BASE_URL` punta a `skibidi-eight-virid.vercel.app` o a una preview Vercel
+    dell'account (`*-carminemattias-projects.vercel.app`).
+  - Gli host sono normalizzati: percent-decoding, minuscolo, senza punto finale.
 - Test unitari: `tests/unit/prodGuard.spec.ts`.
 - Se il target è prod, `loginAsAdmin`, `loginAsCustomer` e `hasAdminAccount` restituiscono `false`
   senza toccare il login, quindi i test admin, cucina e accessi si saltano. I test 4 e 5 di

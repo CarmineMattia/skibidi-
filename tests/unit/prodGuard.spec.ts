@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import { detectProd, mustSkipRealAuth, refFromJwt, resolvedSupabaseUrl, targetsProd } from '../fixtures/prodGuard';
+import { hostOf, detectProd, mustSkipRealAuth, refFromJwt, resolvedSupabaseUrl, targetsProd } from '../fixtures/prodGuard';
 
 const REF = 'zqubwvhstobaugifzoyb';
 const b64 = (o: object) => Buffer.from(JSON.stringify(o)).toString('base64url');
@@ -69,5 +69,32 @@ describe('prodGuard', () => {
     const dir = empty();
     expect(mustSkipRealAuth({ SUPABASE_URL: `https://${REF}.supabase.co` }, dir)).toBe(true);
     expect(mustSkipRealAuth({ SUPABASE_URL: `https://${REF}.supabase.co`, E2E_ALLOW_PROD: '1' }, dir)).toBe(false);
+  });
+
+  it('(a) host con punto finale', () => {
+    expect(hostOf('https://skibidi-eight-virid.vercel.app./menu')).toBe('skibidi-eight-virid.vercel.app');
+    expect(detectProd([{ PLAYWRIGHT_BASE_URL: 'https://skibidi-eight-virid.vercel.app.' }])).toBe(true);
+    expect(detectProd([{ SUPABASE_URL: 'https://api.ambrosia.example.', E2E_PROD_SUPABASE_HOSTS: 'api.ambrosia.example' }])).toBe(true);
+  });
+
+  it('(b) host percent-encoded', () => {
+    const encoded = `https://%7A%71%75%62%77%76%68%73%74%6F%62%61%75%67%69%66%7A%6F%79%62.supabase.co`;
+    expect(hostOf(encoded)).toBe(`${REF}.supabase.co`);
+    expect(detectProd([{ EXPO_PUBLIC_SUPABASE_URL: encoded }])).toBe(true);
+    expect(detectProd([{ SUPABASE_URL: 'https://api%2Eambrosia%2Eexample', E2E_PROD_SUPABASE_HOSTS: 'api.ambrosia.example' }])).toBe(true);
+  });
+
+  it('(c) .env.production, .env.development e varianti .local', () => {
+    for (const f of ['.env.production', '.env.production.local', '.env.development', '.env.development.local']) {
+      expect(targetsProd({}, tmpProject({ [f]: `EXPO_PUBLIC_SUPABASE_URL=https://${REF}.supabase.co\n` }))).toBe(true);
+    }
+  });
+
+  it('(d) Vercel: solo host prod e *-carminemattias-projects.vercel.app', () => {
+    expect(detectProd([{ PLAYWRIGHT_BASE_URL: 'https://skibidi-toilet.vercel.app' }])).toBe(false);
+    expect(detectProd([{ PLAYWRIGHT_BASE_URL: 'https://skibidi-a1b2c3-someoneelse.vercel.app' }])).toBe(false);
+    expect(detectProd([{ PLAYWRIGHT_BASE_URL: 'https://evil.com/?carminemattias-projects.vercel.app' }])).toBe(false);
+    expect(detectProd([{ PLAYWRIGHT_BASE_URL: 'https://skibidi-git-main-carminemattias-projects.vercel.app' }])).toBe(true);
+    expect(detectProd([{ PLAYWRIGHT_BASE_URL: 'https://skibidi-eight-virid.vercel.app' }])).toBe(true);
   });
 });

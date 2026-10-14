@@ -20,13 +20,20 @@ import path from 'node:path';
 export const PROD_SUPABASE_REF = 'zqubwvhstobaugifzoyb';
 export const PROD_SUPABASE_HOSTS: string[] = [];
 export const PROD_SITE_HOSTS = ['skibidi-eight-virid.vercel.app'];
-/** Preview Vercel del progetto: skibidi-<hash>-carminemattias-projects.vercel.app, skibidi-git-<branch>-... */
-export const VERCEL_PREVIEW_PATTERNS = [/^skibidi-[a-z0-9-]+\.vercel\.app$/i, /carminemattias-projects\.vercel\.app$/i];
+/** Preview Vercel dell'account: <progetto>-<hash|git-branch>-carminemattias-projects.vercel.app */
+export const VERCEL_PREVIEW_PATTERNS = [/^[a-z0-9-]+-carminemattias-projects\.vercel\.app$/i];
 export const PROD_OPT_IN_ENV = 'E2E_ALLOW_PROD';
 
 const URL_KEYS = ['EXPO_PUBLIC_SUPABASE_URL', 'SUPABASE_URL'];
 const KEY_KEYS = ['EXPO_PUBLIC_SUPABASE_ANON_KEY', 'SUPABASE_ANON_KEY'];
-const ENV_FILES = ['.env', '.env.local'];
+const ENV_FILES = [
+  '.env',
+  '.env.local',
+  '.env.production',
+  '.env.production.local',
+  '.env.development',
+  '.env.development.local',
+];
 
 type Env = Record<string, string | undefined>;
 
@@ -50,12 +57,24 @@ export function readEnvFiles(cwd = process.cwd()): Env[] {
   });
 }
 
-function hostOf(value: string): string {
+function safeDecode(value: string): string {
   try {
-    return new URL(value.includes('://') ? value : `https://${value}`).hostname.toLowerCase();
+    return decodeURIComponent(value);
   } catch {
-    return value.toLowerCase();
+    return value;
   }
+}
+
+/** Host normalizzato: percent-decoding, minuscolo, senza punto finale. */
+export function hostOf(value: string): string {
+  const raw = safeDecode(value.trim());
+  let host: string;
+  try {
+    host = new URL(raw.includes('://') ? raw : `https://${raw}`).hostname;
+  } catch {
+    host = raw.replace(/^[a-z]+:\/\//i, '').split(/[/?#]/)[0].replace(/^.*@/, '').replace(/:\d+$/, '');
+  }
+  return safeDecode(host).toLowerCase().replace(/\.+$/, '');
 }
 
 /** Ref Supabase dal payload della anon key (claim "ref"), o null. */
@@ -92,7 +111,7 @@ export function detectProd(sources: Env[]): boolean {
     for (const k of URL_KEYS) {
       const v = s[k];
       if (!v) continue;
-      if (v.toLowerCase().includes(ref)) return true;
+      if (v.toLowerCase().includes(ref) || hostOf(v).includes(ref)) return true;
       if (customHosts.includes(hostOf(v))) return true;
     }
     for (const k of KEY_KEYS) {
@@ -107,10 +126,10 @@ export function targetsProd(env: Env = process.env, cwd = process.cwd()): boolea
   return detectProd([env, ...readEnvFiles(cwd)]);
 }
 
-/** Supabase URL effettivo (env, poi .env.local, poi .env). */
+/** Supabase URL effettivo (env, poi i file .env* dal più specifico). */
 export function resolvedSupabaseUrl(env: Env = process.env, cwd = process.cwd()): string {
-  const [dotEnv, dotEnvLocal] = readEnvFiles(cwd);
-  for (const s of [env, dotEnvLocal, dotEnv]) {
+  const files = readEnvFiles(cwd).reverse();
+  for (const s of [env, ...files]) {
     for (const k of URL_KEYS) if (s[k]) return s[k] as string;
   }
   return '';
