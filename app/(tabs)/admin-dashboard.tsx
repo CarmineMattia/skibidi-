@@ -12,8 +12,8 @@ import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import type { ComponentProps } from 'react';
 import { useEffect, useMemo, useState } from 'react';
-import { useMarkNoShow } from '@/lib/hooks/useMarkNoShow';
-import { canMarkNoShow, noShowResultMessage } from '@/lib/orders/noShow';
+import { useMarkNoShow, useMarkedNoShowOrderIds } from '@/lib/hooks/useMarkNoShow';
+import { canMarkNoShow, mergeMarkedOrderIds, noShowResultMessage } from '@/lib/orders/noShow';
 import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -209,6 +209,19 @@ export default function AdminDashboardScreen() {
       return (data ?? []) as ActionableOrder[];
     },
   });
+
+  // "Non ritirato" già segnato: record sul server (resiste al refetch) + stato locale
+  // per nascondere subito il bottone dopo il successo.
+  const [locallyMarkedNoShow, setLocallyMarkedNoShow] = useState<Set<string>>(() => new Set());
+  const readyOrderIds = useMemo(
+    () => actionableOrders.filter((o) => o.status === 'ready' && o.customer_id).map((o) => o.id),
+    [actionableOrders],
+  );
+  const { data: serverMarkedNoShow } = useMarkedNoShowOrderIds(readyOrderIds, Boolean(companyId) && isAdmin);
+  const markedNoShowIds = useMemo(
+    () => mergeMarkedOrderIds(serverMarkedNoShow, locallyMarkedNoShow),
+    [serverMarkedNoShow, locallyMarkedNoShow],
+  );
 
   // Redirect non-admin users away from the dashboard after the navigator is
   // mounted. Calling router.replace() during render (before the root
@@ -675,7 +688,7 @@ export default function AdminDashboardScreen() {
                                 </Text>
                               </Pressable>
                             ) : null}
-                            {canMarkNoShow(order) ? (
+                            {canMarkNoShow(order, markedNoShowIds) ? (
                               <Pressable
                                 testID={`no-show-${order.id}`}
                                 accessibilityRole="button"
@@ -690,7 +703,10 @@ export default function AdminDashboardScreen() {
                                   markNoShow.mutate(
                                     { orderId: order.id },
                                     {
-                                      onSuccess: (result) => setNoShowFeedback({ orderId: order.id, text: noShowResultMessage(result), error: false }),
+                                      onSuccess: (result) => {
+                                        setLocallyMarkedNoShow((prev) => new Set(prev).add(order.id));
+                                        setNoShowFeedback({ orderId: order.id, text: noShowResultMessage(result), error: false });
+                                      },
                                       onError: (error) => setNoShowFeedback({ orderId: order.id, text: error.message, error: true }),
                                     },
                                   );
