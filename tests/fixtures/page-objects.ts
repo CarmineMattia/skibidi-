@@ -6,6 +6,7 @@
 // (input[type=email|password]) and the product "add" controls are native
 // buttons with aria-labels ("Aggiungi <name> al carrello").
 import { expect, type Browser, type Locator, type Page } from '@playwright/test';
+import { mustSkipRealAuth } from './prodGuard';
 
 // Ordinare richiede il login Google; senza sessione il menu resta navigabile.
 // Apre il menu da utente non loggato (ex "modalità ospite", rimossa).
@@ -134,6 +135,7 @@ export const ADMIN_PASSWORD = process.env.SKIBIDI_ADMIN_PASSWORD ?? 'Admin123!';
 
 // Try an admin login on a throwaway page; true if it reaches the menu.
 export async function hasAdminAccount(browser: Browser): Promise<boolean> {
+  if (mustSkipRealAuth()) return false;
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const page = await ctx.newPage();
   try {
@@ -147,6 +149,8 @@ export async function hasAdminAccount(browser: Browser): Promise<boolean> {
 
 // Log in as admin on the given page; true on success (needs the admin flag).
 export async function loginAsAdmin(page: Page): Promise<boolean> {
+  // Guardia prod: niente login reali contro produzione (il test si salta).
+  if (mustSkipRealAuth()) return false;
   return new LoginPage(page).adminLogin(ADMIN_EMAIL, ADMIN_PASSWORD);
 }
 
