@@ -2,7 +2,8 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { BottomTabBar } from '@react-navigation/bottom-tabs';
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { Dimensions, Platform, useWindowDimensions } from 'react-native';
+import { Platform } from 'react-native';
+import { useHydrated, useViewportWidth } from '@/lib/hooks/useHydrated';
 
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
@@ -21,8 +22,10 @@ function TabBarIcon(props: {
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const { userRole } = useAuth();
-  const { width } = useWindowDimensions();
-  const viewportWidth = Dimensions.get('window').width;
+  // Larghezza 0 fino al mount, come nell'HTML statico (evita React #418).
+  const width = useViewportWidth();
+  const hydrated = useHydrated();
+  const viewportWidth = width;
   const effectiveWidth = Math.min(width, viewportWidth);
   const compactTabBar = effectiveWidth < 400;
   const tabIconSize = compactTabBar ? 22 : 28;
@@ -58,6 +61,9 @@ export default function TabLayout() {
         return <BottomTabBar {...props} />;
       }}
       screenOptions={{
+        // BottomTabBar sceglie la posizione delle etichette dalla larghezza: fissarla
+        // fino al mount tiene l'HTML del client uguale a quello statico.
+        tabBarLabelPosition: hydrated ? undefined : 'below-icon',
         tabBarActiveTintColor: palette.tint,
         tabBarInactiveTintColor: palette.tabIconDefault,
         tabBarLabelStyle: { fontSize: compactTabBar ? 10 : 12, fontWeight: '600' },

@@ -1,7 +1,8 @@
 import { OfferCard } from '@/components/features/offers/OfferCard';
 import type { ResolvedComboOffer } from '@/lib/data/offers';
 import { useMemo, useRef, useState } from 'react';
-import { FlatList, View, useWindowDimensions } from 'react-native';
+import { FlatList, View } from 'react-native';
+import { useViewportWidth } from '@/lib/hooks/useHydrated';
 
 const ITEM_GAP = 14;
 
@@ -35,7 +36,7 @@ function CarouselDots({
 }
 
 export function OffersCarousel({ offers, onSelectOffer, variant = 'compact' }: OffersCarouselProps) {
-  const { width } = useWindowDimensions();
+  const width = useViewportWidth();
   const flatListRef = useRef<FlatList<ResolvedComboOffer>>(null);
   const isRecenteringRef = useRef(false);
 
