@@ -13,13 +13,14 @@
 
 import { test, expect } from '@playwright/test';
 import { loginAsCustomer } from '../fixtures/page-objects';
+import { mustSkipRealAuth, PROD_SKIP_REASON, resolvedSupabaseUrl } from '../fixtures/prodGuard';
 
 // Lazy Supabase client — avoids crash when env vars aren't loaded in Playwright's context
 let _supabase: any = null;
 async function getSupabase() {
   if (_supabase) return _supabase;
   const { createClient } = await import('@supabase/supabase-js');
-  const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://zqubwvhstobaugifzoyb.supabase.co';
+  const SUPABASE_URL = resolvedSupabaseUrl() || 'https://e2e-placeholder.supabase.co';
   let key = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
   if (!key) {
     const fs = await import('node:fs');
@@ -85,6 +86,11 @@ test.describe('Access control — customer cannot reach admin/kitchen by direct 
 });
 
 test.describe('Access control — RLS/trigger enforcement via direct API calls (bypassing the UI)', () => {
+  // Test 4 e 5 fanno login reali e tentano scritture: mai contro prod.
+  test.beforeEach(({}, testInfo) => {
+    test.skip(mustSkipRealAuth() && !testInfo.title.startsWith('6.'), PROD_SKIP_REASON);
+  });
+
   test('4. Customer cannot change their own order status via a direct API call', async () => {
     const supabase = await getSupabase();
     const { error: signInError } = await supabase.auth.signInWithPassword({

@@ -11,6 +11,7 @@
  */
 import { test, expect } from '@playwright/test';
 import { LoginPage, MenuPage, enterGuestMode } from '../fixtures/page-objects';
+import { mustSkipRealAuth, PROD_SKIP_REASON } from '../fixtures/prodGuard';
 
 test.describe('Authentication', () => {
   let loginPage: LoginPage;
@@ -70,6 +71,8 @@ test.describe('Authentication', () => {
   });
 
   test('should display an error for unknown credentials', async ({ page }) => {
+    // Tentativo di login reale: mai contro prod.
+    test.skip(mustSkipRealAuth(), PROD_SKIP_REASON);
     await loginPage.switchToPasswordView();
     await loginPage.emailInput.fill('nonexistent@example.com');
     await loginPage.passwordInput.fill('WrongPassword1!');
