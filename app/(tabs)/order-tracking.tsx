@@ -54,7 +54,7 @@ export default function OrderTrackingScreen() {
   const rescheduleLabel = formatRescheduleLabel(rescheduleInfo.rescheduleAt);
 
   const estimatedLabel = orderType === 'delivery' ? 'Arrivo stimato' : 'Pronto stimato';
-  const estimatedTime = trackedStatus && trackedStatus !== 'pending' && trackedStatus !== 'cancelled'
+  const estimatedTime = trackedStatus && trackedStatus !== 'pending' && trackedStatus !== 'cancelled' && trackedStatus !== 'rejected'
     ? getEstimatedReadyTime(orderData?.created_at) : 'Da confermare';
   const trackingSteps = getTrackingSteps(orderType, trackedStatus);
   const statusBadge = getTrackingBadge(orderType, trackedStatus);
@@ -99,16 +99,16 @@ export default function OrderTrackingScreen() {
             });
           }
 
-          if (nextStatus === 'preparing' && prevStatus === 'pending') {
+          if (nextStatus === 'accepted' && prevStatus === 'pending') {
             void playStatusAlert(`${orderIdParam}:accepted`);
             setCustomerNotice({
               tone: 'success',
               title: 'Ordine confermato',
-              message: 'La cucina ha accettato il tuo ordine e ha iniziato la preparazione.',
+              message: 'La pizzeria ha accettato il tuo ordine. La preparazione inizia a breve.',
             });
           }
 
-          if (nextStatus === 'cancelled' && prevStatus !== 'cancelled') {
+          if ((nextStatus === 'cancelled' || nextStatus === 'rejected') && prevStatus !== nextStatus) {
             void playStatusAlert(`${orderIdParam}:cancelled`);
           }
         }
@@ -134,16 +134,16 @@ export default function OrderTrackingScreen() {
       });
     }
 
-    if (current === 'preparing' && previous === 'pending') {
+    if (current === 'accepted' && previous === 'pending') {
       void playStatusAlert(`${orderData.id}:accepted`);
       setCustomerNotice({
         tone: 'success',
         title: 'Ordine confermato',
-        message: 'La cucina ha accettato il tuo ordine e ha iniziato la preparazione.',
+        message: 'La pizzeria ha accettato il tuo ordine. La preparazione inizia a breve.',
       });
     }
 
-    if (current === 'cancelled' && previous !== 'cancelled') {
+    if ((current === 'cancelled' || current === 'rejected') && previous !== current) {
       void playStatusAlert(`${orderData.id}:cancelled`);
       const parsed = parseRescheduleFromNote(orderData.decline_reason_note);
       const label = formatRescheduleLabel(parsed.rescheduleAt);
@@ -305,7 +305,7 @@ export default function OrderTrackingScreen() {
             })}
           </View>
 
-          {trackedStatus === 'cancelled' ? (
+          {trackedStatus === 'cancelled' || trackedStatus === 'rejected' ? (
             <View className="bg-red-50 rounded-2xl border border-red-200 p-4 gap-1.5">
               <Text className="text-xs font-bold uppercase tracking-wider text-red-700">
                 Motivo rifiuto

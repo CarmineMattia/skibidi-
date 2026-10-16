@@ -14,9 +14,12 @@ test.describe('customer order confirmation', () => {
     await page.goto(`/order-tracking?orderId=${orderId}&orderType=take_away`);
     await expect(page.getByText('Ordine inviato. La cucina deve ancora accettarlo.')).toBeVisible();
     await expect(page.getByText('Da confermare', { exact: true })).toBeVisible();
-    status = 'preparing';
-    await expect(page.getByText('La cucina ha accettato il tuo ordine e ha iniziato la preparazione.')).toBeVisible({ timeout: 12000 });
+    // Flusso #18: pending -> accepted (avviso al cliente) -> preparing -> ready.
+    status = 'accepted';
+    await expect(page.getByText('La pizzeria ha accettato il tuo ordine. La preparazione inizia a breve.')).toBeVisible({ timeout: 12000 });
     await expect(page.getByText('Ordine inviato. La cucina deve ancora accettarlo.')).toBeHidden();
+    status = 'preparing';
+    await expect(page.getByText(/è in preparazione/)).toBeVisible({ timeout: 12000 });
     status = 'ready';
     await expect(page.getByText('Ordine pronto!', { exact: true })).toBeVisible({ timeout: 12000 });
     await page.screenshot({ path: 'test-results/customer-order-ready.png', fullPage: true });

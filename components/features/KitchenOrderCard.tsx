@@ -1,3 +1,4 @@
+import { getForwardActionLabel, isTerminalStatus } from '@/lib/utils/orderStatus';
 /**
  * KitchenOrderCard Component
  * Displays order details in kitchen dashboard
@@ -86,13 +87,23 @@ const STATUS_CONFIG: Record<
   }
 > = {
   pending: {
-    label: 'Nuovo',
+    label: 'In attesa di conferma',
     color: 'text-amber-800',
     bgColor: 'bg-amber-100',
     borderColor: 'border-amber-300',
     buttonBg: 'bg-amber-500',
     buttonText: 'text-white',
     totalColor: 'text-amber-600',
+    nextStatus: 'accepted',
+  },
+  accepted: {
+    label: 'Accettato',
+    color: 'text-indigo-800',
+    bgColor: 'bg-indigo-100',
+    borderColor: 'border-indigo-300',
+    buttonBg: 'bg-indigo-500',
+    buttonText: 'text-white',
+    totalColor: 'text-indigo-600',
     nextStatus: 'preparing',
   },
   preparing: {
@@ -116,13 +127,22 @@ const STATUS_CONFIG: Record<
     nextStatus: 'delivered',
   },
   delivered: {
-    label: 'Consegnato',
+    label: 'Ritirato e pagato',
     color: 'text-slate-700',
     bgColor: 'bg-slate-100',
     borderColor: 'border-slate-300',
     buttonBg: 'bg-slate-500',
     buttonText: 'text-white',
     totalColor: 'text-slate-600',
+  },
+  rejected: {
+    label: 'Rifiutato',
+    color: 'text-rose-800',
+    bgColor: 'bg-rose-100',
+    borderColor: 'border-rose-300',
+    buttonBg: 'bg-rose-600',
+    buttonText: 'text-white',
+    totalColor: 'text-rose-600',
   },
   cancelled: {
     label: 'Annullato',
@@ -181,7 +201,8 @@ export function KitchenOrderCard({ order }: KitchenOrderCardProps) {
     updateStatus.mutate(
       {
         orderId: order.id,
-        status: 'cancelled',
+        // Rifiuto (manual approval) only from pending; later stages are an annullamento.
+        status: order.status === 'pending' ? 'rejected' : 'cancelled',
         declineReasonPreset: payload.preset,
         declineReasonNote: payload.note || null,
       },
@@ -238,7 +259,7 @@ export function KitchenOrderCard({ order }: KitchenOrderCardProps) {
           </Pressable>
 
           {/* Cancel Button - Moved to top right */}
-          {order.status !== 'cancelled' && order.status !== 'delivered' && (
+          {!isTerminalStatus(order.status) && (
             <Pressable
               className="bg-destructive/10 p-2 rounded-xl border border-destructive/20 active:bg-destructive/20"
               onPress={() => setShowDeclineModal(true)}
@@ -365,8 +386,7 @@ export function KitchenOrderCard({ order }: KitchenOrderCardProps) {
             <Text className={`${statusConfig.buttonText} font-bold text-lg`}>
               {updateStatus.isPending ? 'Aggiornamento...' :
                 order.status === 'pending' ? 'Accetta ordine' :
-                  order.status === 'preparing' ? 'Segna come Pronto' :
-                    order.status === 'ready' ? 'Segna come Consegnato' : 'Avanti'}
+                  getForwardActionLabel(order.status) ?? 'Avanti'}
             </Text>
           </Pressable>
         )}

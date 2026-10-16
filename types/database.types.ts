@@ -13,7 +13,7 @@ export type UserRole = 'admin' | 'customer' | 'kiosk';
 import type { FiscalStatus } from './fiscal.types';
 export type { FiscalStatus };
 
-export type OrderStatus = 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
+export type OrderStatus = 'pending' | 'accepted' | 'preparing' | 'ready' | 'delivered' | 'rejected' | 'cancelled';
 
 export interface Profile {
   id: string;
