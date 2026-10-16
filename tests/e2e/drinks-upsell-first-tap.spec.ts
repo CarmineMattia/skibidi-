@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { mockLoggedInCustomer } from './fixtures/mockSession';
 
 const categories = [
   { id: 'pizza-category', name: 'Classiche', active: true, display_order: 1 },
@@ -26,6 +27,7 @@ test.describe('upsell bevande', () => {
     // Nessun ordine reale: tutte le mutazioni backend sono bloccate.
     await page.route('**/rest/v1/rpc/**', (route) => route.fulfill({ status: 503, json: { error: 'Test: no backend mutations' } }));
     await page.route('**/functions/v1/**', (route) => route.fulfill({ status: 503, json: { error: 'Test: no backend mutations' } }));
+    await mockLoggedInCustomer(page);
     await page.goto('/menu');
     await expect(page.getByPlaceholder('Cerca pizza, bevanda...')).toBeVisible();
 
@@ -55,6 +57,7 @@ test.describe('upsell bevande', () => {
     await page.route('**/rest/v1/categories?**', (route) => route.fulfill({ json: categories }));
     await page.route('**/rest/v1/rpc/**', (route) => route.fulfill({ status: 503, json: { error: 'Test: no backend mutations' } }));
     await page.route('**/functions/v1/**', (route) => route.fulfill({ status: 503, json: { error: 'Test: no backend mutations' } }));
+    await mockLoggedInCustomer(page);
     await page.goto('/menu');
     await page.getByRole('button', { name: 'Aggiungi Margherita al carrello' }).tap();
     await page.getByRole('button', { name: /Carrello: 1/ }).tap();

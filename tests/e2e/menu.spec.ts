@@ -6,14 +6,14 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { MenuPage, enterGuestMode } from '../fixtures/page-objects';
+import { MenuPage, openMenuLoggedOut } from '../fixtures/page-objects';
 
 test.describe('Menu (guest)', () => {
   let menu: MenuPage;
 
   test.beforeEach(async ({ page }) => {
     menu = new MenuPage(page);
-    await enterGuestMode(page);
+    await openMenuLoggedOut(page);
   });
 
   test('1. Menu shows products', async () => {

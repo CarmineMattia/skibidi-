@@ -7,15 +7,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 export default function AccountScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { profile, userRole, isGuest, isAuthenticated, isAdmin, signOut, exitGuestMode, isLoading } = useAuth();
+  const { profile, userRole, isAuthenticated, isAdmin, signOut, isLoading } = useAuth();
 
   const handleLogout = async () => {
     try {
-      if (isGuest && !isAuthenticated) {
-        exitGuestMode();
-      } else {
-        await signOut();
-      }
+      await signOut();
       router.replace('/login');
     } catch (error) {
       console.error('Logout error:', error);
@@ -24,7 +20,7 @@ export default function AccountScreen() {
   };
 
   const displayRole = (() => {
-    const rawRole = (profile?.role || userRole || (isGuest ? 'customer' : 'kiosk')).toLowerCase();
+    const rawRole = (profile?.role || userRole || 'kiosk').toLowerCase();
     if (rawRole === 'customer') return 'Cliente';
     if (rawRole === 'admin') return 'Admin';
     if (rawRole === 'kiosk') return 'Kiosk';
@@ -45,7 +41,7 @@ export default function AccountScreen() {
         <Text className="text-xs font-bold uppercase tracking-wider text-[#8d171e]">Account Ambrosia</Text>
         <Text className="text-2xl font-black text-gray-900">Profilo</Text>
         <Text className="text-gray-600">
-          {isGuest ? 'Stai navigando come utente ospite.' : 'Il tuo account e attivo e pronto.'}
+          {isAuthenticated ? 'Il tuo account e attivo e pronto.' : 'Accedi con Google per ordinare.'}
         </Text>
       </View>
 
@@ -64,12 +60,12 @@ export default function AccountScreen() {
       <View className="bg-white rounded-2xl p-5 border border-[#e1a255]/40 mb-6 gap-2">
         <Text className="text-sm text-gray-500">Nome</Text>
         <Text className="text-lg font-semibold text-gray-900">
-          {profile?.full_name || (isGuest ? 'Ospite' : 'Utente')}
+          {profile?.full_name || 'Utente'}
         </Text>
 
         <Text className="text-sm text-gray-500 mt-3">Email</Text>
         <Text className="text-base text-gray-900">
-          {profile?.email || (isGuest ? 'Non disponibile in modalita ospite' : '-')}
+          {profile?.email || '-'}
         </Text>
 
         <Text className="text-sm text-gray-500 mt-3">Ruolo</Text>

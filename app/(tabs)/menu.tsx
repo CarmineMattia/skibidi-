@@ -199,7 +199,7 @@ export default function MenuScreen() {
   const { data: categories = [], isLoading: categoriesLoading } = useCategories();
   const { data: products = [], isLoading: productsLoading } = useProducts();
   const { items, addItem, updateQuantity, totalItems, totalAmount } = useCart();
-  const { isAuthenticated, profile, signOut, isGuest, exitGuestMode, isAdmin } = useAuth();
+  const { isAuthenticated, profile, signOut, isAdmin } = useAuth();
   const { language } = useAppSettings();
   const showDesktopSidebars = isDesktop;
   const createOrder = useCreateOrder();
@@ -425,7 +425,8 @@ export default function MenuScreen() {
     }
 
     setShowContinueWithoutDrinks(false);
-    router.push('/modal');
+    // Ordinare richiede un utente loggato (niente ordini da ospite)
+    router.push(isAuthenticated ? '/modal' : '/login');
   };
 
   const continueWithoutDrinks = () => {
@@ -436,12 +437,7 @@ export default function MenuScreen() {
 
   const handleLogout = async () => {
     try {
-      if (isGuest && !isAuthenticated) {
-        // Uscita dalla modalità ospite
-        exitGuestMode();
-      } else {
-        await signOut();
-      }
+      await signOut();
       router.replace('/login');
     } catch (error) {
       console.error('Logout error:', error);
@@ -571,7 +567,7 @@ export default function MenuScreen() {
               </View>
             )}
 
-            {(isAuthenticated || isGuest) && (
+            {isAuthenticated && (
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={i18n.signOut}
@@ -588,7 +584,7 @@ export default function MenuScreen() {
               </Pressable>
             )}
 
-            {!isAuthenticated && !isGuest && (
+            {!isAuthenticated && (
               <Pressable
                 accessibilityRole="button"
                 onPress={() => router.push('/login')}
@@ -906,7 +902,7 @@ export default function MenuScreen() {
                   router.push('/login');
                 }}
               >
-                <Text className="text-white font-bold">Accedi o Registrati</Text>
+                <Text className="text-white font-bold">Accedi con Google</Text>
               </Pressable>
             )}
           </View>
