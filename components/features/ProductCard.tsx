@@ -9,7 +9,8 @@ import { useAppSettings } from '@/lib/stores/AppSettingsContext';
 import { useCart } from '@/lib/stores/CartContext';
 import { FontAwesome } from '@expo/vector-icons';
 import { useCallback, useMemo } from 'react';
-import { Image, Pressable, Text, View, useWindowDimensions } from 'react-native';
+import { Image, Pressable, Text, View } from 'react-native';
+import { useViewportWidth } from '@/lib/hooks/useHydrated';
 
 interface ProductCardProps {
   readonly product: Product;
@@ -45,7 +46,7 @@ function getProductIcon(product: Product): string {
 }
 
 export function ProductCard({ product, onAddToCart, onPress, onEditPress, quickAddAsNormalPizza = false }: ProductCardProps) {
-  const { width } = useWindowDimensions();
+  const width = useViewportWidth();
   const { language } = useAppSettings();
   const { items, addItem, updateQuantity } = useCart();
   const isMobile = width < 768;

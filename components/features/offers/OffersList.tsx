@@ -1,7 +1,8 @@
 import { OfferCard } from '@/components/features/offers/OfferCard';
 import type { OfferCardLayout } from '@/components/features/offers/OfferCard';
 import type { ResolvedComboOffer } from '@/lib/data/offers';
-import { FlatList, View, useWindowDimensions } from 'react-native';
+import { FlatList, View } from 'react-native';
+import { useViewportWidth } from '@/lib/hooks/useHydrated';
 
 const ITEM_GAP = 16;
 
@@ -24,7 +25,7 @@ export function OffersList({
   maxHeight,
   cardWidth,
 }: OffersListProps) {
-  const { width } = useWindowDimensions();
+  const width = useViewportWidth();
   const resolvedCardWidth = cardWidth ?? Math.min(width - 40, 680);
   const visibleOffers = limit ? offers.slice(0, limit) : offers;
 
