@@ -7,6 +7,8 @@
  */
 
 import { Button } from '@/components/ui/Button';
+import { TurnstileWidget } from '@/components/features/TurnstileWidget';
+import { isAntiabuseError } from '@/lib/utils/antiabuse';
 import { useCreateOrder } from '@/lib/hooks/useCreateOrder';
 import { useOrderSubmissionGuard } from '@/lib/hooks/useOrderSubmissionGuard';
 import {
@@ -19,7 +21,7 @@ import { PAY_AT_TILL_LABEL_IT, PAY_AT_TILL_METHOD, PAY_AT_TILL_NOTE } from '@/li
 import { getCartItemUnitPrice, useCart } from '@/lib/stores/CartContext';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type OrderType = 'eat_in' | 'take_away' | 'delivery';
@@ -35,6 +37,7 @@ export default function OneScreenCheckout() {
   const insets = useSafeAreaInsets();
   const { items, totalAmount, clearCart } = useCart();
   const createOrder = useCreateOrder();
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
   const [orderType, setOrderType] = useState<OrderType>('take_away');
   const [customerName, setCustomerName] = useState('');
@@ -48,23 +51,20 @@ export default function OneScreenCheckout() {
 
   const handleSubmit = useCallback(async () => {
     if (items.length === 0) {
-      Alert.alert('Carrello vuoto', 'Aggiungi dei prodotti prima di procedere.');
+      setSubmissionError('Carrello vuoto: aggiungi dei prodotti prima di procedere.');
       return;
     }
     if (!customerName.trim() || customerPhone.trim().length < 8) {
-      Alert.alert(
-        'Dati mancanti',
-        'Inserisci il nome e un numero di telefono valido.'
-      );
+      setSubmissionError('Inserisci il nome e un numero di telefono valido.');
       return;
     }
     if (orderType === 'delivery' && !deliveryAddress.trim()) {
-      Alert.alert('Indirizzo mancante', 'Inserisci l\u2019indirizzo di consegna.');
+      setSubmissionError('Inserisci l\u2019indirizzo di consegna.');
       return;
     }
     const resolvedDeliveryAddress = finalizeDeliveryAddress(deliveryAddress);
     if (orderType === 'delivery' && !isAddressInDeliveryZone(resolvedDeliveryAddress)) {
-      Alert.alert('Zona non coperta', getDeliveryZoneMessage('it'));
+      setSubmissionError(getDeliveryZoneMessage('it'));
       return;
     }
 
@@ -82,6 +82,7 @@ export default function OneScreenCheckout() {
           orderType === 'delivery' ? resolvedDeliveryAddress.trim() : undefined,
         fulfillmentMode: 'asap',
         paymentMethod: PAY_AT_TILL_METHOD,
+        turnstileToken,
       });
 
       await complete(true);
@@ -93,9 +94,13 @@ export default function OneScreenCheckout() {
       );
     } catch (error) {
       await complete(false);
-      setSubmissionError('Non abbiamo ricevuto la conferma del tuo ordine. Riprova. Se il problema continua, contatta la pizzeria.');
       console.error('Order creation failed:', error);
-      Alert.alert('Errore', 'Impossibile creare l\u2019ordine. Riprova.');
+      // Messaggio in pagina: Alert.alert non compare sul web.
+      setSubmissionError(
+        isAntiabuseError(error)
+          ? error.message
+          : 'Non abbiamo ricevuto la conferma del tuo ordine. Riprova. Se il problema continua, contatta la pizzeria.'
+      );
     }
   }, [
     items,
@@ -103,6 +108,7 @@ export default function OneScreenCheckout() {
     customerName,
     customerPhone,
     deliveryAddress,
+    turnstileToken,
     createOrder,
     clearCart,
     router,
@@ -213,6 +219,7 @@ export default function OneScreenCheckout() {
             <Text className="text-xs text-primary-foreground">Contanti o carta al banco. Nessun pagamento online.</Text>
           </View>
         </View>
+        <TurnstileWidget onToken={setTurnstileToken} />
       </ScrollView>
 
       {/* Confirm bar */}

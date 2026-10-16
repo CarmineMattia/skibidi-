@@ -4,6 +4,7 @@
  */
 
 import { supabase } from '@/lib/api/supabase';
+import { AntiabuseError, getAntiabuseMessage, isTurnstileEnabled } from '@/lib/utils/antiabuse';
 import { getCartItemUnitPrice, type CartItem } from '@/lib/stores/CartContext';
 import { useAppSettings } from '@/lib/stores/AppSettingsContext';
 import { useTenant } from '@/lib/stores/TenantContext';
@@ -37,6 +38,7 @@ interface CreateOrderInput {
   fulfillmentAt?: string;
   paymentMethod?: PaymentMethod; // For fiscalization
   skipFiscal?: boolean; // Option to skip fiscalization for testing
+  turnstileToken?: string | null; // Cloudflare Turnstile (solo se EXPO_PUBLIC_TURNSTILE_SITE_KEY)
 }
 
 interface CreateOrderResult {
@@ -115,7 +117,9 @@ export function useCreateOrder() {
       fulfillmentAt,
       paymentMethod = 'cash',
       skipFiscal = false,
+      turnstileToken,
     }: CreateOrderInput): Promise<CreateOrderResult> => {
+      const lang = language === 'en' ? 'en' : 'it';
       if (!companyId) throw new Error("Ristorante non disponibile. Riprova.");
       if (!items.length) throw new Error("Il carrello è vuoto.");
       const resolvedDeliveryAddress = deliveryAddress
@@ -192,11 +196,21 @@ export function useCreateOrder() {
           notes: formatOrderItemNotes(item.notes, item.modifiers, item.product.name),
         };
       });
+      if (isTurnstileEnabled()) {
+        if (!turnstileToken) throw new AntiabuseError(getAntiabuseMessage('ANTIABUSE_CAPTCHA_REQUIRED', lang)!);
+        const { error: captchaError } = await supabase.functions.invoke('verify-turnstile', {
+          body: { token: turnstileToken },
+        });
+        if (captchaError) throw new AntiabuseError(getAntiabuseMessage('ANTIABUSE_CAPTCHA_REQUIRED', lang)!);
+      }
+
       const { data: persisted, error: orderError } = await supabase.rpc('create_order_with_items', {
         p_order: orderData,
         p_items: orderItems,
       });
       if (orderError || !persisted) {
+        const antiabuseMessage = getAntiabuseMessage(orderError?.message, lang);
+        if (antiabuseMessage) throw new AntiabuseError(antiabuseMessage);
         throw new Error(`Impossibile inviare l’ordine: ${orderError?.message ?? 'salvataggio non confermato'}`);
       }
       const saved = persisted as { id?: string; display_code?: string; total_amount?: number };
