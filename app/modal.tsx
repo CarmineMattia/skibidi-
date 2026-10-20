@@ -186,7 +186,7 @@ function sumSlotPizzaUnits(
 
 export default function CheckoutScreen() {
   const { items, totalAmount, clearCart, addItem } = useCart();
-  const { profile, isAuthenticated, isGuest } = useAuth();
+  const { profile, isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const {
     language,
     deliveryFee,
@@ -772,10 +772,15 @@ export default function CheckoutScreen() {
       const parsedAddress = splitAddressAndCivico(profile.address || '');
       setAddress(parsedAddress.street);
       setCivico(parsedAddress.civico);
-    } else if (isGuest) {
-      setName('ospite123');
     }
-  }, [isAuthenticated, profile, isGuest]);
+  }, [isAuthenticated, profile]);
+
+  // Ordinare richiede un utente loggato: senza sessione si va al login
+  useEffect(() => {
+    if (!isAuthLoading && !isAuthenticated) {
+      router.replace('/login');
+    }
+  }, [isAuthLoading, isAuthenticated, router]);
 
   const handleNextStep = () => {
     if (step === 'type') {

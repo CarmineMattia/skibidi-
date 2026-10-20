@@ -24,7 +24,7 @@ interface UseKitchenOrdersOptions {
 }
 
 export function useKitchenOrders(options: UseKitchenOrdersOptions = {}) {
-  const { statuses = ['pending', 'preparing', 'ready'], onOrderEvent, enabled = true } = options;
+  const { statuses = ['pending', 'accepted', 'preparing', 'ready'], onOrderEvent, enabled = true } = options;
   const { companyId } = useTenant();
   const queryClient = useQueryClient();
 

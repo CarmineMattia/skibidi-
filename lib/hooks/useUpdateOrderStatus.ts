@@ -23,7 +23,7 @@ export function useUpdateOrderStatus() {
 
   return useMutation({
     mutationFn: async ({ orderId, status, declineReasonPreset = null, declineReasonNote = null }: UpdateOrderStatusInput) => {
-      const isDeclined = status === 'cancelled';
+      const isDeclined = status === 'rejected' || status === 'cancelled';
       if (!companyId) throw new Error('Ristorante non disponibile. Riprova.');
       const { data, error } = await supabase
         .from('orders')

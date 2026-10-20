@@ -10,7 +10,8 @@ import { useOffers } from '@/lib/hooks/useOffers';
 import { useCart } from '@/lib/stores/CartContext';
 import { FontAwesome } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { Pressable, RefreshControl, ScrollView, Text, View, useWindowDimensions } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { useViewportWidth } from '@/lib/hooks/useHydrated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 function addOfferToCart(offer: ResolvedComboOffer, addItem: ReturnType<typeof useCart>['addItem']) {
@@ -34,7 +35,7 @@ function SectionEyebrow({ children }: { readonly children: string }) {
 export default function OffersScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { width } = useWindowDimensions();
+  const width = useViewportWidth();
   const { offers, isLoading, refetch, isRefetching } = useOffers();
   const { addItem } = useCart();
   const isCompact = width < 430;

@@ -278,6 +278,8 @@ export type Database = {
           decline_reason_note: string | null
           decline_reason_preset: string | null
           declined_at: string | null
+          accepted_at: string | null
+          accepted_by: string | null
           delivery_address: string | null
           display_code: string | null
           fiscal_external_id: string | null
@@ -300,6 +302,8 @@ export type Database = {
           decline_reason_note?: string | null
           decline_reason_preset?: string | null
           declined_at?: string | null
+          accepted_at?: string | null
+          accepted_by?: string | null
           delivery_address?: string | null
           display_code?: string | null
           fiscal_external_id?: string | null
@@ -322,6 +326,8 @@ export type Database = {
           decline_reason_note?: string | null
           decline_reason_preset?: string | null
           declined_at?: string | null
+          accepted_at?: string | null
+          accepted_by?: string | null
           delivery_address?: string | null
           display_code?: string | null
           fiscal_external_id?: string | null
@@ -507,9 +513,11 @@ export type Database = {
       fiscal_status: "pending" | "success" | "error"
       order_status:
         | "pending"
+        | "accepted"
         | "preparing"
         | "ready"
         | "delivered"
+        | "rejected"
         | "cancelled"
       user_role: "admin" | "customer" | "kiosk"
     }
@@ -640,7 +648,7 @@ export const Constants = {
   public: {
     Enums: {
       fiscal_status: ["pending", "success", "error"],
-      order_status: ["pending", "preparing", "ready", "delivered", "cancelled"],
+      order_status: ["pending", "accepted", "preparing", "ready", "delivered", "rejected", "cancelled"],
       user_role: ["admin", "customer", "kiosk"],
     },
   },

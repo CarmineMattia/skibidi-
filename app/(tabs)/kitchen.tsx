@@ -3,7 +3,8 @@
  * Real-time order management for kitchen staff
  */
 
-import { View, Text, FlatList, Dimensions, Pressable, ScrollView, useWindowDimensions } from 'react-native';
+import { View, Text, FlatList, Pressable, ScrollView } from 'react-native';
+import { useViewportWidth } from '@/lib/hooks/useHydrated';
 import { SkeletonKitchenGrid } from '@/components/ui/Skeleton';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useKitchenOrders } from '@/lib/hooks/useKitchenOrders';
@@ -21,11 +22,12 @@ import { getNextOpening, isOpenAt } from '@/lib/utils/businessHours';
 type OrderStatus = Database['public']['Enums']['order_status'];
 
 const FILTER_OPTIONS: { label: string; statuses: OrderStatus[] }[] = [
-  { label: 'Attivi', statuses: ['pending', 'preparing', 'ready'] },
-  { label: 'Nuovi', statuses: ['pending'] },
+  { label: 'Attivi', statuses: ['pending', 'accepted', 'preparing', 'ready'] },
+  { label: 'Da confermare', statuses: ['pending'] },
+  { label: 'Accettati', statuses: ['accepted'] },
   { label: 'In Preparazione', statuses: ['preparing'] },
   { label: 'Pronti', statuses: ['ready'] },
-  { label: 'Tutti', statuses: ['pending', 'preparing', 'ready', 'delivered', 'cancelled'] },
+  { label: 'Tutti', statuses: ['pending', 'accepted', 'preparing', 'ready', 'delivered', 'rejected', 'cancelled'] },
 ];
 
 // Self-contained digital clock — local 1s tick so the order grid does not re-render.
@@ -68,8 +70,8 @@ function KitchenClock({ compact = false }: { compact?: boolean }) {
 
 export default function KitchenScreen() {
   const insets = useSafeAreaInsets();
-  const { width } = useWindowDimensions();
-  const viewportWidth = Dimensions.get('window').width;
+  const width = useViewportWidth();
+  const viewportWidth = width;
   const effectiveWidth = Math.min(width, viewportWidth);
   const isMobile = effectiveWidth < 768;
   const isUltraCompact = effectiveWidth < 400;
