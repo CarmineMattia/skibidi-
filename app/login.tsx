@@ -5,6 +5,7 @@
  * (EXPO_PUBLIC_ENABLE_ADMIN_PASSWORD_LOGIN) ed è raggiungibile da /login?admin=1.
  */
 
+import { useHydratedSearchParams } from '@/lib/hooks/useHydrated';
 import { Button } from '@/components/ui/Button';
 import { BRAND, BRAND_LOGO } from '@/lib/data/brand';
 import {
@@ -14,7 +15,6 @@ import {
   type OAuthProviderId,
 } from '@/lib/stores/AuthContext';
 import { FontAwesome } from '@expo/vector-icons';
-import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Image, KeyboardAvoidingView, Platform, Pressable, Text, TextInput, View } from 'react-native';
 
@@ -31,7 +31,7 @@ function getOAuthErrorMessage(error: unknown): string {
 }
 
 export default function LoginScreen() {
-  const params = useLocalSearchParams<{ admin?: string }>();
+  const params = useHydratedSearchParams<{ admin?: string }>();
   const showAdminLogin = ADMIN_PASSWORD_LOGIN_ENABLED && params.admin === '1';
 
   const [isLoading, setIsLoading] = useState(false);
