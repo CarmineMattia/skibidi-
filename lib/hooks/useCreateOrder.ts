@@ -156,20 +156,16 @@ export function useCreateOrder() {
         writeJsonStorage('ambrosia.orderSubmission.v1', submissionRef.current, 'session');
       }
       const orderId = requestedOrderId ?? submissionRef.current!.id;
+      // The order code ("Ordine #12") is assigned by the server:
+      // create_order_with_items reserves it (and ignores any client value);
+      // before that migration the orders trigger fills a NULL code. Reserving
+      // one here as well would skip a number per order. The fallback is only
+      // shown if the server response carries no code.
       let displayCode = generateFallbackOrderDisplayCode(orderId);
-
-      const { data: reservedCode, error: displayCodeError } = await supabase.rpc(
-        'reserve_order_display_code',
-        { p_company_id: companyId! },
-      );
-
-      if (!displayCodeError && typeof reservedCode === 'string' && reservedCode.trim()) {
-        displayCode = reservedCode.trim();
-      }
 
       const orderData: OrderInsert = {
         id: orderId,
-        display_code: displayCode,
+        display_code: undefined, // omitted from the JSON: the server assigns it
         customer_id: user?.id,
         status: 'pending',
         total_amount: totalAmount,

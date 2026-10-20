@@ -48,6 +48,10 @@ describe('server-confirmed order submission', () => {
       p_order: { id: result!.orderId, status: 'pending', company_id: 'restaurant-1', total_amount: 13 },
       p_items: [{ order_id: result!.orderId, product_id: 'pizza-1', quantity: 2, total_price: 13, notes: '[P] Diavola\nNota: Ben cotta' }],
     });
+    // the server assigns the order code: no client-side reservation, no client code
+    expect(mocks.rpc.mock.calls.some(call => call[0] === 'reserve_order_display_code')).toBe(false);
+    expect(savedCall[1].p_order.display_code).toBeUndefined();
+    expect(result).toMatchObject({ displayCode: 'Diavola #1' });
     expect(submission.isSuccess).toBe(true);
     expect(mocks.storage.get('ambrosia.orderSubmission.v1')).toBeNull();
     await act(async () => root.unmount());
