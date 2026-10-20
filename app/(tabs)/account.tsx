@@ -1,3 +1,4 @@
+import { FontAwesome } from '@expo/vector-icons';
 import { useAuth } from '@/lib/stores/AuthContext';
 import { SkeletonAccountProfile } from '@/components/ui/Skeleton';
 import { useRouter } from 'expo-router';
@@ -47,16 +48,21 @@ export default function AccountScreen() {
 
       {!isAuthenticated && (
         <View className="bg-[#f9ecdd] rounded-2xl p-4 border border-[#e1a255]/60 mb-4 gap-3">
-          <Text className="text-orange-900 font-extrabold">Accedi per salvare ordini e preferiti</Text>
+          <Text className="text-orange-900 font-extrabold">Accedi per ordinare e seguire i tuoi ordini</Text>
           <Pressable
+            accessibilityRole="button"
             onPress={() => router.push('/login')}
-            className="bg-[#8d171e] rounded-xl px-4 py-3 active:opacity-80"
+            className="bg-[#8d171e] rounded-xl px-4 py-3 active:opacity-80 flex-row items-center justify-center gap-2"
           >
-            <Text className="text-white text-center font-bold text-base">Vai al login</Text>
+            <FontAwesome name="google" size={16} color="#ffffff" />
+            <Text className="text-white text-center font-bold text-base">Accedi con Google</Text>
           </Pressable>
         </View>
       )}
 
+      {/* Login solo Google: dati profilo e Esci solo da loggato (niente "ospite"). */}
+      {isAuthenticated && (
+      <>
       <View className="bg-white rounded-2xl p-5 border border-[#e1a255]/40 mb-6 gap-2">
         <Text className="text-sm text-gray-500">Nome</Text>
         <Text className="text-lg font-semibold text-gray-900">
@@ -91,6 +97,8 @@ export default function AccountScreen() {
           Esci
         </Text>
       </Pressable>
+      </>
+      )}
     </ScrollView>
   );
 }

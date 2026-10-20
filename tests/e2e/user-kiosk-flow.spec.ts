@@ -17,7 +17,7 @@ test.describe('User / Kiosk Flow', () => {
   });
 
   test('1. Menu shows products and categories', async () => {
-    await expect(menu.guestBadge.first()).toBeVisible({ timeout: 15000 });
+    await expect(menu.signInButton.first()).toBeVisible({ timeout: 15000 });
     await menu.expectProductsLoaded();
     await expect(menu.category('Bevande')).toBeVisible();
   });

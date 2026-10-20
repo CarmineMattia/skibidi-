@@ -261,10 +261,10 @@ export default function MenuScreen() {
       language === 'en'
         ? {
             menuSubtitle: 'Order online',
-            guest: 'Guest',
             account: 'My account',
             signOut: 'Sign out',
-            signIn: 'Sign in',
+            signIn: 'Sign in with Google',
+            signInShort: 'Sign in',
             cart: 'Cart',
             featuredBadge: "Chef's Choice",
             featuredTitle: 'The Truffle Hearth',
@@ -277,10 +277,10 @@ export default function MenuScreen() {
           }
         : {
             menuSubtitle: 'Ordina online',
-            guest: 'Ospite',
             account: 'Il mio account',
             signOut: 'Esci',
-            signIn: 'Accedi',
+            signIn: 'Accedi con Google',
+            signInShort: 'Accedi',
             cart: 'Carrello',
             featuredBadge: 'Scelta dello chef',
             featuredTitle: 'La Fiamma al Tartufo',
@@ -295,7 +295,7 @@ export default function MenuScreen() {
   );
 
   const accountDisplayName = useMemo(() => {
-    if (!isAuthenticated || !profile) return i18n.guest;
+    if (!isAuthenticated || !profile) return i18n.account;
     if (isAdmin) return 'Admin';
     const fullName = profile.full_name?.trim();
     if (fullName) {
@@ -306,7 +306,7 @@ export default function MenuScreen() {
       return parts[0];
     }
     return profile.email?.split('@')[0] || i18n.account;
-  }, [i18n.account, i18n.guest, isAdmin, isAuthenticated, profile]);
+  }, [i18n.account, isAdmin, isAuthenticated, profile]);
 
   const accountInitial = (accountDisplayName.charAt(0) || 'A').toUpperCase();
 
@@ -521,6 +521,9 @@ export default function MenuScreen() {
           </View>
 
           <View className={`shrink-0 flex-row items-center ${isMobile ? 'gap-1.5' : 'gap-2'}`}>
+            {/* Login solo Google: niente voce "Ospite". Da loggato nome + account + Esci,
+                da non loggato solo il pulsante Google. */}
+            {isAuthenticated && (
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={i18n.account}
@@ -534,11 +537,7 @@ export default function MenuScreen() {
                   isMobile ? 'h-8 w-8' : 'h-9 w-9'
                 }`}
               >
-                {isAuthenticated ? (
-                  <Text className="text-xs font-bold text-[#8d171e]">{accountInitial}</Text>
-                ) : (
-                  <FontAwesome name="user-o" size={isMobile ? 13 : 14} color="#8d171e" />
-                )}
+                <Text className="text-xs font-bold text-[#8d171e]">{accountInitial}</Text>
               </View>
               {!isMobile && (
                 <View className="max-w-[140px]">
@@ -546,11 +545,12 @@ export default function MenuScreen() {
                     {accountDisplayName}
                   </Text>
                   <Text className="text-[10px] font-semibold uppercase tracking-wide text-[#8d171e]/80">
-                    {isAuthenticated ? i18n.account : i18n.guest}
+                    {i18n.account}
                   </Text>
                 </View>
               )}
             </Pressable>
+            )}
 
             {totalItems > 0 && (
               <View
@@ -586,13 +586,15 @@ export default function MenuScreen() {
             {!isAuthenticated && (
               <Pressable
                 accessibilityRole="button"
+                accessibilityLabel={i18n.signIn}
                 onPress={() => router.push('/login')}
-                className={`items-center justify-center rounded-lg bg-[#8d171e] active:opacity-90 web:hover:bg-[#741218] ${
+                className={`flex-row items-center justify-center gap-1.5 rounded-lg bg-[#8d171e] active:opacity-90 web:hover:bg-[#741218] ${
                   isMobile ? 'px-3 py-2' : 'px-4 py-2.5'
                 }`}
               >
+                <FontAwesome name="google" size={isMobile ? 12 : 13} color="#ffffff" />
                 <Text className={`font-bold text-white ${isMobile ? 'text-xs' : 'text-sm'}`}>
-                  {i18n.signIn}
+                  {isMobile ? i18n.signInShort : i18n.signIn}
                 </Text>
               </Pressable>
             )}

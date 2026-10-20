@@ -130,7 +130,7 @@ export function CategoryFilter({
         })}
       </ScrollView>
 
-      {/* Login/Register Button for Guest Users */}
+      {/* Login solo Google (niente ospite / registrazione separata) */}
       {!isAuthenticated && (
         <View className="p-3 border-t border-[#e1a255]/40 bg-white">
           <Pressable
@@ -138,10 +138,10 @@ export function CategoryFilter({
             onPress={() => router.push('/login')}
           >
             <View className="items-center mb-1">
-              <FontAwesome name="user" size={16} color="#ffffff" />
+              <FontAwesome name="google" size={16} color="#ffffff" />
             </View>
             <Text className="text-white font-bold text-xs text-center leading-tight">
-              Accedi o{'\n'}Registrati
+              Accedi con{'\n'}Google
             </Text>
           </Pressable>
         </View>
@@ -159,11 +159,11 @@ export function CategoryFilter({
               )}
             </View>
             <Text className="text-foreground font-semibold text-xs text-center" numberOfLines={2}>
-              {profile?.full_name || 'Utente'}
+              {profile?.full_name || profile?.email?.split('@')[0] || 'Il mio account'}
             </Text>
-            <Text className="text-muted-foreground text-xs capitalize">
-              {profile?.role || 'Guest'}
-            </Text>
+            {profile?.role === 'admin' && (
+              <Text className="text-muted-foreground text-xs">Admin</Text>
+            )}
           </View>
 
           <Pressable
