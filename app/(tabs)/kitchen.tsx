@@ -3,7 +3,8 @@
  * Real-time order management for kitchen staff
  */
 
-import { View, Text, FlatList, Dimensions, Pressable, ScrollView, useWindowDimensions } from 'react-native';
+import { View, Text, FlatList, Pressable, ScrollView } from 'react-native';
+import { useViewportWidth } from '@/lib/hooks/useHydrated';
 import { SkeletonKitchenGrid } from '@/components/ui/Skeleton';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useKitchenOrders } from '@/lib/hooks/useKitchenOrders';
@@ -68,8 +69,8 @@ function KitchenClock({ compact = false }: { compact?: boolean }) {
 
 export default function KitchenScreen() {
   const insets = useSafeAreaInsets();
-  const { width } = useWindowDimensions();
-  const viewportWidth = Dimensions.get('window').width;
+  const width = useViewportWidth();
+  const viewportWidth = width;
   const effectiveWidth = Math.min(width, viewportWidth);
   const isMobile = effectiveWidth < 768;
   const isUltraCompact = effectiveWidth < 400;

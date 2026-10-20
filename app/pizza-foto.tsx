@@ -1,10 +1,11 @@
 import { Stack, useRouter } from 'expo-router';
-import { Image, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
+import { Image, Pressable, ScrollView, Text, View } from 'react-native';
+import { useViewportWidth } from '@/lib/hooks/useHydrated';
 import { getPizzaPhotoCatalog } from '@/lib/data/pizzaPhotos';
 
 export default function PizzaPhotoCatalog() {
   const router = useRouter();
-  const { width } = useWindowDimensions();
+  const width = useViewportWidth();
   const columns = width >= 1000 ? 3 : width >= 600 ? 2 : 1;
   const cardWidth = (Math.min(width, 1280) - 48 - (columns - 1) * 16) / columns;
   return <>

@@ -74,7 +74,14 @@ function RootLayoutNav() {
                   <CartProvider>
                     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
                       <AuthGuard>
-                        <Stack>
+                        <Stack
+                          screenOptions={{
+                            // L'header calcola maxWidth del titolo dalla larghezza della finestra,
+                            // che nell'HTML statico è 0: valore fisso per evitare React #418.
+                            // Su web lo stack usa l'header JS, che accetta questa opzione (non tipizzata in native-stack).
+                            ...({ headerTitleContainerStyle: { maxWidth: '100%' } } as object),
+                          }}
+                        >
                           <Stack.Screen name="login" options={{ headerShown: false }} />
                           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
                           <Stack.Screen name="admin-options" options={{ headerShown: false }} />
