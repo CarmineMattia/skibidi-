@@ -20,6 +20,8 @@ import { FontAwesome } from '@expo/vector-icons';
 import { countries } from 'countries-list';
 import { useRouter, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { TurnstileWidget } from '@/components/features/TurnstileWidget';
+import { isAntiabuseError } from '@/lib/utils/antiabuse';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Image, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -184,7 +186,7 @@ function sumSlotPizzaUnits(
 
 export default function CheckoutScreen() {
   const { items, totalAmount, clearCart, addItem } = useCart();
-  const { profile, isAuthenticated, isGuest } = useAuth();
+  const { profile, isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const {
     language,
     deliveryFee,
@@ -204,6 +206,7 @@ export default function CheckoutScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const createOrder = useCreateOrder();
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
   // Restart validation after a reload: customer and scheduling fields are not persisted.
   const [step, setStep] = useState<CheckoutStep>('type');
@@ -769,10 +772,15 @@ export default function CheckoutScreen() {
       const parsedAddress = splitAddressAndCivico(profile.address || '');
       setAddress(parsedAddress.street);
       setCivico(parsedAddress.civico);
-    } else if (isGuest) {
-      setName('ospite123');
     }
-  }, [isAuthenticated, profile, isGuest]);
+  }, [isAuthenticated, profile]);
+
+  // Ordinare richiede un utente loggato: senza sessione si va al login
+  useEffect(() => {
+    if (!isAuthLoading && !isAuthenticated) {
+      router.replace('/login');
+    }
+  }, [isAuthLoading, isAuthenticated, router]);
 
   const handleNextStep = () => {
     if (step === 'type') {
@@ -977,6 +985,7 @@ export default function CheckoutScreen() {
         fulfillmentMode,
         fulfillmentAt: selectedFulfillmentIso,
         paymentMethod: PAY_AT_TILL_METHOD,
+        turnstileToken,
       });
 
       console.log('✅ Order created successfully:', result.orderId);
@@ -989,6 +998,11 @@ export default function CheckoutScreen() {
     } catch (error) {
       await complete(false);
       console.error('❌ Order creation failed:', error);
+      if (isAntiabuseError(error)) {
+        setSubmissionError(error.message);
+        Alert.alert('Errore', error.message, [{ text: 'OK' }]);
+        return;
+      }
       setSubmissionError(language === 'en'
         ? 'We could not confirm receipt of your order. Please try again. If the problem persists, contact the restaurant.'
         : 'Non abbiamo ricevuto la conferma del tuo ordine. Riprova. Se il problema continua, contatta la pizzeria.');
@@ -1505,6 +1519,10 @@ export default function CheckoutScreen() {
               {language === 'en' ? 'Cash or card at the counter. No online payment.' : 'Contanti o carta al banco. Nessun pagamento online.'}
             </Text>
           </View>
+        </View>
+
+        <View className="mt-4">
+          <TurnstileWidget onToken={setTurnstileToken} />
         </View>
 
         {/* Footer Buttons */}

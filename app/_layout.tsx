@@ -74,7 +74,14 @@ function RootLayoutNav() {
                   <CartProvider>
                     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
                       <AuthGuard>
-                        <Stack>
+                        <Stack
+                          screenOptions={{
+                            // L'header calcola maxWidth del titolo dalla larghezza della finestra,
+                            // che nell'HTML statico è 0: valore fisso per evitare React #418.
+                            // Su web lo stack usa l'header JS, che accetta questa opzione (non tipizzata in native-stack).
+                            ...({ headerTitleContainerStyle: { maxWidth: '100%' } } as object),
+                          }}
+                        >
                           <Stack.Screen name="login" options={{ headerShown: false }} />
                           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
                           <Stack.Screen name="admin-options" options={{ headerShown: false }} />
@@ -114,9 +121,12 @@ function RootLayoutNav() {
 
 /**
  * Authentication Guard
- * Allows guest/anonymous users to browse as "ospite" (kiosk mode)
- * Only redirects authenticated users away from login page
+ * - Il menu resta navigabile senza login.
+ * - Checkout/ordine richiedono un utente loggato (Google): altrimenti /login.
+ * - Gli utenti già autenticati non restano sulla pagina di login.
  */
+const ORDER_ROUTES = new Set(['modal', 'one-screen-checkout']);
+
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
   const segments = useSegments();
@@ -125,13 +135,11 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (isLoading) return; // Wait for auth to initialize
 
-    const inAuthGroup = segments[0] === 'login';
-
-    // Only redirect if user is authenticated AND trying to access login
-    // This prevents logged-in users from seeing login page
-    // But allows guests/anonymous users everywhere
-    if (isAuthenticated && inAuthGroup) {
+    const first = segments[0] as string | undefined;
+    if (isAuthenticated && first === 'login') {
       router.replace('/(tabs)/menu');
+    } else if (!isAuthenticated && first && ORDER_ROUTES.has(first)) {
+      router.replace('/login');
     }
   }, [isAuthenticated, isLoading, segments, router]);
 

@@ -1,7 +1,9 @@
 \set ON_ERROR_STOP on
-SET ROLE anon;
+-- Da feat/antiabuse gli ordini richiedono un utente loggato: niente ospiti.
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000c1', false);
 DO $$
-DECLARE o jsonb := '{"id":"00000000-0000-0000-0000-000000000021","company_id":"00000000-0000-0000-0000-000000000001","display_code":"Diavola #1","total_amount":10,"order_type":"take_away"}';
+DECLARE o jsonb := '{"id":"00000000-0000-0000-0000-000000000021","company_id":"00000000-0000-0000-0000-000000000001","customer_id":"00000000-0000-0000-0000-0000000000c1","display_code":"Diavola #1","total_amount":10,"order_type":"take_away"}';
  i jsonb := '[{"product_id":"00000000-0000-0000-0000-000000000011","quantity":2,"unit_price":5,"total_price":10}]';
  r jsonb;
 BEGIN
@@ -9,7 +11,7 @@ BEGIN
  IF r->>'id' <> o->>'id' THEN RAISE EXCEPTION 'Missing acknowledgement'; END IF;
  r := public.create_order_with_items(o, i);
  IF r->>'id' <> o->>'id' THEN RAISE EXCEPTION 'Retry missing acknowledgement'; END IF;
- IF EXISTS (SELECT 1 FROM orders) THEN RAISE EXCEPTION 'Guest SELECT leaked orders'; END IF;
+ IF EXISTS (SELECT 1 FROM orders WHERE customer_id IS DISTINCT FROM auth.uid()) THEN RAISE EXCEPTION 'Customer SELECT leaked other orders'; END IF;
  BEGIN
    PERFORM public.create_order_with_items(o, jsonb_set(jsonb_set(i, '{0,quantity}', '1'), '{0,total_price}', '5'));
    RAISE EXCEPTION 'Expected changed retry to fail';
@@ -36,6 +38,7 @@ BEGIN
  END;
 END $$;
 RESET ROLE;
+SELECT set_config('request.jwt.claim.sub', '', false);
 DO $$ BEGIN
  IF (SELECT count(*) FROM orders) <> 1 OR (SELECT count(*) FROM order_items) <> 1 THEN
   RAISE EXCEPTION 'Duplicate order or line created';
@@ -45,13 +48,15 @@ DO $$ BEGIN
  BEGIN
   INSERT INTO orders(id,company_id,status,fiscal_status,total_amount)
     VALUES ('00000000-0000-0000-0000-000000000025','00000000-0000-0000-0000-000000000001','pending','pending',5);
-  UPDATE orders SET status='accepted' WHERE id='00000000-0000-0000-0000-000000000025';
+  -- Con #18 l'accettazione è pending->accepted; senza #18 pending->preparing.
+  UPDATE orders SET status = CASE WHEN to_regproc('public.is_valid_order_transition') IS NULL THEN 'preparing' ELSE 'accepted' END
+   WHERE id='00000000-0000-0000-0000-000000000025';
   RAISE EXCEPTION 'Expected empty order acceptance to fail';
  EXCEPTION WHEN raise_exception THEN
   IF SQLERRM <> 'Cannot accept an order without saved items' THEN RAISE; END IF;
  END;
 END $$;
--- Separate guest and staff roles share the actual persisted order, not a mock.
+-- Guest tracking by order id stays public (get_order_tracking); only ordering needs login.
 SET ROLE anon;
 DO $$ DECLARE r jsonb; BEGIN
  r := public.get_order_tracking('00000000-0000-0000-0000-000000000021');
@@ -75,7 +80,10 @@ DO $$ DECLARE saved_id uuid; BEGIN
   WHERE o.id = '00000000-0000-0000-0000-000000000021'
    AND o.status = 'pending' AND i.quantity = 2 AND i.total_price = 10
  ) THEN RAISE EXCEPTION 'Kitchen cannot read the submitted order and lines'; END IF;
- UPDATE orders SET status = 'accepted' WHERE id = '00000000-0000-0000-0000-000000000021'; UPDATE orders SET status = 'preparing'
+ IF to_regproc('public.is_valid_order_transition') IS NOT NULL THEN
+  UPDATE orders SET status = 'accepted' WHERE id = '00000000-0000-0000-0000-000000000021';
+ END IF;
+ UPDATE orders SET status = 'preparing'
   WHERE id = '00000000-0000-0000-0000-000000000021' RETURNING id INTO saved_id;
  IF saved_id IS NULL THEN RAISE EXCEPTION 'Kitchen acceptance was not saved'; END IF;
 END $$;
@@ -87,4 +95,4 @@ DO $$ BEGIN
  END IF;
 END $$;
 RESET ROLE;
-SELECT 'PASS: guest save, kitchen reads saved lines, staff acceptance, guest tracking, tenant isolation, retry, rollback and invalid input';
+SELECT 'PASS: logged-in save, kitchen reads saved lines, staff acceptance, guest tracking, tenant isolation, retry, rollback and invalid input';

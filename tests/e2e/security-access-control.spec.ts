@@ -12,8 +12,15 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { loginAsCustomer } from '../fixtures/page-objects';
+import { mockEmptyBackend } from './fixtures/mockBackend';
+import { mockLoggedInCustomer } from './fixtures/mockSession';
 import { mustSkipRealAuth, PROD_SKIP_REASON, resolvedSupabaseUrl } from '../fixtures/prodGuard';
+
+// Test 1-3: sessione cliente mockata (login solo Google), nessun login reale.
+async function asCustomer(page: import('@playwright/test').Page) {
+  await mockEmptyBackend(page);
+  await mockLoggedInCustomer(page);
+}
 
 // Lazy Supabase client — avoids crash when env vars aren't loaded in Playwright's context
 let _supabase: any = null;
@@ -40,11 +47,7 @@ const CUSTOMER_PASSWORD = process.env.TEST_CUSTOMER_PASSWORD || 'Customer123!';
 
 test.describe('Access control — customer cannot reach admin/kitchen by direct URL', () => {
   test('1. Logged-in customer navigating directly to /kitchen is redirected away', async ({ page }) => {
-    const loggedIn = await loginAsCustomer(page);
-    if (!loggedIn) {
-      test.skip(true, 'Customer credentials not available — run supabase/reset-test-passwords.sql first');
-      return;
-    }
+    await asCustomer(page);
 
     await page.goto('/(tabs)/kitchen');
     await page.waitForLoadState('networkidle');
@@ -56,11 +59,7 @@ test.describe('Access control — customer cannot reach admin/kitchen by direct 
   });
 
   test('2. Logged-in customer navigating directly to /admin-dashboard is redirected away', async ({ page }) => {
-    const loggedIn = await loginAsCustomer(page);
-    if (!loggedIn) {
-      test.skip(true, 'Customer credentials not available');
-      return;
-    }
+    await asCustomer(page);
 
     await page.goto('/(tabs)/admin-dashboard');
     await page.waitForLoadState('networkidle');
@@ -71,11 +70,7 @@ test.describe('Access control — customer cannot reach admin/kitchen by direct 
   });
 
   test('3. Logged-in customer navigating directly to /admin-options is redirected away', async ({ page }) => {
-    const loggedIn = await loginAsCustomer(page);
-    if (!loggedIn) {
-      test.skip(true, 'Customer credentials not available');
-      return;
-    }
+    await asCustomer(page);
 
     await page.goto('/admin-options');
     await page.waitForLoadState('networkidle');
