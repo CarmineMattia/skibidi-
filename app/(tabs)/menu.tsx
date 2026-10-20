@@ -29,7 +29,6 @@ import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   Alert,
-  Dimensions,
   FlatList,
   Image,
   Modal,
@@ -38,8 +37,8 @@ import {
   ScrollView,
   Text,
   View,
-  useWindowDimensions,
 } from 'react-native';
+import { useViewportWidth } from '@/lib/hooks/useHydrated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 function isDrinkCategoryName(categoryName: string): boolean {
@@ -156,8 +155,8 @@ function DrinkSpotlightWrap({
 }
 
 export default function MenuScreen() {
-  const { width } = useWindowDimensions();
-  const viewportWidth = Dimensions.get('window').width;
+  const width = useViewportWidth();
+  const viewportWidth = width;
   const effectiveWidth = Math.min(width, viewportWidth);
   // Mobile-first breakpoints.
   const isMobile = effectiveWidth < 768;

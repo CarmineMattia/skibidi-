@@ -2,7 +2,8 @@ import type { HomeTrendingPizza } from '@/components/features/home/types';
 import { FontAwesome } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useMemo, useRef, useState } from 'react';
-import { FlatList, ImageBackground, Pressable, Text, View, useWindowDimensions } from 'react-native';
+import { FlatList, ImageBackground, Pressable, Text, View } from 'react-native';
+import { useViewportWidth } from '@/lib/hooks/useHydrated';
 
 const ITEM_GAP = 12;
 
@@ -21,7 +22,7 @@ export function HomeTrendingSection({
   onOpenPizza,
   onQuickAddPizza,
 }: HomeTrendingSectionProps) {
-  const { width } = useWindowDimensions();
+  const width = useViewportWidth();
   const flatListRef = useRef<FlatList<HomeTrendingPizza>>(null);
   const isRecenteringRef = useRef(false);
 
