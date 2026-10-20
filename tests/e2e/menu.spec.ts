@@ -17,7 +17,7 @@ test.describe('Menu (guest)', () => {
   });
 
   test('1. Menu shows products', async () => {
-    await expect(menu.guestBadge.first()).toBeVisible({ timeout: 15000 });
+    await expect(menu.signInButton.first()).toBeVisible({ timeout: 15000 });
     await menu.expectProductsLoaded();
   });
 
@@ -32,7 +32,7 @@ test.describe('Menu (guest)', () => {
     await expect(menu.cart.first()).toBeVisible();
   });
 
-  test('4. Guest badge is visible', async () => {
-    await expect(menu.guestBadge.first()).toBeVisible({ timeout: 15000 });
+  test('4. Google sign-in entry is visible when logged out', async () => {
+    await expect(menu.signInButton.first()).toBeVisible({ timeout: 15000 });
   });
 });

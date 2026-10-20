@@ -64,7 +64,7 @@ export class MenuPage {
   readonly page: Page;
   readonly headerBrand: Locator;
   readonly headerSubtitle: Locator;
-  readonly guestBadge: Locator;
+  readonly signInButton: Locator; // "Accedi con Google" (solo da non loggato; niente "Ospite")
   readonly logOutButton: Locator;
   readonly cart: Locator;
 
@@ -72,7 +72,7 @@ export class MenuPage {
     this.page = page;
     this.headerBrand = page.getByText('Pizzeria Ambrosia', { exact: true }).first();
     this.headerSubtitle = page.getByText('Ordina online');
-    this.guestBadge = page.getByText(/^Ospite$/i);
+    this.signInButton = page.getByRole('button', { name: 'Accedi con Google' });
     this.logOutButton = page.getByText('Esci');
     this.cart = page.getByText('Carrello');
   }

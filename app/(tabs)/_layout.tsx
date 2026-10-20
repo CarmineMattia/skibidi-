@@ -21,7 +21,7 @@ function TabBarIcon(props: {
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
-  const { userRole } = useAuth();
+  const { userRole, isAuthenticated } = useAuth();
   // Larghezza 0 fino al mount, come nell'HTML statico (evita React #418).
   const width = useViewportWidth();
   const hydrated = useHydrated();
@@ -41,7 +41,7 @@ export default function TabLayout() {
   } as const;
 
   // Role-based tab visibility
-  // Kiosk/Guest/Customer: Home + Menu + Account
+  // Non loggato / Cliente: Home + Menu + Accedi|Profilo
   // Admin: Home + Dashboard + Menu + Kitchen + Orders + Account
   const showHome = true;
   const showAdminDashboard = userRole === 'admin';
@@ -116,8 +116,12 @@ export default function TabLayout() {
       <Tabs.Screen
         name="account"
         options={{
-          title: 'Profile',
-          tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} size={tabIconSize} />,
+          // Login solo Google: da non loggato la voce porta al login Google.
+          // Dopo il mount, come nell'HTML statico (sessione letta solo nel browser).
+          title: hydrated && isAuthenticated ? 'Profilo' : 'Accedi',
+          tabBarIcon: ({ color }) => (
+            <TabBarIcon name={hydrated && isAuthenticated ? 'user' : 'google'} color={color} size={tabIconSize} />
+          ),
           href: showAccount ? '/(tabs)/account' : null,
         }}
       />
