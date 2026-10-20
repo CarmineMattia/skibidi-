@@ -2,5 +2,6 @@
   "version": 2,
   "buildCommand": "npm run build:web",
   "outputDirectory": "dist",
-  "rewrites": [{ "source": "/(.*)", "destination": "/" }]
+  "cleanUrls": true,
+  "trailingSlash": false
 }

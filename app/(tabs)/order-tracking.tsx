@@ -1,3 +1,4 @@
+import { useHydratedSearchParams } from '@/lib/hooks/useHydrated';
 import { FontAwesome } from '@expo/vector-icons';
 import { supabase } from '@/lib/api/supabase';
 import { useCustomerOrderAlert } from '@/lib/hooks/useCustomerOrderAlert';
@@ -13,7 +14,7 @@ import {
 import { getOrderDisplayCode } from '@/lib/utils/orderDisplayCode';
 import { SkeletonOrderTracking } from '@/components/ui/Skeleton';
 import { useQueryClient } from '@tanstack/react-query';
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -22,7 +23,7 @@ export default function OrderTrackingScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { orderType: rawOrderType, orderId } = useLocalSearchParams<{
+  const { orderType: rawOrderType, orderId } = useHydratedSearchParams<{
     orderType?: string;
     orderId?: string;
   }>();
