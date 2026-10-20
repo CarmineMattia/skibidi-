@@ -13,7 +13,7 @@ CREATE TABLE public.orders(id uuid PRIMARY KEY, company_id uuid, customer_id uui
  customer_name text, customer_phone text, delivery_address text, table_number text);
 CREATE TABLE public.order_items(id uuid DEFAULT gen_random_uuid() PRIMARY KEY, order_id uuid REFERENCES orders(id),
  product_id uuid REFERENCES products(id), quantity integer, unit_price numeric, total_price numeric,
- notes text CHECK(notes IS DISTINCT FROM 'force failure'));
+ notes text CHECK(notes IS NULL OR notes NOT LIKE '%Nota: force failure'));
 ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.order_items ENABLE ROW LEVEL SECURITY;
 CREATE POLICY orders_insert ON public.orders FOR INSERT WITH CHECK (

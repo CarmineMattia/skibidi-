@@ -1,3 +1,4 @@
+import { COOKING_OPTIONS, type CookingLevel } from '@/lib/data/menuPricing';
 import { Button } from '@/components/ui/Button';
 import {
     categorizeIngredient,
@@ -19,6 +20,7 @@ import {
 } from '@/lib/data/pizzaBuilder';
 import type { BuilderSelection } from '@/lib/data/pizzaBuilder';
 import { useCart } from '@/lib/stores/CartContext';
+import { useMenuPricingVersion } from '@/lib/stores/MenuPricingContext';
 import { cn } from '@/lib/utils/cn';
 import type { Product } from '@/types';
 import { FontAwesome } from '@expo/vector-icons';
@@ -26,13 +28,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-type CookingLevel = 'poco_cotta' | 'normale' | 'ben_cotta';
 
-const COOKING_OPTIONS: { id: CookingLevel; label: string }[] = [
-    { id: 'poco_cotta', label: 'Poco cotta' },
-    { id: 'normale', label: 'Normale' },
-    { id: 'ben_cotta', label: 'Ben cotta' },
-];
 
 interface PizzaBuilderModalProps {
     visible: boolean;
@@ -59,6 +55,7 @@ export function PizzaBuilderModal({ visible, onClose, product }: PizzaBuilderMod
     const [notes, setNotes] = useState('');
 
     const { addItem } = useCart();
+    const pricingVersion = useMenuPricingVersion();
 
     useEffect(() => {
         if (!visible) return;
@@ -78,7 +75,8 @@ export function PizzaBuilderModal({ visible, onClose, product }: PizzaBuilderMod
         [sizeId, doughId, sauceId, selectedIngredients]
     );
 
-    const breakdown = useMemo(() => calculateBuilderPrice(selection), [selection]);
+    // pricingVersion: re-price when the server listino (menu_pricing) arrives.
+    const breakdown = useMemo(() => calculateBuilderPrice(selection), [selection, pricingVersion]);
     const size = getBuilderSize(sizeId);
 
     const pizzaBase = sauceId === 'bianca' ? 'bianca' : 'rossa';

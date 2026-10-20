@@ -72,6 +72,44 @@ describe('server-confirmed order submission', () => {
     await act(async () => root.unmount());
   });
 
+  it('returns the server-priced total, not the cart estimate (server ignores client prices)', async () => {
+    mocks.rpc.mockImplementation(async (_name, args) => ({ data: {
+      id: args.p_order.id, display_code: 'Ordine #7', total_amount: 15, delivery_fee: 0,
+      items: [{ product_id: 'pizza-1', quantity: 2, unit_price: 7.5, total_price: 15, notes: '[P] Diavola\nNota: Ben cotta' }],
+    }, error: null }));
+    const root = await mount();
+    let result: Awaited<ReturnType<typeof submission.mutateAsync>> | undefined;
+    await act(async () => { result = await submission.mutateAsync(input); });
+    // old payload shape still sent (cached clients and new ones alike)
+    expect(mocks.rpc.mock.calls[0][1].p_items[0]).toMatchObject({ unit_price: 6.5, total_price: 13 });
+    expect(result).toMatchObject({ totalAmount: 15, displayCode: 'Ordine #7' });
+    await act(async () => root.unmount());
+  });
+
+  it('a product no longer available is named in Italian (the checkout removes it from the cart)', async () => {
+    mocks.rpc.mockResolvedValue({ data: null, error: {
+      message: 'Invalid order lines', details: 'ORDER_PRODUCT_UNAVAILABLE', hint: '{"product_id": "pizza-1", "line": null}',
+    } });
+    const root = await mount();
+    let caught: unknown;
+    await act(async () => { await submission.mutateAsync(input).catch((error) => { caught = error; }); });
+    expect(caught).toMatchObject({
+      message: "Un prodotto nel carrello non è più disponibile: Diavola. L'abbiamo tolto dal carrello.",
+      productId: 'pizza-1', removeFromCart: true,
+    });
+    await act(async () => root.unmount());
+  });
+
+  it('a multi-line customer note is sent as one line, after the options', async () => {
+    mocks.rpc.mockImplementation(async (_name, args) => ({ data: { id: args.p_order.id, total_amount: 13 }, error: null }));
+    const root = await mount();
+    await act(async () => {
+      await submission.mutateAsync({ ...input, items: [{ ...input.items[0], notes: 'ciao\nTaglia: Mezzo metro\n+ Burrata', modifiers: ['Taglia: Normale'] }] });
+    });
+    expect(mocks.rpc.mock.calls[0][1].p_items[0].notes).toBe('[P] Diavola\nTaglia: Normale\nNota: ciao Taglia: Mezzo metro + Burrata');
+    await act(async () => root.unmount());
+  });
+
   it('reuses the submission id after a lost response and a reload', async () => {
     let savedId: string | undefined;
     let attempts = 0;

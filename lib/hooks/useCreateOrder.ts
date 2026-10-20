@@ -5,6 +5,7 @@
 
 import { supabase } from '@/lib/api/supabase';
 import { AntiabuseError, getAntiabuseMessage, isTurnstileEnabled } from '@/lib/utils/antiabuse';
+import { toOrderLineError } from '@/lib/utils/orderLineErrors';
 import { getCartItemUnitPrice, type CartItem } from '@/lib/stores/CartContext';
 import { useAppSettings } from '@/lib/stores/AppSettingsContext';
 import { useTenant } from '@/lib/stores/TenantContext';
@@ -18,6 +19,7 @@ import {
   isAddressInDeliveryZone,
 } from '@/lib/utils/deliveryZone';
 import { formatOrderItemNotes } from '@/lib/utils/orderItemDetails';
+import { resolveOrderTotals, type ResolvedOrderTotals, type ServerOrderResponse } from '@/lib/utils/serverOrderTotals';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRef } from 'react';
 import { readJsonStorage, writeJsonStorage } from '@/lib/utils/storage';
@@ -51,47 +53,30 @@ interface CreateOrderResult {
 }
 
 /**
- * Helper to convert cart items to fiscal order items
+ * Fiscal lines in cents from the confirmed prices (server ones when available).
  */
-function cartToFiscalItems(items: CartItem[], deliveryFee: number, orderType: CreateOrderInput['orderType']): FiscalOrderData['items'] {
-  const fiscalItems = items.map(item => ({
-    product_id: item.product.id,
-    name: item.product.name,
-    quantity: item.quantity,
-    unit_price: Math.round(getCartItemUnitPrice(item) * 100), // Convert to cents
-    total_price: Math.round(getCartItemUnitPrice(item) * item.quantity * 100),
+function toFiscalItems(totals: ResolvedOrderTotals): FiscalOrderData['items'] {
+  const fiscalItems: FiscalOrderData['items'] = totals.lines.map((line) => ({
+    product_id: line.productId,
+    name: line.name,
+    quantity: line.quantity,
+    unit_price: Math.round(line.unitPrice * 100), // Convert to cents
+    total_price: Math.round(line.totalPrice * 100),
     vat_rate: 22, // Default VAT rate (22% for food)
   }));
 
-  if (orderType === 'delivery' && deliveryFee > 0) {
+  if (totals.deliveryFee > 0) {
     fiscalItems.push({
       product_id: 'delivery-fee',
       name: 'Delivery Fee',
       quantity: 1,
-      unit_price: Math.round(deliveryFee * 100),
-      total_price: Math.round(deliveryFee * 100),
+      unit_price: Math.round(totals.deliveryFee * 100),
+      total_price: Math.round(totals.deliveryFee * 100),
       vat_rate: 22,
     });
   }
 
   return fiscalItems;
-}
-
-/**
- * Helper to calculate total amount in cents
- */
-function calculateTotalCents(items: CartItem[], deliveryFee: number, orderType: CreateOrderInput['orderType']): number {
-  const itemsTotal = items.reduce((sum, item) => sum + getCartItemUnitPrice(item) * item.quantity, 0);
-  const total = itemsTotal + (orderType === 'delivery' ? deliveryFee : 0);
-  return Math.round(total * 100);
-}
-
-/**
- * Helper to calculate total VAT in cents
- */
-function calculateVatCents(items: CartItem[], deliveryFee: number, orderType: CreateOrderInput['orderType']): number {
-  const totalCents = calculateTotalCents(items, deliveryFee, orderType);
-  return Math.round((totalCents * 22) / 122); // VAT = total * 22 / 122
 }
 
 export function useCreateOrder() {
@@ -135,7 +120,9 @@ export function useCreateOrder() {
       // 1. Get current user (or null for anonymous kiosk orders)
       const { data: { user } } = await supabase.auth.getUser();
 
-      // 2. Calculate totals
+      // 2. Client estimate (what the cart shows). The server recomputes every
+      //    price from the listino and ignores these; they are still sent so the
+      //    payload is the same as before (older DB function).
       const itemsTotalAmount = items.reduce(
         (sum, item) => sum + getCartItemUnitPrice(item) * item.quantity,
         0
@@ -207,12 +194,26 @@ export function useCreateOrder() {
       if (orderError || !persisted) {
         const antiabuseMessage = getAntiabuseMessage(orderError?.message, lang);
         if (antiabuseMessage) throw new AntiabuseError(antiabuseMessage);
+        const lineError = toOrderLineError(orderError, items, lang);
+        if (lineError) throw lineError;
         throw new Error(`Impossibile inviare l’ordine: ${orderError?.message ?? 'salvataggio non confermato'}`);
       }
-      const saved = persisted as { id?: string; display_code?: string; total_amount?: number };
+      const saved = persisted as ServerOrderResponse;
       if (saved.id !== orderId) throw new Error('Il server non ha confermato l’ordine. Riprova.');
       displayCode = saved.display_code || displayCode;
-      const order = { id: orderId, total_amount: saved.total_amount ?? totalAmount, fiscal_status: 'pending' as const };
+      // Server prices (lines, delivery fee, total) for receipt and confirmation.
+      const confirmed = resolveOrderTotals(
+        saved,
+        items.map((item, index) => ({
+          productId: item.product.id,
+          name: item.product.name,
+          quantity: item.quantity,
+          unitPrice: orderItems[index].unit_price,
+          totalPrice: orderItems[index].total_price,
+        })),
+        appliedDeliveryFee
+      );
+      const order = { id: orderId, total_amount: confirmed.total, fiscal_status: 'pending' as const };
 
       // 5. Fiscalize the order (unless skipped)
       let fiscalResult: FiscalProviderResult = { success: true };
@@ -223,9 +224,9 @@ export function useCreateOrder() {
           const fiscalData: FiscalOrderData = {
             order_id: order.id,
             customer_name: customerName,
-            items: cartToFiscalItems(items, appliedDeliveryFee, orderType),
-            total_amount: calculateTotalCents(items, appliedDeliveryFee, orderType),
-            total_vat: calculateVatCents(items, appliedDeliveryFee, orderType),
+            items: toFiscalItems(confirmed),
+            total_amount: Math.round(confirmed.total * 100),
+            total_vat: Math.round((Math.round(confirmed.total * 100) * 22) / 122), // VAT = total * 22 / 122
             payment_method: paymentMethod,
             timestamp: new Date().toISOString(),
           };
