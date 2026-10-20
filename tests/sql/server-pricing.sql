@@ -9,6 +9,16 @@ BEGIN
   END;
   RAISE EXCEPTION 'Expected error "%" but statement succeeded', msg;
 END $$;
+CREATE OR REPLACE FUNCTION pg_temp.err_code(q text, msg text, code text) RETURNS void LANGUAGE plpgsql AS $$
+DECLARE d text; h text; m text;
+BEGIN
+  BEGIN EXECUTE q; EXCEPTION WHEN OTHERS THEN
+    GET STACKED DIAGNOSTICS m = MESSAGE_TEXT, d = PG_EXCEPTION_DETAIL, h = PG_EXCEPTION_HINT;
+    IF m <> msg OR coalesce(d, '') <> code THEN RAISE EXCEPTION 'Expected "%"/% got "%"/% (%)', msg, code, m, d, h; END IF;
+    RETURN;
+  END;
+  RAISE EXCEPTION 'Expected error "%" but statement succeeded', msg;
+END $$;
 -- order call: p_items as given, total_amount as given (client values).
 CREATE OR REPLACE FUNCTION pg_temp.call(p_id text, p_type text, p_total numeric, p_items jsonb) RETURNS text LANGUAGE sql AS $$
   SELECT format('SELECT public.create_order_with_items(%L::jsonb, %L::jsonb)',
@@ -21,7 +31,7 @@ CREATE OR REPLACE FUNCTION pg_temp.line(p_product text, p_qty int, p_unit numeri
   SELECT jsonb_build_object('product_id', p_product, 'quantity', p_qty, 'unit_price', p_unit,
     'total_price', p_unit * p_qty, 'notes', p_notes);
 $$;
-GRANT EXECUTE ON FUNCTION pg_temp.err(text, text), pg_temp.call(text, text, numeric, jsonb), pg_temp.line(text, int, numeric, text) TO authenticated;
+GRANT EXECUTE ON FUNCTION pg_temp.err(text, text), pg_temp.err_code(text, text, text), pg_temp.call(text, text, numeric, jsonb), pg_temp.line(text, int, numeric, text) TO authenticated;
 
 -- Fixture rows (as owner): Ambrosia delivery fee as on prod (2.5); a free
 -- product (0 €) to test the 0.01 floor; an inactive product; another company.
@@ -47,8 +57,11 @@ DO $$ BEGIN
      OR NOT has_function_privilege('service_role', 'public.create_order_with_items(jsonb, jsonb)', 'EXECUTE') THEN
     RAISE EXCEPTION 'create_order_with_items grants changed';
   END IF;
-  IF has_function_privilege('authenticated', 'public.order_line_unit_price(uuid, uuid, text)', 'EXECUTE')
-     OR has_function_privilege('anon', 'public.order_line_unit_price(uuid, uuid, text)', 'EXECUTE')
+  IF has_function_privilege('authenticated', 'public.order_line_priced(uuid, uuid, text)', 'EXECUTE')
+     OR has_function_privilege('anon', 'public.order_line_priced(uuid, uuid, text)', 'EXECUTE')
+     OR has_function_privilege('authenticated', 'public.order_line_reject(text, uuid, text)', 'EXECUTE')
+     OR has_function_privilege('authenticated', 'public.menu_metro_max_gusti(text)', 'EXECUTE')
+     OR has_function_privilege('authenticated', 'public.menu_cooking_labels()', 'EXECUTE')
      OR has_function_privilege('authenticated', 'public.order_delivery_fee(uuid)', 'EXECUTE')
      OR has_function_privilege('authenticated', 'public.menu_pricing_default()', 'EXECUTE') THEN
     RAISE EXCEPTION 'pricing helpers must not be executable by clients';
@@ -94,7 +107,7 @@ DO $$ DECLARE r jsonb; m numeric := current_setting('test.marg_price')::numeric;
     RAISE EXCEPTION 'unit_price 0 not ignored: %', r;
   END IF;
   EXECUTE pg_temp.call('00000000-0000-0000-0000-00000000e002', 'take_away', 0.01,
-    jsonb_build_array(pg_temp.line(current_setting('test.marg'), 1, 0.01, E'[P] Margherita\nTaglia: Mezzo metro\n+ Tonno'))) INTO r;
+    jsonb_build_array(pg_temp.line(current_setting('test.marg'), 1, 0.01, E'[P] Margherita\nTaglia: Mezzo metro\nGusto: Margherita\nGusto: + Tonno'))) INTO r;
   -- mezzo metro of a Margherita + tonno (pesce 2 € × 2)
   IF (r->>'total_amount')::numeric <> m * 2 + 4 THEN RAISE EXCEPTION 'unit_price 0.01 not ignored: %', r; END IF;
 END $$;
@@ -137,23 +150,46 @@ DO $$ DECLARE r jsonb; m numeric := current_setting('test.marg_price')::numeric;
     jsonb_build_array(pg_temp.line(current_setting('test.marg'), 1, -2.5, '[P] Margherita'))) INTO r;
   IF (r->>'total_amount')::numeric <> m + 2.5 THEN RAISE EXCEPTION 'negative line: %', r; END IF;
 END $$;
--- free note spanning lines: never priced, never invalid (customer text)
+-- free note: one line, last. A note followed by more lines (an old client
+-- or a hand-made payload) is refused, never priced or shown as options; a
+-- one-line note that looks like options is just text.
+SELECT pg_temp.err_code(pg_temp.call('00000000-0000-0000-0000-00000000e009', 'take_away', 5,
+  jsonb_build_array(pg_temp.line(current_setting('test.marg'), 1, 5,
+    E'[P] Margherita\nTaglia: Normale\nNota: ben cotta\n+ tanto origano\nTaglia: Piccola\n+ Tonno'))), 'Invalid order lines', 'ORDER_INVALID_NOTE');
 DO $$ DECLARE r jsonb; m numeric := current_setting('test.marg_price')::numeric; BEGIN
-  EXECUTE pg_temp.call('00000000-0000-0000-0000-00000000e009', 'take_away', m,
+  EXECUTE pg_temp.call('00000000-0000-0000-0000-00000000e00a', 'take_away', m,
     jsonb_build_array(pg_temp.line(current_setting('test.marg'), 1, m,
-      E'[P] Margherita\nTaglia: Normale\nNota: ben cotta\n+ tanto origano\nTaglia: Piccola\n+ Tonno'))) INTO r;
-  IF (r->>'total_amount')::numeric <> m THEN RAISE EXCEPTION 'free note priced: %', r; END IF;
+      E'[P] Margherita\nTaglia: Normale\nNota:  Taglia: Mezzo metro,   + Burrata | grazie\t'))) INTO r;
+  IF (r->>'total_amount')::numeric <> m
+     OR r->'items'->0->>'notes' <> E'[P] Margherita\nTaglia: Normale\nNota: Taglia: Mezzo metro, + Burrata | grazie' THEN
+    RAISE EXCEPTION 'one-line note: %', r;
+  END IF;
 END $$;
 RESET ROLE;
-UPDATE companies SET settings = '{"deliveryFeeEur": "free"}' WHERE id = '00000000-0000-0000-0000-000000000001';
+UPDATE companies SET settings = '{}' WHERE id = '00000000-0000-0000-0000-000000000001';
 SET ROLE authenticated;
 DO $$ DECLARE r jsonb; m numeric := current_setting('test.marg_price')::numeric; BEGIN
-  -- invalid setting: client default (2 €), as AppSettingsContext
+  -- not configured: client default (2 €), as AppSettingsContext
   EXECUTE pg_temp.call('00000000-0000-0000-0000-00000000e008', 'delivery', m,
     jsonb_build_array(pg_temp.line(current_setting('test.marg'), 1, m, '[P] Margherita'))) INTO r;
   IF (r->>'total_amount')::numeric <> m + 2 THEN RAISE EXCEPTION 'default fee: %', r; END IF;
 END $$;
 RESET ROLE;
+-- misconfigured fee (string, negative, > 2 decimals, object): order refused, never a guessed fee
+DO $$ DECLARE v text; BEGIN
+  FOREACH v IN ARRAY ARRAY['{"deliveryFeeEur": "2.5"}', '{"deliveryFeeEur": "abc"}', '{"deliveryFeeEur": -3}',
+                           '{"deliveryFeeEur": 1.999}', '{"deliveryFeeEur": {"x": 1}}', '{"deliveryFeeEur": true}'] LOOP
+    UPDATE companies SET settings = v::jsonb WHERE id = '00000000-0000-0000-0000-000000000001';
+    SET LOCAL ROLE authenticated;
+    PERFORM pg_temp.err_code(pg_temp.call('00000000-0000-0000-0000-00000000e00f', 'delivery', 5,
+      jsonb_build_array(pg_temp.line(current_setting('test.marg'), 1, 5, '[P] Margherita'))), 'Delivery fee misconfigured', 'ORDER_DELIVERY_FEE_INVALID');
+    -- take away does not need the fee
+    PERFORM public.create_order_with_items(jsonb_build_object('id', gen_random_uuid(), 'company_id', '00000000-0000-0000-0000-000000000001',
+      'customer_id', '00000000-0000-0000-0000-0000000000c1', 'order_type', 'take_away'),
+      jsonb_build_array(pg_temp.line(current_setting('test.marg'), 1, 5, '[P] Margherita')));
+    RESET ROLE;
+  END LOOP;
+END $$;
 UPDATE companies SET settings = '{"deliveryFeeEur": 2.5}' WHERE id = '00000000-0000-0000-0000-000000000001';
 SET ROLE authenticated;
 
@@ -182,6 +218,21 @@ SELECT pg_temp.err(pg_temp.call('00000000-0000-0000-0000-00000000e018', 'take_aw
 -- €150 limit applies to the server total, not to the (tampered) client total
 SELECT pg_temp.err(pg_temp.call('00000000-0000-0000-0000-00000000e019', 'take_away', 1,
   jsonb_build_array(pg_temp.line(current_setting('test.marg'), 40, 0.01, '[P] Margherita'))), 'ANTIABUSE_ORDER_TOO_LARGE');
+-- error codes the app turns into messages (DETAIL; HINT names the product)
+SELECT pg_temp.err_code(pg_temp.call('00000000-0000-0000-0000-00000000e01a', 'take_away', 6,
+  jsonb_build_array(pg_temp.line('00000000-0000-0000-0000-0000000000a0', 1, 6, NULL))), 'Invalid order lines', 'ORDER_PRODUCT_UNAVAILABLE');
+SELECT pg_temp.err_code(pg_temp.call('00000000-0000-0000-0000-00000000e01b', 'take_away', 6,
+  jsonb_build_array(pg_temp.line('00000000-0000-0000-0000-0000000000b2', 1, 6, NULL))), 'Invalid order lines', 'ORDER_PRODUCT_UNAVAILABLE');
+SELECT pg_temp.err_code(pg_temp.call('00000000-0000-0000-0000-00000000e01c', 'take_away', 6,
+  jsonb_build_array(pg_temp.line('00000000-0000-0000-0000-00000000dead', 1, 6, NULL))), 'Invalid order lines', 'ORDER_PRODUCT_UNAVAILABLE');
+SELECT pg_temp.err_code(pg_temp.call('00000000-0000-0000-0000-00000000e01d', 'take_away', 5,
+  jsonb_build_array(pg_temp.line(current_setting('test.marg'), 1, 5, E'[P] Margherita\nTaglia : Mezzo metro'))), 'Invalid order lines', 'ORDER_INVALID_OPTIONS');
+SELECT pg_temp.err_code(pg_temp.call('00000000-0000-0000-0000-00000000e01e', 'take_away', 5,
+  jsonb_build_array(pg_temp.line(current_setting('test.marg'), 1, 5, E'[P] Margherita\nNota: ciao\nTaglia: Mezzo metro\n+ Burrata'))), 'Invalid order lines', 'ORDER_INVALID_NOTE');
+SELECT pg_temp.err_code(pg_temp.call('00000000-0000-0000-0000-00000000e01f', 'take_away', 5,
+  jsonb_build_array(pg_temp.line(current_setting('test.marg'), 0, 5, NULL))), 'Invalid order lines', 'ORDER_INVALID_QUANTITY');
+SELECT pg_temp.err_code(pg_temp.call('00000000-0000-0000-0000-0000000e01b0', 'take_away', 5,
+  jsonb_build_array(pg_temp.line('00000000-0000-0000-0000-0000000000f0', 1, 5, NULL))), 'Invalid order total', 'ORDER_TOTAL_TOO_LOW');
 RESET ROLE;
 DO $$ BEGIN
   IF EXISTS (SELECT 1 FROM orders WHERE id::text LIKE '00000000-0000-0000-0000-00000000e01%') THEN

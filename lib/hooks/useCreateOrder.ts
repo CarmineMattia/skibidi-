@@ -5,6 +5,7 @@
 
 import { supabase } from '@/lib/api/supabase';
 import { AntiabuseError, getAntiabuseMessage, isTurnstileEnabled } from '@/lib/utils/antiabuse';
+import { toOrderLineError } from '@/lib/utils/orderLineErrors';
 import { getCartItemUnitPrice, type CartItem } from '@/lib/stores/CartContext';
 import { useAppSettings } from '@/lib/stores/AppSettingsContext';
 import { useTenant } from '@/lib/stores/TenantContext';
@@ -193,6 +194,8 @@ export function useCreateOrder() {
       if (orderError || !persisted) {
         const antiabuseMessage = getAntiabuseMessage(orderError?.message, lang);
         if (antiabuseMessage) throw new AntiabuseError(antiabuseMessage);
+        const lineError = toOrderLineError(orderError, items, lang);
+        if (lineError) throw lineError;
         throw new Error(`Impossibile inviare l’ordine: ${orderError?.message ?? 'salvataggio non confermato'}`);
       }
       const saved = persisted as ServerOrderResponse;

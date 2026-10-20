@@ -6,6 +6,53 @@
   "price": 5,
   "ingredients": null
  },
+ "cooking_labels": [
+  "Poco cotta",
+  "Normale",
+  "Ben cotta"
+ ],
+ "metro_max_gusti": [
+  {
+   "name": "Farcita",
+   "max": 3
+  },
+  {
+   "name": "Gourmet",
+   "max": 0
+  },
+  {
+   "name": "Margherita",
+   "max": 0
+  },
+  {
+   "name": "Metà Margherita Metà Farcita",
+   "max": 1
+  },
+  {
+   "name": "Super Farcita",
+   "max": 3
+  },
+  {
+   "name": "Due terzi Diavola",
+   "max": 2
+  },
+  {
+   "name": "Meta metro Bufala",
+   "max": 1
+  },
+  {
+   "name": "METÀ FARCITA",
+   "max": 1
+  },
+  {
+   "name": "Super Farcita",
+   "max": 3
+  },
+  {
+   "name": "Metro classico",
+   "max": 0
+  }
+ ],
  "cases": [
   {
    "label": "Acqua nat/gas 0.50 plain",
@@ -32,7 +79,7 @@
    "label": "Amalfi normale extras#1",
    "product_id": "6ed0c042-e272-74a2-1b9e-8e35b5ac40fe",
    "quantity": 2,
-   "notes": "[P] Amalfi\nTaglia: Normale\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Amalfi\nTaglia: Normale\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 9
   },
   {
@@ -60,7 +107,7 @@
    "label": "Amalfi piccola extras#1",
    "product_id": "6ed0c042-e272-74a2-1b9e-8e35b5ac40fe",
    "quantity": 2,
-   "notes": "[P] Amalfi\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Amalfi\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 8
   },
   {
@@ -88,7 +135,7 @@
    "label": "Amalfi tirata extras#1",
    "product_id": "6ed0c042-e272-74a2-1b9e-8e35b5ac40fe",
    "quantity": 2,
-   "notes": "[P] Amalfi\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Amalfi\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 9
   },
   {
@@ -137,7 +184,7 @@
    "label": "Ambrosia normale extras#1",
    "product_id": "7bbdfd63-3bbe-eaf1-2025-5be3178dcc6e",
    "quantity": 2,
-   "notes": "[P] Ambrosia\nTaglia: Normale\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Ambrosia\nTaglia: Normale\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 11
   },
   {
@@ -165,7 +212,7 @@
    "label": "Ambrosia piccola extras#1",
    "product_id": "7bbdfd63-3bbe-eaf1-2025-5be3178dcc6e",
    "quantity": 2,
-   "notes": "[P] Ambrosia\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Ambrosia\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 10
   },
   {
@@ -193,7 +240,7 @@
    "label": "Ambrosia tirata extras#1",
    "product_id": "7bbdfd63-3bbe-eaf1-2025-5be3178dcc6e",
    "quantity": 2,
-   "notes": "[P] Ambrosia\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Ambrosia\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 11
   },
   {
@@ -242,7 +289,7 @@
    "label": "Beach normale extras#1",
    "product_id": "6fe456ff-2489-0d9c-817e-796a07a06412",
    "quantity": 2,
-   "notes": "[P] Beach\nTaglia: Normale\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Beach\nTaglia: Normale\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 10
   },
   {
@@ -270,7 +317,7 @@
    "label": "Beach piccola extras#1",
    "product_id": "6fe456ff-2489-0d9c-817e-796a07a06412",
    "quantity": 2,
-   "notes": "[P] Beach\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Beach\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 9
   },
   {
@@ -298,7 +345,7 @@
    "label": "Beach tirata extras#1",
    "product_id": "6fe456ff-2489-0d9c-817e-796a07a06412",
    "quantity": 2,
-   "notes": "[P] Beach\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Beach\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 10
   },
   {
@@ -375,7 +422,7 @@
    "label": "Bologna normale extras#1",
    "product_id": "e15e4f9e-2c4c-dac7-cc60-4718af1d1c3b",
    "quantity": 2,
-   "notes": "[P] Bologna\nTaglia: Normale\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Bologna\nTaglia: Normale\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 13
   },
   {
@@ -403,7 +450,7 @@
    "label": "Bologna piccola extras#1",
    "product_id": "e15e4f9e-2c4c-dac7-cc60-4718af1d1c3b",
    "quantity": 2,
-   "notes": "[P] Bologna\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Bologna\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 12
   },
   {
@@ -431,7 +478,7 @@
    "label": "Bologna tirata extras#1",
    "product_id": "e15e4f9e-2c4c-dac7-cc60-4718af1d1c3b",
    "quantity": 2,
-   "notes": "[P] Bologna\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Bologna\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 13
   },
   {
@@ -480,7 +527,7 @@
    "label": "Buna normale extras#1",
    "product_id": "cb87873f-000c-2283-bab2-bf021f9b5eb7",
    "quantity": 2,
-   "notes": "[P] Buna\nTaglia: Normale\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Buna\nTaglia: Normale\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 9
   },
   {
@@ -508,7 +555,7 @@
    "label": "Buna piccola extras#1",
    "product_id": "cb87873f-000c-2283-bab2-bf021f9b5eb7",
    "quantity": 2,
-   "notes": "[P] Buna\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Buna\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 8
   },
   {
@@ -536,7 +583,7 @@
    "label": "Buna tirata extras#1",
    "product_id": "cb87873f-000c-2283-bab2-bf021f9b5eb7",
    "quantity": 2,
-   "notes": "[P] Buna\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Buna\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 9
   },
   {
@@ -585,7 +632,7 @@
    "label": "Calzone normale extras#1",
    "product_id": "87f43a21-0340-b4c2-ea2c-fbdacfb41127",
    "quantity": 2,
-   "notes": "[P] Calzone\nTaglia: Normale\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Calzone\nTaglia: Normale\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 8
   },
   {
@@ -613,7 +660,7 @@
    "label": "Calzone piccola extras#1",
    "product_id": "87f43a21-0340-b4c2-ea2c-fbdacfb41127",
    "quantity": 2,
-   "notes": "[P] Calzone\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Calzone\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 7
   },
   {
@@ -641,7 +688,7 @@
    "label": "Calzone tirata extras#1",
    "product_id": "87f43a21-0340-b4c2-ea2c-fbdacfb41127",
    "quantity": 2,
-   "notes": "[P] Calzone\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Calzone\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 8
   },
   {
@@ -690,7 +737,7 @@
    "label": "Calzone farcito normale extras#1",
    "product_id": "8b850d81-139f-841c-d853-2706cefe3153",
    "quantity": 2,
-   "notes": "[P] Calzone farcito\nTaglia: Normale\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Calzone farcito\nTaglia: Normale\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 8.5
   },
   {
@@ -718,7 +765,7 @@
    "label": "Calzone farcito piccola extras#1",
    "product_id": "8b850d81-139f-841c-d853-2706cefe3153",
    "quantity": 2,
-   "notes": "[P] Calzone farcito\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Calzone farcito\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 7.5
   },
   {
@@ -746,7 +793,7 @@
    "label": "Calzone farcito tirata extras#1",
    "product_id": "8b850d81-139f-841c-d853-2706cefe3153",
    "quantity": 2,
-   "notes": "[P] Calzone farcito\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Calzone farcito\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 8.5
   },
   {
@@ -795,7 +842,7 @@
    "label": "Canossa normale extras#1",
    "product_id": "50bc1973-f42f-d472-9003-58d321a67c91",
    "quantity": 2,
-   "notes": "[P] Canossa\nTaglia: Normale\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Canossa\nTaglia: Normale\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 11.5
   },
   {
@@ -823,7 +870,7 @@
    "label": "Canossa piccola extras#1",
    "product_id": "50bc1973-f42f-d472-9003-58d321a67c91",
    "quantity": 2,
-   "notes": "[P] Canossa\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Canossa\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 10.5
   },
   {
@@ -851,7 +898,7 @@
    "label": "Canossa tirata extras#1",
    "product_id": "50bc1973-f42f-d472-9003-58d321a67c91",
    "quantity": 2,
-   "notes": "[P] Canossa\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Canossa\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 11.5
   },
   {
@@ -900,7 +947,7 @@
    "label": "Cantabrico normale extras#1",
    "product_id": "c4cc87ed-28c9-017d-eca3-12c08d01776a",
    "quantity": 2,
-   "notes": "[P] Cantabrico\nTaglia: Normale\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Cantabrico\nTaglia: Normale\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 11
   },
   {
@@ -928,7 +975,7 @@
    "label": "Cantabrico piccola extras#1",
    "product_id": "c4cc87ed-28c9-017d-eca3-12c08d01776a",
    "quantity": 2,
-   "notes": "[P] Cantabrico\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Cantabrico\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 10
   },
   {
@@ -956,7 +1003,7 @@
    "label": "Cantabrico tirata extras#1",
    "product_id": "c4cc87ed-28c9-017d-eca3-12c08d01776a",
    "quantity": 2,
-   "notes": "[P] Cantabrico\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Cantabrico\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 11
   },
   {
@@ -1005,7 +1052,7 @@
    "label": "Capricciosa normale extras#1",
    "product_id": "4acc4693-1c18-e39a-10bb-70f130b2e8e4",
    "quantity": 2,
-   "notes": "[P] Capricciosa\nTaglia: Normale\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Capricciosa\nTaglia: Normale\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 9.5
   },
   {
@@ -1033,7 +1080,7 @@
    "label": "Capricciosa piccola extras#1",
    "product_id": "4acc4693-1c18-e39a-10bb-70f130b2e8e4",
    "quantity": 2,
-   "notes": "[P] Capricciosa\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Capricciosa\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 8.5
   },
   {
@@ -1061,7 +1108,7 @@
    "label": "Capricciosa tirata extras#1",
    "product_id": "4acc4693-1c18-e39a-10bb-70f130b2e8e4",
    "quantity": 2,
-   "notes": "[P] Capricciosa\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Capricciosa\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 9.5
   },
   {
@@ -1110,7 +1157,7 @@
    "label": "Carbonara normale extras#1",
    "product_id": "0660b53c-4621-173d-3dfd-0322f1589119",
    "quantity": 2,
-   "notes": "[P] Carbonara\nTaglia: Normale\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Carbonara\nTaglia: Normale\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 12
   },
   {
@@ -1138,7 +1185,7 @@
    "label": "Carbonara piccola extras#1",
    "product_id": "0660b53c-4621-173d-3dfd-0322f1589119",
    "quantity": 2,
-   "notes": "[P] Carbonara\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Carbonara\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 11
   },
   {
@@ -1166,7 +1213,7 @@
    "label": "Carbonara tirata extras#1",
    "product_id": "0660b53c-4621-173d-3dfd-0322f1589119",
    "quantity": 2,
-   "notes": "[P] Carbonara\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Carbonara\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 12
   },
   {
@@ -1264,7 +1311,7 @@
    "label": "Crudo di Parma normale extras#1",
    "product_id": "5576b740-1edb-5307-f2f6-4d7b8e2ff0aa",
    "quantity": 2,
-   "notes": "[P] Crudo di Parma\nTaglia: Normale\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Crudo di Parma\nTaglia: Normale\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 9.5
   },
   {
@@ -1292,7 +1339,7 @@
    "label": "Crudo di Parma piccola extras#1",
    "product_id": "5576b740-1edb-5307-f2f6-4d7b8e2ff0aa",
    "quantity": 2,
-   "notes": "[P] Crudo di Parma\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Crudo di Parma\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 8.5
   },
   {
@@ -1320,7 +1367,7 @@
    "label": "Crudo di Parma tirata extras#1",
    "product_id": "5576b740-1edb-5307-f2f6-4d7b8e2ff0aa",
    "quantity": 2,
-   "notes": "[P] Crudo di Parma\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Crudo di Parma\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 9.5
   },
   {
@@ -1369,7 +1416,7 @@
    "label": "Crudo e Burrata normale extras#1",
    "product_id": "25b3b1a9-9892-80b3-ab42-c7eb687ab48f",
    "quantity": 2,
-   "notes": "[P] Crudo e Burrata\nTaglia: Normale\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Crudo e Burrata\nTaglia: Normale\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 13
   },
   {
@@ -1397,7 +1444,7 @@
    "label": "Crudo e Burrata piccola extras#1",
    "product_id": "25b3b1a9-9892-80b3-ab42-c7eb687ab48f",
    "quantity": 2,
-   "notes": "[P] Crudo e Burrata\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Crudo e Burrata\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 12
   },
   {
@@ -1425,7 +1472,7 @@
    "label": "Crudo e Burrata tirata extras#1",
    "product_id": "25b3b1a9-9892-80b3-ab42-c7eb687ab48f",
    "quantity": 2,
-   "notes": "[P] Crudo e Burrata\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Crudo e Burrata\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 13
   },
   {
@@ -1474,7 +1521,7 @@
    "label": "Diavola normale extras#1",
    "product_id": "21e5edaf-f9f9-90f2-d4da-71b5ee01360d",
    "quantity": 2,
-   "notes": "[P] Diavola\nTaglia: Normale\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Diavola\nTaglia: Normale\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 8.5
   },
   {
@@ -1502,7 +1549,7 @@
    "label": "Diavola piccola extras#1",
    "product_id": "21e5edaf-f9f9-90f2-d4da-71b5ee01360d",
    "quantity": 2,
-   "notes": "[P] Diavola\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Diavola\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 7.5
   },
   {
@@ -1530,7 +1577,7 @@
    "label": "Diavola tirata extras#1",
    "product_id": "21e5edaf-f9f9-90f2-d4da-71b5ee01360d",
    "quantity": 2,
-   "notes": "[P] Diavola\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Diavola\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 8.5
   },
   {
@@ -1607,7 +1654,7 @@
    "label": "Francescana normale extras#1",
    "product_id": "ed918e23-e4db-f042-2f1d-0f3bbb86fd4e",
    "quantity": 2,
-   "notes": "[P] Francescana\nTaglia: Normale\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Francescana\nTaglia: Normale\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 9.5
   },
   {
@@ -1635,7 +1682,7 @@
    "label": "Francescana piccola extras#1",
    "product_id": "ed918e23-e4db-f042-2f1d-0f3bbb86fd4e",
    "quantity": 2,
-   "notes": "[P] Francescana\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Francescana\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 8.5
   },
   {
@@ -1663,7 +1710,7 @@
    "label": "Francescana tirata extras#1",
    "product_id": "ed918e23-e4db-f042-2f1d-0f3bbb86fd4e",
    "quantity": 2,
-   "notes": "[P] Francescana\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Francescana\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 9.5
   },
   {
@@ -1712,7 +1759,7 @@
    "label": "Frutti di Mare normale extras#1",
    "product_id": "60dc8568-fc82-4ea9-4b07-18f9275ac214",
    "quantity": 2,
-   "notes": "[P] Frutti di Mare\nTaglia: Normale\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Frutti di Mare\nTaglia: Normale\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 11
   },
   {
@@ -1740,7 +1787,7 @@
    "label": "Frutti di Mare piccola extras#1",
    "product_id": "60dc8568-fc82-4ea9-4b07-18f9275ac214",
    "quantity": 2,
-   "notes": "[P] Frutti di Mare\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Frutti di Mare\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 10
   },
   {
@@ -1768,7 +1815,7 @@
    "label": "Frutti di Mare tirata extras#1",
    "product_id": "60dc8568-fc82-4ea9-4b07-18f9275ac214",
    "quantity": 2,
-   "notes": "[P] Frutti di Mare\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Frutti di Mare\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 11
   },
   {
@@ -1817,7 +1864,7 @@
    "label": "Funghi normale extras#1",
    "product_id": "911dca27-294f-f4ac-1e63-d4923f96b154",
    "quantity": 2,
-   "notes": "[P] Funghi\nTaglia: Normale\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Funghi\nTaglia: Normale\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 8
   },
   {
@@ -1845,7 +1892,7 @@
    "label": "Funghi piccola extras#1",
    "product_id": "911dca27-294f-f4ac-1e63-d4923f96b154",
    "quantity": 2,
-   "notes": "[P] Funghi\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Funghi\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 7
   },
   {
@@ -1873,7 +1920,7 @@
    "label": "Funghi tirata extras#1",
    "product_id": "911dca27-294f-f4ac-1e63-d4923f96b154",
    "quantity": 2,
-   "notes": "[P] Funghi\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Funghi\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 8
   },
   {
@@ -1922,7 +1969,7 @@
    "label": "Gorgonzola e Noci normale extras#1",
    "product_id": "9f0d44a9-07b8-7371-1884-ffe12d66d699",
    "quantity": 2,
-   "notes": "[P] Gorgonzola e Noci\nTaglia: Normale\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Gorgonzola e Noci\nTaglia: Normale\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 10
   },
   {
@@ -1950,7 +1997,7 @@
    "label": "Gorgonzola e Noci piccola extras#1",
    "product_id": "9f0d44a9-07b8-7371-1884-ffe12d66d699",
    "quantity": 2,
-   "notes": "[P] Gorgonzola e Noci\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Gorgonzola e Noci\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 9
   },
   {
@@ -1978,7 +2025,7 @@
    "label": "Gorgonzola e Noci tirata extras#1",
    "product_id": "9f0d44a9-07b8-7371-1884-ffe12d66d699",
    "quantity": 2,
-   "notes": "[P] Gorgonzola e Noci\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Gorgonzola e Noci\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 10
   },
   {
@@ -2041,7 +2088,7 @@
    "label": "Hanz normale extras#1",
    "product_id": "ded35530-96c1-52e7-421c-20876b27124b",
    "quantity": 2,
-   "notes": "[P] Hanz\nTaglia: Normale\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Hanz\nTaglia: Normale\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 8.5
   },
   {
@@ -2069,7 +2116,7 @@
    "label": "Hanz piccola extras#1",
    "product_id": "ded35530-96c1-52e7-421c-20876b27124b",
    "quantity": 2,
-   "notes": "[P] Hanz\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Hanz\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 7.5
   },
   {
@@ -2097,7 +2144,7 @@
    "label": "Hanz tirata extras#1",
    "product_id": "ded35530-96c1-52e7-421c-20876b27124b",
    "quantity": 2,
-   "notes": "[P] Hanz\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Hanz\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 8.5
   },
   {
@@ -2160,7 +2207,7 @@
    "label": "La Corte Vecia normale extras#1",
    "product_id": "c54c0b8a-4ea7-0a43-9f1e-52eeaf685091",
    "quantity": 2,
-   "notes": "[P] La Corte Vecia\nTaglia: Normale\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] La Corte Vecia\nTaglia: Normale\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 9.5
   },
   {
@@ -2188,7 +2235,7 @@
    "label": "La Corte Vecia piccola extras#1",
    "product_id": "c54c0b8a-4ea7-0a43-9f1e-52eeaf685091",
    "quantity": 2,
-   "notes": "[P] La Corte Vecia\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] La Corte Vecia\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 8.5
   },
   {
@@ -2216,7 +2263,7 @@
    "label": "La Corte Vecia tirata extras#1",
    "product_id": "c54c0b8a-4ea7-0a43-9f1e-52eeaf685091",
    "quantity": 2,
-   "notes": "[P] La Corte Vecia\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] La Corte Vecia\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 9.5
   },
   {
@@ -2265,7 +2312,7 @@
    "label": "La fumè normale extras#1",
    "product_id": "8a1fb53c-4a9f-8af3-8484-9ac1e1b71ba0",
    "quantity": 2,
-   "notes": "[P] La fumè\nTaglia: Normale\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] La fumè\nTaglia: Normale\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 10.5
   },
   {
@@ -2293,7 +2340,7 @@
    "label": "La fumè piccola extras#1",
    "product_id": "8a1fb53c-4a9f-8af3-8484-9ac1e1b71ba0",
    "quantity": 2,
-   "notes": "[P] La fumè\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] La fumè\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 9.5
   },
   {
@@ -2321,7 +2368,7 @@
    "label": "La fumè tirata extras#1",
    "product_id": "8a1fb53c-4a9f-8af3-8484-9ac1e1b71ba0",
    "quantity": 2,
-   "notes": "[P] La fumè\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] La fumè\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 10.5
   },
   {
@@ -2370,7 +2417,7 @@
    "label": "La Rustica normale extras#1",
    "product_id": "4eaf1dc3-1b0a-b1f7-8206-8a89b69c5729",
    "quantity": 2,
-   "notes": "[P] La Rustica\nTaglia: Normale\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] La Rustica\nTaglia: Normale\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 13
   },
   {
@@ -2398,7 +2445,7 @@
    "label": "La Rustica piccola extras#1",
    "product_id": "4eaf1dc3-1b0a-b1f7-8206-8a89b69c5729",
    "quantity": 2,
-   "notes": "[P] La Rustica\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] La Rustica\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 12
   },
   {
@@ -2426,7 +2473,7 @@
    "label": "La Rustica tirata extras#1",
    "product_id": "4eaf1dc3-1b0a-b1f7-8206-8a89b69c5729",
    "quantity": 2,
-   "notes": "[P] La Rustica\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] La Rustica\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 13
   },
   {
@@ -2475,7 +2522,7 @@
    "label": "La Zuccotta normale extras#1",
    "product_id": "7758ee2c-0404-8d96-079e-d94d5c65b220",
    "quantity": 2,
-   "notes": "[P] La Zuccotta\nTaglia: Normale\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] La Zuccotta\nTaglia: Normale\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 13
   },
   {
@@ -2503,7 +2550,7 @@
    "label": "La Zuccotta piccola extras#1",
    "product_id": "7758ee2c-0404-8d96-079e-d94d5c65b220",
    "quantity": 2,
-   "notes": "[P] La Zuccotta\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] La Zuccotta\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 12
   },
   {
@@ -2531,7 +2578,7 @@
    "label": "La Zuccotta tirata extras#1",
    "product_id": "7758ee2c-0404-8d96-079e-d94d5c65b220",
    "quantity": 2,
-   "notes": "[P] La Zuccotta\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] La Zuccotta\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 13
   },
   {
@@ -2594,7 +2641,7 @@
    "label": "Margherita normale extras#1",
    "product_id": "05e8aca4-c6cb-31f4-dfdc-f786907c6989",
    "quantity": 2,
-   "notes": "[P] Margherita\nTaglia: Normale\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Margherita\nTaglia: Normale\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 7
   },
   {
@@ -2622,7 +2669,7 @@
    "label": "Margherita piccola extras#1",
    "product_id": "05e8aca4-c6cb-31f4-dfdc-f786907c6989",
    "quantity": 2,
-   "notes": "[P] Margherita\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Margherita\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 6
   },
   {
@@ -2650,7 +2697,7 @@
    "label": "Margherita tirata extras#1",
    "product_id": "05e8aca4-c6cb-31f4-dfdc-f786907c6989",
    "quantity": 2,
-   "notes": "[P] Margherita\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Margherita\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 7
   },
   {
@@ -2713,7 +2760,7 @@
    "label": "Marinara normale extras#1",
    "product_id": "1061fbe6-509a-62e0-ae37-3f90cc918671",
    "quantity": 2,
-   "notes": "[P] Marinara\nTaglia: Normale\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Marinara\nTaglia: Normale\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 6.5
   },
   {
@@ -2741,7 +2788,7 @@
    "label": "Marinara piccola extras#1",
    "product_id": "1061fbe6-509a-62e0-ae37-3f90cc918671",
    "quantity": 2,
-   "notes": "[P] Marinara\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Marinara\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 5.5
   },
   {
@@ -2769,7 +2816,7 @@
    "label": "Marinara tirata extras#1",
    "product_id": "1061fbe6-509a-62e0-ae37-3f90cc918671",
    "quantity": 2,
-   "notes": "[P] Marinara\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Marinara\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 6.5
   },
   {
@@ -2818,7 +2865,7 @@
    "label": "Matildica normale extras#1",
    "product_id": "42f86782-d03a-633c-260d-0494e2e66c70",
    "quantity": 2,
-   "notes": "[P] Matildica\nTaglia: Normale\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Matildica\nTaglia: Normale\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 10
   },
   {
@@ -2846,7 +2893,7 @@
    "label": "Matildica piccola extras#1",
    "product_id": "42f86782-d03a-633c-260d-0494e2e66c70",
    "quantity": 2,
-   "notes": "[P] Matildica\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Matildica\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 9
   },
   {
@@ -2874,7 +2921,7 @@
    "label": "Matildica tirata extras#1",
    "product_id": "42f86782-d03a-633c-260d-0494e2e66c70",
    "quantity": 2,
-   "notes": "[P] Matildica\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Matildica\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 10
   },
   {
@@ -2923,7 +2970,7 @@
    "label": "Messicana normale extras#1",
    "product_id": "4f5d8d14-972c-247e-180b-fbe667d11888",
    "quantity": 2,
-   "notes": "[P] Messicana\nTaglia: Normale\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Messicana\nTaglia: Normale\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 9.5
   },
   {
@@ -2951,7 +2998,7 @@
    "label": "Messicana piccola extras#1",
    "product_id": "4f5d8d14-972c-247e-180b-fbe667d11888",
    "quantity": 2,
-   "notes": "[P] Messicana\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Messicana\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 8.5
   },
   {
@@ -2979,7 +3026,7 @@
    "label": "Messicana tirata extras#1",
    "product_id": "4f5d8d14-972c-247e-180b-fbe667d11888",
    "quantity": 2,
-   "notes": "[P] Messicana\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Messicana\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 9.5
   },
   {
@@ -3042,7 +3089,7 @@
    "label": "Miami normale extras#1",
    "product_id": "83c6feb1-5c4a-084f-56d9-33acb4bc31c5",
    "quantity": 2,
-   "notes": "[P] Miami\nTaglia: Normale\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Miami\nTaglia: Normale\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 10
   },
   {
@@ -3070,7 +3117,7 @@
    "label": "Miami piccola extras#1",
    "product_id": "83c6feb1-5c4a-084f-56d9-33acb4bc31c5",
    "quantity": 2,
-   "notes": "[P] Miami\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Miami\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 9
   },
   {
@@ -3098,7 +3145,7 @@
    "label": "Miami tirata extras#1",
    "product_id": "83c6feb1-5c4a-084f-56d9-33acb4bc31c5",
    "quantity": 2,
-   "notes": "[P] Miami\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Miami\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 10
   },
   {
@@ -3154,7 +3201,7 @@
    "label": "Napoli normale extras#1",
    "product_id": "2d2e53df-ec08-225c-c4ba-7daf6f4af516",
    "quantity": 2,
-   "notes": "[P] Napoli\nTaglia: Normale\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Napoli\nTaglia: Normale\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 8
   },
   {
@@ -3182,7 +3229,7 @@
    "label": "Napoli piccola extras#1",
    "product_id": "2d2e53df-ec08-225c-c4ba-7daf6f4af516",
    "quantity": 2,
-   "notes": "[P] Napoli\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Napoli\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 7
   },
   {
@@ -3210,7 +3257,7 @@
    "label": "Napoli tirata extras#1",
    "product_id": "2d2e53df-ec08-225c-c4ba-7daf6f4af516",
    "quantity": 2,
-   "notes": "[P] Napoli\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Napoli\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 8
   },
   {
@@ -3259,7 +3306,7 @@
    "label": "Nord e Sud normale extras#1",
    "product_id": "5bba5ee7-2027-0ba7-63aa-e40836611a97",
    "quantity": 2,
-   "notes": "[P] Nord e Sud\nTaglia: Normale\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Nord e Sud\nTaglia: Normale\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 10
   },
   {
@@ -3287,7 +3334,7 @@
    "label": "Nord e Sud piccola extras#1",
    "product_id": "5bba5ee7-2027-0ba7-63aa-e40836611a97",
    "quantity": 2,
-   "notes": "[P] Nord e Sud\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Nord e Sud\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 9
   },
   {
@@ -3315,7 +3362,7 @@
    "label": "Nord e Sud tirata extras#1",
    "product_id": "5bba5ee7-2027-0ba7-63aa-e40836611a97",
    "quantity": 2,
-   "notes": "[P] Nord e Sud\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Nord e Sud\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 10
   },
   {
@@ -3364,7 +3411,7 @@
    "label": "Pancetta normale extras#1",
    "product_id": "9b363f85-a930-d75f-3160-2a98996142b1",
    "quantity": 2,
-   "notes": "[P] Pancetta\nTaglia: Normale\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Pancetta\nTaglia: Normale\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 9.5
   },
   {
@@ -3392,7 +3439,7 @@
    "label": "Pancetta piccola extras#1",
    "product_id": "9b363f85-a930-d75f-3160-2a98996142b1",
    "quantity": 2,
-   "notes": "[P] Pancetta\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Pancetta\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 8.5
   },
   {
@@ -3420,7 +3467,7 @@
    "label": "Pancetta tirata extras#1",
    "product_id": "9b363f85-a930-d75f-3160-2a98996142b1",
    "quantity": 2,
-   "notes": "[P] Pancetta\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Pancetta\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 9.5
   },
   {
@@ -3469,7 +3516,7 @@
    "label": "Piccantina normale extras#1",
    "product_id": "d5cf8733-16e6-0f92-23f2-bc1ce260903a",
    "quantity": 2,
-   "notes": "[P] Piccantina\nTaglia: Normale\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Piccantina\nTaglia: Normale\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 10
   },
   {
@@ -3497,7 +3544,7 @@
    "label": "Piccantina piccola extras#1",
    "product_id": "d5cf8733-16e6-0f92-23f2-bc1ce260903a",
    "quantity": 2,
-   "notes": "[P] Piccantina\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Piccantina\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 9
   },
   {
@@ -3525,7 +3572,7 @@
    "label": "Piccantina tirata extras#1",
    "product_id": "d5cf8733-16e6-0f92-23f2-bc1ce260903a",
    "quantity": 2,
-   "notes": "[P] Piccantina\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Piccantina\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 10
   },
   {
@@ -3574,7 +3621,7 @@
    "label": "Pizza del Centro normale extras#1",
    "product_id": "80ab95e6-647b-d8c6-5906-b63096fa0fb5",
    "quantity": 2,
-   "notes": "[P] Pizza del Centro\nTaglia: Normale\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Pizza del Centro\nTaglia: Normale\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 11.5
   },
   {
@@ -3602,7 +3649,7 @@
    "label": "Pizza del Centro piccola extras#1",
    "product_id": "80ab95e6-647b-d8c6-5906-b63096fa0fb5",
    "quantity": 2,
-   "notes": "[P] Pizza del Centro\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Pizza del Centro\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 10.5
   },
   {
@@ -3630,7 +3677,7 @@
    "label": "Pizza del Centro tirata extras#1",
    "product_id": "80ab95e6-647b-d8c6-5906-b63096fa0fb5",
    "quantity": 2,
-   "notes": "[P] Pizza del Centro\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Pizza del Centro\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 11.5
   },
   {
@@ -3686,7 +3733,7 @@
    "label": "Prosciutto normale extras#1",
    "product_id": "8588a45b-f05b-da59-aeeb-e8aa336b06a6",
    "quantity": 2,
-   "notes": "[P] Prosciutto\nTaglia: Normale\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Prosciutto\nTaglia: Normale\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 8
   },
   {
@@ -3714,7 +3761,7 @@
    "label": "Prosciutto piccola extras#1",
    "product_id": "8588a45b-f05b-da59-aeeb-e8aa336b06a6",
    "quantity": 2,
-   "notes": "[P] Prosciutto\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Prosciutto\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 7
   },
   {
@@ -3742,7 +3789,7 @@
    "label": "Prosciutto tirata extras#1",
    "product_id": "8588a45b-f05b-da59-aeeb-e8aa336b06a6",
    "quantity": 2,
-   "notes": "[P] Prosciutto\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Prosciutto\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 8
   },
   {
@@ -3798,7 +3845,7 @@
    "label": "Quattro Formaggi normale extras#1",
    "product_id": "a85dece1-5bb3-b377-1719-7f9e936f9532",
    "quantity": 2,
-   "notes": "[P] Quattro Formaggi\nTaglia: Normale\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Quattro Formaggi\nTaglia: Normale\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 8.5
   },
   {
@@ -3826,7 +3873,7 @@
    "label": "Quattro Formaggi piccola extras#1",
    "product_id": "a85dece1-5bb3-b377-1719-7f9e936f9532",
    "quantity": 2,
-   "notes": "[P] Quattro Formaggi\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Quattro Formaggi\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 7.5
   },
   {
@@ -3854,7 +3901,7 @@
    "label": "Quattro Formaggi tirata extras#1",
    "product_id": "a85dece1-5bb3-b377-1719-7f9e936f9532",
    "quantity": 2,
-   "notes": "[P] Quattro Formaggi\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Quattro Formaggi\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 8.5
   },
   {
@@ -3903,7 +3950,7 @@
    "label": "Quattro Stagioni normale extras#1",
    "product_id": "749f03a8-2b46-d080-faf2-d6b375e2228b",
    "quantity": 2,
-   "notes": "[P] Quattro Stagioni\nTaglia: Normale\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Quattro Stagioni\nTaglia: Normale\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 9
   },
   {
@@ -3931,7 +3978,7 @@
    "label": "Quattro Stagioni piccola extras#1",
    "product_id": "749f03a8-2b46-d080-faf2-d6b375e2228b",
    "quantity": 2,
-   "notes": "[P] Quattro Stagioni\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Quattro Stagioni\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 8
   },
   {
@@ -3959,7 +4006,7 @@
    "label": "Quattro Stagioni tirata extras#1",
    "product_id": "749f03a8-2b46-d080-faf2-d6b375e2228b",
    "quantity": 2,
-   "notes": "[P] Quattro Stagioni\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Quattro Stagioni\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 9
   },
   {
@@ -4008,7 +4055,7 @@
    "label": "Romana normale extras#1",
    "product_id": "4b1a90b1-a400-9f0b-bdbf-3c98e4488fc4",
    "quantity": 2,
-   "notes": "[P] Romana\nTaglia: Normale\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Romana\nTaglia: Normale\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 8.5
   },
   {
@@ -4036,7 +4083,7 @@
    "label": "Romana piccola extras#1",
    "product_id": "4b1a90b1-a400-9f0b-bdbf-3c98e4488fc4",
    "quantity": 2,
-   "notes": "[P] Romana\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Romana\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 7.5
   },
   {
@@ -4064,7 +4111,7 @@
    "label": "Romana tirata extras#1",
    "product_id": "4b1a90b1-a400-9f0b-bdbf-3c98e4488fc4",
    "quantity": 2,
-   "notes": "[P] Romana\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Romana\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 8.5
   },
   {
@@ -4113,7 +4160,7 @@
    "label": "Salsiccia normale extras#1",
    "product_id": "0348bd5e-ec70-3df8-3540-b81fcd9cff68",
    "quantity": 2,
-   "notes": "[P] Salsiccia\nTaglia: Normale\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Salsiccia\nTaglia: Normale\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 8
   },
   {
@@ -4141,7 +4188,7 @@
    "label": "Salsiccia piccola extras#1",
    "product_id": "0348bd5e-ec70-3df8-3540-b81fcd9cff68",
    "quantity": 2,
-   "notes": "[P] Salsiccia\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Salsiccia\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 7
   },
   {
@@ -4169,7 +4216,7 @@
    "label": "Salsiccia tirata extras#1",
    "product_id": "0348bd5e-ec70-3df8-3540-b81fcd9cff68",
    "quantity": 2,
-   "notes": "[P] Salsiccia\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Salsiccia\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 8
   },
   {
@@ -4225,7 +4272,7 @@
    "label": "Speciale normale extras#1",
    "product_id": "3f3c8d25-16be-242d-7fac-f7430168ee69",
    "quantity": 2,
-   "notes": "[P] Speciale\nTaglia: Normale\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Speciale\nTaglia: Normale\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 9
   },
   {
@@ -4253,7 +4300,7 @@
    "label": "Speciale piccola extras#1",
    "product_id": "3f3c8d25-16be-242d-7fac-f7430168ee69",
    "quantity": 2,
-   "notes": "[P] Speciale\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Speciale\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 8
   },
   {
@@ -4281,7 +4328,7 @@
    "label": "Speciale tirata extras#1",
    "product_id": "3f3c8d25-16be-242d-7fac-f7430168ee69",
    "quantity": 2,
-   "notes": "[P] Speciale\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Speciale\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 9
   },
   {
@@ -4330,7 +4377,7 @@
    "label": "Speck normale extras#1",
    "product_id": "d71787f2-8190-e631-51b3-5250e289efdf",
    "quantity": 2,
-   "notes": "[P] Speck\nTaglia: Normale\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Speck\nTaglia: Normale\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 9.5
   },
   {
@@ -4358,7 +4405,7 @@
    "label": "Speck piccola extras#1",
    "product_id": "d71787f2-8190-e631-51b3-5250e289efdf",
    "quantity": 2,
-   "notes": "[P] Speck\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Speck\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 8.5
   },
   {
@@ -4386,7 +4433,7 @@
    "label": "Speck tirata extras#1",
    "product_id": "d71787f2-8190-e631-51b3-5250e289efdf",
    "quantity": 2,
-   "notes": "[P] Speck\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Speck\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 9.5
   },
   {
@@ -4442,7 +4489,7 @@
    "label": "Stracchino e Rucola normale extras#1",
    "product_id": "2f6ad905-62dc-47c9-2b68-8e9542812ee1",
    "quantity": 2,
-   "notes": "[P] Stracchino e Rucola\nTaglia: Normale\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Stracchino e Rucola\nTaglia: Normale\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 9.5
   },
   {
@@ -4470,7 +4517,7 @@
    "label": "Stracchino e Rucola piccola extras#1",
    "product_id": "2f6ad905-62dc-47c9-2b68-8e9542812ee1",
    "quantity": 2,
-   "notes": "[P] Stracchino e Rucola\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Stracchino e Rucola\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 8.5
   },
   {
@@ -4498,7 +4545,7 @@
    "label": "Stracchino e Rucola tirata extras#1",
    "product_id": "2f6ad905-62dc-47c9-2b68-8e9542812ee1",
    "quantity": 2,
-   "notes": "[P] Stracchino e Rucola\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Stracchino e Rucola\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 9.5
   },
   {
@@ -4547,7 +4594,7 @@
    "label": "Stria normale extras#1",
    "product_id": "3db94745-690b-6cd6-193b-d98e2dd693c5",
    "quantity": 2,
-   "notes": "[P] Stria\nTaglia: Normale\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Stria\nTaglia: Normale\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 5
   },
   {
@@ -4575,7 +4622,7 @@
    "label": "Stria piccola extras#1",
    "product_id": "3db94745-690b-6cd6-193b-d98e2dd693c5",
    "quantity": 2,
-   "notes": "[P] Stria\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Stria\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 4
   },
   {
@@ -4603,7 +4650,7 @@
    "label": "Stria tirata extras#1",
    "product_id": "3db94745-690b-6cd6-193b-d98e2dd693c5",
    "quantity": 2,
-   "notes": "[P] Stria\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Stria\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 5
   },
   {
@@ -4666,7 +4713,7 @@
    "label": "Tartufata normale extras#1",
    "product_id": "638ef407-8372-1dde-1281-8f0c49e4bae7",
    "quantity": 2,
-   "notes": "[P] Tartufata\nTaglia: Normale\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Tartufata\nTaglia: Normale\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 10
   },
   {
@@ -4694,7 +4741,7 @@
    "label": "Tartufata piccola extras#1",
    "product_id": "638ef407-8372-1dde-1281-8f0c49e4bae7",
    "quantity": 2,
-   "notes": "[P] Tartufata\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Tartufata\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 9
   },
   {
@@ -4722,7 +4769,7 @@
    "label": "Tartufata tirata extras#1",
    "product_id": "638ef407-8372-1dde-1281-8f0c49e4bae7",
    "quantity": 2,
-   "notes": "[P] Tartufata\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Tartufata\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 10
   },
   {
@@ -4792,7 +4839,7 @@
    "label": "Tirolese normale extras#1",
    "product_id": "d8585032-7b09-e145-17d2-6fa01a49441b",
    "quantity": 2,
-   "notes": "[P] Tirolese\nTaglia: Normale\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Tirolese\nTaglia: Normale\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 11
   },
   {
@@ -4820,7 +4867,7 @@
    "label": "Tirolese piccola extras#1",
    "product_id": "d8585032-7b09-e145-17d2-6fa01a49441b",
    "quantity": 2,
-   "notes": "[P] Tirolese\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Tirolese\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 10
   },
   {
@@ -4848,7 +4895,7 @@
    "label": "Tirolese tirata extras#1",
    "product_id": "d8585032-7b09-e145-17d2-6fa01a49441b",
    "quantity": 2,
-   "notes": "[P] Tirolese\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Tirolese\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 11
   },
   {
@@ -4897,7 +4944,7 @@
    "label": "Tonno normale extras#1",
    "product_id": "17c5fe9c-fc81-90f8-5a03-c5b4a0b9e573",
    "quantity": 2,
-   "notes": "[P] Tonno\nTaglia: Normale\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Tonno\nTaglia: Normale\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 8
   },
   {
@@ -4925,7 +4972,7 @@
    "label": "Tonno piccola extras#1",
    "product_id": "17c5fe9c-fc81-90f8-5a03-c5b4a0b9e573",
    "quantity": 2,
-   "notes": "[P] Tonno\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Tonno\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 7
   },
   {
@@ -4953,7 +5000,7 @@
    "label": "Tonno tirata extras#1",
    "product_id": "17c5fe9c-fc81-90f8-5a03-c5b4a0b9e573",
    "quantity": 2,
-   "notes": "[P] Tonno\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Tonno\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 8
   },
   {
@@ -5009,7 +5056,7 @@
    "label": "Trentina normale extras#1",
    "product_id": "d91f0e5d-7a7e-dd4e-3dfe-f6467cab8c2f",
    "quantity": 2,
-   "notes": "[P] Trentina\nTaglia: Normale\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Trentina\nTaglia: Normale\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 10
   },
   {
@@ -5037,7 +5084,7 @@
    "label": "Trentina piccola extras#1",
    "product_id": "d91f0e5d-7a7e-dd4e-3dfe-f6467cab8c2f",
    "quantity": 2,
-   "notes": "[P] Trentina\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Trentina\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 9
   },
   {
@@ -5065,7 +5112,7 @@
    "label": "Trentina tirata extras#1",
    "product_id": "d91f0e5d-7a7e-dd4e-3dfe-f6467cab8c2f",
    "quantity": 2,
-   "notes": "[P] Trentina\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Trentina\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 10
   },
   {
@@ -5114,7 +5161,7 @@
    "label": "Valtellina normale extras#1",
    "product_id": "55d27bcb-fdb1-eceb-cac1-4c7875927e5e",
    "quantity": 2,
-   "notes": "[P] Valtellina\nTaglia: Normale\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Valtellina\nTaglia: Normale\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 11
   },
   {
@@ -5142,7 +5189,7 @@
    "label": "Valtellina piccola extras#1",
    "product_id": "55d27bcb-fdb1-eceb-cac1-4c7875927e5e",
    "quantity": 2,
-   "notes": "[P] Valtellina\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Valtellina\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 10
   },
   {
@@ -5170,7 +5217,7 @@
    "label": "Valtellina tirata extras#1",
    "product_id": "55d27bcb-fdb1-eceb-cac1-4c7875927e5e",
    "quantity": 2,
-   "notes": "[P] Valtellina\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Valtellina\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 11
   },
   {
@@ -5219,7 +5266,7 @@
    "label": "Vegetariana normale extras#1",
    "product_id": "48c851ca-a589-0737-4574-ad4e2cd5a2eb",
    "quantity": 2,
-   "notes": "[P] Vegetariana\nTaglia: Normale\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Vegetariana\nTaglia: Normale\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 10
   },
   {
@@ -5247,7 +5294,7 @@
    "label": "Vegetariana piccola extras#1",
    "product_id": "48c851ca-a589-0737-4574-ad4e2cd5a2eb",
    "quantity": 2,
-   "notes": "[P] Vegetariana\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Vegetariana\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 9
   },
   {
@@ -5275,7 +5322,7 @@
    "label": "Vegetariana tirata extras#1",
    "product_id": "48c851ca-a589-0737-4574-ad4e2cd5a2eb",
    "quantity": 2,
-   "notes": "[P] Vegetariana\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Vegetariana\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 10
   },
   {
@@ -5345,7 +5392,7 @@
    "label": "Würstel normale extras#1",
    "product_id": "c275e551-dcf3-12f3-c9f4-9f8a55351ce1",
    "quantity": 2,
-   "notes": "[P] Würstel\nTaglia: Normale\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Würstel\nTaglia: Normale\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 8
   },
   {
@@ -5373,7 +5420,7 @@
    "label": "Würstel piccola extras#1",
    "product_id": "c275e551-dcf3-12f3-c9f4-9f8a55351ce1",
    "quantity": 2,
-   "notes": "[P] Würstel\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Würstel\nTaglia: Piccola\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 7
   },
   {
@@ -5401,7 +5448,7 @@
    "label": "Würstel tirata extras#1",
    "product_id": "c275e551-dcf3-12f3-c9f4-9f8a55351ce1",
    "quantity": 2,
-   "notes": "[P] Würstel\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta",
+   "notes": "[P] Würstel\nTaglia: Tirata\n+ Tonno\nNota: Senza fretta Taglia: Mezzo metro + Burrata",
    "unit_price": 8
   },
   {
@@ -5450,14 +5497,14 @@
    "label": "builder piccola/normale/pomodoro extras#2",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Piccola\nImpasto: Normale\nBase: Pomodoro\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano",
+   "notes": "[P] Componi la tua pizza\nTaglia: Piccola\nImpasto: Normale\nBase: Pomodoro\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano\nNota: senza fretta, grazie | + Burrata",
    "unit_price": 7.5
   },
   {
    "label": "builder piccola/normale/pomodoro extras#3",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Piccola\nImpasto: Normale\nBase: Pomodoro\n+ Pomodoro\n+ Basilico",
+   "notes": "[P] Componi la tua pizza\nTaglia: Piccola\nImpasto: Normale\nBase: Pomodoro\n+ Pomodoro\n+ Basilico\nCottura: Poco cotta",
    "unit_price": 6
   },
   {
@@ -5471,14 +5518,14 @@
    "label": "builder piccola/normale/doppio_pomodoro extras#2",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Piccola\nImpasto: Normale\nBase: Doppio pomodoro\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano",
+   "notes": "[P] Componi la tua pizza\nTaglia: Piccola\nImpasto: Normale\nBase: Doppio pomodoro\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano\nNota: senza fretta, grazie | + Burrata",
    "unit_price": 8
   },
   {
    "label": "builder piccola/normale/doppio_pomodoro extras#3",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Piccola\nImpasto: Normale\nBase: Doppio pomodoro\n+ Pomodoro\n+ Basilico",
+   "notes": "[P] Componi la tua pizza\nTaglia: Piccola\nImpasto: Normale\nBase: Doppio pomodoro\n+ Pomodoro\n+ Basilico\nCottura: Poco cotta",
    "unit_price": 6.5
   },
   {
@@ -5492,14 +5539,14 @@
    "label": "builder piccola/normale/bianca extras#2",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Piccola\nImpasto: Normale\nBase: Bianca\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano",
+   "notes": "[P] Componi la tua pizza\nTaglia: Piccola\nImpasto: Normale\nBase: Bianca\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano\nNota: senza fretta, grazie | + Burrata",
    "unit_price": 7.5
   },
   {
    "label": "builder piccola/normale/bianca extras#3",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Piccola\nImpasto: Normale\nBase: Bianca\n+ Pomodoro\n+ Basilico",
+   "notes": "[P] Componi la tua pizza\nTaglia: Piccola\nImpasto: Normale\nBase: Bianca\n+ Pomodoro\n+ Basilico\nCottura: Poco cotta",
    "unit_price": 6
   },
   {
@@ -5513,14 +5560,14 @@
    "label": "builder piccola/doppia_pasta/pomodoro extras#2",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Piccola\nImpasto: Doppia pasta\nBase: Pomodoro\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano",
+   "notes": "[P] Componi la tua pizza\nTaglia: Piccola\nImpasto: Doppia pasta\nBase: Pomodoro\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano\nNota: senza fretta, grazie | + Burrata",
    "unit_price": 9.5
   },
   {
    "label": "builder piccola/doppia_pasta/pomodoro extras#3",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Piccola\nImpasto: Doppia pasta\nBase: Pomodoro\n+ Pomodoro\n+ Basilico",
+   "notes": "[P] Componi la tua pizza\nTaglia: Piccola\nImpasto: Doppia pasta\nBase: Pomodoro\n+ Pomodoro\n+ Basilico\nCottura: Poco cotta",
    "unit_price": 8
   },
   {
@@ -5534,14 +5581,14 @@
    "label": "builder piccola/doppia_pasta/doppio_pomodoro extras#2",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Piccola\nImpasto: Doppia pasta\nBase: Doppio pomodoro\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano",
+   "notes": "[P] Componi la tua pizza\nTaglia: Piccola\nImpasto: Doppia pasta\nBase: Doppio pomodoro\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano\nNota: senza fretta, grazie | + Burrata",
    "unit_price": 10
   },
   {
    "label": "builder piccola/doppia_pasta/doppio_pomodoro extras#3",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Piccola\nImpasto: Doppia pasta\nBase: Doppio pomodoro\n+ Pomodoro\n+ Basilico",
+   "notes": "[P] Componi la tua pizza\nTaglia: Piccola\nImpasto: Doppia pasta\nBase: Doppio pomodoro\n+ Pomodoro\n+ Basilico\nCottura: Poco cotta",
    "unit_price": 8.5
   },
   {
@@ -5555,14 +5602,14 @@
    "label": "builder piccola/doppia_pasta/bianca extras#2",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Piccola\nImpasto: Doppia pasta\nBase: Bianca\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano",
+   "notes": "[P] Componi la tua pizza\nTaglia: Piccola\nImpasto: Doppia pasta\nBase: Bianca\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano\nNota: senza fretta, grazie | + Burrata",
    "unit_price": 9.5
   },
   {
    "label": "builder piccola/doppia_pasta/bianca extras#3",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Piccola\nImpasto: Doppia pasta\nBase: Bianca\n+ Pomodoro\n+ Basilico",
+   "notes": "[P] Componi la tua pizza\nTaglia: Piccola\nImpasto: Doppia pasta\nBase: Bianca\n+ Pomodoro\n+ Basilico\nCottura: Poco cotta",
    "unit_price": 8
   },
   {
@@ -5576,14 +5623,14 @@
    "label": "builder piccola/integrale/pomodoro extras#2",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Piccola\nImpasto: Integrale\nBase: Pomodoro\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano",
+   "notes": "[P] Componi la tua pizza\nTaglia: Piccola\nImpasto: Integrale\nBase: Pomodoro\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano\nNota: senza fretta, grazie | + Burrata",
    "unit_price": 9
   },
   {
    "label": "builder piccola/integrale/pomodoro extras#3",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Piccola\nImpasto: Integrale\nBase: Pomodoro\n+ Pomodoro\n+ Basilico",
+   "notes": "[P] Componi la tua pizza\nTaglia: Piccola\nImpasto: Integrale\nBase: Pomodoro\n+ Pomodoro\n+ Basilico\nCottura: Poco cotta",
    "unit_price": 7.5
   },
   {
@@ -5597,14 +5644,14 @@
    "label": "builder piccola/integrale/doppio_pomodoro extras#2",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Piccola\nImpasto: Integrale\nBase: Doppio pomodoro\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano",
+   "notes": "[P] Componi la tua pizza\nTaglia: Piccola\nImpasto: Integrale\nBase: Doppio pomodoro\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano\nNota: senza fretta, grazie | + Burrata",
    "unit_price": 9.5
   },
   {
    "label": "builder piccola/integrale/doppio_pomodoro extras#3",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Piccola\nImpasto: Integrale\nBase: Doppio pomodoro\n+ Pomodoro\n+ Basilico",
+   "notes": "[P] Componi la tua pizza\nTaglia: Piccola\nImpasto: Integrale\nBase: Doppio pomodoro\n+ Pomodoro\n+ Basilico\nCottura: Poco cotta",
    "unit_price": 8
   },
   {
@@ -5618,14 +5665,14 @@
    "label": "builder piccola/integrale/bianca extras#2",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Piccola\nImpasto: Integrale\nBase: Bianca\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano",
+   "notes": "[P] Componi la tua pizza\nTaglia: Piccola\nImpasto: Integrale\nBase: Bianca\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano\nNota: senza fretta, grazie | + Burrata",
    "unit_price": 9
   },
   {
    "label": "builder piccola/integrale/bianca extras#3",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Piccola\nImpasto: Integrale\nBase: Bianca\n+ Pomodoro\n+ Basilico",
+   "notes": "[P] Componi la tua pizza\nTaglia: Piccola\nImpasto: Integrale\nBase: Bianca\n+ Pomodoro\n+ Basilico\nCottura: Poco cotta",
    "unit_price": 7.5
   },
   {
@@ -5639,14 +5686,14 @@
    "label": "builder piccola/gluten_free/pomodoro extras#2",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Piccola\nImpasto: Gluten free\nBase: Pomodoro\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano",
+   "notes": "[P] Componi la tua pizza\nTaglia: Piccola\nImpasto: Gluten free\nBase: Pomodoro\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano\nNota: senza fretta, grazie | + Burrata",
    "unit_price": 9.5
   },
   {
    "label": "builder piccola/gluten_free/pomodoro extras#3",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Piccola\nImpasto: Gluten free\nBase: Pomodoro\n+ Pomodoro\n+ Basilico",
+   "notes": "[P] Componi la tua pizza\nTaglia: Piccola\nImpasto: Gluten free\nBase: Pomodoro\n+ Pomodoro\n+ Basilico\nCottura: Poco cotta",
    "unit_price": 8
   },
   {
@@ -5660,14 +5707,14 @@
    "label": "builder piccola/gluten_free/doppio_pomodoro extras#2",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Piccola\nImpasto: Gluten free\nBase: Doppio pomodoro\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano",
+   "notes": "[P] Componi la tua pizza\nTaglia: Piccola\nImpasto: Gluten free\nBase: Doppio pomodoro\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano\nNota: senza fretta, grazie | + Burrata",
    "unit_price": 10
   },
   {
    "label": "builder piccola/gluten_free/doppio_pomodoro extras#3",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Piccola\nImpasto: Gluten free\nBase: Doppio pomodoro\n+ Pomodoro\n+ Basilico",
+   "notes": "[P] Componi la tua pizza\nTaglia: Piccola\nImpasto: Gluten free\nBase: Doppio pomodoro\n+ Pomodoro\n+ Basilico\nCottura: Poco cotta",
    "unit_price": 8.5
   },
   {
@@ -5681,14 +5728,14 @@
    "label": "builder piccola/gluten_free/bianca extras#2",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Piccola\nImpasto: Gluten free\nBase: Bianca\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano",
+   "notes": "[P] Componi la tua pizza\nTaglia: Piccola\nImpasto: Gluten free\nBase: Bianca\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano\nNota: senza fretta, grazie | + Burrata",
    "unit_price": 9.5
   },
   {
    "label": "builder piccola/gluten_free/bianca extras#3",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Piccola\nImpasto: Gluten free\nBase: Bianca\n+ Pomodoro\n+ Basilico",
+   "notes": "[P] Componi la tua pizza\nTaglia: Piccola\nImpasto: Gluten free\nBase: Bianca\n+ Pomodoro\n+ Basilico\nCottura: Poco cotta",
    "unit_price": 8
   },
   {
@@ -5702,14 +5749,14 @@
    "label": "builder media/normale/pomodoro extras#2",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Media\nImpasto: Normale\nBase: Pomodoro\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano",
+   "notes": "[P] Componi la tua pizza\nTaglia: Media\nImpasto: Normale\nBase: Pomodoro\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano\nNota: senza fretta, grazie | + Burrata",
    "unit_price": 8.5
   },
   {
    "label": "builder media/normale/pomodoro extras#3",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Media\nImpasto: Normale\nBase: Pomodoro\n+ Pomodoro\n+ Basilico",
+   "notes": "[P] Componi la tua pizza\nTaglia: Media\nImpasto: Normale\nBase: Pomodoro\n+ Pomodoro\n+ Basilico\nCottura: Poco cotta",
    "unit_price": 7
   },
   {
@@ -5723,14 +5770,14 @@
    "label": "builder media/normale/doppio_pomodoro extras#2",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Media\nImpasto: Normale\nBase: Doppio pomodoro\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano",
+   "notes": "[P] Componi la tua pizza\nTaglia: Media\nImpasto: Normale\nBase: Doppio pomodoro\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano\nNota: senza fretta, grazie | + Burrata",
    "unit_price": 9
   },
   {
    "label": "builder media/normale/doppio_pomodoro extras#3",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Media\nImpasto: Normale\nBase: Doppio pomodoro\n+ Pomodoro\n+ Basilico",
+   "notes": "[P] Componi la tua pizza\nTaglia: Media\nImpasto: Normale\nBase: Doppio pomodoro\n+ Pomodoro\n+ Basilico\nCottura: Poco cotta",
    "unit_price": 7.5
   },
   {
@@ -5744,14 +5791,14 @@
    "label": "builder media/normale/bianca extras#2",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Media\nImpasto: Normale\nBase: Bianca\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano",
+   "notes": "[P] Componi la tua pizza\nTaglia: Media\nImpasto: Normale\nBase: Bianca\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano\nNota: senza fretta, grazie | + Burrata",
    "unit_price": 8.5
   },
   {
    "label": "builder media/normale/bianca extras#3",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Media\nImpasto: Normale\nBase: Bianca\n+ Pomodoro\n+ Basilico",
+   "notes": "[P] Componi la tua pizza\nTaglia: Media\nImpasto: Normale\nBase: Bianca\n+ Pomodoro\n+ Basilico\nCottura: Poco cotta",
    "unit_price": 7
   },
   {
@@ -5765,14 +5812,14 @@
    "label": "builder media/doppia_pasta/pomodoro extras#2",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Media\nImpasto: Doppia pasta\nBase: Pomodoro\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano",
+   "notes": "[P] Componi la tua pizza\nTaglia: Media\nImpasto: Doppia pasta\nBase: Pomodoro\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano\nNota: senza fretta, grazie | + Burrata",
    "unit_price": 10.5
   },
   {
    "label": "builder media/doppia_pasta/pomodoro extras#3",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Media\nImpasto: Doppia pasta\nBase: Pomodoro\n+ Pomodoro\n+ Basilico",
+   "notes": "[P] Componi la tua pizza\nTaglia: Media\nImpasto: Doppia pasta\nBase: Pomodoro\n+ Pomodoro\n+ Basilico\nCottura: Poco cotta",
    "unit_price": 9
   },
   {
@@ -5786,14 +5833,14 @@
    "label": "builder media/doppia_pasta/doppio_pomodoro extras#2",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Media\nImpasto: Doppia pasta\nBase: Doppio pomodoro\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano",
+   "notes": "[P] Componi la tua pizza\nTaglia: Media\nImpasto: Doppia pasta\nBase: Doppio pomodoro\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano\nNota: senza fretta, grazie | + Burrata",
    "unit_price": 11
   },
   {
    "label": "builder media/doppia_pasta/doppio_pomodoro extras#3",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Media\nImpasto: Doppia pasta\nBase: Doppio pomodoro\n+ Pomodoro\n+ Basilico",
+   "notes": "[P] Componi la tua pizza\nTaglia: Media\nImpasto: Doppia pasta\nBase: Doppio pomodoro\n+ Pomodoro\n+ Basilico\nCottura: Poco cotta",
    "unit_price": 9.5
   },
   {
@@ -5807,14 +5854,14 @@
    "label": "builder media/doppia_pasta/bianca extras#2",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Media\nImpasto: Doppia pasta\nBase: Bianca\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano",
+   "notes": "[P] Componi la tua pizza\nTaglia: Media\nImpasto: Doppia pasta\nBase: Bianca\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano\nNota: senza fretta, grazie | + Burrata",
    "unit_price": 10.5
   },
   {
    "label": "builder media/doppia_pasta/bianca extras#3",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Media\nImpasto: Doppia pasta\nBase: Bianca\n+ Pomodoro\n+ Basilico",
+   "notes": "[P] Componi la tua pizza\nTaglia: Media\nImpasto: Doppia pasta\nBase: Bianca\n+ Pomodoro\n+ Basilico\nCottura: Poco cotta",
    "unit_price": 9
   },
   {
@@ -5828,14 +5875,14 @@
    "label": "builder media/integrale/pomodoro extras#2",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Media\nImpasto: Integrale\nBase: Pomodoro\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano",
+   "notes": "[P] Componi la tua pizza\nTaglia: Media\nImpasto: Integrale\nBase: Pomodoro\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano\nNota: senza fretta, grazie | + Burrata",
    "unit_price": 10
   },
   {
    "label": "builder media/integrale/pomodoro extras#3",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Media\nImpasto: Integrale\nBase: Pomodoro\n+ Pomodoro\n+ Basilico",
+   "notes": "[P] Componi la tua pizza\nTaglia: Media\nImpasto: Integrale\nBase: Pomodoro\n+ Pomodoro\n+ Basilico\nCottura: Poco cotta",
    "unit_price": 8.5
   },
   {
@@ -5849,14 +5896,14 @@
    "label": "builder media/integrale/doppio_pomodoro extras#2",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Media\nImpasto: Integrale\nBase: Doppio pomodoro\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano",
+   "notes": "[P] Componi la tua pizza\nTaglia: Media\nImpasto: Integrale\nBase: Doppio pomodoro\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano\nNota: senza fretta, grazie | + Burrata",
    "unit_price": 10.5
   },
   {
    "label": "builder media/integrale/doppio_pomodoro extras#3",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Media\nImpasto: Integrale\nBase: Doppio pomodoro\n+ Pomodoro\n+ Basilico",
+   "notes": "[P] Componi la tua pizza\nTaglia: Media\nImpasto: Integrale\nBase: Doppio pomodoro\n+ Pomodoro\n+ Basilico\nCottura: Poco cotta",
    "unit_price": 9
   },
   {
@@ -5870,14 +5917,14 @@
    "label": "builder media/integrale/bianca extras#2",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Media\nImpasto: Integrale\nBase: Bianca\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano",
+   "notes": "[P] Componi la tua pizza\nTaglia: Media\nImpasto: Integrale\nBase: Bianca\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano\nNota: senza fretta, grazie | + Burrata",
    "unit_price": 10
   },
   {
    "label": "builder media/integrale/bianca extras#3",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Media\nImpasto: Integrale\nBase: Bianca\n+ Pomodoro\n+ Basilico",
+   "notes": "[P] Componi la tua pizza\nTaglia: Media\nImpasto: Integrale\nBase: Bianca\n+ Pomodoro\n+ Basilico\nCottura: Poco cotta",
    "unit_price": 8.5
   },
   {
@@ -5891,14 +5938,14 @@
    "label": "builder media/gluten_free/pomodoro extras#2",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Media\nImpasto: Gluten free\nBase: Pomodoro\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano",
+   "notes": "[P] Componi la tua pizza\nTaglia: Media\nImpasto: Gluten free\nBase: Pomodoro\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano\nNota: senza fretta, grazie | + Burrata",
    "unit_price": 10.5
   },
   {
    "label": "builder media/gluten_free/pomodoro extras#3",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Media\nImpasto: Gluten free\nBase: Pomodoro\n+ Pomodoro\n+ Basilico",
+   "notes": "[P] Componi la tua pizza\nTaglia: Media\nImpasto: Gluten free\nBase: Pomodoro\n+ Pomodoro\n+ Basilico\nCottura: Poco cotta",
    "unit_price": 9
   },
   {
@@ -5912,14 +5959,14 @@
    "label": "builder media/gluten_free/doppio_pomodoro extras#2",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Media\nImpasto: Gluten free\nBase: Doppio pomodoro\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano",
+   "notes": "[P] Componi la tua pizza\nTaglia: Media\nImpasto: Gluten free\nBase: Doppio pomodoro\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano\nNota: senza fretta, grazie | + Burrata",
    "unit_price": 11
   },
   {
    "label": "builder media/gluten_free/doppio_pomodoro extras#3",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Media\nImpasto: Gluten free\nBase: Doppio pomodoro\n+ Pomodoro\n+ Basilico",
+   "notes": "[P] Componi la tua pizza\nTaglia: Media\nImpasto: Gluten free\nBase: Doppio pomodoro\n+ Pomodoro\n+ Basilico\nCottura: Poco cotta",
    "unit_price": 9.5
   },
   {
@@ -5933,14 +5980,14 @@
    "label": "builder media/gluten_free/bianca extras#2",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Media\nImpasto: Gluten free\nBase: Bianca\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano",
+   "notes": "[P] Componi la tua pizza\nTaglia: Media\nImpasto: Gluten free\nBase: Bianca\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano\nNota: senza fretta, grazie | + Burrata",
    "unit_price": 10.5
   },
   {
    "label": "builder media/gluten_free/bianca extras#3",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Media\nImpasto: Gluten free\nBase: Bianca\n+ Pomodoro\n+ Basilico",
+   "notes": "[P] Componi la tua pizza\nTaglia: Media\nImpasto: Gluten free\nBase: Bianca\n+ Pomodoro\n+ Basilico\nCottura: Poco cotta",
    "unit_price": 9
   },
   {
@@ -5954,14 +6001,14 @@
    "label": "builder mezzo_metro/normale/pomodoro extras#2",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Mezzo metro\nImpasto: Normale\nBase: Pomodoro\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano",
+   "notes": "[P] Componi la tua pizza\nTaglia: Mezzo metro\nImpasto: Normale\nBase: Pomodoro\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano\nNota: senza fretta, grazie | + Burrata",
    "unit_price": 16
   },
   {
    "label": "builder mezzo_metro/normale/pomodoro extras#3",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Mezzo metro\nImpasto: Normale\nBase: Pomodoro\n+ Pomodoro\n+ Basilico",
+   "notes": "[P] Componi la tua pizza\nTaglia: Mezzo metro\nImpasto: Normale\nBase: Pomodoro\n+ Pomodoro\n+ Basilico\nCottura: Poco cotta",
    "unit_price": 13
   },
   {
@@ -5975,14 +6022,14 @@
    "label": "builder mezzo_metro/normale/doppio_pomodoro extras#2",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Mezzo metro\nImpasto: Normale\nBase: Doppio pomodoro\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano",
+   "notes": "[P] Componi la tua pizza\nTaglia: Mezzo metro\nImpasto: Normale\nBase: Doppio pomodoro\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano\nNota: senza fretta, grazie | + Burrata",
    "unit_price": 16.5
   },
   {
    "label": "builder mezzo_metro/normale/doppio_pomodoro extras#3",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Mezzo metro\nImpasto: Normale\nBase: Doppio pomodoro\n+ Pomodoro\n+ Basilico",
+   "notes": "[P] Componi la tua pizza\nTaglia: Mezzo metro\nImpasto: Normale\nBase: Doppio pomodoro\n+ Pomodoro\n+ Basilico\nCottura: Poco cotta",
    "unit_price": 13.5
   },
   {
@@ -5996,14 +6043,14 @@
    "label": "builder mezzo_metro/normale/bianca extras#2",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Mezzo metro\nImpasto: Normale\nBase: Bianca\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano",
+   "notes": "[P] Componi la tua pizza\nTaglia: Mezzo metro\nImpasto: Normale\nBase: Bianca\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano\nNota: senza fretta, grazie | + Burrata",
    "unit_price": 16
   },
   {
    "label": "builder mezzo_metro/normale/bianca extras#3",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Mezzo metro\nImpasto: Normale\nBase: Bianca\n+ Pomodoro\n+ Basilico",
+   "notes": "[P] Componi la tua pizza\nTaglia: Mezzo metro\nImpasto: Normale\nBase: Bianca\n+ Pomodoro\n+ Basilico\nCottura: Poco cotta",
    "unit_price": 13
   },
   {
@@ -6017,14 +6064,14 @@
    "label": "builder mezzo_metro/doppia_pasta/pomodoro extras#2",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Mezzo metro\nImpasto: Doppia pasta\nBase: Pomodoro\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano",
+   "notes": "[P] Componi la tua pizza\nTaglia: Mezzo metro\nImpasto: Doppia pasta\nBase: Pomodoro\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano\nNota: senza fretta, grazie | + Burrata",
    "unit_price": 18
   },
   {
    "label": "builder mezzo_metro/doppia_pasta/pomodoro extras#3",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Mezzo metro\nImpasto: Doppia pasta\nBase: Pomodoro\n+ Pomodoro\n+ Basilico",
+   "notes": "[P] Componi la tua pizza\nTaglia: Mezzo metro\nImpasto: Doppia pasta\nBase: Pomodoro\n+ Pomodoro\n+ Basilico\nCottura: Poco cotta",
    "unit_price": 15
   },
   {
@@ -6038,14 +6085,14 @@
    "label": "builder mezzo_metro/doppia_pasta/doppio_pomodoro extras#2",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Mezzo metro\nImpasto: Doppia pasta\nBase: Doppio pomodoro\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano",
+   "notes": "[P] Componi la tua pizza\nTaglia: Mezzo metro\nImpasto: Doppia pasta\nBase: Doppio pomodoro\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano\nNota: senza fretta, grazie | + Burrata",
    "unit_price": 18.5
   },
   {
    "label": "builder mezzo_metro/doppia_pasta/doppio_pomodoro extras#3",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Mezzo metro\nImpasto: Doppia pasta\nBase: Doppio pomodoro\n+ Pomodoro\n+ Basilico",
+   "notes": "[P] Componi la tua pizza\nTaglia: Mezzo metro\nImpasto: Doppia pasta\nBase: Doppio pomodoro\n+ Pomodoro\n+ Basilico\nCottura: Poco cotta",
    "unit_price": 15.5
   },
   {
@@ -6059,14 +6106,14 @@
    "label": "builder mezzo_metro/doppia_pasta/bianca extras#2",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Mezzo metro\nImpasto: Doppia pasta\nBase: Bianca\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano",
+   "notes": "[P] Componi la tua pizza\nTaglia: Mezzo metro\nImpasto: Doppia pasta\nBase: Bianca\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano\nNota: senza fretta, grazie | + Burrata",
    "unit_price": 18
   },
   {
    "label": "builder mezzo_metro/doppia_pasta/bianca extras#3",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Mezzo metro\nImpasto: Doppia pasta\nBase: Bianca\n+ Pomodoro\n+ Basilico",
+   "notes": "[P] Componi la tua pizza\nTaglia: Mezzo metro\nImpasto: Doppia pasta\nBase: Bianca\n+ Pomodoro\n+ Basilico\nCottura: Poco cotta",
    "unit_price": 15
   },
   {
@@ -6080,14 +6127,14 @@
    "label": "builder mezzo_metro/integrale/pomodoro extras#2",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Mezzo metro\nImpasto: Integrale\nBase: Pomodoro\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano",
+   "notes": "[P] Componi la tua pizza\nTaglia: Mezzo metro\nImpasto: Integrale\nBase: Pomodoro\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano\nNota: senza fretta, grazie | + Burrata",
    "unit_price": 17.5
   },
   {
    "label": "builder mezzo_metro/integrale/pomodoro extras#3",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Mezzo metro\nImpasto: Integrale\nBase: Pomodoro\n+ Pomodoro\n+ Basilico",
+   "notes": "[P] Componi la tua pizza\nTaglia: Mezzo metro\nImpasto: Integrale\nBase: Pomodoro\n+ Pomodoro\n+ Basilico\nCottura: Poco cotta",
    "unit_price": 14.5
   },
   {
@@ -6101,14 +6148,14 @@
    "label": "builder mezzo_metro/integrale/doppio_pomodoro extras#2",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Mezzo metro\nImpasto: Integrale\nBase: Doppio pomodoro\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano",
+   "notes": "[P] Componi la tua pizza\nTaglia: Mezzo metro\nImpasto: Integrale\nBase: Doppio pomodoro\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano\nNota: senza fretta, grazie | + Burrata",
    "unit_price": 18
   },
   {
    "label": "builder mezzo_metro/integrale/doppio_pomodoro extras#3",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Mezzo metro\nImpasto: Integrale\nBase: Doppio pomodoro\n+ Pomodoro\n+ Basilico",
+   "notes": "[P] Componi la tua pizza\nTaglia: Mezzo metro\nImpasto: Integrale\nBase: Doppio pomodoro\n+ Pomodoro\n+ Basilico\nCottura: Poco cotta",
    "unit_price": 15
   },
   {
@@ -6122,14 +6169,14 @@
    "label": "builder mezzo_metro/integrale/bianca extras#2",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Mezzo metro\nImpasto: Integrale\nBase: Bianca\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano",
+   "notes": "[P] Componi la tua pizza\nTaglia: Mezzo metro\nImpasto: Integrale\nBase: Bianca\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano\nNota: senza fretta, grazie | + Burrata",
    "unit_price": 17.5
   },
   {
    "label": "builder mezzo_metro/integrale/bianca extras#3",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Mezzo metro\nImpasto: Integrale\nBase: Bianca\n+ Pomodoro\n+ Basilico",
+   "notes": "[P] Componi la tua pizza\nTaglia: Mezzo metro\nImpasto: Integrale\nBase: Bianca\n+ Pomodoro\n+ Basilico\nCottura: Poco cotta",
    "unit_price": 14.5
   },
   {
@@ -6143,14 +6190,14 @@
    "label": "builder mezzo_metro/gluten_free/pomodoro extras#2",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Mezzo metro\nImpasto: Gluten free\nBase: Pomodoro\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano",
+   "notes": "[P] Componi la tua pizza\nTaglia: Mezzo metro\nImpasto: Gluten free\nBase: Pomodoro\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano\nNota: senza fretta, grazie | + Burrata",
    "unit_price": 18
   },
   {
    "label": "builder mezzo_metro/gluten_free/pomodoro extras#3",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Mezzo metro\nImpasto: Gluten free\nBase: Pomodoro\n+ Pomodoro\n+ Basilico",
+   "notes": "[P] Componi la tua pizza\nTaglia: Mezzo metro\nImpasto: Gluten free\nBase: Pomodoro\n+ Pomodoro\n+ Basilico\nCottura: Poco cotta",
    "unit_price": 15
   },
   {
@@ -6164,14 +6211,14 @@
    "label": "builder mezzo_metro/gluten_free/doppio_pomodoro extras#2",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Mezzo metro\nImpasto: Gluten free\nBase: Doppio pomodoro\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano",
+   "notes": "[P] Componi la tua pizza\nTaglia: Mezzo metro\nImpasto: Gluten free\nBase: Doppio pomodoro\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano\nNota: senza fretta, grazie | + Burrata",
    "unit_price": 18.5
   },
   {
    "label": "builder mezzo_metro/gluten_free/doppio_pomodoro extras#3",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Mezzo metro\nImpasto: Gluten free\nBase: Doppio pomodoro\n+ Pomodoro\n+ Basilico",
+   "notes": "[P] Componi la tua pizza\nTaglia: Mezzo metro\nImpasto: Gluten free\nBase: Doppio pomodoro\n+ Pomodoro\n+ Basilico\nCottura: Poco cotta",
    "unit_price": 15.5
   },
   {
@@ -6185,14 +6232,14 @@
    "label": "builder mezzo_metro/gluten_free/bianca extras#2",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Mezzo metro\nImpasto: Gluten free\nBase: Bianca\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano",
+   "notes": "[P] Componi la tua pizza\nTaglia: Mezzo metro\nImpasto: Gluten free\nBase: Bianca\n+ Mozzarella\n+ Prosciutto cotto\n+ Origano\nNota: senza fretta, grazie | + Burrata",
    "unit_price": 18
   },
   {
    "label": "builder mezzo_metro/gluten_free/bianca extras#3",
    "product_id": "00000000-0000-0000-0000-00000000b11d",
    "quantity": 1,
-   "notes": "[P] Componi la tua pizza\nTaglia: Mezzo metro\nImpasto: Gluten free\nBase: Bianca\n+ Pomodoro\n+ Basilico",
+   "notes": "[P] Componi la tua pizza\nTaglia: Mezzo metro\nImpasto: Gluten free\nBase: Bianca\n+ Pomodoro\n+ Basilico\nCottura: Poco cotta",
    "unit_price": 15
   }
  ]

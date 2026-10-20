@@ -3,7 +3,7 @@
  * aggiunti) condiviso con il server.
  *
  * Fonte unica: tabella `public.menu_pricing` (una riga per pizzeria, colonna
- * `config` jsonb). Il server (create_order_with_items → order_line_unit_price)
+ * `config` jsonb). Il server (create_order_with_items → order_line_priced)
  * calcola i prezzi da lì e ignora i prezzi inviati dal client; il client legge
  * la stessa riga all'avvio (MenuPricingProvider → applyMenuPricingConfig) così
  * UI e server mostrano/addebitano lo stesso importo. Le costanti in
@@ -239,3 +239,11 @@ export function buildMenuItemModifiers(selection: MenuItemSelection): string[] {
   if (selection.cookingLabel) modifiers.push(`Cottura: ${selection.cookingLabel}`);
   return modifiers;
 }
+
+export type CookingLevel = 'poco_cotta' | 'normale' | 'ben_cotta';
+/** Cottura (no price). The server accepts exactly these labels (menu_cooking_labels). */
+export const COOKING_OPTIONS: { id: CookingLevel; label: string }[] = [
+  { id: 'poco_cotta', label: 'Poco cotta' },
+  { id: 'normale', label: 'Normale' },
+  { id: 'ben_cotta', label: 'Ben cotta' },
+];

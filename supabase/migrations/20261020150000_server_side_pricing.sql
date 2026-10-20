@@ -7,12 +7,14 @@
 --     read from the same modifier lines the kitchen sees in order_items.notes
 --     ("Taglia: …", "+ …", "Gusto N: …", "Impasto: …", "Base: …"), so what is
 --     made is what is paid;
---   * delivery fee from companies.settings.deliveryFeeEur (default 2, as the
---     client) for order_type = 'delivery';
+--   * delivery fee from companies.settings.deliveryFeeEur (absent → 2, as the
+--     client; invalid → order refused) for order_type = 'delivery';
 --   * order total = Σ lines + fee; rejected below 0.01 €; anti-abuse (max
 --     total) runs on the server total.
--- Inactive products, products of another company and unknown sizes / doughs /
--- sauces / added ingredients / mezzo metro gusti are rejected.
+-- Inactive products, products of another company and any modifier line that
+-- is not a canonical option valid for that product are rejected (see 2), so
+-- the kitchen never shows an option that was not charged. order_items.notes
+-- is saved in canonical form (the exact lines that were priced).
 --
 -- The listino that until now lived only in the client (lib/data/pizzaBuilder.ts,
 -- lib/data/ingredients.ts) moves to public.menu_pricing (one row per company,
@@ -61,12 +63,65 @@ INSERT INTO public.menu_pricing (company_id, config)
 SELECT c.id, public.menu_pricing_default() FROM public.companies c
 ON CONFLICT (company_id) DO NOTHING;
 
--- 2) Unit price of one order line ---------------------------------------------
--- Mirrors lib/data/menuPricing.ts (computeMenuItemUnitPrice) and
--- lib/data/pizzaBuilder.ts (calculateBuilderPrice). Raises 'Invalid order
--- lines' when the line cannot be priced reliably.
-CREATE OR REPLACE FUNCTION public.order_line_unit_price(p_company uuid, p_product uuid, p_notes text)
-RETURNS numeric
+-- 2) One order line: strict modifier grammar, price, canonical notes ----------
+-- order_items.notes is what the kitchen card / print show (lib/utils/
+-- orderItemDetails.ts). To charge exactly what the kitchen sees, every line
+-- before "Nota:" must be an option the app can produce, in its canonical form
+-- (lib/data/menuPricing.ts buildMenuItemModifiers, lib/data/pizzaBuilder.ts
+-- buildMezzoMetroModifiers / buildSelectionModifiers), valid for that product:
+--   [P] <name>                      first line, optional; rewritten with the DB name
+--   Taglia: <size label>            menu pizzas (menuSizes) / builder (builderSizes)
+--   Impasto: <dough> / Base: <sauce> builder only
+--   + <catalogue ingredient>        added ingredient (priced by category)
+--   No <ing> / Extra <ing>          <ing> must be on the product (products.ingredients); free
+--   Gusto: <pizza> / Gusto N: <pizza>   mezzo metro (N = 1..k, k >= 2) and the al metro
+--                                   products that require gusti (Metà / Due terzi / Farcita)
+--   Gusto[ N]: + X / No X / Extra X mezzo metro only, X checked on that gusto
+--   Cottura: Poco cotta|Normale|Ben cotta   pizzas only
+--   Nota: <customer text>           optional, exactly one, last, single line
+-- Anything else (legacy "a, b" / " | " shapes, "Taglia :", "+Burrata", "＋",
+-- bare text, lowercase labels, duplicates, Gusto on a normal size, …) is
+-- rejected: 'Invalid order lines' with DETAIL = ORDER_INVALID_OPTIONS /
+-- ORDER_INVALID_NOTE / ORDER_PRODUCT_UNAVAILABLE and HINT = {"product_id", "line"}.
+CREATE OR REPLACE FUNCTION public.order_line_reject(p_code text, p_product uuid, p_line text DEFAULT NULL)
+RETURNS void
+LANGUAGE plpgsql
+SET search_path = public
+AS $$
+BEGIN
+  RAISE EXCEPTION 'Invalid order lines'
+    USING DETAIL = p_code, HINT = jsonb_build_object('product_id', p_product, 'line', p_line)::text;
+END;
+$$;
+REVOKE ALL ON FUNCTION public.order_line_reject(text, uuid, text) FROM PUBLIC, anon, authenticated;
+
+-- lib/utils/menuCategories.ts getMaxGustiForProduct (al metro products)
+CREATE OR REPLACE FUNCTION public.menu_metro_max_gusti(p_name text)
+RETURNS integer
+LANGUAGE sql
+IMMUTABLE
+SET search_path = public
+AS $$
+  SELECT CASE
+    WHEN position('metà' IN lower(p_name)) > 0 OR position('meta ' IN lower(p_name)) > 0 THEN 1
+    WHEN position('due terzi' IN lower(p_name)) > 0 THEN 2
+    WHEN position('farcita' IN lower(p_name)) > 0 THEN 3
+    ELSE 0 END;
+$$;
+REVOKE ALL ON FUNCTION public.menu_metro_max_gusti(text) FROM PUBLIC, anon, authenticated;
+
+-- Cooking labels (lib/data/menuPricing.ts COOKING_OPTIONS; no price).
+CREATE OR REPLACE FUNCTION public.menu_cooking_labels()
+RETURNS text[]
+LANGUAGE sql
+IMMUTABLE
+SET search_path = public
+AS $$ SELECT ARRAY['Poco cotta', 'Normale', 'Ben cotta']::text[]; $$;
+REVOKE ALL ON FUNCTION public.menu_cooking_labels() FROM PUBLIC, anon, authenticated;
+
+DROP FUNCTION IF EXISTS public.order_line_unit_price(uuid, uuid, text);
+CREATE OR REPLACE FUNCTION public.order_line_priced(p_company uuid, p_product uuid, p_notes text)
+RETURNS jsonb  -- {"unit_price": numeric, "notes": canonical text}
 LANGUAGE plpgsql
 STABLE
 SET search_path = public
@@ -75,144 +130,228 @@ DECLARE
   v_cfg jsonb;
   v_name text;
   v_price numeric;
+  v_ingredients text[];
   v_category text;
-  v_cat_lower text;
+  v_cat text;
   v_is_metro boolean;
   v_is_pizza_cat boolean;
+  v_is_beverage boolean;
   v_is_builder boolean;
   v_is_standard boolean;
+  v_is_pizza boolean;
+  v_tools boolean;
+  v_max_metro integer;
+  v_lines text[];
   v_line text;
   v_rest text;
-  v_match text[];
+  v_m text[];
+  v_i integer;
   v_slot integer;
+  v_mods text[] := '{}';
+  v_note text;
+  v_has_note boolean := false;
   v_size_label text;
-  v_size_count integer := 0;
   v_dough_label text;
-  v_dough_count integer := 0;
   v_sauce_label text;
-  v_sauce_count integer := 0;
-  v_extras text[] := '{}';
-  v_gusti jsonb := '{}'::jsonb;        -- slot -> pizza name
+  v_cook_label text;
+  v_plain_extras text[] := '{}';
+  v_plain_mods text[] := '{}';           -- ingredient names with No / Extra
+  v_slot_names jsonb := '{}'::jsonb;      -- slot -> pizza name
+  v_slot_extras jsonb := '[]'::jsonb;     -- [slot, ingredient]
+  v_slot_mods jsonb := '[]'::jsonb;       -- [slot, ingredient]
+  v_numbered boolean := false;
+  v_unnumbered boolean := false;
+  v_slot_count integer;
   v_size jsonb;
   v_dough jsonb;
   v_sauce jsonb;
-  v_mult numeric;
+  v_mult numeric := 1;
   v_reference numeric;
   v_gusto_price numeric;
+  v_gusto_ings text[];
+  v_key text;
   v_extra text;
   v_extra_price numeric;
   v_extras_total numeric := 0;
   v_unit numeric;
-  v_key text;
+  v_all_extras text[] := '{}';
 BEGIN
-  SELECT p.name, p.price, c.name INTO v_name, v_price, v_category
+  SELECT p.name, p.price, p.ingredients, c.name INTO v_name, v_price, v_ingredients, v_category
   FROM public.products p
   LEFT JOIN public.categories c ON c.id = p.category_id
   WHERE p.id = p_product AND p.company_id = p_company AND p.active;
   IF NOT FOUND OR v_price IS NULL OR v_price < 0 THEN
-    RAISE EXCEPTION 'Invalid order lines';
+    PERFORM public.order_line_reject('ORDER_PRODUCT_UNAVAILABLE', p_product);
   END IF;
+  v_name := btrim(coalesce(v_name, ''));
+  v_ingredients := ARRAY(SELECT btrim(i) FROM unnest(coalesce(v_ingredients, '{}'::text[])) AS i);
 
   v_cfg := coalesce((SELECT m.config FROM public.menu_pricing m WHERE m.company_id = p_company),
                     public.menu_pricing_default());
 
-  -- Category rules = lib/utils/menuCategories.ts
-  v_cat_lower := lower(coalesce(v_category, ''));
-  v_is_metro := v_cat_lower LIKE '%metro%';
-  v_is_pizza_cat := btrim(v_cat_lower) LIKE '%pizz%'
-    OR btrim(v_cat_lower) IN ('classiche', 'bianche', 'gustose', 'gourmet');
-  v_is_builder := coalesce(v_name = v_cfg->>'builderProductName', false);
-  v_is_standard := v_is_pizza_cat AND NOT v_is_metro AND coalesce(v_name, '') <> 'Piccola' AND NOT v_is_builder;
+  -- Category rules = lib/utils/menuCategories.ts / menuPricing.getMenuItemFlags
+  v_cat := lower(coalesce(v_category, ''));
+  v_is_metro := v_cat LIKE '%metro%';
+  v_is_beverage := v_cat LIKE '%bevand%';
+  v_is_pizza_cat := btrim(v_cat) LIKE '%pizz%' OR btrim(v_cat) IN ('classiche', 'bianche', 'gustose', 'gourmet');
+  v_is_builder := v_name = v_cfg->>'builderProductName';
+  v_is_standard := v_is_pizza_cat AND NOT v_is_metro AND v_name <> 'Piccola' AND NOT v_is_builder;
+  v_is_pizza := v_is_pizza_cat OR v_is_metro;
+  v_tools := NOT v_is_beverage AND (v_is_pizza OR v_is_builder OR cardinality(v_ingredients) > 0);
+  v_max_metro := CASE WHEN v_is_metro THEN public.menu_metro_max_gusti(v_name) ELSE 0 END;
 
-  -- Modifier lines (lib/utils/orderItemDetails.ts). Product line "[P] …"
-  -- carries no price; "Nota: …" and everything after it is free text.
-  FOREACH v_line IN ARRAY regexp_split_to_array(coalesce(p_notes, ''), E'\n') LOOP
-    v_line := regexp_replace(v_line, '^\s+|\s+$', '', 'g');
-    -- The free note is always last (formatOrderItemNotes) and may span lines:
-    -- nothing typed by the customer is priced (or can make the line invalid).
-    EXIT WHEN v_line ~* '^Nota:';
-    CONTINUE WHEN v_line = '' OR v_line ~* '^\[P\]';
-    IF v_line ~* '^Taglia:' THEN
-      v_size_label := regexp_replace(v_line, '^Taglia:\s*', '', 'i');
-      v_size_count := v_size_count + 1;
-    ELSIF v_line ~* '^Impasto:' THEN
-      v_dough_label := regexp_replace(v_line, '^Impasto:\s*', '', 'i');
-      v_dough_count := v_dough_count + 1;
-    ELSIF v_line ~* '^Base:' THEN
-      v_sauce_label := regexp_replace(v_line, '^Base:\s*', '', 'i');
-      v_sauce_count := v_sauce_count + 1;
-    ELSIF v_line ~ '^\+\s+' THEN
-      v_extras := v_extras || regexp_replace(v_line, '^\+\s+', '');
-    ELSIF v_line ~* '^Gusto(\s+[0-9]+)?:' THEN
-      v_match := regexp_match(v_line, '^Gusto(?:\s+([0-9]+))?:\s*(.*)$', 'i');
-      v_slot := coalesce(v_match[1], '1')::integer;
-      v_rest := v_match[2];
-      IF v_rest ~ '^\+\s+' THEN
-        -- ingredient added to one mezzo metro gusto
-        v_extras := v_extras || regexp_replace(v_rest, '^\+\s+', '');
-      ELSIF v_rest ~* '^(No|Extra)\s+' THEN
-        NULL;  -- removals / "more of" an ingredient already on the pizza: free (as in the client)
-      ELSE
-        IF v_gusti ? v_slot::text THEN
-          RAISE EXCEPTION 'Invalid order lines';
-        END IF;
-        v_gusti := v_gusti || jsonb_build_object(v_slot::text, v_rest);
-      END IF;
+  v_lines := CASE WHEN coalesce(p_notes, '') = '' THEN '{}'::text[] ELSE string_to_array(p_notes, E'\n') END;
+  FOR v_i IN 1 .. coalesce(array_length(v_lines, 1), 0) LOOP
+    v_line := v_lines[v_i];
+    IF v_has_note THEN
+      -- the note is the last line: nothing (no second note, no option) after it
+      PERFORM public.order_line_reject('ORDER_INVALID_NOTE', p_product, v_line);
     END IF;
-    -- anything else ("No …", "Extra …", "Cottura: …", free text): no price
+    IF v_i = 1 AND v_line LIKE '[P]%' THEN
+      CONTINUE;  -- product snapshot, rewritten below with the DB name
+    END IF;
+    IF v_line = 'Nota:' OR v_line LIKE 'Nota: %' THEN
+      v_has_note := true;
+      -- customer text: one line, whitespace collapsed; no control characters
+      v_note := btrim(regexp_replace(substr(v_line, 6), '[[:space:]]+', ' ', 'g'));
+      IF v_note ~ '[[:cntrl:]]' THEN
+        PERFORM public.order_line_reject('ORDER_INVALID_NOTE', p_product, v_line);
+      END IF;
+      CONTINUE;
+    END IF;
+
+    IF v_line LIKE 'Taglia: %' AND v_size_label IS NULL THEN
+      v_size_label := substr(v_line, 9);
+    ELSIF v_line LIKE 'Impasto: %' AND v_dough_label IS NULL AND v_is_builder THEN
+      v_dough_label := substr(v_line, 10);
+    ELSIF v_line LIKE 'Base: %' AND v_sauce_label IS NULL AND v_is_builder THEN
+      v_sauce_label := substr(v_line, 7);
+    ELSIF v_line LIKE 'Cottura: %' AND v_cook_label IS NULL AND (v_is_pizza OR v_is_builder) THEN
+      v_cook_label := substr(v_line, 10);
+      IF NOT v_cook_label = ANY (public.menu_cooking_labels()) THEN
+        PERFORM public.order_line_reject('ORDER_INVALID_OPTIONS', p_product, v_line);
+      END IF;
+    ELSIF v_line LIKE '+ %' AND v_tools THEN
+      v_plain_extras := v_plain_extras || substr(v_line, 3);
+    ELSIF (v_line LIKE 'No %' OR v_line LIKE 'Extra %') AND v_tools AND NOT v_is_builder THEN
+      v_rest := CASE WHEN v_line LIKE 'No %' THEN substr(v_line, 4) ELSE substr(v_line, 7) END;
+      IF NOT v_rest = ANY (v_ingredients) OR v_rest = ANY (v_plain_mods) THEN
+        PERFORM public.order_line_reject('ORDER_INVALID_OPTIONS', p_product, v_line);
+      END IF;
+      v_plain_mods := v_plain_mods || v_rest;
+    ELSIF v_line ~ '^Gusto( [1-9][0-9]?)?: ' AND (v_is_standard OR v_max_metro > 0) THEN
+      v_m := regexp_match(v_line, '^Gusto(?: ([1-9][0-9]?))?: (.*)$');
+      v_slot := coalesce(v_m[1]::integer, 0);
+      v_rest := v_m[2];
+      IF v_slot = 0 THEN v_unnumbered := true; ELSE v_numbered := true; END IF;
+      IF v_rest LIKE '+ %' OR v_rest LIKE 'No %' OR v_rest LIKE 'Extra %' THEN
+        -- per-gusto option: mezzo metro only, after that gusto's name
+        IF NOT v_is_standard OR NOT v_slot_names ? v_slot::text THEN
+          PERFORM public.order_line_reject('ORDER_INVALID_OPTIONS', p_product, v_line);
+        END IF;
+        IF v_rest LIKE '+ %' THEN
+          v_slot_extras := v_slot_extras || jsonb_build_array(jsonb_build_array(v_slot, substr(v_rest, 3)));
+        ELSE
+          v_rest := CASE WHEN v_rest LIKE 'No %' THEN substr(v_rest, 4) ELSE substr(v_rest, 7) END;
+          IF v_slot_mods @> jsonb_build_array(jsonb_build_array(v_slot, v_rest)) THEN
+            PERFORM public.order_line_reject('ORDER_INVALID_OPTIONS', p_product, v_line);
+          END IF;
+          v_slot_mods := v_slot_mods || jsonb_build_array(jsonb_build_array(v_slot, v_rest));
+        END IF;
+      ELSE
+        IF v_slot_names ? v_slot::text OR v_rest = '' THEN
+          PERFORM public.order_line_reject('ORDER_INVALID_OPTIONS', p_product, v_line);
+        END IF;
+        v_slot_names := v_slot_names || jsonb_build_object(v_slot::text, v_rest);
+      END IF;
+    ELSE
+      PERFORM public.order_line_reject('ORDER_INVALID_OPTIONS', p_product, v_line);
+    END IF;
+    IF v_line = ANY (v_mods) THEN
+      PERFORM public.order_line_reject('ORDER_INVALID_OPTIONS', p_product, v_line);
+    END IF;
+    v_mods := v_mods || v_line;
   END LOOP;
 
-  IF v_size_count > 1 OR v_dough_count > 1 OR v_sauce_count > 1 THEN
-    RAISE EXCEPTION 'Invalid order lines';
+  -- Gusto slots: "Gusto:" (one) or "Gusto 1..k:" (k >= 2), never mixed.
+  v_slot_count := (SELECT count(*) FROM jsonb_object_keys(v_slot_names));
+  IF v_numbered AND v_unnumbered THEN
+    PERFORM public.order_line_reject('ORDER_INVALID_OPTIONS', p_product, 'Gusto');
+  END IF;
+  IF v_numbered AND (
+       (SELECT array_agg(k::integer ORDER BY k::integer) FROM jsonb_object_keys(v_slot_names) k)
+       IS DISTINCT FROM ARRAY(SELECT generate_series(1, v_slot_count))) THEN
+    PERFORM public.order_line_reject('ORDER_INVALID_OPTIONS', p_product, 'Gusto');
   END IF;
 
   IF v_is_builder THEN
     -- Componi la tua pizza: base by size + dough + sauce + ingredients × size multiplier
     SELECT s INTO v_size FROM jsonb_array_elements(v_cfg->'builderSizes') s
-    WHERE CASE WHEN v_size_count = 0 THEN s->>'id' = v_cfg->>'defaultBuilderSize' ELSE s->>'label' = v_size_label END;
+    WHERE CASE WHEN v_size_label IS NULL THEN s->>'id' = v_cfg->>'defaultBuilderSize' ELSE s->>'label' = v_size_label END;
     SELECT d INTO v_dough FROM jsonb_array_elements(v_cfg->'builderDoughs') WITH ORDINALITY AS x(d, n)
-    WHERE CASE WHEN v_dough_count = 0 THEN n = 1 ELSE d->>'label' = v_dough_label END;
+    WHERE CASE WHEN v_dough_label IS NULL THEN n = 1 ELSE d->>'label' = v_dough_label END;
     SELECT d INTO v_sauce FROM jsonb_array_elements(v_cfg->'builderSauces') WITH ORDINALITY AS x(d, n)
-    WHERE CASE WHEN v_sauce_count = 0 THEN n = 1 ELSE d->>'label' = v_sauce_label END;
+    WHERE CASE WHEN v_sauce_label IS NULL THEN n = 1 ELSE d->>'label' = v_sauce_label END;
     IF v_size IS NULL OR v_dough IS NULL OR v_sauce IS NULL THEN
-      RAISE EXCEPTION 'Invalid order lines';
+      PERFORM public.order_line_reject('ORDER_INVALID_OPTIONS', p_product,
+        coalesce(CASE WHEN v_size IS NULL THEN 'Taglia: ' || v_size_label END,
+                 CASE WHEN v_dough IS NULL THEN 'Impasto: ' || v_dough_label END,
+                 'Base: ' || v_sauce_label));
     END IF;
     v_mult := (v_size->>'ingredientMultiplier')::numeric;
     v_unit := (v_size->>'basePrice')::numeric + (v_dough->>'surcharge')::numeric + (v_sauce->>'surcharge')::numeric;
+    v_all_extras := v_plain_extras;
   ELSIF v_is_standard THEN
-    IF v_dough_count > 0 OR v_sauce_count > 0 THEN
-      RAISE EXCEPTION 'Invalid order lines';
-    END IF;
     SELECT s INTO v_size FROM jsonb_array_elements(v_cfg->'menuSizes') s
-    WHERE CASE WHEN v_size_count = 0 THEN s->>'id' = v_cfg->>'defaultMenuSize' ELSE s->>'label' = v_size_label END;
+    WHERE CASE WHEN v_size_label IS NULL THEN s->>'id' = v_cfg->>'defaultMenuSize' ELSE s->>'label' = v_size_label END;
     IF v_size IS NULL THEN
-      RAISE EXCEPTION 'Invalid order lines';
+      PERFORM public.order_line_reject('ORDER_INVALID_OPTIONS', p_product, 'Taglia: ' || v_size_label);
     END IF;
-    -- client: added ingredients × multiplier only on mezzo metro, × 1 on the other sizes
-    v_mult := CASE WHEN v_size->>'id' = 'mezzo_metro' THEN (v_size->>'ingredientMultiplier')::numeric ELSE 1 END;
     v_reference := v_price;
     IF v_size->>'id' = 'mezzo_metro' THEN
       -- Mezzo metro: multiplier × the most expensive gusto (menu pizzas of the
-      -- same company, matched by name as written for the kitchen).
-      IF (SELECT count(*) FROM jsonb_object_keys(v_gusti)) > (v_cfg->>'maxMezzoMetroGusti')::integer THEN
-        RAISE EXCEPTION 'Invalid order lines';
+      -- same company, by name); extras per gusto × ingredientMultiplier.
+      -- No gusto lines = the product itself (as the client).
+      IF cardinality(v_plain_extras) > 0 OR cardinality(v_plain_mods) > 0
+         OR (v_numbered AND v_slot_count < 2)
+         OR v_slot_count > (v_cfg->>'maxMezzoMetroGusti')::integer THEN
+        PERFORM public.order_line_reject('ORDER_INVALID_OPTIONS', p_product, 'Taglia: Mezzo metro');
       END IF;
-      IF v_gusti <> '{}'::jsonb THEN
+      v_mult := (v_size->>'ingredientMultiplier')::numeric;
+      IF v_slot_count > 0 THEN
         v_reference := NULL;
-        FOR v_key IN SELECT jsonb_object_keys(v_gusti) LOOP
-          SELECT max(g.price) INTO v_gusto_price
+        FOR v_key IN SELECT jsonb_object_keys(v_slot_names) LOOP
+          SELECT g.price, ARRAY(SELECT btrim(i) FROM unnest(coalesce(g.ingredients, '{}'::text[])) i)
+            INTO v_gusto_price, v_gusto_ings
           FROM public.products g
           JOIN public.categories gc ON gc.id = g.category_id
-          WHERE g.company_id = p_company AND g.active AND g.name = v_gusti->>v_key
-            AND g.name <> 'Piccola' AND g.name <> v_cfg->>'builderProductName'
+          WHERE g.company_id = p_company AND g.active AND btrim(g.name) = v_slot_names->>v_key
+            AND btrim(g.name) <> 'Piccola' AND btrim(g.name) <> v_cfg->>'builderProductName'
             AND lower(gc.name) NOT LIKE '%metro%'
-            AND (btrim(lower(gc.name)) LIKE '%pizz%' OR btrim(lower(gc.name)) IN ('classiche', 'bianche', 'gustose', 'gourmet'));
-          IF v_gusto_price IS NULL THEN
-            RAISE EXCEPTION 'Invalid order lines';
+            AND (btrim(lower(gc.name)) LIKE '%pizz%' OR btrim(lower(gc.name)) IN ('classiche', 'bianche', 'gustose', 'gourmet'))
+          ORDER BY g.price DESC, g.id
+          LIMIT 1;
+          IF NOT FOUND OR v_gusto_price IS NULL THEN
+            PERFORM public.order_line_reject('ORDER_INVALID_OPTIONS', p_product,
+              CASE WHEN v_key = '0' THEN 'Gusto: ' ELSE 'Gusto ' || v_key || ': ' END || (v_slot_names->>v_key));
+          END IF;
+          -- per-gusto No / Extra only on that gusto's ingredients
+          IF EXISTS (SELECT 1 FROM jsonb_array_elements(v_slot_mods) sm
+                     WHERE (sm->>0) = v_key AND NOT (sm->>1) = ANY (coalesce(v_gusto_ings, '{}'::text[]))) THEN
+            PERFORM public.order_line_reject('ORDER_INVALID_OPTIONS', p_product, 'Gusto ' || v_key);
           END IF;
           v_reference := greatest(coalesce(v_reference, v_gusto_price), v_gusto_price);
         END LOOP;
+      ELSIF jsonb_array_length(v_slot_mods) > 0 OR jsonb_array_length(v_slot_extras) > 0 THEN
+        PERFORM public.order_line_reject('ORDER_INVALID_OPTIONS', p_product, 'Gusto');
       END IF;
+      v_all_extras := ARRAY(SELECT e->>1 FROM jsonb_array_elements(v_slot_extras) e);
+    ELSE
+      -- normal sizes: no gusti; added ingredients × 1 (as the client)
+      IF v_slot_count > 0 OR jsonb_array_length(v_slot_mods) > 0 OR jsonb_array_length(v_slot_extras) > 0 THEN
+        PERFORM public.order_line_reject('ORDER_INVALID_OPTIONS', p_product, 'Gusto');
+      END IF;
+      v_all_extras := v_plain_extras;
     END IF;
     IF (v_size->>'priceMultiplier') IS NOT NULL AND (v_size->>'priceMultiplier')::numeric <> 1 THEN
       v_unit := greatest(0, round(v_reference * (v_size->>'priceMultiplier')::numeric, 2));
@@ -220,45 +359,80 @@ BEGIN
       v_unit := greatest(0, round(v_reference + (v_size->>'priceDelta')::numeric, 2));
     END IF;
   ELSE
-    -- Al metro, drinks, desserts, …: list price (+ added ingredients). No sizes.
-    IF v_size_count > 0 OR v_dough_count > 0 OR v_sauce_count > 0 THEN
-      RAISE EXCEPTION 'Invalid order lines';
+    -- Al metro, drinks, desserts, …: list price (+ added ingredients × 1). No sizes.
+    IF v_size_label IS NOT NULL THEN
+      PERFORM public.order_line_reject('ORDER_INVALID_OPTIONS', p_product, 'Taglia: ' || v_size_label);
     END IF;
-    v_mult := 1;
+    -- al metro gusti: the product sheet asks for exactly getMaxGustiForProduct
+    -- gusti ("Gusto:" when 1, "Gusto 1..k:" otherwise); free, as in the client.
+    IF v_slot_count > v_max_metro
+       OR (v_max_metro = 1 AND v_numbered) OR (v_max_metro > 1 AND v_unnumbered) THEN
+      PERFORM public.order_line_reject('ORDER_INVALID_OPTIONS', p_product, 'Gusto');
+    END IF;
+    FOR v_key IN SELECT jsonb_object_keys(v_slot_names) LOOP
+      IF NOT EXISTS (
+        SELECT 1 FROM public.products g JOIN public.categories gc ON gc.id = g.category_id
+        WHERE g.company_id = p_company AND g.active AND btrim(g.name) = v_slot_names->>v_key
+          AND btrim(g.name) <> 'Piccola' AND btrim(g.name) <> v_cfg->>'builderProductName'
+          AND lower(gc.name) NOT LIKE '%metro%'
+          AND (btrim(lower(gc.name)) LIKE '%pizz%' OR btrim(lower(gc.name)) IN ('classiche', 'bianche', 'gustose', 'gourmet'))) THEN
+        PERFORM public.order_line_reject('ORDER_INVALID_OPTIONS', p_product,
+          CASE WHEN v_key = '0' THEN 'Gusto: ' ELSE 'Gusto ' || v_key || ': ' END || (v_slot_names->>v_key));
+      END IF;
+    END LOOP;
     v_unit := v_price;
+    v_all_extras := v_plain_extras;
   END IF;
 
-  -- Added ingredients: category price × size ingredient multiplier.
-  FOREACH v_extra IN ARRAY v_extras LOOP
+  -- Added ingredients: catalogue name (exact) → category price × multiplier.
+  FOREACH v_extra IN ARRAY v_all_extras LOOP
+    v_extra_price := NULL;
     SELECT (v_cfg->'ingredientCategoryPrices'->>(i->>'category'))::numeric INTO v_extra_price
     FROM jsonb_array_elements(v_cfg->'ingredients') i
-    WHERE lower(i->>'name') = lower(v_extra)
+    WHERE i->>'name' = v_extra
     LIMIT 1;
     IF v_extra_price IS NULL THEN
-      RAISE EXCEPTION 'Invalid order lines';
+      PERFORM public.order_line_reject('ORDER_INVALID_OPTIONS', p_product, '+ ' || v_extra);
     END IF;
     v_extras_total := v_extras_total + v_extra_price * v_mult;
-    v_extra_price := NULL;
   END LOOP;
 
-  RETURN round(v_unit + v_extras_total, 2);
+  RETURN jsonb_build_object(
+    'unit_price', round(v_unit + v_extras_total, 2),
+    'notes', array_to_string(
+      ARRAY['[P] ' || v_name] || v_mods || CASE WHEN coalesce(v_note, '') <> '' THEN ARRAY['Nota: ' || v_note] ELSE '{}'::text[] END,
+      E'\n'));
 END;
 $$;
-REVOKE ALL ON FUNCTION public.order_line_unit_price(uuid, uuid, text) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.order_line_priced(uuid, uuid, text) FROM PUBLIC, anon, authenticated;
 
--- 3) Delivery fee (same rule as AppSettingsContext: settings.deliveryFeeEur, default 2)
+-- 3) Delivery fee: companies.settings.deliveryFeeEur (absent / null → 2, as
+-- AppSettingsContext). A present but invalid value (not a JSON number,
+-- negative, more than 2 decimals) is a configuration error: refuse the order
+-- instead of guessing a fee.
 CREATE OR REPLACE FUNCTION public.order_delivery_fee(p_company uuid)
 RETURNS numeric
-LANGUAGE sql
+LANGUAGE plpgsql
 STABLE
 SET search_path = public
 AS $$
-  SELECT coalesce(
-    (SELECT CASE WHEN jsonb_typeof(c.settings->'deliveryFeeEur') = 'number'
-                  AND (c.settings->>'deliveryFeeEur')::numeric >= 0
-                 THEN round((c.settings->>'deliveryFeeEur')::numeric, 2) END
-     FROM public.companies c WHERE c.id = p_company),
-    2);
+DECLARE
+  v_raw jsonb;
+  v_fee numeric;
+BEGIN
+  SELECT c.settings->'deliveryFeeEur' INTO v_raw FROM public.companies c WHERE c.id = p_company;
+  IF v_raw IS NULL OR v_raw = 'null'::jsonb THEN
+    RETURN 2;
+  END IF;
+  IF jsonb_typeof(v_raw) <> 'number' THEN
+    RAISE EXCEPTION 'Delivery fee misconfigured' USING DETAIL = 'ORDER_DELIVERY_FEE_INVALID';
+  END IF;
+  v_fee := (v_raw #>> '{}')::numeric;
+  IF v_fee < 0 OR v_fee <> round(v_fee, 2) THEN
+    RAISE EXCEPTION 'Delivery fee misconfigured' USING DETAIL = 'ORDER_DELIVERY_FEE_INVALID';
+  END IF;
+  RETURN v_fee;
+END;
 $$;
 REVOKE ALL ON FUNCTION public.order_delivery_fee(uuid) FROM PUBLIC, anon, authenticated;
 
@@ -281,6 +455,8 @@ DECLARE
   v_fee numeric;
   v_total numeric;
   v_display_code text;
+  v_unavailable uuid;
+  v_normalised jsonb;
 BEGIN
   IF v_id IS NULL OR v_company IS NULL OR jsonb_typeof(p_items) IS DISTINCT FROM 'array' THEN
     RAISE EXCEPTION 'Invalid order';
@@ -300,13 +476,21 @@ BEGIN
   IF NOT EXISTS (SELECT 1 FROM public.companies WHERE id = v_company AND active) THEN
     RAISE EXCEPTION 'Restaurant not available';
   END IF;
-  -- Active products of this company, sane quantities. Client prices are ignored.
+  -- Sane quantities; active products of this company (named in the error so
+  -- the app can say which cart line is no longer available). Client prices are ignored.
   IF EXISTS (
     SELECT 1 FROM jsonb_to_recordset(p_items) AS i(product_id uuid, quantity integer)
-    LEFT JOIN public.products p ON p.id = i.product_id AND p.company_id = v_company AND p.active
-    WHERE p.id IS NULL OR i.quantity IS NULL OR i.quantity NOT BETWEEN 1 AND 1000
+    WHERE i.product_id IS NULL OR i.quantity IS NULL OR i.quantity NOT BETWEEN 1 AND 1000
   ) THEN
-    RAISE EXCEPTION 'Invalid order lines';
+    RAISE EXCEPTION 'Invalid order lines' USING DETAIL = 'ORDER_INVALID_QUANTITY';
+  END IF;
+  SELECT i.product_id INTO v_unavailable
+  FROM jsonb_to_recordset(p_items) AS i(product_id uuid)
+  LEFT JOIN public.products p ON p.id = i.product_id AND p.company_id = v_company AND p.active
+  WHERE p.id IS NULL
+  LIMIT 1;
+  IF FOUND THEN
+    PERFORM public.order_line_reject('ORDER_PRODUCT_UNAVAILABLE', v_unavailable);
   END IF;
 
   PERFORM pg_advisory_xact_lock(hashtextextended(v_id::text, 0));
@@ -329,7 +513,19 @@ BEGIN
     SELECT jsonb_agg(jsonb_build_array(i.product_id, i.quantity, i.notes) ORDER BY i.product_id, i.quantity, i.notes)
       INTO v_actual FROM jsonb_to_recordset(v_existing->'order_items') AS i(product_id uuid, quantity integer, notes text);
     IF v_expected IS DISTINCT FROM v_actual THEN
-      RAISE EXCEPTION 'Retry does not match the saved order lines';
+      -- saved notes are the canonical form: compare that too (e.g. NULL notes
+      -- saved as "[P] <name>", note whitespace collapsed)
+      BEGIN
+        SELECT jsonb_agg(jsonb_build_array(i.product_id, i.quantity,
+                 public.order_line_priced(v_company, i.product_id, i.notes)->>'notes')
+                 ORDER BY i.product_id, i.quantity, public.order_line_priced(v_company, i.product_id, i.notes)->>'notes')
+          INTO v_normalised FROM jsonb_to_recordset(p_items) AS i(product_id uuid, quantity integer, notes text);
+      EXCEPTION WHEN raise_exception THEN
+        v_normalised := NULL;
+      END;
+      IF v_normalised IS DISTINCT FROM v_actual THEN
+        RAISE EXCEPTION 'Retry does not match the saved order lines';
+      END IF;
     END IF;
     RETURN jsonb_build_object(
       'id', v_id,
@@ -344,12 +540,14 @@ BEGIN
   END IF;
 
   -- Server prices: per line from the listino, fee from the company settings.
-  SELECT jsonb_agg(jsonb_build_object('product_id', l.product_id, 'quantity', l.quantity, 'notes', l.notes,
-           'unit_price', l.unit_price, 'total_price', round(l.unit_price * l.quantity, 2)) ORDER BY l.ord)
+  -- Notes are saved in canonical form: exactly the lines that were priced.
+  SELECT jsonb_agg(jsonb_build_object('product_id', l.product_id, 'quantity', l.quantity,
+           'notes', l.priced->>'notes', 'unit_price', (l.priced->>'unit_price')::numeric,
+           'total_price', round((l.priced->>'unit_price')::numeric * l.quantity, 2)) ORDER BY l.ord)
     INTO v_lines
   FROM (
-    SELECT e.ord, i.product_id, i.quantity, i.notes,
-           public.order_line_unit_price(v_company, i.product_id, i.notes) AS unit_price
+    SELECT e.ord, i.product_id, i.quantity,
+           public.order_line_priced(v_company, i.product_id, i.notes) AS priced
     FROM jsonb_array_elements(p_items) WITH ORDINALITY AS e(item, ord)
     CROSS JOIN LATERAL jsonb_to_record(e.item) AS i(product_id uuid, quantity integer, notes text)
   ) l;
@@ -357,7 +555,7 @@ BEGIN
   v_fee := CASE WHEN p_order->>'order_type' = 'delivery' THEN public.order_delivery_fee(v_company) ELSE 0 END;
   v_total := round(v_subtotal + v_fee, 2);
   IF v_total IS NULL OR v_total < 0.01 THEN
-    RAISE EXCEPTION 'Invalid order total';
+    RAISE EXCEPTION 'Invalid order total' USING DETAIL = 'ORDER_TOTAL_TOO_LOW';
   END IF;
 
   -- Antiabuso lato server (solo per ordini nuovi), sul totale calcolato dal server.

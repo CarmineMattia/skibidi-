@@ -25,6 +25,7 @@ import {
   getMenuItemFlags,
 } from '@/lib/data/menuPricing';
 import type { MenuItemSelection } from '@/lib/data/menuPricing';
+import { COOKING_OPTIONS } from '@/lib/data/menuPricing';
 import {
   BUILDER_DOUGHS,
   BUILDER_PRODUCT_NAME,
@@ -36,7 +37,7 @@ import {
   MENU_PIZZA_SIZES,
 } from '@/lib/data/pizzaBuilder';
 import { formatOrderItemNotes } from '@/lib/utils/orderItemDetails';
-import { isMetroCategoryName, isPizzaCategoryName } from '@/lib/utils/menuCategories';
+import { getMaxGustiForProduct, isMetroCategoryName, isPizzaCategoryName } from '@/lib/utils/menuCategories';
 
 const root = path.resolve(__dirname, '../..');
 const catalogue = JSON.parse(fs.readFileSync(path.join(root, 'tests/fixtures/ambrosia-catalogue.json'), 'utf8')) as {
@@ -118,7 +119,7 @@ function generateCases(): PricingCase[] {
             cookingLabel: setIndex === 3 ? 'Ben cotta' : null,
           };
           push(`${product.name} ${size.id} extras#${setIndex}`, product, buildMenuItemModifiers(selection),
-            computeMenuItemUnitPrice(selection), setIndex === 1 ? 'Senza fretta' : '', 1 + (setIndex % 3));
+            computeMenuItemUnitPrice(selection), setIndex === 1 ? 'Senza fretta\nTaglia: Mezzo metro\n+ Burrata' : '', 1 + (setIndex % 3));
         });
       }
       // Mezzo metro: 1, 2 and 3 gusti (other real pizzas), with extras per slot.
@@ -168,8 +169,10 @@ function generateCases(): PricingCase[] {
             sauceId: sauce.id,
             ingredients: EXTRA_SETS[setIndex].map((name) => INGREDIENT_CATALOG.find((entry) => entry.name === name)!),
           };
+          const modifiers = buildSelectionModifiers(selection);
+          if (setIndex === 3) modifiers.push(`Cottura: ${COOKING_OPTIONS[0].label}`);
           push(`builder ${size.id}/${dough.id}/${sauce.id} extras#${setIndex}`, BUILDER_TEST_PRODUCT,
-            buildSelectionModifiers(selection), calculateBuilderPrice(selection).total);
+            modifiers, calculateBuilderPrice(selection).total, setIndex === 2 ? 'senza\nfretta,  grazie | + Burrata' : '');
         });
       }
     }
@@ -183,7 +186,12 @@ const migrationPath = path.join(root, 'supabase/migrations/20261020150000_server
 describe('server-side pricing parity', () => {
   it('generated cases match the committed fixture (client prices)', () => {
     const cases = generateCases();
-    const json = `${JSON.stringify({ builder_product: BUILDER_TEST_PRODUCT, cases }, null, 1)}\n`;
+    const metroNames = [
+      ...catalogue.products.filter((p) => isMetroCategoryName(catalogue.categories.find((c) => c.id === p.category_id)?.name)).map((p) => p.name),
+      'Due terzi Diavola', 'Meta metro Bufala', 'METÀ FARCITA', 'Super Farcita', 'Metro classico',
+    ];
+    const metro_max_gusti = metroNames.map((name) => ({ name, max: getMaxGustiForProduct(name, 'Al metro') }));
+    const json = `${JSON.stringify({ builder_product: BUILDER_TEST_PRODUCT, cooking_labels: COOKING_OPTIONS.map((o) => o.label), metro_max_gusti, cases }, null, 1)}\n`;
     if (process.env.UPDATE_PRICING_FIXTURES === '1') fs.writeFileSync(casesPath, json);
     expect(fs.readFileSync(casesPath, 'utf8')).toBe(json);
     expect(cases.length).toBeGreaterThan(500);
@@ -199,6 +207,13 @@ describe('server-side pricing parity', () => {
       })
       .map((product) => product.name);
     expect(new Set(names).size).toBe(names.length);
+  });
+
+  it('the migration accepts exactly the client cooking labels', () => {
+    const sql = fs.readFileSync(migrationPath, 'utf8');
+    const match = sql.match(/menu_cooking_labels\(\)[\s\S]*?SELECT ARRAY\[([^\]]*)\]/);
+    expect(match).not.toBeNull();
+    expect(match![1].split(',').map((v) => v.trim().replace(/^'|'$/g, ''))).toEqual(COOKING_OPTIONS.map((o) => o.label));
   });
 
   it('the migration seeds exactly the client listino', () => {

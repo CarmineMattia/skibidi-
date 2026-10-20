@@ -1,0 +1,401 @@
+[
+ {
+  "k": "r18_nota_then_mods",
+  "product": "Margherita",
+  "category": "Classiche",
+  "notes": "[P] Margherita\nTaglia: Normale\nNota: ciao\nTaglia: Mezzo metro\n+ Burrata\n+ Prosciutto crudo",
+  "expect": "ORDER_INVALID_NOTE"
+ },
+ {
+  "k": "r18_ui_multiline_note",
+  "product": "Margherita",
+  "category": "Classiche",
+  "notes": "[P] Margherita\nTaglia: Normale\nNota: ciao\n+ Burrata\nTaglia: Mezzo metro",
+  "expect": "ORDER_INVALID_NOTE"
+ },
+ {
+  "k": "r18_legacy_comma_singleline",
+  "product": "Margherita",
+  "category": "Classiche",
+  "notes": "No Cipolla, Taglia: Mezzo metro, + Burrata",
+  "expect": "ORDER_INVALID_OPTIONS"
+ },
+ {
+  "k": "r18_legacy_pipe_singleline",
+  "product": "Margherita",
+  "category": "Classiche",
+  "notes": "ben cotta | Taglia: Mezzo metro, + Burrata",
+  "expect": "ORDER_INVALID_OPTIONS"
+ },
+ {
+  "k": "r18_space_before_colon",
+  "product": "Margherita",
+  "category": "Classiche",
+  "notes": "[P] Margherita\nTaglia : Mezzo metro",
+  "expect": "ORDER_INVALID_OPTIONS"
+ },
+ {
+  "k": "r18_plus_no_space",
+  "product": "Margherita",
+  "category": "Classiche",
+  "notes": "[P] Margherita\n+Burrata\n+Prosciutto crudo",
+  "expect": "ORDER_INVALID_OPTIONS"
+ },
+ {
+  "k": "r18_fullwidth_plus",
+  "product": "Margherita",
+  "category": "Classiche",
+  "notes": "[P] Margherita\n＋ Burrata",
+  "expect": "ORDER_INVALID_OPTIONS"
+ },
+ {
+  "k": "r18_bare_text_lines",
+  "product": "Margherita",
+  "category": "Classiche",
+  "notes": "[P] Margherita\nMezzo metro\nAggiungi Burrata",
+  "expect": "ORDER_INVALID_OPTIONS"
+ },
+ {
+  "k": "r18_extra_not_on_pizza",
+  "product": "Marinara",
+  "category": "Classiche",
+  "notes": "[P] Marinara\nExtra Burrata\nExtra Prosciutto crudo",
+  "expect": "ORDER_INVALID_OPTIONS"
+ },
+ {
+  "k": "r18_gusto_on_normal_size",
+  "product": "Margherita",
+  "category": "Classiche",
+  "notes": "[P] Margherita\nTaglia: Normale\nGusto 1: Bologna",
+  "expect": "ORDER_INVALID_OPTIONS"
+ },
+ {
+  "k": "r18_gusto_extra_free_on_mezzo",
+  "product": "Margherita",
+  "category": "Classiche",
+  "notes": "[P] Margherita\nTaglia: Mezzo metro\nGusto: Margherita\nGusto: Extra Burrata",
+  "expect": "ORDER_INVALID_OPTIONS"
+ },
+ {
+  "k": "r18_dup_taglia",
+  "product": "Margherita",
+  "category": "Classiche",
+  "notes": "[P] Margherita\nTaglia: Normale\nTaglia: Piccola",
+  "expect": "ORDER_INVALID_OPTIONS"
+ },
+ {
+  "k": "r18_lowercase_label",
+  "product": "Margherita",
+  "category": "Classiche",
+  "notes": "[P] Margherita\ntaglia: piccola",
+  "expect": "ORDER_INVALID_OPTIONS"
+ },
+ {
+  "k": "r18_upper_prefix_spaces",
+  "product": "Margherita",
+  "category": "Classiche",
+  "notes": "[P] Margherita\nTAGLIA:    Piccola   ",
+  "expect": "ORDER_INVALID_OPTIONS"
+ },
+ {
+  "k": "r18_nbsp_trailing",
+  "product": "Margherita",
+  "category": "Classiche",
+  "notes": "[P] Margherita\nTaglia: Piccola ",
+  "expect": "ORDER_INVALID_OPTIONS"
+ },
+ {
+  "k": "r18_crlf",
+  "product": "Margherita",
+  "category": "Classiche",
+  "notes": "[P] Margherita\r\nTaglia: Piccola\r\n+ Burrata\r",
+  "expect": "ORDER_INVALID_OPTIONS"
+ },
+ {
+  "k": "r18_tab_indent",
+  "product": "Margherita",
+  "category": "Classiche",
+  "notes": "\t[P] Margherita\n\tTaglia: Piccola",
+  "expect": "ORDER_INVALID_OPTIONS"
+ },
+ {
+  "k": "r18_unknown_extra",
+  "product": "Margherita",
+  "category": "Classiche",
+  "notes": "[P] Margherita\n+ Caviale",
+  "expect": "ORDER_INVALID_OPTIONS"
+ },
+ {
+  "k": "r18_negative_extra",
+  "product": "Margherita",
+  "category": "Classiche",
+  "notes": "[P] Margherita\n+ -5",
+  "expect": "ORDER_INVALID_OPTIONS"
+ },
+ {
+  "k": "r18_lowercase_extra",
+  "product": "Margherita",
+  "category": "Classiche",
+  "notes": "[P] Margherita\n+ burrata",
+  "expect": "ORDER_INVALID_OPTIONS"
+ },
+ {
+  "k": "r18_four_gusti",
+  "product": "Margherita",
+  "category": "Classiche",
+  "notes": "Taglia: Mezzo metro\nGusto 1: Margherita\nGusto 2: Marinara\nGusto 3: Diavola\nGusto 4: Funghi",
+  "expect": "ORDER_INVALID_OPTIONS"
+ },
+ {
+  "k": "r18_dup_slot",
+  "product": "Margherita",
+  "category": "Classiche",
+  "notes": "Taglia: Mezzo metro\nGusto: Marinara\nGusto 1: Bologna",
+  "expect": "ORDER_INVALID_OPTIONS"
+ },
+ {
+  "k": "r18_slot_01_vs_1",
+  "product": "Margherita",
+  "category": "Classiche",
+  "notes": "Taglia: Mezzo metro\nGusto 01: Marinara\nGusto 1: Bologna",
+  "expect": "ORDER_INVALID_OPTIONS"
+ },
+ {
+  "k": "r18_gusto_metro_only",
+  "product": "Margherita",
+  "category": "Classiche",
+  "notes": "Taglia: Mezzo metro\nGusto: Farcita",
+  "expect": "ORDER_INVALID_OPTIONS"
+ },
+ {
+  "k": "r18_gusto_lowercase",
+  "product": "Margherita",
+  "category": "Classiche",
+  "notes": "Taglia: Mezzo metro\nGusto: marinara",
+  "expect": "ORDER_INVALID_OPTIONS"
+ },
+ {
+  "k": "r18_mezzo_cheap_gusto_on_expensive",
+  "product": "Bologna",
+  "category": "Gourmet",
+  "notes": "[P] Bologna\nTaglia: Mezzo metro\nGusto: Marinara",
+  "expect": 9
+ },
+ {
+  "k": "r18_taglia_on_drink",
+  "product": "Birra analcolica",
+  "category": "Bevande",
+  "notes": "[P] Birra analcolica\nTaglia: Piccola",
+  "expect": "ORDER_INVALID_OPTIONS"
+ },
+ {
+  "k": "r18_extra_on_drink",
+  "product": "Birra analcolica",
+  "category": "Bevande",
+  "notes": "[P] Birra analcolica\n+ Burrata",
+  "expect": "ORDER_INVALID_OPTIONS"
+ },
+ {
+  "k": "r18_impasto_on_menu_pizza",
+  "product": "Margherita",
+  "category": "Classiche",
+  "notes": "Impasto: Integrale",
+  "expect": "ORDER_INVALID_OPTIONS"
+ },
+ {
+  "k": "r18_null_notes_pizza",
+  "product": "Margherita",
+  "category": "Classiche",
+  "notes": null,
+  "expect": 5
+ },
+ {
+  "k": "r18_metro_with_gusti_and_taglia",
+  "product": "Farcita",
+  "category": "Al metro",
+  "notes": "[P] Farcita\nTaglia: Mezzo metro\nGusto 1: Bologna",
+  "expect": "ORDER_INVALID_OPTIONS"
+ },
+ {
+  "k": "r18_metro_with_gusti",
+  "product": "Farcita",
+  "category": "Al metro",
+  "notes": "[P] Farcita\nGusto 1: Bologna\nGusto 2: Gourmet x\nGusto 3: anything",
+  "expect": "ORDER_INVALID_OPTIONS"
+ },
+ {
+  "k": "ok_no_extra_on_pizza",
+  "product": "Margherita",
+  "category": "Classiche",
+  "notes": "[P] Margherita\nTaglia: Normale\nNo pomodoro\nExtra mozz.fior di latte\nCottura: Ben cotta\nNota: tagliata a spicchi",
+  "expect": 5
+ },
+ {
+  "k": "ok_mezzo_two_gusti",
+  "product": "Margherita",
+  "category": "Classiche",
+  "notes": "[P] Margherita\nTaglia: Mezzo metro\nGusto 1: Margherita\nGusto 2: Diavola\nGusto 2: No pomodoro\nGusto 2: + Burrata",
+  "expect": 16
+ },
+ {
+  "k": "ok_metro_three_gusti",
+  "product": "Farcita",
+  "category": "Al metro",
+  "notes": "[P] Farcita\nGusto 1: Margherita\nGusto 2: Diavola\nGusto 3: Funghi",
+  "expect": 18
+ },
+ {
+  "k": "ok_meta_metro_one_gusto",
+  "product": "Metà Margherita Metà Farcita",
+  "category": "Al metro",
+  "notes": "[P] Metà Margherita Metà Farcita\nGusto: Diavola",
+  "expect": 16
+ },
+ {
+  "k": "ok_stale_product_line_rewritten",
+  "product": "Margherita",
+  "category": "Classiche",
+  "notes": "[P] Vecchio nome\nTaglia: Normale",
+  "expect": 5
+ },
+ {
+  "k": "ok_note_whitespace_collapsed",
+  "product": "Margherita",
+  "category": "Classiche",
+  "notes": "[P] Margherita\nNota:   ben   cotta\tgrazie ",
+  "expect": 5
+ },
+ {
+  "k": "ok_note_with_commas_and_pipes",
+  "product": "Margherita",
+  "category": "Classiche",
+  "notes": "[P] Margherita\nNota: No Cipolla, Taglia: Mezzo metro | + Burrata",
+  "expect": 5
+ },
+ {
+  "k": "rej_metro_unnumbered_on_three",
+  "product": "Farcita",
+  "category": "Al metro",
+  "notes": "[P] Farcita\nGusto: Diavola",
+  "expect": "ORDER_INVALID_OPTIONS"
+ },
+ {
+  "k": "rej_metro_four_gusti",
+  "product": "Farcita",
+  "category": "Al metro",
+  "notes": "[P] Farcita\nGusto 1: Margherita\nGusto 2: Diavola\nGusto 3: Funghi\nGusto 4: Marinara",
+  "expect": "ORDER_INVALID_OPTIONS"
+ },
+ {
+  "k": "rej_metro_gusti_on_plain_metro",
+  "product": "Margherita",
+  "category": "Al metro",
+  "notes": "[P] Margherita\nGusto: Diavola",
+  "expect": "ORDER_INVALID_OPTIONS"
+ },
+ {
+  "k": "rej_metro_slot_extra",
+  "product": "Farcita",
+  "category": "Al metro",
+  "notes": "[P] Farcita\nGusto 1: Margherita\nGusto 1: + Burrata",
+  "expect": "ORDER_INVALID_OPTIONS"
+ },
+ {
+  "k": "rej_mezzo_plain_extra",
+  "product": "Margherita",
+  "category": "Classiche",
+  "notes": "[P] Margherita\nTaglia: Mezzo metro\nGusto: Margherita\n+ Burrata",
+  "expect": "ORDER_INVALID_OPTIONS"
+ },
+ {
+  "k": "rej_mezzo_slot_no_not_on_gusto",
+  "product": "Margherita",
+  "category": "Classiche",
+  "notes": "[P] Margherita\nTaglia: Mezzo metro\nGusto 1: Margherita\nGusto 1: No aglio\nGusto 2: Marinara",
+  "expect": "ORDER_INVALID_OPTIONS"
+ },
+ {
+  "k": "rej_mezzo_numbered_single",
+  "product": "Margherita",
+  "category": "Classiche",
+  "notes": "[P] Margherita\nTaglia: Mezzo metro\nGusto 1: Margherita",
+  "expect": "ORDER_INVALID_OPTIONS"
+ },
+ {
+  "k": "rej_mezzo_gap_slots",
+  "product": "Margherita",
+  "category": "Classiche",
+  "notes": "[P] Margherita\nTaglia: Mezzo metro\nGusto 1: Margherita\nGusto 3: Diavola",
+  "expect": "ORDER_INVALID_OPTIONS"
+ },
+ {
+  "k": "rej_mezzo_option_before_name",
+  "product": "Margherita",
+  "category": "Classiche",
+  "notes": "[P] Margherita\nTaglia: Mezzo metro\nGusto 1: + Burrata\nGusto 1: Margherita\nGusto 2: Diavola",
+  "expect": "ORDER_INVALID_OPTIONS"
+ },
+ {
+  "k": "rej_no_and_extra_same",
+  "product": "Margherita",
+  "category": "Classiche",
+  "notes": "[P] Margherita\nNo pomodoro\nExtra pomodoro",
+  "expect": "ORDER_INVALID_OPTIONS"
+ },
+ {
+  "k": "rej_duplicate_extra",
+  "product": "Margherita",
+  "category": "Classiche",
+  "notes": "[P] Margherita\n+ Burrata\n+ Burrata",
+  "expect": "ORDER_INVALID_OPTIONS"
+ },
+ {
+  "k": "rej_cottura_unknown",
+  "product": "Margherita",
+  "category": "Classiche",
+  "notes": "[P] Margherita\nCottura: Bruciata",
+  "expect": "ORDER_INVALID_OPTIONS"
+ },
+ {
+  "k": "rej_cottura_on_drink",
+  "product": "Birra analcolica",
+  "category": "Bevande",
+  "notes": "[P] Birra analcolica\nCottura: Ben cotta",
+  "expect": "ORDER_INVALID_OPTIONS"
+ },
+ {
+  "k": "rej_two_notes",
+  "product": "Margherita",
+  "category": "Classiche",
+  "notes": "[P] Margherita\nNota: a\nNota: b",
+  "expect": "ORDER_INVALID_NOTE"
+ },
+ {
+  "k": "rej_product_line_not_first",
+  "product": "Margherita",
+  "category": "Classiche",
+  "notes": "Taglia: Normale\n[P] Margherita",
+  "expect": "ORDER_INVALID_OPTIONS"
+ },
+ {
+  "k": "rej_nota_lowercase_is_option",
+  "product": "Margherita",
+  "category": "Classiche",
+  "notes": "[P] Margherita\nnota: ciao",
+  "expect": "ORDER_INVALID_OPTIONS"
+ },
+ {
+  "k": "rej_note_control_char",
+  "product": "Margherita",
+  "category": "Classiche",
+  "notes": "[P] Margherita\nNota: ciao\u0007",
+  "expect": "ORDER_INVALID_NOTE"
+ },
+ {
+  "k": "rej_dessert_extra_no_ingredients",
+  "product": "Tiramisù",
+  "category": "Dolci",
+  "notes": "[P] Tiramisù\nNo mascarpone",
+  "expect": "ORDER_INVALID_OPTIONS"
+ }
+]

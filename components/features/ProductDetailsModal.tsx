@@ -1,3 +1,4 @@
+import { COOKING_OPTIONS, type CookingLevel } from '@/lib/data/menuPricing';
 import {
     getMaxGustiForProduct,
     isBeverageCategoryName as isDrinkCategoryName,
@@ -38,14 +39,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { Image, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-type CookingLevel = 'poco_cotta' | 'normale' | 'ben_cotta';
 type WizardStepId = 'size' | 'gusti' | 'mezzo_gusti' | 'ingredients' | 'finish';
 
-const COOKING_OPTIONS: { id: CookingLevel; label: string }[] = [
-    { id: 'poco_cotta', label: 'Poco cotta' },
-    { id: 'normale', label: 'Normale' },
-    { id: 'ben_cotta', label: 'Ben cotta' },
-];
 
 
 interface ProductDetailsModalProps {
