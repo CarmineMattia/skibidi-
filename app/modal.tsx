@@ -22,6 +22,8 @@ import { useRouter, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { TurnstileWidget } from '@/components/features/TurnstileWidget';
 import { isAntiabuseError } from '@/lib/utils/antiabuse';
+import { isOrderLineError } from '@/lib/utils/orderLineErrors';
+import { parseOrderItemNotes } from '@/lib/utils/orderItemDetails';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Image, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -185,7 +187,7 @@ function sumSlotPizzaUnits(
 }
 
 export default function CheckoutScreen() {
-  const { items, totalAmount, clearCart, addItem } = useCart();
+  const { items, totalAmount, clearCart, addItem, removeProductLines } = useCart();
   const { profile, isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const {
     language,
@@ -450,7 +452,10 @@ export default function CheckoutScreen() {
     let addedCount = 0;
     pastOrder.items.forEach((item) => {
       if (item.product) {
-        addItem(item.product, item.quantity, item.notes ?? '');
+        // Same options as the past order (the server re-prices them), the old
+        // customer note stays a note. Never the raw notes as free text.
+        const parsed = parseOrderItemNotes(item.notes);
+        addItem(item.product, item.quantity, parsed.freeNote ?? '', parsed.modifiers);
         addedCount += item.quantity;
       }
     });
@@ -998,6 +1003,10 @@ export default function CheckoutScreen() {
     } catch (error) {
       await complete(false);
       console.error('❌ Order creation failed:', error);
+      // Prodotto non più disponibile / opzioni non valide: tolto dal carrello.
+      if (isOrderLineError(error) && error.removeFromCart && error.productId) {
+        removeProductLines(error.productId);
+      }
       if (isAntiabuseError(error)) {
         setSubmissionError(error.message);
         Alert.alert('Errore', error.message, [{ text: 'OK' }]);

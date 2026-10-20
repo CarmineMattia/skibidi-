@@ -19,7 +19,7 @@ BEGIN
    IF SQLERRM = 'Expected changed retry to fail' THEN RAISE; END IF;
  END;
  BEGIN
-   PERFORM public.create_order_with_items(jsonb_set(o, '{id}', '"00000000-0000-0000-0000-000000000022"'), jsonb_set(i, '{0,notes}', '"force failure"'));
+   PERFORM public.create_order_with_items(jsonb_set(o, '{id}', '"00000000-0000-0000-0000-000000000022"'), jsonb_set(i, '{0,notes}', '"Nota: force failure"'));
    RAISE EXCEPTION 'Expected line constraint to fail';
  EXCEPTION WHEN check_violation THEN NULL;
  END;

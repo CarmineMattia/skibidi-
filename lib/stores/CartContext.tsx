@@ -30,6 +30,8 @@ interface CartContextType {
     unitPriceOverride?: number
   ) => void;
   removeItem: (index: number) => void;
+  /** Remove every line of a product (e.g. no longer available). */
+  removeProductLines: (productId: string) => void;
   updateQuantity: (index: number, quantity: number) => void;
   clearCart: () => void;
   totalItems: number;
@@ -110,6 +112,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems((current) => current.filter((_, i) => i !== index));
   }, []);
 
+  const removeProductLines = useCallback((productId: string) => {
+    setItems((current) => current.filter((item) => item.product.id !== productId));
+  }, []);
+
   const updateQuantity = useCallback(
     (index: number, quantity: number) => {
       if (quantity <= 0) {
@@ -138,6 +144,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     items,
     addItem,
     removeItem,
+    removeProductLines,
     updateQuantity,
     clearCart,
     totalItems,
