@@ -7,7 +7,8 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "build:web": "expo export --platform web",
+    "build:web": "expo export --platform web && node scripts/copy-404.mjs",
+    "serve:web": "node scripts/serve-vercel-static.mjs",
     "chat:server": "node server/order-assistant-server.mjs",
     "lint": "eslint . --ext .ts,.tsx,.js,.jsx",
     "type-check": "tsc --noEmit"

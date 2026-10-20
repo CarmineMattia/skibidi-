@@ -1,3 +1,4 @@
+import { useLocalSearchParams, type UnknownOutputParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Dimensions, useWindowDimensions } from 'react-native';
 
@@ -21,4 +22,17 @@ export function useViewportWidth(): number {
   const { width } = useWindowDimensions();
   const hydrated = useHydrated();
   return hydrated ? Math.min(width, Dimensions.get('window').width) : 0;
+}
+
+const EMPTY_PARAMS = Object.freeze({});
+
+/**
+ * Query string sicura per l'idratazione: l'HTML statico di ogni pagina è
+ * generato senza query string (es. /order-tracking, non ?orderId=...), quindi
+ * fino al mount restituisce {} come sul server, poi i parametri veri.
+ */
+export function useHydratedSearchParams<T extends UnknownOutputParams>(): Partial<T> {
+  const params = useLocalSearchParams<T>() as Partial<T>;
+  const hydrated = useHydrated();
+  return hydrated ? params : (EMPTY_PARAMS as Partial<T>);
 }

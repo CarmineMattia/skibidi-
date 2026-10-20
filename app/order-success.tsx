@@ -1,4 +1,5 @@
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useHydratedSearchParams } from '@/lib/hooks/useHydrated';
+import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import Animated, {
@@ -17,7 +18,7 @@ import { getOrderConfirmation } from '@/lib/utils/orderTracking';
 
 export default function OrderSuccessScreen() {
     const router = useRouter();
-    const { orderId, orderType, displayCode } = useLocalSearchParams<{
+    const { orderId, orderType, displayCode } = useHydratedSearchParams<{
         orderId: string;
         orderType?: string;
         displayCode?: string;

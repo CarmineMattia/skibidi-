@@ -220,6 +220,32 @@ export type Database = {
           },
         ]
       }
+      menu_pricing: {
+        Row: {
+          company_id: string
+          config: Json
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          config: Json
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          config?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "menu_pricing_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_items: {
         Row: {
           created_at: string

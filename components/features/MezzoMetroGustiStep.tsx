@@ -9,6 +9,7 @@ import {
 import type { IngredientCategoryId } from '@/lib/data/ingredients';
 import { IngredientThumb } from '@/components/features/IngredientThumb';
 import {
+  getMenuPizzaSize,
   BUILDER_INGREDIENT_PRICES,
   MAX_MEZZO_METRO_GUSTI,
   createMezzoMetroGustoFromProduct,
@@ -383,7 +384,7 @@ export function MezzoMetroGustiStep({ gusti, availablePizzas, onChange }: MezzoM
                       {searchable.slice(0, 24).map((entry) => {
                         const categoryInfo = getCategoryInfo(entry.category);
                         const selected = gusto.extraIngredients.includes(entry.name);
-                        const price = BUILDER_INGREDIENT_PRICES[entry.category] * 2;
+                        const price = BUILDER_INGREDIENT_PRICES[entry.category] * getMenuPizzaSize('mezzo_metro').ingredientMultiplier;
                         return (
                           <Pressable
                             key={entry.name}
