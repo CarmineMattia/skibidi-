@@ -124,11 +124,14 @@ BEGIN
   v_is_builder := coalesce(v_name = v_cfg->>'builderProductName', false);
   v_is_standard := v_is_pizza_cat AND NOT v_is_metro AND coalesce(v_name, '') <> 'Piccola' AND NOT v_is_builder;
 
-  -- Modifier lines (lib/utils/orderItemDetails.ts). Product line "[P] …" and
-  -- the free-note line "Nota: …" carry no price.
+  -- Modifier lines (lib/utils/orderItemDetails.ts). Product line "[P] …"
+  -- carries no price; "Nota: …" and everything after it is free text.
   FOREACH v_line IN ARRAY regexp_split_to_array(coalesce(p_notes, ''), E'\n') LOOP
     v_line := regexp_replace(v_line, '^\s+|\s+$', '', 'g');
-    CONTINUE WHEN v_line = '' OR v_line ~* '^\[P\]' OR v_line ~* '^Nota:';
+    -- The free note is always last (formatOrderItemNotes) and may span lines:
+    -- nothing typed by the customer is priced (or can make the line invalid).
+    EXIT WHEN v_line ~* '^Nota:';
+    CONTINUE WHEN v_line = '' OR v_line ~* '^\[P\]';
     IF v_line ~* '^Taglia:' THEN
       v_size_label := regexp_replace(v_line, '^Taglia:\s*', '', 'i');
       v_size_count := v_size_count + 1;

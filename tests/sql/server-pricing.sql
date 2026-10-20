@@ -137,6 +137,13 @@ DO $$ DECLARE r jsonb; m numeric := current_setting('test.marg_price')::numeric;
     jsonb_build_array(pg_temp.line(current_setting('test.marg'), 1, -2.5, '[P] Margherita'))) INTO r;
   IF (r->>'total_amount')::numeric <> m + 2.5 THEN RAISE EXCEPTION 'negative line: %', r; END IF;
 END $$;
+-- free note spanning lines: never priced, never invalid (customer text)
+DO $$ DECLARE r jsonb; m numeric := current_setting('test.marg_price')::numeric; BEGIN
+  EXECUTE pg_temp.call('00000000-0000-0000-0000-00000000e009', 'take_away', m,
+    jsonb_build_array(pg_temp.line(current_setting('test.marg'), 1, m,
+      E'[P] Margherita\nTaglia: Normale\nNota: ben cotta\n+ tanto origano\nTaglia: Piccola\n+ Tonno'))) INTO r;
+  IF (r->>'total_amount')::numeric <> m THEN RAISE EXCEPTION 'free note priced: %', r; END IF;
+END $$;
 RESET ROLE;
 UPDATE companies SET settings = '{"deliveryFeeEur": "free"}' WHERE id = '00000000-0000-0000-0000-000000000001';
 SET ROLE authenticated;
