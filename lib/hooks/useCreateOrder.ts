@@ -260,8 +260,9 @@ export function useCreateOrder() {
             const { error: updateError } = await supabase
               .from('orders')
               .update({
+                // Customers may only record the receipt outcome (orders are
+                // locked after creation): the error stays in the console.
                 fiscal_status: 'error',
-                notes: `${notes || ''} | Fiscal error: ${fiscalResult.error}`,
               })
               .eq('id', order.id);
 
@@ -277,7 +278,6 @@ export function useCreateOrder() {
             .from('orders')
             .update({
               fiscal_status: 'error',
-              notes: `${notes || ''} | Fiscal service error: ${fiscalError instanceof Error ? fiscalError.message : 'Unknown'}`,
             })
             .eq('id', order.id);
 
