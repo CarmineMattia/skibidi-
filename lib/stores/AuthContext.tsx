@@ -4,29 +4,39 @@
  */
 
 import { supabase } from '@/lib/api/supabase';
-import { useTenant } from '@/lib/stores/TenantContext';
 import type { UserRole } from '@/types';
 import type { Profile } from '@/types/database.types';
 import type { Session, User } from '@supabase/supabase-js';
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 import { Platform } from 'react-native';
 
-const GUEST_FLAG_KEY = 'skibidi_lastLoginAsGuest';
+const LEGACY_GUEST_FLAG_KEY = 'skibidi_lastLoginAsGuest';
 const KIOSK_FLAG_KEY = 'skibidi_kioskModeEnabled';
-const GUEST_NAME = 'ospite123';
 
-// Target del magic link nelle build native (opzionale: fallback alla
-// Site URL configurata su Supabase). Su nativo l'accesso avviene comunque
-// col codice OTP; il link punta sempre alla web app.
-const WEB_URL = process.env.EXPO_PUBLIC_WEB_URL ?? null;
+// Target del redirect OAuth nelle build native (deep link dell'app).
+const NATIVE_REDIRECT_URL = process.env.EXPO_PUBLIC_AUTH_REDIRECT_URL ?? 'pizzeriaambrosia://login';
 
-function getOtpRedirectUrl(): string | undefined {
+/**
+ * Login admin con email+password: disattivato di default.
+ * Si accende solo con EXPO_PUBLIC_ENABLE_ADMIN_PASSWORD_LOGIN=true ed è
+ * raggiungibile solo da /login?admin=1. Chi entra senza ruolo admin viene
+ * disconnesso subito.
+ */
+export const ADMIN_PASSWORD_LOGIN_ENABLED =
+  process.env.EXPO_PUBLIC_ENABLE_ADMIN_PASSWORD_LOGIN === 'true';
+
+/** Hook Facebook predisposto ma spento finché non viene configurato il provider. */
+export const FACEBOOK_LOGIN_ENABLED = process.env.EXPO_PUBLIC_ENABLE_FACEBOOK_LOGIN === 'true';
+
+export type OAuthProviderId = 'google' | 'facebook';
+
+function getOAuthRedirectUrl(): string {
   if (Platform.OS === 'web') {
-    const origin = globalThis?.window?.location?.origin;
+    const origin = globalThis?.window?.location?.origin ?? '';
     // /login: l'AuthGuard reindirizza gli utenti autenticati verso il menu
-    return origin ? `${origin}/login` : undefined;
+    return `${origin}/login`;
   }
-  return WEB_URL ? `${WEB_URL.replace(/\/+$/, '')}/login` : undefined;
+  return NATIVE_REDIRECT_URL;
 }
 
 function getStorage(): Storage | null {
@@ -48,40 +58,22 @@ interface AuthContextType {
   userRole: UserRole;
   isLoading: boolean;
   isKioskMode: boolean;
-   /**
-    * True quando l'utente sta usando il profilo ospite locale
-    * (senza account Supabase).
-    */
-  isGuest: boolean;
-  isAuthenticated: boolean;
+   isAuthenticated: boolean;
 
   // Role checks
   isAdmin: boolean;
   isCustomer: boolean;
 
   // Auth actions
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (
-    email: string,
-    password: string,
-    fullName?: string,
-    role?: UserRole
-  ) => Promise<{ requiresEmailConfirmation: boolean; email: string }>;
-  /**
-   * Invia all'indirizzo una mail con magic link + codice OTP a 6 cifre.
-   * Se l'utente non esiste viene creato (ruolo customer).
-   */
-  requestOtp: (email: string) => Promise<void>;
-  /** Verifica il codice OTP ricevuto via email e apre la sessione. */
-  verifyEmailOtp: (email: string, token: string) => Promise<void>;
-  resendConfirmationEmail: (email: string) => Promise<void>;
+  /** Login OAuth (Google; Facebook solo se abilitato). */
+  signInWithOAuth: (provider?: OAuthProviderId) => Promise<void>;
+  /** Solo admin, dietro flag: vedi ADMIN_PASSWORD_LOGIN_ENABLED. */
+  signInAdminWithPassword: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
 
   // Mode switching
   enterKioskMode: () => void;
   exitKioskMode: () => void;
-  enterGuestMode: () => void;
-  exitGuestMode: () => void;
   setUserRole: (role: UserRole) => Promise<void>;
 }
 
@@ -100,61 +92,20 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const { companyId } = useTenant();
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [userRole, setUserRole] = useState<UserRole>('kiosk');
   const [isLoading, setIsLoading] = useState(true);
   const [isKioskMode, setIsKioskMode] = useState(true);
-  const [isGuest, setIsGuest] = useState(false);
 
   const applyStoredAnonymousMode = () => {
-    const storage = getStorage();
-    if (!storage) {
-      setIsKioskMode(true);
-      setIsGuest(false);
-      setUserRole('kiosk');
-      setIsLoading(false);
-      return;
-    }
-
-    const lastGuest = storage.getItem(GUEST_FLAG_KEY) === 'true';
-    const kioskEnabled = storage.getItem(KIOSK_FLAG_KEY) === 'true';
-
-    if (lastGuest) {
-      setIsGuest(true);
-      setIsKioskMode(false);
-      setUserRole('customer');
-      setIsLoading(false);
-      return;
-    }
-
-    if (kioskEnabled) {
-      setIsGuest(false);
-      setIsKioskMode(true);
-      setUserRole('kiosk');
-      setIsLoading(false);
-      return;
-    }
-
-    // Default: kiosk mode
-    setIsGuest(false);
+    // Nessun utente loggato: solo navigazione del menu, niente ordini.
+    // Pulisce l'eventuale flag ospite rimasto da versioni precedenti.
+    getStorage()?.removeItem(LEGACY_GUEST_FLAG_KEY);
     setIsKioskMode(true);
     setUserRole('kiosk');
     setIsLoading(false);
-  };
-
-  const saveGuestFlag = (value: boolean) => {
-    const storage = getStorage();
-    if (!storage) return;
-    if (value) {
-      storage.setItem(GUEST_FLAG_KEY, 'true');
-      // quando usiamo l'ospite, disattiviamo il flag kiosk
-      storage.setItem(KIOSK_FLAG_KEY, 'false');
-    } else {
-      storage.removeItem(GUEST_FLAG_KEY);
-    }
   };
 
   const saveKioskFlag = (value: boolean) => {
@@ -162,8 +113,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     if (!storage) return;
     if (value) {
       storage.setItem(KIOSK_FLAG_KEY, 'true');
-      // se kiosk è attivo, non siamo ospiti
-      storage.setItem(GUEST_FLAG_KEY, 'false');
     } else {
       storage.removeItem(KIOSK_FLAG_KEY);
     }
@@ -179,7 +128,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         // Fetch user role from profiles table
         fetchUserRole(session.user);
         setIsKioskMode(false);
-        setIsGuest(false);
       } else {
         applyStoredAnonymousMode();
       }
@@ -195,7 +143,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (session?.user) {
         fetchUserRole(session.user);
         setIsKioskMode(false);
-        setIsGuest(false);
       } else {
         setUserRole('kiosk');
         applyStoredAnonymousMode();
@@ -285,89 +232,78 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
-  const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+  const signInWithOAuth = async (provider: OAuthProviderId = 'google') => {
+    if (provider === 'facebook' && !FACEBOOK_LOGIN_ENABLED) {
+      throw new Error('Accesso con Facebook non disponibile.');
+    }
+    const redirectTo = getOAuthRedirectUrl();
 
-    if (error) throw error;
-  };
-
-  const requestOtp = async (email: string) => {
-    // La stessa normalizzazione va riusata in fase di verifica,
-    // altrimenti verifyOtp non trova il token
-    const normalizedEmail = email.trim().toLowerCase();
-
-    const { error } = await supabase.auth.signInWithOtp({
-      email: normalizedEmail,
-      options: {
-        shouldCreateUser: true,
-        emailRedirectTo: getOtpRedirectUrl(),
-        // Letto dal trigger handle_new_user alla creazione del profilo;
-        // ignorato da Supabase per gli utenti già esistenti
-        data: companyId ? { company_id: companyId } : undefined,
-      },
-    });
-
-    if (error) throw error;
-  };
-
-  const verifyEmailOtp = async (email: string, token: string) => {
-    const normalizedEmail = email.trim().toLowerCase();
-
-    // type 'email' copre sia gli utenti esistenti (token magiclink)
-    // sia i nuovi creati da shouldCreateUser (token signup)
-    const { error } = await supabase.auth.verifyOtp({
-      email: normalizedEmail,
-      token: token.trim(),
-      type: 'email',
-    });
-
-    if (error) throw error;
-    // Nessun altro step: onAuthStateChange gestisce fetch/creazione profilo
-  };
-
-  const signUp = async (
-    email: string,
-    password: string,
-    fullName?: string,
-    role: UserRole = 'customer'
-  ) => {
-    // Sign up the user
-    const { data: authData, error: signUpError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: fullName,
-          role,
+    if (Platform.OS === 'web') {
+      // Redirect completo verso il provider; al ritorno su /login il client
+      // (detectSessionInUrl) scambia il codice e apre la sessione.
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo,
+          queryParams: provider === 'google' ? { prompt: 'select_account' } : undefined,
         },
-      },
-    });
-
-    if (signUpError) throw signUpError;
-
-    // Create profile if signUp was successful
-    if (authData.user) {
-      const { error: profileError } = await supabase.from('profiles').insert({
-        id: authData.user.id,
-        email,
-        full_name: fullName,
-        role,
       });
-
-      if (profileError) {
-        console.error('Error creating profile:', profileError);
-        // Don't throw - profile might already exist from trigger
-      }
+      if (error) throw error;
+      return;
     }
 
-    return {
-      // Supabase returns null session when email confirmation is required
-      requiresEmailConfirmation: !!authData.user && !authData.session,
-      email,
-    };
+    // Nativo: apre il browser di sistema e rientra col deep link
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo, skipBrowserRedirect: true },
+    });
+    if (error) throw error;
+    if (!data?.url) throw new Error('URL di accesso non disponibile.');
+
+    const WebBrowser = await import('expo-web-browser');
+    const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
+    if (result.type !== 'success' || !result.url) return; // annullato dall'utente
+
+    const url = new URL(result.url);
+    const code = url.searchParams.get('code');
+    if (code) {
+      const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+      if (exchangeError) throw exchangeError;
+      return;
+    }
+    // Flusso implicito: token nell'hash
+    const hash = new URLSearchParams(url.hash.replace(/^#/, ''));
+    const access_token = hash.get('access_token');
+    const refresh_token = hash.get('refresh_token');
+    if (access_token && refresh_token) {
+      const { error: sessionError } = await supabase.auth.setSession({ access_token, refresh_token });
+      if (sessionError) throw sessionError;
+      return;
+    }
+    const providerError = url.searchParams.get('error_description') ?? hash.get('error_description');
+    throw new Error(providerError ?? 'Accesso non completato.');
+  };
+
+  const signInAdminWithPassword = async (email: string, password: string) => {
+    if (!ADMIN_PASSWORD_LOGIN_ENABLED) {
+      throw new Error('Accesso con password disattivato.');
+    }
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email.trim().toLowerCase(),
+      password,
+    });
+    if (error) throw error;
+
+    const { data: profileRow } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', data.user.id)
+      .maybeSingle();
+
+    if (profileRow?.role !== 'admin') {
+      await supabase.auth.signOut();
+      throw new Error('Questo accesso è riservato agli amministratori. Usa Google.');
+    }
   };
 
   const signOut = async () => {
@@ -378,8 +314,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setProfile(null);
     setUserRole('kiosk');
     setIsKioskMode(true);
-    setIsGuest(false);
-    saveGuestFlag(false);
     saveKioskFlag(true);
   };
 
@@ -396,37 +330,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setIsKioskMode(true);
     setUserRole('kiosk');
     setProfile(null);
-    setIsGuest(false);
     saveKioskFlag(true);
   };
 
   const exitKioskMode = () => {
     setIsKioskMode(false);
-    // Se non c'è sessione autenticata e nessun ospite, torniamo alla modalità base
-    if (!session && !isGuest) {
+    if (!session) {
       setUserRole('kiosk');
     }
     saveKioskFlag(false);
-  };
-
-  const enterGuestMode = () => {
-    setIsGuest(true);
-    setIsKioskMode(false);
-    setUserRole('customer');
-    setProfile(null);
-    saveGuestFlag(true);
-  };
-
-  const exitGuestMode = () => {
-    setIsGuest(false);
-    saveGuestFlag(false);
-
-    if (!session) {
-      // Se non c'è un utente loggato, torniamo alla modalità kiosk base
-      setIsKioskMode(true);
-      saveKioskFlag(true);
-      setUserRole('kiosk');
-    }
   };
 
   const updateUserRole = async (newRole: UserRole) => {
@@ -453,20 +365,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
     userRole,
     isLoading,
     isKioskMode,
-    isGuest,
     isAuthenticated: !!session && !!user,
     isAdmin: userRole === 'admin',
     isCustomer: userRole === 'customer',
-    signIn,
-    signUp,
-    requestOtp,
-    verifyEmailOtp,
-    resendConfirmationEmail,
+    signInWithOAuth,
+    signInAdminWithPassword,
     signOut,
     enterKioskMode,
     exitKioskMode,
-    enterGuestMode,
-    exitGuestMode,
     setUserRole: updateUserRole,
   };
 
