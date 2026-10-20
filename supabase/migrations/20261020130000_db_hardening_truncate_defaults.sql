@@ -7,11 +7,11 @@
 --    functions to PUBLIC/anon/authenticated and TRUNCATE/TRIGGER/REFERENCES on
 --    new tables. From now on a new function must be granted explicitly
 --    (GRANT EXECUTE ... TO authenticated) if the client calls it.
--- 3. orders_insert let anon (and any session) insert orders directly with
---    customer_id NULL, bypassing create_order_with_items (login + antiabuse).
---    Orders now come only from logged-in sessions for themselves
---    (create_order_with_items is SECURITY INVOKER, so it still needs this
---    narrow policy) or from staff of the same company.
+-- 3. anon could insert orders / order_items directly (guest orders bypassing
+--    create_order_with_items: login + antiabuse). INSERT is revoked from anon.
+--    The RLS policies are NOT changed here: they belong to #32
+--    (20261020140000_order_items_insert_guard.sql), so the apply order of the
+--    two migrations does not matter.
 --
 -- Idempotent. Default privileges owned by supabase_admin cannot be changed by
 -- postgres and are left as they are.
@@ -32,23 +32,8 @@ ALTER DEFAULT PRIVILEGES FOR ROLE postgres REVOKE EXECUTE ON FUNCTIONS FROM PUBL
 ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public REVOKE EXECUTE ON FUNCTIONS FROM anon, authenticated;
 ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public REVOKE TRUNCATE, TRIGGER, REFERENCES ON TABLES FROM anon, authenticated;
 
--- 3) Orders: no direct inserts from anon / guests ---------------------------
-DROP POLICY IF EXISTS orders_insert ON public.orders;
-CREATE POLICY orders_insert ON public.orders
-  FOR INSERT TO authenticated
-  WITH CHECK (
-    (public.is_admin() AND company_id = public.get_my_company_id())
-    OR (
-      auth.uid() IS NOT NULL
-      AND customer_id = auth.uid()
-      AND status = 'pending'
-      AND fiscal_status = 'pending'
-    )
-  );
-
-DROP POLICY IF EXISTS order_items_insert ON public.order_items;
-CREATE POLICY order_items_insert ON public.order_items
-  FOR INSERT TO authenticated
-  WITH CHECK (public.can_insert_order_item(order_id));
-
+-- 3) Orders: anon cannot insert orders / order lines directly -----------------
+-- Only the table grant is touched here. The orders_insert / order_items_insert
+-- policies belong to #32 (20261020140000_order_items_insert_guard.sql), so
+-- applying this file before or after #32 gives the same final policies.
 REVOKE INSERT ON TABLE public.orders, public.order_items FROM anon;

@@ -59,8 +59,8 @@ END $$;
 DROP FUNCTION public.hardening_probe_fn();
 DROP TABLE public.hardening_probe_tbl;
 
--- 3) Orders: anon and guest (customer_id NULL) direct inserts are refused,
---    a logged-in customer can only insert pending orders for themselves.
+-- 3) Orders: anon direct inserts are refused (table grant). Customer/staff
+--    insert rules are #32's policies, tested there.
 CREATE OR REPLACE FUNCTION pg_temp.expect_denied(q text, label text) RETURNS void LANGUAGE plpgsql AS $$
 BEGIN
   -- RLS refusal (42501); a non-pending status may already be stopped by the
@@ -77,16 +77,22 @@ SELECT pg_temp.expect_denied($q$INSERT INTO public.order_items (order_id, produc
   VALUES ('00000000-0000-0000-0000-0000000000d1','00000000-0000-0000-0000-000000000011',1,5,5)$q$, 'anon order_items insert');
 RESET ROLE;
 
+-- Policies are not changed by this migration (they belong to #32): the
+-- policy names must still exist exactly once, untouched.
+DO $$ BEGIN
+  IF (SELECT count(*) FROM pg_policies WHERE schemaname = 'public' AND tablename = 'orders' AND policyname = 'orders_insert') <> 1
+     OR (SELECT count(*) FROM pg_policies WHERE schemaname = 'public' AND tablename = 'order_items' AND policyname = 'order_items_insert') <> 1 THEN
+    RAISE EXCEPTION 'insert policies changed';
+  END IF;
+  IF has_table_privilege('anon', 'public.orders', 'INSERT') OR has_table_privilege('anon', 'public.order_items', 'INSERT') THEN
+    RAISE EXCEPTION 'anon still has INSERT on orders/order_items';
+  END IF;
+END $$;
+
 SET ROLE authenticated;
 SELECT set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000c1', false);
 SELECT set_config('request.jwt.claims', '{"is_anonymous":false}', false);
 SET test.staff = 'false';
-SELECT pg_temp.expect_denied($q$INSERT INTO public.orders (id, company_id, customer_id, status, fiscal_status, total_amount, order_type)
-  VALUES ('00000000-0000-0000-0000-0000000000d2','00000000-0000-0000-0000-000000000001',NULL,'pending','pending',5,'take_away')$q$, 'guest order (customer_id NULL)');
-SELECT pg_temp.expect_denied($q$INSERT INTO public.orders (id, company_id, customer_id, status, fiscal_status, total_amount, order_type)
-  VALUES ('00000000-0000-0000-0000-0000000000d3','00000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-0000000000c9','pending','pending',5,'take_away')$q$, 'order for another customer');
-SELECT pg_temp.expect_denied($q$INSERT INTO public.orders (id, company_id, customer_id, status, fiscal_status, total_amount, order_type)
-  VALUES ('00000000-0000-0000-0000-0000000000d4','00000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-0000000000c1','accepted','pending',5,'take_away')$q$, 'non-pending order');
 
 -- 4) Real reserve_order_display_code: sequential per company/day, counters
 --    table not readable directly (RLS, no policy).
@@ -113,7 +119,9 @@ BEGIN
     jsonb_build_object('id','00000000-0000-0000-0000-0000000000d5','company_id','00000000-0000-0000-0000-000000000001',
       'customer_id','00000000-0000-0000-0000-0000000000c1','display_code',code,'total_amount',5,'order_type','take_away'),
     jsonb_build_array(jsonb_build_object('product_id','00000000-0000-0000-0000-000000000011','quantity',1,'unit_price',5,'total_price',5)));
-  IF r->>'id' <> '00000000-0000-0000-0000-0000000000d5' OR r->>'display_code' <> code THEN
+  -- with #32 the server assigns the code itself (client code ignored): accept either,
+  -- but it must be a real sequential code.
+  IF r->>'id' <> '00000000-0000-0000-0000-0000000000d5' OR r->>'display_code' !~ '^Ordine #[0-9]+$' THEN
     RAISE EXCEPTION 'checkout did not save the order: %', r;
   END IF;
 END $$;
@@ -123,4 +131,4 @@ DO $$ BEGIN
     RAISE EXCEPTION 'checkout lines missing';
   END IF;
 END $$;
-SELECT 'PASS: no TRUNCATE/TRIGGER/REFERENCES, default privileges, no direct guest orders, real display code, checkout ok' AS result;
+SELECT 'PASS: no TRUNCATE/TRIGGER/REFERENCES, default privileges, no anon direct orders, real display code, checkout ok' AS result;
