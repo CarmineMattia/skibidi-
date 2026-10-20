@@ -60,6 +60,55 @@ DO $$ DECLARE r jsonb; BEGIN
     '00000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000011', 5) INTO r;
   IF r->>'id' <> '00000000-0000-0000-0000-0000000000e1' THEN RAISE EXCEPTION 'checkout failed: %', r; END IF;
 END $$;
+-- display code: assigned by the server, client value ignored (round16 repro:
+-- a customer sending "Ordine #1" got a duplicate code).
+SELECT set_config('test.code_e2', (public.create_order_with_items(
+  jsonb_build_object('id','00000000-0000-0000-0000-0000000000e2','company_id','00000000-0000-0000-0000-000000000001',
+    'customer_id','00000000-0000-0000-0000-0000000000c1','display_code','Ordine #1','total_amount',5,'order_type','take_away'),
+  jsonb_build_array(jsonb_build_object('product_id','00000000-0000-0000-0000-000000000011','quantity',1,'unit_price',5,'total_price',5)))->>'display_code'), false);
+-- idempotent retry (lost response) with yet another client code: same saved code
+SELECT set_config('test.code_e2_retry', (public.create_order_with_items(
+  jsonb_build_object('id','00000000-0000-0000-0000-0000000000e2','company_id','00000000-0000-0000-0000-000000000001',
+    'customer_id','00000000-0000-0000-0000-0000000000c1','display_code','Ordine #999','total_amount',5,'order_type','take_away'),
+  jsonb_build_array(jsonb_build_object('product_id','00000000-0000-0000-0000-000000000011','quantity',1,'unit_price',5,'total_price',5)))->>'display_code'), false);
+RESET ROLE;
+DO $$ DECLARE c1 text; c2 text := current_setting('test.code_e2'); n int; BEGIN
+  SELECT display_code INTO c1 FROM orders WHERE id = '00000000-0000-0000-0000-0000000000e1';
+  IF c1 IS NULL OR c1 !~ '^Ordine #[0-9]+$' THEN RAISE EXCEPTION 'client code was stored for e1: %', c1; END IF;
+  IF c2 !~ '^Ordine #[0-9]+$'
+     OR split_part(c2, '#', 2)::int <> split_part(c1, '#', 2)::int + 1 THEN
+    RAISE EXCEPTION 'display code not server-assigned/sequential: % then %', c1, c2;
+  END IF;
+  IF (SELECT display_code FROM orders WHERE id = '00000000-0000-0000-0000-0000000000e2') IS DISTINCT FROM c2 THEN
+    RAISE EXCEPTION 'saved code differs from the returned one';
+  END IF;
+  IF current_setting('test.code_e2_retry') IS DISTINCT FROM c2 THEN
+    RAISE EXCEPTION 'retry changed the code: %', current_setting('test.code_e2_retry');
+  END IF;
+  SELECT counter INTO n FROM order_daily_counters WHERE company_id = '00000000-0000-0000-0000-000000000001' AND day = current_date;
+  IF n <> split_part(c2, '#', 2)::int THEN RAISE EXCEPTION 'retry reserved a number (counter %, code %)', n, c2; END IF;
+  IF (SELECT count(*) FROM orders WHERE display_code = 'Ordine #1') > 1 THEN RAISE EXCEPTION 'duplicate Ordine #1'; END IF;
+END $$;
+-- free the antiabuse open-orders slots (limit 2) for the next checkout,
+-- and the rate limit (3 per 10 minutes; f4 is a recent order of c1 too)
+UPDATE orders SET status = 'cancelled' WHERE id IN ('00000000-0000-0000-0000-0000000000e1','00000000-0000-0000-0000-0000000000e2');
+UPDATE companies SET order_rate_limit_count = 10 WHERE id = '00000000-0000-0000-0000-000000000001';
+SET ROLE authenticated;
+-- new client: no display_code at all
+SELECT set_config('test.code_ec', (public.create_order_with_items(
+  jsonb_build_object('id','00000000-0000-0000-0000-0000000000ec','company_id','00000000-0000-0000-0000-000000000001',
+    'customer_id','00000000-0000-0000-0000-0000000000c1','total_amount',5,'order_type','take_away'),
+  jsonb_build_array(jsonb_build_object('product_id','00000000-0000-0000-0000-000000000011','quantity',1,'unit_price',5,'total_price',5)))->>'display_code'), false);
+RESET ROLE;
+DO $$ BEGIN
+  IF split_part(current_setting('test.code_ec'), '#', 2)::int <> split_part(current_setting('test.code_e2'), '#', 2)::int + 1 THEN
+    RAISE EXCEPTION 'no-code order not next in sequence: %', current_setting('test.code_ec');
+  END IF;
+  IF (SELECT count(*) FROM orders WHERE display_code IS NOT NULL GROUP BY display_code ORDER BY 1 DESC LIMIT 1) > 1 THEN
+    RAISE EXCEPTION 'duplicate display codes';
+  END IF;
+END $$;
+SET ROLE authenticated;
 -- direct inserts: all refused
 SELECT pg_temp.denied($q$INSERT INTO order_items(order_id,product_id,quantity,unit_price,total_price) VALUES ('00000000-0000-0000-0000-0000000000f1','00000000-0000-0000-0000-000000000011',1,5,5)$q$, 'item on legacy guest order (customer NULL, pending)');
 SELECT pg_temp.denied($q$INSERT INTO order_items(order_id,product_id,quantity,unit_price,total_price) VALUES ('00000000-0000-0000-0000-0000000000f3','00000000-0000-0000-0000-000000000011',1,5,5)$q$, 'item on legacy guest order (cancelled)');
@@ -67,7 +116,7 @@ SELECT pg_temp.denied($q$INSERT INTO order_items(order_id,product_id,quantity,un
 SELECT pg_temp.denied($q$INSERT INTO order_items(order_id,product_id,quantity,unit_price,total_price) VALUES ('00000000-0000-0000-0000-0000000000f2','00000000-0000-0000-0000-000000000011',1,5,5)$q$, 'item on another customer''s order');
 SELECT pg_temp.denied($q$INSERT INTO order_items(order_id,product_id,quantity,unit_price,total_price) VALUES ('00000000-0000-0000-0000-0000000000f4','00000000-0000-0000-0000-000000000011',1,5,5)$q$, 'item on own non-pending (cancelled) order');
 SELECT pg_temp.denied($q$INSERT INTO order_items(order_id,product_id,quantity,unit_price,total_price) VALUES ('00000000-0000-0000-0000-0000000000f5','00000000-0000-0000-0000-000000000021',1,7,7)$q$, 'item on other company order');
-SELECT pg_temp.denied($q$INSERT INTO orders(id,company_id,customer_id,status,fiscal_status,total_amount,order_type) VALUES ('00000000-0000-0000-0000-0000000000e2','00000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-0000000000c1','pending','pending',5,'take_away')$q$, 'direct own order (bypasses RPC/antiabuse)');
+SELECT pg_temp.denied($q$INSERT INTO orders(id,company_id,customer_id,status,fiscal_status,total_amount,order_type) VALUES ('00000000-0000-0000-0000-0000000000ed','00000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-0000000000c1','pending','pending',5,'take_away')$q$, 'direct own order (bypasses RPC/antiabuse)');
 SELECT pg_temp.denied($q$INSERT INTO orders(id,company_id,customer_id,status,fiscal_status,total_amount,order_type) VALUES ('00000000-0000-0000-0000-0000000000e3','00000000-0000-0000-0000-000000000001',NULL,'pending','pending',5,'take_away')$q$, 'direct guest order');
 -- RPC refusals
 SELECT pg_temp.err(pg_temp.rpc('00000000-0000-0000-0000-0000000000e4', NULL, '00000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000011', 5), 'Order customer does not match the current session');
@@ -105,11 +154,11 @@ RESET ROLE;
 
 DO $$ BEGIN
   IF (SELECT count(*) FROM order_items WHERE order_id = '00000000-0000-0000-0000-0000000000e1') <> 1
-     OR (SELECT status FROM orders WHERE id = '00000000-0000-0000-0000-0000000000e1') <> 'pending'
+     OR (SELECT status FROM orders WHERE id = '00000000-0000-0000-0000-0000000000ec') <> 'pending'
      OR (SELECT customer_id FROM orders WHERE id = '00000000-0000-0000-0000-0000000000e1') <> '00000000-0000-0000-0000-0000000000c1'
      OR EXISTS (SELECT 1 FROM order_items WHERE order_id IN ('00000000-0000-0000-0000-0000000000f1','00000000-0000-0000-0000-0000000000f3','00000000-0000-0000-0000-0000000000f4','00000000-0000-0000-0000-0000000000f5'))
      OR (SELECT count(*) FROM order_items WHERE order_id = '00000000-0000-0000-0000-0000000000f2') <> 1 THEN
     RAISE EXCEPTION 'unexpected rows after the guard checks';
   END IF;
 END $$;
-SELECT 'PASS: order_items insert guard (guest/0.01/other customer/non-pending/other company; staff scoped; RPC ok)' AS result;
+SELECT 'PASS: order_items insert guard (guest/0.01/other customer/non-pending/other company; staff scoped; RPC ok; server display code)' AS result;

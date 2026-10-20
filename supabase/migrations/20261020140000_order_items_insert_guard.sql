@@ -6,6 +6,10 @@
 -- a customer could add a 0.01 line to their own order) and its admin branch
 -- did not check the company.
 --
+-- Also (round16 finding): the order display code is assigned server-side by
+-- create_order_with_items via reserve_order_display_code; a client
+-- display_code is ignored.
+--
 -- Fix: customers no longer write orders / order_items directly. The only
 -- customer path is create_order_with_items, now SECURITY DEFINER (fixed
 -- search_path, checks auth.uid(), non-anonymous session, active company,
@@ -13,9 +17,8 @@
 -- pending). Direct INSERT stays only for staff (is_admin) of the same company.
 -- No app code inserts into orders / order_items directly (only the RPC).
 --
--- Compatible with #28 (grants) and #30 (hardening) in any order; if #30's
--- migration is applied AFTER this one, re-run this file (idempotent) so
--- orders_insert is staff-only again.
+-- Compatible with #28 (grants) and #30 (hardening) applied in any order:
+-- the insert policies are defined only here (#30 changes table grants only).
 
 -- 1) The RPC is the only customer write path -------------------------------
 CREATE OR REPLACE FUNCTION public.create_order_with_items(p_order jsonb, p_items jsonb)
@@ -32,6 +35,7 @@ DECLARE
   v_expected jsonb;
   v_actual jsonb;
   v_subtotal numeric;
+  v_display_code text;
 BEGIN
   IF v_id IS NULL OR v_company IS NULL OR jsonb_typeof(p_items) IS DISTINCT FROM 'array' THEN
     RAISE EXCEPTION 'Invalid order';
@@ -93,9 +97,14 @@ BEGIN
   -- Antiabuso lato server (solo per ordini nuovi: i retry idempotenti passano sopra).
   PERFORM public.assert_order_antiabuse(v_company, (p_order->>'total_amount')::numeric);
 
+  -- The display code is always assigned here: any client display_code is
+  -- ignored (it could duplicate another order's code). Retries return the
+  -- code already saved (above), so a retry never reserves a new number.
+  v_display_code := public.reserve_order_display_code(v_company);
+
   INSERT INTO public.orders (id, company_id, customer_id, display_code, status, fiscal_status,
     total_amount, notes, order_type, customer_name, customer_phone, delivery_address, table_number)
-  VALUES (v_id, v_company, v_customer, p_order->>'display_code', 'pending', 'pending',
+  VALUES (v_id, v_company, v_customer, v_display_code, 'pending', 'pending',
     (p_order->>'total_amount')::numeric, p_order->>'notes', p_order->>'order_type',
     p_order->>'customer_name', p_order->>'customer_phone', p_order->>'delivery_address', p_order->>'table_number');
 
