@@ -19,6 +19,7 @@ import {
 } from '@/lib/data/pizzaBuilder';
 import type { BuilderSelection } from '@/lib/data/pizzaBuilder';
 import { useCart } from '@/lib/stores/CartContext';
+import { useMenuPricingVersion } from '@/lib/stores/MenuPricingContext';
 import { cn } from '@/lib/utils/cn';
 import type { Product } from '@/types';
 import { FontAwesome } from '@expo/vector-icons';
@@ -59,6 +60,7 @@ export function PizzaBuilderModal({ visible, onClose, product }: PizzaBuilderMod
     const [notes, setNotes] = useState('');
 
     const { addItem } = useCart();
+    const pricingVersion = useMenuPricingVersion();
 
     useEffect(() => {
         if (!visible) return;
@@ -78,7 +80,8 @@ export function PizzaBuilderModal({ visible, onClose, product }: PizzaBuilderMod
         [sizeId, doughId, sauceId, selectedIngredients]
     );
 
-    const breakdown = useMemo(() => calculateBuilderPrice(selection), [selection]);
+    // pricingVersion: re-price when the server listino (menu_pricing) arrives.
+    const breakdown = useMemo(() => calculateBuilderPrice(selection), [selection, pricingVersion]);
     const size = getBuilderSize(sizeId);
 
     const pizzaBase = sauceId === 'bianca' ? 'bianca' : 'rossa';

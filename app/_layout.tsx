@@ -14,6 +14,7 @@ import { AppSettingsProvider } from '@/lib/stores/AppSettingsContext';
 import { AuthProvider, useAuth } from '@/lib/stores/AuthContext';
 import { FiscalProvider } from '@/lib/stores/FiscalContext';
 import { TenantProvider } from '@/lib/stores/TenantContext';
+import { MenuPricingProvider } from '@/lib/stores/MenuPricingContext';
 import { OfflineQueueProvider, OfflineIndicator } from '@/lib/hooks/useOfflineQueue';
 import { OrderNotificationProvider } from '@/lib/stores/OrderNotificationContext';
 
@@ -66,6 +67,7 @@ function RootLayoutNav() {
   return (
     <QueryProvider>
       <TenantProvider>
+        <MenuPricingProvider>
         <AppSettingsProvider>
           <FiscalProvider>
             <OfflineQueueProvider>
@@ -114,6 +116,7 @@ function RootLayoutNav() {
             </OfflineQueueProvider>
           </FiscalProvider>
         </AppSettingsProvider>
+        </MenuPricingProvider>
       </TenantProvider>
     </QueryProvider>
   );

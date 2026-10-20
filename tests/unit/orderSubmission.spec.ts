@@ -72,6 +72,20 @@ describe('server-confirmed order submission', () => {
     await act(async () => root.unmount());
   });
 
+  it('returns the server-priced total, not the cart estimate (server ignores client prices)', async () => {
+    mocks.rpc.mockImplementation(async (_name, args) => ({ data: {
+      id: args.p_order.id, display_code: 'Ordine #7', total_amount: 15, delivery_fee: 0,
+      items: [{ product_id: 'pizza-1', quantity: 2, unit_price: 7.5, total_price: 15, notes: '[P] Diavola\nNota: Ben cotta' }],
+    }, error: null }));
+    const root = await mount();
+    let result: Awaited<ReturnType<typeof submission.mutateAsync>> | undefined;
+    await act(async () => { result = await submission.mutateAsync(input); });
+    // old payload shape still sent (cached clients and new ones alike)
+    expect(mocks.rpc.mock.calls[0][1].p_items[0]).toMatchObject({ unit_price: 6.5, total_price: 13 });
+    expect(result).toMatchObject({ totalAmount: 15, displayCode: 'Ordine #7' });
+    await act(async () => root.unmount());
+  });
+
   it('reuses the submission id after a lost response and a reload', async () => {
     let savedId: string | undefined;
     let attempts = 0;

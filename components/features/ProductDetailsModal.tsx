@@ -1,4 +1,9 @@
-import { isPizzaCategoryName } from '@/lib/utils/menuCategories';
+import {
+    getMaxGustiForProduct,
+    isBeverageCategoryName as isDrinkCategoryName,
+    isMetroCategoryName,
+    isPizzaCategoryName,
+} from '@/lib/utils/menuCategories';
 import { Button } from '@/components/ui/Button';
 import { MezzoMetroGustiStep } from '@/components/features/MezzoMetroGustiStep';
 import {
@@ -14,18 +19,18 @@ import { IngredientThumb } from '@/components/features/IngredientThumb';
 import { useCategories } from '@/lib/hooks/useCategories';
 import { useProducts } from '@/lib/hooks/useProducts';
 import {
-    BUILDER_INGREDIENT_PRICES,
     BUILDER_PRODUCT_NAME,
     DEFAULT_MENU_PIZZA_SIZE_ID,
-    buildMezzoMetroModifiers,
     createMezzoMetroGustoFromProduct,
     getMenuPizzaSize,
     getMenuPizzaUnitPrice,
-    getMezzoMetroUnitPrice,
     MENU_PIZZA_SIZES,
 } from '@/lib/data/pizzaBuilder';
 import type { MenuPizzaSize, MezzoMetroGustoSlot } from '@/lib/data/pizzaBuilder';
 import { useCart } from '@/lib/stores/CartContext';
+import { useMenuPricingVersion } from '@/lib/stores/MenuPricingContext';
+import { buildMenuItemModifiers, computeMenuItemUnitPrice } from '@/lib/data/menuPricing';
+import type { MenuItemSelection } from '@/lib/data/menuPricing';
 import { cn } from '@/lib/utils/cn';
 import type { Product } from '@/types';
 import { FontAwesome } from '@expo/vector-icons';
@@ -42,29 +47,6 @@ const COOKING_OPTIONS: { id: CookingLevel; label: string }[] = [
     { id: 'ben_cotta', label: 'Ben cotta' },
 ];
 
-
-function isDrinkCategoryName(categoryName?: string): boolean {
-    if (!categoryName) return false;
-    return categoryName.toLowerCase().includes('bevand');
-}
-
-function isMetroCategoryName(categoryName?: string): boolean {
-    if (!categoryName) return false;
-    return categoryName.toLowerCase().includes('metro');
-}
-
-/**
- * Quanti gusti si possono scegliere per le pizze al metro,
- * dedotto dal nome del prodotto (Metà = 1, Due Terzi = 2, Farcita = 3).
- */
-function getMaxGustiForProduct(productName: string, categoryName?: string): number {
-    if (!isMetroCategoryName(categoryName)) return 0;
-    const normalized = productName.toLowerCase();
-    if (normalized.includes('metà') || normalized.includes('meta ')) return 1;
-    if (normalized.includes('due terzi')) return 2;
-    if (normalized.includes('farcita')) return 3;
-    return 0;
-}
 
 interface ProductDetailsModalProps {
     visible: boolean;
@@ -97,6 +79,7 @@ export function ProductDetailsModal({ visible, onClose, product, categoryName }:
     const [notes, setNotes] = useState('');
 
     const { addItem } = useCart();
+    const pricingVersion = useMenuPricingVersion();
     const { data: allProducts } = useProducts();
     const { data: allCategories } = useCategories();
     const showCookingOptions = isPizzaCategoryName(categoryName) || isMetroCategoryName(categoryName);
@@ -223,22 +206,27 @@ export function ProductDetailsModal({ visible, onClose, product, categoryName }:
 
     const selectedSize = getMenuPizzaSize(sizeId);
 
-    const extraIngredientsPrice = useMemo(
-        () => extraIngredients.reduce((sum, name) => sum + BUILDER_INGREDIENT_PRICES[categorizeIngredient(name)], 0),
-        [extraIngredients]
-    );
+    const cookingLabel =
+        cookingLevel !== 'normale'
+            ? COOKING_OPTIONS.find((option) => option.id === cookingLevel)?.label ?? null
+            : null;
+    const selection: MenuItemSelection = {
+        product,
+        categoryName,
+        sizeId,
+        extraIngredients,
+        mezzoGusti,
+        selectedGusti,
+        modifications,
+        cookingLabel,
+    };
 
-    const resolvedUnitPrice = useMemo(() => {
-        if (isMezzoMetro) {
-            const slots =
-                mezzoGusti.length > 0 ? mezzoGusti : [createMezzoMetroGustoFromProduct(product)];
-            return getMezzoMetroUnitPrice(slots, (name) => BUILDER_INGREDIENT_PRICES[categorizeIngredient(name)]);
-        }
-        const base = isStandardMenuPizza
-            ? getMenuPizzaUnitPrice(product.price, sizeId)
-            : product.price;
-        return base + extraIngredientsPrice;
-    }, [extraIngredientsPrice, isMezzoMetro, isStandardMenuPizza, mezzoGusti, product, sizeId]);
+    // Same pure function the server parity tests use (lib/data/menuPricing.ts).
+    // pricingVersion: re-price when the server listino arrives.
+    const resolvedUnitPrice = useMemo(
+        () => computeMenuItemUnitPrice(selection),
+        [pricingVersion, product, categoryName, sizeId, extraIngredients, mezzoGusti]
+    );
 
     const totalPrice = resolvedUnitPrice * quantity;
 
@@ -257,41 +245,7 @@ export function ProductDetailsModal({ visible, onClose, product, categoryName }:
     };
 
     const handleAddToCart = () => {
-        let modifiers: string[] = [];
-
-        if (isMezzoMetro) {
-            const slots =
-                mezzoGusti.length > 0 ? mezzoGusti : [createMezzoMetroGustoFromProduct(product)];
-            modifiers = buildMezzoMetroModifiers(slots);
-        } else {
-            if (isStandardMenuPizza) {
-                modifiers.push(`Taglia: ${selectedSize.label}`);
-            }
-
-            selectedGusti.forEach((gusto, index) => {
-                modifiers.push(maxGusti > 1 ? `Gusto ${index + 1}: ${gusto}` : `Gusto: ${gusto}`);
-            });
-
-            Object.entries(modifications).forEach(([ingredient, status]) => {
-                if (status === 'no') {
-                    modifiers.push(`No ${ingredient}`);
-                } else if (status === 'extra') {
-                    modifiers.push(`Extra ${ingredient}`);
-                }
-            });
-
-            extraIngredients.forEach((ingredient) => {
-                modifiers.push(`+ ${ingredient}`);
-            });
-        }
-
-        if (cookingLevel !== 'normale') {
-            const cookingLabel = COOKING_OPTIONS.find((option) => option.id === cookingLevel)?.label;
-            if (cookingLabel) {
-                modifiers.push(`Cottura: ${cookingLabel}`);
-            }
-        }
-
+        const modifiers = buildMenuItemModifiers(selection);
         addItem(product, quantity, notes.trim(), modifiers, resolvedUnitPrice);
         onClose();
     };
