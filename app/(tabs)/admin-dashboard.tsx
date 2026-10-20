@@ -14,6 +14,8 @@ import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import type { ComponentProps } from 'react';
 import { useEffect, useMemo, useState } from 'react';
+import { useMarkNoShow, useMarkedNoShowOrderIds } from '@/lib/hooks/useMarkNoShow';
+import { canMarkNoShow, mergeMarkedOrderIds, noShowResultMessage } from '@/lib/orders/noShow';
 import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -44,6 +46,7 @@ type ActionableOrder = {
   status: OrderStatus;
   total_amount: number;
   customer_name: string | null;
+  customer_id: string | null;
   decline_reason_preset: string | null;
   decline_reason_note: string | null;
 };
@@ -77,6 +80,10 @@ export default function AdminDashboardScreen() {
   const [selectedHourLabel, setSelectedHourLabel] = useState<string | null>(null);
   const [declineOrderId, setDeclineOrderId] = useState<string | null>(null);
   const updateOrderStatus = useUpdateOrderStatus();
+  const markNoShow = useMarkNoShow();
+  // Doppio tap: il primo chiede conferma, il secondo segna il non ritirato.
+  const [confirmNoShowId, setConfirmNoShowId] = useState<string | null>(null);
+  const [noShowFeedback, setNoShowFeedback] = useState<{ orderId: string; text: string; error: boolean } | null>(null);
 
   const { data, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['admin-dashboard-stats', companyId],
@@ -198,7 +205,7 @@ export default function AdminDashboardScreen() {
     queryFn: async (): Promise<ActionableOrder[]> => {
       const { data, error } = await supabase
         .from('orders')
-        .select('id, created_at, status, total_amount, customer_name, decline_reason_preset, decline_reason_note')
+        .select('id, created_at, status, total_amount, customer_name, customer_id, decline_reason_preset, decline_reason_note')
         .eq('company_id', companyId!)
         .in('status', ['pending', 'accepted', 'preparing', 'ready', 'rejected', 'cancelled'])
         .order('created_at', { ascending: false })
@@ -208,6 +215,19 @@ export default function AdminDashboardScreen() {
       return (data ?? []) as ActionableOrder[];
     },
   });
+
+  // "Non ritirato" già segnato: record sul server (resiste al refetch) + stato locale
+  // per nascondere subito il bottone dopo il successo.
+  const [locallyMarkedNoShow, setLocallyMarkedNoShow] = useState<Set<string>>(() => new Set());
+  const readyOrderIds = useMemo(
+    () => actionableOrders.filter((o) => o.status === 'ready' && o.customer_id).map((o) => o.id),
+    [actionableOrders],
+  );
+  const { data: serverMarkedNoShow } = useMarkedNoShowOrderIds(readyOrderIds, Boolean(companyId) && isAdmin);
+  const markedNoShowIds = useMemo(
+    () => mergeMarkedOrderIds(serverMarkedNoShow, locallyMarkedNoShow),
+    [serverMarkedNoShow, locallyMarkedNoShow],
+  );
 
   // Redirect non-admin users away from the dashboard after the navigator is
   // mounted. Calling router.replace() during render (before the root
@@ -672,6 +692,35 @@ export default function AdminDashboardScreen() {
                                 </Text>
                               </Pressable>
                             ) : null}
+                            {canMarkNoShow(order, markedNoShowIds) ? (
+                              <Pressable
+                                testID={`no-show-${order.id}`}
+                                accessibilityRole="button"
+                                className={`flex-1 h-9 rounded-lg items-center justify-center ${confirmNoShowId === order.id ? 'bg-amber-700' : 'bg-amber-500'}`}
+                                disabled={markNoShow.isPending}
+                                onPress={() => {
+                                  if (confirmNoShowId !== order.id) {
+                                    setConfirmNoShowId(order.id);
+                                    return;
+                                  }
+                                  setConfirmNoShowId(null);
+                                  markNoShow.mutate(
+                                    { orderId: order.id },
+                                    {
+                                      onSuccess: (result) => {
+                                        setLocallyMarkedNoShow((prev) => new Set(prev).add(order.id));
+                                        setNoShowFeedback({ orderId: order.id, text: noShowResultMessage(result), error: false });
+                                      },
+                                      onError: (error) => setNoShowFeedback({ orderId: order.id, text: error.message, error: true }),
+                                    },
+                                  );
+                                }}
+                              >
+                                <Text className="text-white text-xs font-bold">
+                                  {confirmNoShowId === order.id ? 'Conferma non ritirato' : 'Non ritirato'}
+                                </Text>
+                              </Pressable>
+                            ) : null}
                             {!isTerminalStatus(order.status) ? (
                               <Pressable
                                 className="flex-1 h-9 rounded-lg bg-red-600 items-center justify-center"
@@ -681,6 +730,11 @@ export default function AdminDashboardScreen() {
                               </Pressable>
                             ) : null}
                           </View>
+                        ) : null}
+                        {noShowFeedback?.orderId === order.id ? (
+                          <Text testID={`no-show-feedback-${order.id}`} className={`mt-2 text-[11px] font-bold ${noShowFeedback.error ? 'text-red-700' : 'text-amber-800'}`}>
+                            {noShowFeedback.text}
+                          </Text>
                         ) : null}
                       </View>
                     );
