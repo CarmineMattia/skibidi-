@@ -2,7 +2,8 @@ import { OffersList } from '@/components/features/offers/OffersList';
 import { SkeletonHomeOffers } from '@/components/ui/Skeleton';
 import type { ResolvedComboOffer } from '@/lib/data/offers';
 import { FontAwesome } from '@expo/vector-icons';
-import { Pressable, Text, View, useWindowDimensions } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
+import { useViewportWidth } from '@/lib/hooks/useHydrated';
 
 interface HomeOffersSectionProps {
   readonly offers: ResolvedComboOffer[];
@@ -21,7 +22,7 @@ export function HomeOffersSection({
   isLoading = false,
   isCompact = false,
 }: HomeOffersSectionProps) {
-  const { width } = useWindowDimensions();
+  const width = useViewportWidth();
   const cardWidth = Math.min(width - 40, 680);
   const previewHeight = isCompact ? 640 : 720;
   const useNestedScroll = offers.length >= HOME_SCROLLABLE_MIN;

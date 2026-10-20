@@ -15,15 +15,14 @@ import { useRouter } from 'expo-router';
 import Head from 'expo-router/head';
 import { useEffect, useRef, useState } from 'react';
 import {
-  Dimensions,
   LayoutChangeEvent,
   Platform,
   RefreshControl,
   ScrollView,
   Text,
   View,
-  useWindowDimensions,
 } from 'react-native';
+import { useViewportWidth } from '@/lib/hooks/useHydrated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 function addOfferToCart(offer: ResolvedComboOffer, addItem: ReturnType<typeof useCart>['addItem']) {
@@ -40,8 +39,8 @@ export default function HomeScreen() {
   const scrollRef = useRef<ScrollView>(null);
   const sectionOffsets = useRef({ gallery: 0, contact: 0 });
   const [hasHydrated, setHasHydrated] = useState(Platform.OS !== 'web');
-  const { width } = useWindowDimensions();
-  const viewportWidth = Dimensions.get('window').width;
+  const width = useViewportWidth();
+  const viewportWidth = width;
   const effectiveWidth = Math.min(width, viewportWidth);
   const responsiveWidth = hasHydrated ? effectiveWidth : 390;
   const isCompact = responsiveWidth < 430;
