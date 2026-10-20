@@ -27,8 +27,8 @@ describe('orderTracking', () => {
 describe('honest customer confirmation', () => {
   it('does not call a pending order accepted or preparing', () => {
     expect(getOrderConfirmation('pending').accepted).toBe(false);
-    expect(getTrackingBadge('delivery', 'pending').label).toBe('In attesa di accettazione');
-    expect(getTrackingSteps('delivery', 'pending').find(step => step.key === 'confirmed')).toMatchObject({ label: 'In attesa di accettazione', state: 'active' });
+    expect(getTrackingBadge('delivery', 'pending').label).toBe('In attesa di conferma');
+    expect(getTrackingSteps('delivery', 'pending').find(step => step.key === 'confirmed')).toMatchObject({ label: 'In attesa di conferma', state: 'active' });
   });
   it('does not claim success if tracking is unavailable', () => {
     expect(getOrderConfirmation(null).accepted).toBe(false);
@@ -37,6 +37,8 @@ describe('honest customer confirmation', () => {
   });
   it('only confirms acceptance from a saved kitchen status', () => {
     expect(getOrderConfirmation('preparing')).toMatchObject({ accepted: true, title: 'Ordine accettato' });
-    expect(getOrderConfirmation('cancelled')).toMatchObject({ accepted: false, title: 'Ordine non accettato' });
+    expect(getOrderConfirmation('cancelled')).toMatchObject({ accepted: false, title: 'Ordine annullato' });
+    expect(getOrderConfirmation('rejected')).toMatchObject({ accepted: false, title: 'Ordine rifiutato' });
+    expect(getOrderConfirmation('accepted')).toMatchObject({ accepted: true, title: 'Ordine accettato' });
   });
 });

@@ -1,8 +1,10 @@
 type OrderStatus =
   | 'pending'
+  | 'accepted'
   | 'preparing'
   | 'ready'
   | 'delivered'
+  | 'rejected'
   | 'cancelled';
 
 export type AdminOrderRealtimeNoticeTone = 'info' | 'success' | 'warning' | 'error';
@@ -33,6 +35,14 @@ export function buildAdminOrderRealtimeNotice(input: {
     };
   }
 
+  if (nextStatus === 'accepted') {
+    return {
+      title: 'Ordine accettato',
+      message: `${input.orderCode} è stato accettato. Avvia la preparazione in cucina.`,
+      tone: 'info',
+    };
+  }
+
   if (nextStatus === 'preparing') {
     return {
       title: 'Ordine preso in carico',
@@ -51,16 +61,24 @@ export function buildAdminOrderRealtimeNotice(input: {
 
   if (nextStatus === 'delivered') {
     return {
-      title: 'Ordine completato',
-      message: `${input.orderCode} è stato completato.`,
+      title: 'Ritirato e pagato',
+      message: `${input.orderCode} è stato ritirato e pagato.`,
       tone: 'success',
+    };
+  }
+
+  if (nextStatus === 'rejected') {
+    return {
+      title: 'Ordine rifiutato',
+      message: `${input.orderCode} è stato rifiutato.`,
+      tone: 'error',
     };
   }
 
   if (nextStatus === 'cancelled') {
     return {
-      title: 'Ordine rifiutato',
-      message: `${input.orderCode} è stato rifiutato.`,
+      title: 'Ordine annullato',
+      message: `${input.orderCode} è stato annullato.`,
       tone: 'error',
     };
   }

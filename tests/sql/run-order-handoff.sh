@@ -16,4 +16,5 @@ apply_sql < tests/sql/atomic-order-schema.sql
 apply_sql < supabase/migrations/20260610_tighten_orders_rls_tracking_rpc.sql
 apply_sql < supabase/migrations/20260901_fix_guest_order_items_rls.sql
 apply_sql < supabase/migrations/20261008_atomic_order_submission.sql
+apply_sql < supabase/migrations/20261013_order_manual_approval_guard.sql
 apply_sql < tests/sql/atomic-order-submission.sql

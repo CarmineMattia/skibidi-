@@ -1,3 +1,5 @@
+import type { OrderStatus } from '@/types/database.types';
+import { ORDER_STATUS_LABEL_IT, getForwardActionLabel, getNextForwardStatus, isTerminalStatus } from '@/lib/utils/orderStatus';
 import { supabase } from '@/lib/api/supabase';
 import { DeclineReasonModal } from '@/components/features/orders/DeclineReasonModal';
 import { SkeletonDashboardMetrics, SkeletonShiftDoughStats } from '@/components/ui/Skeleton';
@@ -39,7 +41,7 @@ type DashboardStats = {
 type ActionableOrder = {
   id: string;
   created_at: string;
-  status: 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
+  status: OrderStatus;
   total_amount: number;
   customer_name: string | null;
   decline_reason_preset: string | null;
@@ -106,7 +108,7 @@ export default function AdminDashboardScreen() {
             .from('orders')
             .select('id')
             .eq('company_id', companyId!)
-            .in('status', ['pending', 'preparing']),
+            .in('status', ['pending', 'accepted', 'preparing']),
           supabase
             .from('products')
             .select('id')
@@ -143,9 +145,11 @@ export default function AdminDashboardScreen() {
 
       const statusCounts = {
         pending: 0,
+        accepted: 0,
         preparing: 0,
         ready: 0,
         delivered: 0,
+        rejected: 0,
         cancelled: 0,
       };
 
@@ -175,10 +179,12 @@ export default function AdminDashboardScreen() {
           count: dayMap.get(day.key) ?? 0,
         })),
         statusBreakdown: [
-          { label: 'Nuovi', value: statusCounts.pending, color: '#f59e0b' },
+          { label: 'Da confermare', value: statusCounts.pending, color: '#f59e0b' },
+          { label: 'Accettati', value: statusCounts.accepted, color: '#6366f1' },
           { label: 'Prep.', value: statusCounts.preparing, color: '#3b82f6' },
           { label: 'Pronti', value: statusCounts.ready, color: '#10b981' },
-          { label: 'Consegnati', value: statusCounts.delivered, color: '#6b7280' },
+          { label: 'Ritirati e pagati', value: statusCounts.delivered, color: '#6b7280' },
+          { label: 'Rifiutati', value: statusCounts.rejected, color: '#b91c1c' },
           { label: 'Annullati', value: statusCounts.cancelled, color: '#ef4444' },
         ],
       };
@@ -194,7 +200,7 @@ export default function AdminDashboardScreen() {
         .from('orders')
         .select('id, created_at, status, total_amount, customer_name, decline_reason_preset, decline_reason_note')
         .eq('company_id', companyId!)
-        .in('status', ['pending', 'preparing', 'ready', 'cancelled'])
+        .in('status', ['pending', 'accepted', 'preparing', 'ready', 'rejected', 'cancelled'])
         .order('created_at', { ascending: false })
         .limit(12);
 
@@ -242,7 +248,7 @@ export default function AdminDashboardScreen() {
     const filteredOrders = data.orders.filter((order) => new Date(order.created_at).getTime() >= start.getTime());
     const revenue = filteredOrders.reduce((sum, order) => sum + (order.total_amount ?? 0), 0);
     const avgTicket = filteredOrders.length > 0 ? revenue / filteredOrders.length : 0;
-    const pending = filteredOrders.filter((order) => order.status === 'pending' || order.status === 'preparing').length;
+    const pending = filteredOrders.filter((order) => order.status === 'pending' || order.status === 'accepted' || order.status === 'preparing').length;
 
     return {
       ordersCount: filteredOrders.length,
@@ -353,18 +359,18 @@ export default function AdminDashboardScreen() {
   }
 
   const getNextStatus = (status: ActionableOrder['status']): ActionableOrder['status'] | null => {
-    if (status === 'pending') return 'preparing';
-    if (status === 'preparing') return 'ready';
-    if (status === 'ready') return 'delivered';
-    return null;
+    // pending → accepted (Accetta) is the mandatory manual approval step.
+    if (status === 'pending') return 'accepted';
+    return getNextForwardStatus(status);
   };
 
   const handleDeclineOrder = (payload: { preset: string; note: string }) => {
     if (!declineOrderId) return;
+    const declining = actionableOrders.find((o) => o.id === declineOrderId);
     updateOrderStatus.mutate(
       {
         orderId: declineOrderId,
-        status: 'cancelled',
+        status: declining?.status === 'pending' ? 'rejected' : 'cancelled',
         declineReasonPreset: payload.preset,
         declineReasonNote: payload.note || null,
       },
@@ -639,7 +645,7 @@ export default function AdminDashboardScreen() {
                               {order.customer_name || 'Cliente'} • €{order.total_amount.toFixed(2)}
                             </Text>
                           </View>
-                          <Text className="text-[11px] font-bold uppercase text-[#8d171e]">{order.status}</Text>
+                          <Text className="text-[11px] font-bold uppercase text-[#8d171e]">{ORDER_STATUS_LABEL_IT[order.status] ?? order.status}</Text>
                         </View>
                         {(order.decline_reason_preset || order.decline_reason_note) && (
                           <View className="mt-2 rounded-lg border border-red-200 bg-red-50 p-2">
@@ -647,7 +653,7 @@ export default function AdminDashboardScreen() {
                             {order.decline_reason_note ? <Text className="text-[11px] text-red-700">{order.decline_reason_note}</Text> : null}
                           </View>
                         )}
-                        {(nextStatus || order.status !== 'cancelled') ? (
+                        {(nextStatus || !isTerminalStatus(order.status)) ? (
                           <View className="flex-row gap-2 mt-3">
                             {nextStatus ? (
                               <Pressable
@@ -662,13 +668,11 @@ export default function AdminDashboardScreen() {
                                 <Text className="text-white text-xs font-bold">
                                   {order.status === 'pending'
                                     ? 'Accetta'
-                                    : order.status === 'preparing'
-                                    ? 'Segna pronto'
-                                    : 'Segna consegnato'}
+                                    : getForwardActionLabel(order.status) ?? 'Avanti'}
                                 </Text>
                               </Pressable>
                             ) : null}
-                            {order.status !== 'cancelled' && order.status !== 'delivered' ? (
+                            {!isTerminalStatus(order.status) ? (
                               <Pressable
                                 className="flex-1 h-9 rounded-lg bg-red-600 items-center justify-center"
                                 onPress={() => setDeclineOrderId(order.id)}

@@ -23,26 +23,30 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 type OrderStatus = Database['public']['Enums']['order_status'];
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
-  pending: 'Nuovo',
+  pending: 'In attesa di conferma',
+  accepted: 'Accettato',
   preparing: 'In preparazione',
   ready: 'Pronto',
-  delivered: 'Completato',
+  delivered: 'Ritirato e pagato',
+  rejected: 'Rifiutato',
   cancelled: 'Annullato',
 };
 
 const STATUS_COLORS: Record<OrderStatus, { bg: string; text: string }> = {
   pending: { bg: 'bg-amber-100', text: 'text-amber-700' },
+  accepted: { bg: 'bg-indigo-100', text: 'text-indigo-700' },
   preparing: { bg: 'bg-sky-100', text: 'text-sky-700' },
   ready: { bg: 'bg-emerald-100', text: 'text-emerald-700' },
   delivered: { bg: 'bg-slate-100', text: 'text-slate-700' },
+  rejected: { bg: 'bg-rose-100', text: 'text-rose-700' },
   cancelled: { bg: 'bg-rose-100', text: 'text-rose-700' },
 };
 
 const ADMIN_FILTERS: { label: string; statuses?: OrderStatus[] }[] = [
   { label: 'Tutti' },
-  { label: 'In corso', statuses: ['pending', 'preparing', 'ready'] },
-  { label: 'Completati', statuses: ['delivered'] },
-  { label: 'Annullati', statuses: ['cancelled'] },
+  { label: 'In corso', statuses: ['pending', 'accepted', 'preparing', 'ready'] },
+  { label: 'Ritirati e pagati', statuses: ['delivered'] },
+  { label: 'Rifiutati/Annullati', statuses: ['rejected', 'cancelled'] },
 ];
 
 function formatOrderDate(createdAt: string): string {
