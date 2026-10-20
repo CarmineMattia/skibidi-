@@ -9,6 +9,7 @@
 import { Button } from '@/components/ui/Button';
 import { TurnstileWidget } from '@/components/features/TurnstileWidget';
 import { isAntiabuseError } from '@/lib/utils/antiabuse';
+import { isOrderLineError } from '@/lib/utils/orderLineErrors';
 import { useCreateOrder } from '@/lib/hooks/useCreateOrder';
 import { useOrderSubmissionGuard } from '@/lib/hooks/useOrderSubmissionGuard';
 import {
@@ -35,7 +36,7 @@ const ORDER_TYPE_OPTIONS: { value: OrderType; label: string }[] = [
 export default function OneScreenCheckout() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { items, totalAmount, clearCart } = useCart();
+  const { items, totalAmount, clearCart, removeProductLines } = useCart();
   const createOrder = useCreateOrder();
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
@@ -95,6 +96,10 @@ export default function OneScreenCheckout() {
     } catch (error) {
       await complete(false);
       console.error('Order creation failed:', error);
+      // Prodotto non più disponibile / opzioni non valide: tolto dal carrello.
+      if (isOrderLineError(error) && error.removeFromCart && error.productId) {
+        removeProductLines(error.productId);
+      }
       // Messaggio in pagina: Alert.alert non compare sul web.
       setSubmissionError(
         isAntiabuseError(error)
@@ -104,6 +109,7 @@ export default function OneScreenCheckout() {
     }
   }, [
     items,
+    removeProductLines,
     orderType,
     customerName,
     customerPhone,

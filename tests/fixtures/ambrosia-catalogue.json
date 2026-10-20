@@ -1,0 +1,915 @@
+{
+ "products": [
+  {
+   "id": "0458c513-6853-a74e-e05b-c92e0fac4dab",
+   "name": "Acqua nat/gas 0.50",
+   "price": 1.0,
+   "category_id": "dffc40b6-4cef-f7e7-4357-536429dfd8e1",
+   "ingredients": []
+  },
+  {
+   "id": "e908b1e2-7ebf-9d9d-c880-4b107dcf0d86",
+   "name": "Acqua Pejo nat/gas 0.75L",
+   "price": 2.0,
+   "category_id": "dffc40b6-4cef-f7e7-4357-536429dfd8e1",
+   "ingredients": []
+  },
+  {
+   "id": "6ed0c042-e272-74a2-1b9e-8e35b5ac40fe",
+   "name": "Amalfi",
+   "price": 7.0,
+   "category_id": "533b13e0-820a-47c6-ff50-15e4d1e463c4",
+   "ingredients": [
+    "pomodoro",
+    "mozz.fior di latte",
+    "scamorza affumicata",
+    "pomodorini"
+   ]
+  },
+  {
+   "id": "7bbdfd63-3bbe-eaf1-2025-5be3178dcc6e",
+   "name": "Ambrosia",
+   "price": 9.0,
+   "category_id": "8f0c00b2-2b1e-1f3f-0914-63e1153ee035",
+   "ingredients": [
+    "mozz. di bufala",
+    "pomodorini",
+    "pesto alla genovese"
+   ]
+  },
+  {
+   "id": "6fe456ff-2489-0d9c-817e-796a07a06412",
+   "name": "Beach",
+   "price": 8.0,
+   "category_id": "b225a6a0-ba0b-4490-b5f8-17e19b10b7fb",
+   "ingredients": [
+    "mozz.fior di latte",
+    "rucola",
+    "pomodorini",
+    "gamberetti"
+   ]
+  },
+  {
+   "id": "700c7a1f-b8df-ef00-4c53-71c30c1d5dc2",
+   "name": "Birra analcolica",
+   "price": 3.5,
+   "category_id": "dffc40b6-4cef-f7e7-4357-536429dfd8e1",
+   "ingredients": []
+  },
+  {
+   "id": "34ccda30-0813-fbf8-e46c-5fd8b029b174",
+   "name": "Birra Theresianer 1L",
+   "price": 10.0,
+   "category_id": "dffc40b6-4cef-f7e7-4357-536429dfd8e1",
+   "ingredients": []
+  },
+  {
+   "id": "c73de59c-9864-9b77-0a5a-c2767833d912",
+   "name": "Birra Theresianer media",
+   "price": 3.5,
+   "category_id": "dffc40b6-4cef-f7e7-4357-536429dfd8e1",
+   "ingredients": []
+  },
+  {
+   "id": "77f43c92-ef47-6ec5-09f8-938f0c291b7a",
+   "name": "Birra Theresianer piccola",
+   "price": 2.5,
+   "category_id": "dffc40b6-4cef-f7e7-4357-536429dfd8e1",
+   "ingredients": []
+  },
+  {
+   "id": "e15e4f9e-2c4c-dac7-cc60-4718af1d1c3b",
+   "name": "Bologna",
+   "price": 11.0,
+   "category_id": "8f0c00b2-2b1e-1f3f-0914-63e1153ee035",
+   "ingredients": [
+    "Stria",
+    "mortadella",
+    "straciatella",
+    "crema di pistacchio"
+   ]
+  },
+  {
+   "id": "cb87873f-000c-2283-bab2-bf021f9b5eb7",
+   "name": "Buna",
+   "price": 7.0,
+   "category_id": "b225a6a0-ba0b-4490-b5f8-17e19b10b7fb",
+   "ingredients": [
+    "mozz.fior di latte",
+    "salsiccia",
+    "friarielli"
+   ]
+  },
+  {
+   "id": "87f43a21-0340-b4c2-ea2c-fbdacfb41127",
+   "name": "Calzone",
+   "price": 6.0,
+   "category_id": "9e1b847c-8a0c-039d-6021-66b8d8dcd438",
+   "ingredients": [
+    "pomodoro",
+    "mozz.fior di latte",
+    "prosciutto cotto"
+   ]
+  },
+  {
+   "id": "8b850d81-139f-841c-d853-2706cefe3153",
+   "name": "Calzone farcito",
+   "price": 6.5,
+   "category_id": "9e1b847c-8a0c-039d-6021-66b8d8dcd438",
+   "ingredients": [
+    "pomodoro",
+    "mozz.fior di latte",
+    "prosciutto cotto",
+    "funghi"
+   ]
+  },
+  {
+   "id": "50bc1973-f42f-d472-9003-58d321a67c91",
+   "name": "Canossa",
+   "price": 9.5,
+   "category_id": "533b13e0-820a-47c6-ff50-15e4d1e463c4",
+   "ingredients": [
+    "pomodoro",
+    "mozz.fior di latte",
+    "prosciutto crudo di parma",
+    "rucola",
+    "scaglie di grana",
+    "glassa di aceto balsamico"
+   ]
+  },
+  {
+   "id": "c4cc87ed-28c9-017d-eca3-12c08d01776a",
+   "name": "Cantabrico",
+   "price": 9.0,
+   "category_id": "8f0c00b2-2b1e-1f3f-0914-63e1153ee035",
+   "ingredients": [
+    "pomodoro",
+    "mozz.fior di latte",
+    "acciughe del mar Cantabrico"
+   ]
+  },
+  {
+   "id": "4acc4693-1c18-e39a-10bb-70f130b2e8e4",
+   "name": "Capricciosa",
+   "price": 7.5,
+   "category_id": "9e1b847c-8a0c-039d-6021-66b8d8dcd438",
+   "ingredients": [
+    "pomodoro",
+    "mozz.fior di latte",
+    "prosciutto cotto",
+    "funghi",
+    "carciofi",
+    "salsiccia",
+    "olive"
+   ]
+  },
+  {
+   "id": "0660b53c-4621-173d-3dfd-0322f1589119",
+   "name": "Carbonara",
+   "price": 10.0,
+   "category_id": "8f0c00b2-2b1e-1f3f-0914-63e1153ee035",
+   "ingredients": [
+    "mozz. di bufala",
+    "pancetta",
+    "uovo",
+    "pepe nero"
+   ]
+  },
+  {
+   "id": "7a7ed43d-4b32-3a43-d6c6-5349510921fd",
+   "name": "Ceres 0.33L",
+   "price": 3.5,
+   "category_id": "dffc40b6-4cef-f7e7-4357-536429dfd8e1",
+   "ingredients": []
+  },
+  {
+   "id": "fb40bbe6-7a15-9e73-fc84-26a8f94a1888",
+   "name": "Chardonnay",
+   "price": 10.0,
+   "category_id": "dffc40b6-4cef-f7e7-4357-536429dfd8e1",
+   "ingredients": []
+  },
+  {
+   "id": "7ac285d3-e781-5ecb-8dc8-2b62e655f98d",
+   "name": "Coca Cola",
+   "price": 2.0,
+   "category_id": "dffc40b6-4cef-f7e7-4357-536429dfd8e1",
+   "ingredients": []
+  },
+  {
+   "id": "acfbff2b-4797-0311-5947-bf54995a2474",
+   "name": "Coca Cola 1.5 LT",
+   "price": 6.0,
+   "category_id": "dffc40b6-4cef-f7e7-4357-536429dfd8e1",
+   "ingredients": []
+  },
+  {
+   "id": "a8957983-1779-c47a-7468-3cec76aa96fd",
+   "name": "Coca Cola media",
+   "price": 3.0,
+   "category_id": "dffc40b6-4cef-f7e7-4357-536429dfd8e1",
+   "ingredients": []
+  },
+  {
+   "id": "37f7ebe8-7bd7-811c-9ee0-819807279734",
+   "name": "Coca Cola piccola",
+   "price": 2.0,
+   "category_id": "dffc40b6-4cef-f7e7-4357-536429dfd8e1",
+   "ingredients": []
+  },
+  {
+   "id": "647e5de6-6bc3-5acb-2b4a-0413e8e8bee8",
+   "name": "Coca Cola Zero",
+   "price": 2.0,
+   "category_id": "dffc40b6-4cef-f7e7-4357-536429dfd8e1",
+   "ingredients": []
+  },
+  {
+   "id": "5576b740-1edb-5307-f2f6-4d7b8e2ff0aa",
+   "name": "Crudo di Parma",
+   "price": 7.5,
+   "category_id": "9e1b847c-8a0c-039d-6021-66b8d8dcd438",
+   "ingredients": [
+    "pomodoro",
+    "mozz.fior di latte",
+    "prosciutto crudo di Parma"
+   ]
+  },
+  {
+   "id": "25b3b1a9-9892-80b3-ab42-c7eb687ab48f",
+   "name": "Crudo e Burrata",
+   "price": 11.0,
+   "category_id": "8f0c00b2-2b1e-1f3f-0914-63e1153ee035",
+   "ingredients": [
+    "pomodoro",
+    "mozz.fior di latte",
+    "crudo di Parma",
+    "burrata Pugliese",
+    "olio"
+   ]
+  },
+  {
+   "id": "21e5edaf-f9f9-90f2-d4da-71b5ee01360d",
+   "name": "Diavola",
+   "price": 6.5,
+   "category_id": "9e1b847c-8a0c-039d-6021-66b8d8dcd438",
+   "ingredients": [
+    "pomodoro",
+    "mozz.fior di latte",
+    "spianata calabra"
+   ]
+  },
+  {
+   "id": "6f1c229c-20ab-a5a1-4cdd-c021f9ab843c",
+   "name": "Erdinger Weissbier 0.5L",
+   "price": 5.0,
+   "category_id": "dffc40b6-4cef-f7e7-4357-536429dfd8e1",
+   "ingredients": []
+  },
+  {
+   "id": "66fbba94-3776-16a1-f1fa-62b758389d10",
+   "name": "Fanta",
+   "price": 2.0,
+   "category_id": "dffc40b6-4cef-f7e7-4357-536429dfd8e1",
+   "ingredients": []
+  },
+  {
+   "id": "35a1362c-ccd9-3e1e-09e3-d8a37c91769e",
+   "name": "Farcita",
+   "price": 18.0,
+   "category_id": "f11a9c8e-343b-b2fe-b02f-a2e2154aa2ff",
+   "ingredients": []
+  },
+  {
+   "id": "ed918e23-e4db-f042-2f1d-0f3bbb86fd4e",
+   "name": "Francescana",
+   "price": 7.5,
+   "category_id": "533b13e0-820a-47c6-ff50-15e4d1e463c4",
+   "ingredients": [
+    "pomodoro",
+    "mozz.fior di latte",
+    "gorgonzola",
+    "porcini trifolati"
+   ]
+  },
+  {
+   "id": "60dc8568-fc82-4ea9-4b07-18f9275ac214",
+   "name": "Frutti di Mare",
+   "price": 9.0,
+   "category_id": "533b13e0-820a-47c6-ff50-15e4d1e463c4",
+   "ingredients": [
+    "pomodoro",
+    "mozz.fior di latte",
+    "seppie",
+    "calamari",
+    "vongole",
+    "cozze",
+    "polpi",
+    "surimi"
+   ]
+  },
+  {
+   "id": "911dca27-294f-f4ac-1e63-d4923f96b154",
+   "name": "Funghi",
+   "price": 6.0,
+   "category_id": "9e1b847c-8a0c-039d-6021-66b8d8dcd438",
+   "ingredients": [
+    "pomodoro",
+    "mozz.fior di latte",
+    "funghi"
+   ]
+  },
+  {
+   "id": "9f0d44a9-07b8-7371-1884-ffe12d66d699",
+   "name": "Gorgonzola e Noci",
+   "price": 8.0,
+   "category_id": "b225a6a0-ba0b-4490-b5f8-17e19b10b7fb",
+   "ingredients": [
+    "mozz.fior di latte",
+    "gorgonzola",
+    "noci"
+   ]
+  },
+  {
+   "id": "7ee570c3-28b7-f18c-ab42-eb739b2e2a64",
+   "name": "Gourmet",
+   "price": 22.0,
+   "category_id": "f11a9c8e-343b-b2fe-b02f-a2e2154aa2ff",
+   "ingredients": []
+  },
+  {
+   "id": "ded35530-96c1-52e7-421c-20876b27124b",
+   "name": "Hanz",
+   "price": 6.5,
+   "category_id": "9e1b847c-8a0c-039d-6021-66b8d8dcd438",
+   "ingredients": [
+    "pomodoro",
+    "mozz.fior di latte",
+    "würstel",
+    "patatine fritte"
+   ]
+  },
+  {
+   "id": "685e3b53-6ed6-689a-fe8a-5b004a69f72a",
+   "name": "Heineken 0.66L",
+   "price": 3.5,
+   "category_id": "dffc40b6-4cef-f7e7-4357-536429dfd8e1",
+   "ingredients": []
+  },
+  {
+   "id": "f795213b-83cf-da45-8445-5d8462a0a43d",
+   "name": "Ichnusa 0.5L",
+   "price": 3.5,
+   "category_id": "dffc40b6-4cef-f7e7-4357-536429dfd8e1",
+   "ingredients": []
+  },
+  {
+   "id": "c54c0b8a-4ea7-0a43-9f1e-52eeaf685091",
+   "name": "La Corte Vecia",
+   "price": 7.5,
+   "category_id": "533b13e0-820a-47c6-ff50-15e4d1e463c4",
+   "ingredients": [
+    "pomodoro",
+    "mozz.fior di latte",
+    "rucola",
+    "scaglie di grana",
+    "glassa di aceto balsamico"
+   ]
+  },
+  {
+   "id": "8a1fb53c-4a9f-8af3-8484-9ac1e1b71ba0",
+   "name": "La fumè",
+   "price": 8.5,
+   "category_id": "533b13e0-820a-47c6-ff50-15e4d1e463c4",
+   "ingredients": [
+    "pomodoro",
+    "mozz.fior di latte",
+    "speck",
+    "scamorza affumicata"
+   ]
+  },
+  {
+   "id": "4eaf1dc3-1b0a-b1f7-8206-8a89b69c5729",
+   "name": "La Rustica",
+   "price": 11.0,
+   "category_id": "8f0c00b2-2b1e-1f3f-0914-63e1153ee035",
+   "ingredients": [
+    "mozz.fior di latte",
+    "pancetta",
+    "stracchino",
+    "patate al forno"
+   ]
+  },
+  {
+   "id": "7758ee2c-0404-8d96-079e-d94d5c65b220",
+   "name": "La Zuccotta",
+   "price": 11.0,
+   "category_id": "8f0c00b2-2b1e-1f3f-0914-63e1153ee035",
+   "ingredients": [
+    "crema di zucca",
+    "mozz.fior di latte",
+    "gorgonzola",
+    "pancetta",
+    "pepe nero"
+   ]
+  },
+  {
+   "id": "4dc2d059-0aa5-f899-6f26-aed5316991c7",
+   "name": "Leffe Bionda 0.33L",
+   "price": 3.5,
+   "category_id": "dffc40b6-4cef-f7e7-4357-536429dfd8e1",
+   "ingredients": []
+  },
+  {
+   "id": "f8302e92-2520-56a3-9ff2-9b577777cafa",
+   "name": "Leffe Rossa 0.33L",
+   "price": 3.5,
+   "category_id": "dffc40b6-4cef-f7e7-4357-536429dfd8e1",
+   "ingredients": []
+  },
+  {
+   "id": "05e8aca4-c6cb-31f4-dfdc-f786907c6989",
+   "name": "Margherita",
+   "price": 5.0,
+   "category_id": "9e1b847c-8a0c-039d-6021-66b8d8dcd438",
+   "ingredients": [
+    "pomodoro",
+    "mozz.fior di latte"
+   ]
+  },
+  {
+   "id": "55f10930-0b4a-9cf0-41ea-4c09bf28422f",
+   "name": "Margherita",
+   "price": 13.0,
+   "category_id": "f11a9c8e-343b-b2fe-b02f-a2e2154aa2ff",
+   "ingredients": []
+  },
+  {
+   "id": "1061fbe6-509a-62e0-ae37-3f90cc918671",
+   "name": "Marinara",
+   "price": 4.5,
+   "category_id": "9e1b847c-8a0c-039d-6021-66b8d8dcd438",
+   "ingredients": [
+    "pomodoro",
+    "aglio",
+    "origano"
+   ]
+  },
+  {
+   "id": "42f86782-d03a-633c-260d-0494e2e66c70",
+   "name": "Matildica",
+   "price": 8.0,
+   "category_id": "533b13e0-820a-47c6-ff50-15e4d1e463c4",
+   "ingredients": [
+    "pomodoro",
+    "mozz.fior di latte",
+    "funghi porcini trifolati",
+    "pomodorini",
+    "parmigiano reggiano"
+   ]
+  },
+  {
+   "id": "4f5d8d14-972c-247e-180b-fbe667d11888",
+   "name": "Messicana",
+   "price": 7.5,
+   "category_id": "b225a6a0-ba0b-4490-b5f8-17e19b10b7fb",
+   "ingredients": [
+    "mozz.fior di latte e di bufala",
+    "pancetta",
+    "olio piccante"
+   ]
+  },
+  {
+   "id": "8e6290f1-a07f-1ae6-3ef4-89f3db338abb",
+   "name": "Metà Margherita Metà Farcita",
+   "price": 16.0,
+   "category_id": "f11a9c8e-343b-b2fe-b02f-a2e2154aa2ff",
+   "ingredients": []
+  },
+  {
+   "id": "83c6feb1-5c4a-084f-56d9-33acb4bc31c5",
+   "name": "Miami",
+   "price": 8.0,
+   "category_id": "533b13e0-820a-47c6-ff50-15e4d1e463c4",
+   "ingredients": [
+    "pomodoro",
+    "mozz.fior di latte",
+    "gamberetti",
+    "zucchine"
+   ]
+  },
+  {
+   "id": "3d93f326-24d9-ba35-78a0-f4ecdfb31e79",
+   "name": "Moretti 0.66L",
+   "price": 3.5,
+   "category_id": "dffc40b6-4cef-f7e7-4357-536429dfd8e1",
+   "ingredients": []
+  },
+  {
+   "id": "2d2e53df-ec08-225c-c4ba-7daf6f4af516",
+   "name": "Napoli",
+   "price": 6.0,
+   "category_id": "9e1b847c-8a0c-039d-6021-66b8d8dcd438",
+   "ingredients": [
+    "pomodoro",
+    "mozz.fior di latte",
+    "acciughe",
+    "origano"
+   ]
+  },
+  {
+   "id": "5bba5ee7-2027-0ba7-63aa-e40836611a97",
+   "name": "Nord e Sud",
+   "price": 8.0,
+   "category_id": "533b13e0-820a-47c6-ff50-15e4d1e463c4",
+   "ingredients": [
+    "pomodoro",
+    "mozz.fior di latte",
+    "'nduja e gorgonzola"
+   ]
+  },
+  {
+   "id": "9b363f85-a930-d75f-3160-2a98996142b1",
+   "name": "Pancetta",
+   "price": 7.5,
+   "category_id": "9e1b847c-8a0c-039d-6021-66b8d8dcd438",
+   "ingredients": [
+    "pomodoro",
+    "mozz.fior di latte",
+    "pancetta"
+   ]
+  },
+  {
+   "id": "d5cf8733-16e6-0f92-23f2-bc1ce260903a",
+   "name": "Piccantina",
+   "price": 8.0,
+   "category_id": "b225a6a0-ba0b-4490-b5f8-17e19b10b7fb",
+   "ingredients": [
+    "mozz.fior di latte",
+    "spianata calabra",
+    "acciughe",
+    "friarielli"
+   ]
+  },
+  {
+   "id": "80ab95e6-647b-d8c6-5906-b63096fa0fb5",
+   "name": "Pizza del Centro",
+   "price": 9.5,
+   "category_id": "b225a6a0-ba0b-4490-b5f8-17e19b10b7fb",
+   "ingredients": [
+    "mozz.fior di latte",
+    "melanzane",
+    "zucchine",
+    "peperoni",
+    "pomodorini",
+    "porcini"
+   ]
+  },
+  {
+   "id": "fefe37de-3d38-973b-b40b-31c0356f1922",
+   "name": "Profiterol",
+   "price": 4.0,
+   "category_id": "df6059a9-db8c-b937-1c88-c8920bfb2014",
+   "ingredients": []
+  },
+  {
+   "id": "8588a45b-f05b-da59-aeeb-e8aa336b06a6",
+   "name": "Prosciutto",
+   "price": 6.0,
+   "category_id": "9e1b847c-8a0c-039d-6021-66b8d8dcd438",
+   "ingredients": [
+    "pomodoro",
+    "mozz.fior di latte",
+    "prosciutto cotto"
+   ]
+  },
+  {
+   "id": "df149fda-a56c-7c0d-2c24-b3c8131d55e8",
+   "name": "Prosecco Contarini",
+   "price": 10.0,
+   "category_id": "dffc40b6-4cef-f7e7-4357-536429dfd8e1",
+   "ingredients": []
+  },
+  {
+   "id": "a85dece1-5bb3-b377-1719-7f9e936f9532",
+   "name": "Quattro Formaggi",
+   "price": 6.5,
+   "category_id": "9e1b847c-8a0c-039d-6021-66b8d8dcd438",
+   "ingredients": [
+    "pomodoro",
+    "mozz.fior di latte",
+    "pecorino",
+    "emmental",
+    "gorgonzola"
+   ]
+  },
+  {
+   "id": "749f03a8-2b46-d080-faf2-d6b375e2228b",
+   "name": "Quattro Stagioni",
+   "price": 7.0,
+   "category_id": "9e1b847c-8a0c-039d-6021-66b8d8dcd438",
+   "ingredients": [
+    "pomodoro",
+    "mozz.fior di latte",
+    "prosciutto cotto",
+    "funghi",
+    "carciofi",
+    "salsiccia"
+   ]
+  },
+  {
+   "id": "4b1a90b1-a400-9f0b-bdbf-3c98e4488fc4",
+   "name": "Romana",
+   "price": 6.5,
+   "category_id": "9e1b847c-8a0c-039d-6021-66b8d8dcd438",
+   "ingredients": [
+    "pomodoro",
+    "mozz.fior di latte",
+    "acciughe",
+    "capperi",
+    "origano",
+    "olive"
+   ]
+  },
+  {
+   "id": "0348bd5e-ec70-3df8-3540-b81fcd9cff68",
+   "name": "Salsiccia",
+   "price": 6.0,
+   "category_id": "9e1b847c-8a0c-039d-6021-66b8d8dcd438",
+   "ingredients": [
+    "pomodoro",
+    "mozz.fior di latte",
+    "salsiccia"
+   ]
+  },
+  {
+   "id": "a8a2b0d4-9a37-5150-7dcc-2fe2b3147cfc",
+   "name": "Sorbetto al Limone",
+   "price": 2.0,
+   "category_id": "df6059a9-db8c-b937-1c88-c8920bfb2014",
+   "ingredients": []
+  },
+  {
+   "id": "3f3c8d25-16be-242d-7fac-f7430168ee69",
+   "name": "Speciale",
+   "price": 7.0,
+   "category_id": "9e1b847c-8a0c-039d-6021-66b8d8dcd438",
+   "ingredients": [
+    "pomodoro",
+    "mozz.fior di latte di bufala",
+    "pomodorini",
+    "basilico"
+   ]
+  },
+  {
+   "id": "d71787f2-8190-e631-51b3-5250e289efdf",
+   "name": "Speck",
+   "price": 7.5,
+   "category_id": "9e1b847c-8a0c-039d-6021-66b8d8dcd438",
+   "ingredients": [
+    "pomodoro",
+    "mozz.fior di latte",
+    "speck"
+   ]
+  },
+  {
+   "id": "bb9bedc9-03d7-cb41-f944-7bbcc6ca09b4",
+   "name": "Sprite",
+   "price": 2.0,
+   "category_id": "dffc40b6-4cef-f7e7-4357-536429dfd8e1",
+   "ingredients": []
+  },
+  {
+   "id": "2f6ad905-62dc-47c9-2b68-8e9542812ee1",
+   "name": "Stracchino e Rucola",
+   "price": 7.5,
+   "category_id": "9e1b847c-8a0c-039d-6021-66b8d8dcd438",
+   "ingredients": [
+    "pomodoro",
+    "mozz.fior di latte",
+    "stracchino",
+    "rucola"
+   ]
+  },
+  {
+   "id": "3db94745-690b-6cd6-193b-d98e2dd693c5",
+   "name": "Stria",
+   "price": 3.0,
+   "category_id": "b225a6a0-ba0b-4490-b5f8-17e19b10b7fb",
+   "ingredients": []
+  },
+  {
+   "id": "4d889992-35e1-5266-9d88-29f45f8d0581",
+   "name": "Super Farcita",
+   "price": 20.0,
+   "category_id": "f11a9c8e-343b-b2fe-b02f-a2e2154aa2ff",
+   "ingredients": []
+  },
+  {
+   "id": "638ef407-8372-1dde-1281-8f0c49e4bae7",
+   "name": "Tartufata",
+   "price": 8.0,
+   "category_id": "b225a6a0-ba0b-4490-b5f8-17e19b10b7fb",
+   "ingredients": [
+    "mozz.fior di latte",
+    "porcini",
+    "crema tartufata"
+   ]
+  },
+  {
+   "id": "ab1d6fa3-4388-cf59-4e0e-35a8123cb2b6",
+   "name": "Tartufo Bianco / Nero",
+   "price": 4.0,
+   "category_id": "df6059a9-db8c-b937-1c88-c8920bfb2014",
+   "ingredients": []
+  },
+  {
+   "id": "3fa852f6-f365-e671-28f2-004a475412f5",
+   "name": "The Limone/Pesca",
+   "price": 2.0,
+   "category_id": "dffc40b6-4cef-f7e7-4357-536429dfd8e1",
+   "ingredients": []
+  },
+  {
+   "id": "507be782-cab1-3d0e-3384-7773529fb335",
+   "name": "Tiramisù",
+   "price": 4.0,
+   "category_id": "df6059a9-db8c-b937-1c88-c8920bfb2014",
+   "ingredients": []
+  },
+  {
+   "id": "d8585032-7b09-e145-17d2-6fa01a49441b",
+   "name": "Tirolese",
+   "price": 9.0,
+   "category_id": "533b13e0-820a-47c6-ff50-15e4d1e463c4",
+   "ingredients": [
+    "pomodoro",
+    "mozz.fior di latte e di bufala",
+    "porcini trifolati",
+    "speck"
+   ]
+  },
+  {
+   "id": "17c5fe9c-fc81-90f8-5a03-c5b4a0b9e573",
+   "name": "Tonno",
+   "price": 6.0,
+   "category_id": "9e1b847c-8a0c-039d-6021-66b8d8dcd438",
+   "ingredients": [
+    "pomodoro",
+    "mozz.fior di latte",
+    "tonno"
+   ]
+  },
+  {
+   "id": "2ff3ba0c-52aa-cc41-8486-79094cfe10a8",
+   "name": "Torroncino",
+   "price": 4.0,
+   "category_id": "df6059a9-db8c-b937-1c88-c8920bfb2014",
+   "ingredients": []
+  },
+  {
+   "id": "d91f0e5d-7a7e-dd4e-3dfe-f6467cab8c2f",
+   "name": "Trentina",
+   "price": 8.0,
+   "category_id": "533b13e0-820a-47c6-ff50-15e4d1e463c4",
+   "ingredients": [
+    "pomodoro",
+    "mozz.fior di latte",
+    "gorgonzola",
+    "speck"
+   ]
+  },
+  {
+   "id": "55d27bcb-fdb1-eceb-cac1-4c7875927e5e",
+   "name": "Valtellina",
+   "price": 9.0,
+   "category_id": "533b13e0-820a-47c6-ff50-15e4d1e463c4",
+   "ingredients": [
+    "pomodoro",
+    "mozz.fior di latte",
+    "bresaola",
+    "rucola",
+    "scaglie di grana"
+   ]
+  },
+  {
+   "id": "48c851ca-a589-0737-4574-ad4e2cd5a2eb",
+   "name": "Vegetariana",
+   "price": 8.0,
+   "category_id": "533b13e0-820a-47c6-ff50-15e4d1e463c4",
+   "ingredients": [
+    "pomodoro",
+    "mozz.fior di latte",
+    "melanzane",
+    "peperoni",
+    "zucchine"
+   ]
+  },
+  {
+   "id": "3669aabd-82e6-8fa3-37a1-1091f6040154",
+   "name": "Vino Bianco Malvasia 1/2",
+   "price": 4.5,
+   "category_id": "dffc40b6-4cef-f7e7-4357-536429dfd8e1",
+   "ingredients": []
+  },
+  {
+   "id": "15f7d0a4-8f07-c50f-74db-d0e2c5f92e14",
+   "name": "Vino Bianco Malvasia 1/4",
+   "price": 3.0,
+   "category_id": "dffc40b6-4cef-f7e7-4357-536429dfd8e1",
+   "ingredients": []
+  },
+  {
+   "id": "d882290e-46d4-8dd2-6186-1dbe9738a85a",
+   "name": "Vino Bianco Malvasia 1L",
+   "price": 9.0,
+   "category_id": "dffc40b6-4cef-f7e7-4357-536429dfd8e1",
+   "ingredients": []
+  },
+  {
+   "id": "c275e551-dcf3-12f3-c9f4-9f8a55351ce1",
+   "name": "Würstel",
+   "price": 6.0,
+   "category_id": "9e1b847c-8a0c-039d-6021-66b8d8dcd438",
+   "ingredients": [
+    "pomodoro",
+    "mozz.fior di latte",
+    "Würstel"
+   ]
+  }
+ ],
+ "categories": [
+  {
+   "id": "f11a9c8e-343b-b2fe-b02f-a2e2154aa2ff",
+   "name": "Al metro",
+   "active": true
+  },
+  {
+   "id": "30092af9-8e05-429d-bc8c-439ad10b90d0",
+   "name": "Al Metro",
+   "active": false
+  },
+  {
+   "id": "32a665b7-80fc-4653-a335-e0c092a6bb06",
+   "name": "Bevande",
+   "active": false
+  },
+  {
+   "id": "dffc40b6-4cef-f7e7-4357-536429dfd8e1",
+   "name": "Bevande",
+   "active": true
+  },
+  {
+   "id": "b225a6a0-ba0b-4490-b5f8-17e19b10b7fb",
+   "name": "Bianche",
+   "active": true
+  },
+  {
+   "id": "9e1b847c-8a0c-039d-6021-66b8d8dcd438",
+   "name": "Classiche",
+   "active": true
+  },
+  {
+   "id": "067e0b54-738d-432d-af9f-b4587549dc8d",
+   "name": "Crea la tua pizza",
+   "active": false
+  },
+  {
+   "id": "df6059a9-db8c-b937-1c88-c8920bfb2014",
+   "name": "Dolci",
+   "active": true
+  },
+  {
+   "id": "8f0c00b2-2b1e-1f3f-0914-63e1153ee035",
+   "name": "Gourmet",
+   "active": true
+  },
+  {
+   "id": "533b13e0-820a-47c6-ff50-15e4d1e463c4",
+   "name": "Gustose",
+   "active": true
+  },
+  {
+   "id": "215bde19-c579-4dbf-8591-5219fb219a5d",
+   "name": "Piadine",
+   "active": false
+  },
+  {
+   "id": "72f12ec4-8d89-4e7e-8ab6-5279800edaa6",
+   "name": "Pizze Bianche",
+   "active": false
+  },
+  {
+   "id": "b28d072a-a2ca-48c7-bc34-1b2008481bd2",
+   "name": "Pizze Gustose",
+   "active": false
+  },
+  {
+   "id": "719e432e-a289-2116-25ed-e6f89e827e03",
+   "name": "Supplementi",
+   "active": false
+  }
+ ],
+ "company_id": "00000000-0000-0000-0000-000000000001",
+ "_source": "Read-only SELECT on prod (zqubwvhstobaugifzoyb), active products only, 2026-10-20. Public menu data."
+}
