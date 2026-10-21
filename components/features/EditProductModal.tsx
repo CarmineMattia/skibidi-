@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/Button';
 import { supabase } from '@/lib/api/supabase';
 import { useTenant } from '@/lib/stores/TenantContext';
+import { imageUrlToPersist } from '@/lib/utils/productImage';
 import type { Product } from '@/types';
 import { FontAwesome } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
@@ -130,7 +131,8 @@ export function EditProductModal({ visible, onClose, product }: EditProductModal
             const productData = {
                 name,
                 price: parseFloat(price),
-                image_url: image || null, // Ensure null instead of undefined
+                // untouched bundled photo -> keep the DB value (never save an asset uri)
+                image_url: imageUrlToPersist(image, product),
                 ingredients: ingredientsArray,
                 category_id: product?.category_id || '85316818-56a5-4eed-9066-7a23341db9cb', // Use existing category or default to "Panini"
                 active: true,

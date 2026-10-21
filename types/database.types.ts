@@ -45,6 +45,8 @@ export interface Product {
   description?: string;
   price: number;
   image_url?: string;
+  /** Client only: DB image_url when the bundled photo replaced it (lib/utils/productImage.ts). Never selected nor saved. */
+  stored_image_url?: string | null;
   active: boolean;
   display_order: number;
   created_at: string;

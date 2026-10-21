@@ -1,5 +1,6 @@
 import { Asset } from 'expo-asset';
 import type { Product } from '@/types';
+import { resolveProductImage } from '@/lib/utils/productImage';
 
 // Recipe-specific illustrative photos. Exact product ids and descriptions
 // prevent matching another tenant or a changed recipe by pizza name alone.
@@ -53,11 +54,14 @@ const PHOTOS: Record<string, { name: string; category: string; recipe: string; a
   "4acc4693-1c18-e39a-10bb-70f130b2e8e4": { name: "Capricciosa", category: "Classiche", recipe: "pomodoro, mozz.fior di latte, prosciutto cotto, funghi, carciofi, salsiccia, olive", asset: require("../../assets/images/products/capricciosa-generated-v1.webp") },
   "3f3c8d25-16be-242d-7fac-f7430168ee69": { name: "Speciale", category: "Classiche", recipe: "pomodoro, mozz.fior di latte di bufala, pomodorini, basilico", asset: require("../../assets/images/products/speciale-generated-v1.webp") },
 };
-const normalizeRecipe = (value: string) => value.normalize('NFC').toLowerCase().replace(/\s+/g, ' ').trim();
-export function withPizzaPhoto<T extends Pick<Product, 'id' | 'description' | 'image_url'>>(product: T): T {
+/**
+ * Product with the image it should show (see lib/utils/productImage.ts): a
+ * Supabase Storage photo in image_url wins over the bundled one; the bundled
+ * photo is used only for the same id and recipe.
+ */
+export function withPizzaPhoto<T extends Pick<Product, 'id' | 'description' | 'image_url' | 'stored_image_url'>>(product: T): T {
   const photo = PHOTOS[product.id];
-  if (!photo || normalizeRecipe(product.description || '') !== normalizeRecipe(photo.recipe)) return product;
-  return { ...product, image_url: Asset.fromModule(photo.asset).uri };
+  return resolveProductImage(product, photo ? { recipe: photo.recipe, uri: Asset.fromModule(photo.asset).uri } : undefined);
 }
 
 export function getPizzaPhotoCatalog() {
