@@ -1,0 +1,600 @@
+{
+ "_source": "prod zqubwvhstobaugifzoyb, select read-only of active products 2026-10-21 (id, name, category, description, image_url)",
+ "products": [
+  {
+   "id": "15f7d0a4-8f07-c50f-74db-d0e2c5f92e14",
+   "name": "Vino Bianco Malvasia 1/4",
+   "category": "Bevande",
+   "description": null,
+   "image_url": "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+   "id": "685e3b53-6ed6-689a-fe8a-5b004a69f72a",
+   "name": "Heineken 0.66L",
+   "category": "Bevande",
+   "description": null,
+   "image_url": "https://images.unsplash.com/photo-1618885472179-5e474019f2a9?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+   "id": "f795213b-83cf-da45-8445-5d8462a0a43d",
+   "name": "Ichnusa 0.5L",
+   "category": "Bevande",
+   "description": null,
+   "image_url": "https://images.unsplash.com/photo-1608270586620-248524c67de9?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+   "id": "37f7ebe8-7bd7-811c-9ee0-819807279734",
+   "name": "Coca Cola piccola",
+   "category": "Bevande",
+   "description": null,
+   "image_url": "https://images.unsplash.com/photo-1554866585-cd94860890b7?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+   "id": "e908b1e2-7ebf-9d9d-c880-4b107dcf0d86",
+   "name": "Acqua Pejo nat/gas 0.75L",
+   "category": "Bevande",
+   "description": null,
+   "image_url": "https://images.unsplash.com/photo-1548839140-29a749e1cf4d?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+   "id": "6f1c229c-20ab-a5a1-4cdd-c021f9ab843c",
+   "name": "Erdinger Weissbier 0.5L",
+   "category": "Bevande",
+   "description": null,
+   "image_url": "https://images.unsplash.com/photo-1571613316887-6f8d5cbf7ef7?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+   "id": "34ccda30-0813-fbf8-e46c-5fd8b029b174",
+   "name": "Birra Theresianer 1L",
+   "category": "Bevande",
+   "description": null,
+   "image_url": "https://images.unsplash.com/photo-1608270586620-248524c67de9?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+   "id": "fb40bbe6-7a15-9e73-fc84-26a8f94a1888",
+   "name": "Chardonnay",
+   "category": "Bevande",
+   "description": null,
+   "image_url": "https://images.unsplash.com/photo-1569529465841-dfecdab7503b?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+   "id": "4dc2d059-0aa5-f899-6f26-aed5316991c7",
+   "name": "Leffe Bionda 0.33L",
+   "category": "Bevande",
+   "description": null,
+   "image_url": "https://images.unsplash.com/photo-1535958636474-b021ee887b13?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+   "id": "f8302e92-2520-56a3-9ff2-9b577777cafa",
+   "name": "Leffe Rossa 0.33L",
+   "category": "Bevande",
+   "description": null,
+   "image_url": "https://images.unsplash.com/photo-1535958636474-b021ee887b13?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+   "id": "700c7a1f-b8df-ef00-4c53-71c30c1d5dc2",
+   "name": "Birra analcolica",
+   "category": "Bevande",
+   "description": null,
+   "image_url": "https://images.unsplash.com/photo-1608270586620-248524c67de9?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+   "id": "acfbff2b-4797-0311-5947-bf54995a2474",
+   "name": "Coca Cola 1.5 LT",
+   "category": "Bevande",
+   "description": null,
+   "image_url": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+   "id": "a8957983-1779-c47a-7468-3cec76aa96fd",
+   "name": "Coca Cola media",
+   "category": "Bevande",
+   "description": null,
+   "image_url": "https://images.unsplash.com/photo-1554866585-cd94860890b7?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+   "id": "c73de59c-9864-9b77-0a5a-c2767833d912",
+   "name": "Birra Theresianer media",
+   "category": "Bevande",
+   "description": null,
+   "image_url": "https://images.unsplash.com/photo-1608270586620-248524c67de9?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+   "id": "3fa852f6-f365-e671-28f2-004a475412f5",
+   "name": "The Limone/Pesca",
+   "category": "Bevande",
+   "description": null,
+   "image_url": "https://images.unsplash.com/photo-1556679343-c7306c1976bc?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+   "id": "7ac285d3-e781-5ecb-8dc8-2b62e655f98d",
+   "name": "Coca Cola",
+   "category": "Bevande",
+   "description": null,
+   "image_url": "https://images.unsplash.com/photo-1554866585-cd94860890b7?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+   "id": "66fbba94-3776-16a1-f1fa-62b758389d10",
+   "name": "Fanta",
+   "category": "Bevande",
+   "description": null,
+   "image_url": "https://images.unsplash.com/photo-1624517452488-04869289c4ca?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+   "id": "7a7ed43d-4b32-3a43-d6c6-5349510921fd",
+   "name": "Ceres 0.33L",
+   "category": "Bevande",
+   "description": null,
+   "image_url": "https://images.unsplash.com/photo-1608270586620-248524c67de9?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+   "id": "647e5de6-6bc3-5acb-2b4a-0413e8e8bee8",
+   "name": "Coca Cola Zero",
+   "category": "Bevande",
+   "description": null,
+   "image_url": "https://images.unsplash.com/photo-1543253687-c931c8e01820?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+   "id": "bb9bedc9-03d7-cb41-f944-7bbcc6ca09b4",
+   "name": "Sprite",
+   "category": "Bevande",
+   "description": null,
+   "image_url": "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+   "id": "d882290e-46d4-8dd2-6186-1dbe9738a85a",
+   "name": "Vino Bianco Malvasia 1L",
+   "category": "Bevande",
+   "description": null,
+   "image_url": "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+   "id": "77f43c92-ef47-6ec5-09f8-938f0c291b7a",
+   "name": "Birra Theresianer piccola",
+   "category": "Bevande",
+   "description": null,
+   "image_url": "https://images.unsplash.com/photo-1608270586620-248524c67de9?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+   "id": "df149fda-a56c-7c0d-2c24-b3c8131d55e8",
+   "name": "Prosecco Contarini",
+   "category": "Bevande",
+   "description": null,
+   "image_url": "https://images.unsplash.com/photo-1578911373434-0cb395d2cbfb?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+   "id": "3d93f326-24d9-ba35-78a0-f4ecdfb31e79",
+   "name": "Moretti 0.66L",
+   "category": "Bevande",
+   "description": null,
+   "image_url": "https://images.unsplash.com/photo-1608270586620-248524c67de9?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+   "id": "0458c513-6853-a74e-e05b-c92e0fac4dab",
+   "name": "Acqua nat/gas 0.50",
+   "category": "Bevande",
+   "description": null,
+   "image_url": "https://images.unsplash.com/photo-1548839140-29a749e1cf4d?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+   "id": "3669aabd-82e6-8fa3-37a1-1091f6040154",
+   "name": "Vino Bianco Malvasia 1/2",
+   "category": "Bevande",
+   "description": null,
+   "image_url": "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+   "id": "fefe37de-3d38-973b-b40b-31c0356f1922",
+   "name": "Profiterol",
+   "category": "Dolci",
+   "description": null,
+   "image_url": null
+  },
+  {
+   "id": "ab1d6fa3-4388-cf59-4e0e-35a8123cb2b6",
+   "name": "Tartufo Bianco / Nero",
+   "category": "Dolci",
+   "description": null,
+   "image_url": null
+  },
+  {
+   "id": "507be782-cab1-3d0e-3384-7773529fb335",
+   "name": "Tiramisù",
+   "category": "Dolci",
+   "description": null,
+   "image_url": null
+  },
+  {
+   "id": "2ff3ba0c-52aa-cc41-8486-79094cfe10a8",
+   "name": "Torroncino",
+   "category": "Dolci",
+   "description": null,
+   "image_url": null
+  },
+  {
+   "id": "a8a2b0d4-9a37-5150-7dcc-2fe2b3147cfc",
+   "name": "Sorbetto al Limone",
+   "category": "Dolci",
+   "description": null,
+   "image_url": null
+  },
+  {
+   "id": "4eaf1dc3-1b0a-b1f7-8206-8a89b69c5729",
+   "name": "La Rustica",
+   "category": "Gourmet",
+   "description": "mozz.fior di latte, pancetta, stracchino, patate al forno",
+   "image_url": null
+  },
+  {
+   "id": "7758ee2c-0404-8d96-079e-d94d5c65b220",
+   "name": "La Zuccotta",
+   "category": "Gourmet",
+   "description": "crema di zucca, mozz.fior di latte, gorgonzola, pancetta, pepe nero",
+   "image_url": null
+  },
+  {
+   "id": "7bbdfd63-3bbe-eaf1-2025-5be3178dcc6e",
+   "name": "Ambrosia",
+   "category": "Gourmet",
+   "description": "mozz. di bufala, pomodorini, pesto alla genovese",
+   "image_url": null
+  },
+  {
+   "id": "0660b53c-4621-173d-3dfd-0322f1589119",
+   "name": "Carbonara",
+   "category": "Gourmet",
+   "description": "mozz. di bufala, pancetta, uovo, pepe nero",
+   "image_url": null
+  },
+  {
+   "id": "25b3b1a9-9892-80b3-ab42-c7eb687ab48f",
+   "name": "Crudo e Burrata",
+   "category": "Gourmet",
+   "description": "pomodoro, mozz.fior di latte, fuori cottura: crudo di Parma, burrata Pugliese, olio",
+   "image_url": "https://zqubwvhstobaugifzoyb.supabase.co/storage/v1/object/public/products/ambrosia/crudo-e-burrata.jpg"
+  },
+  {
+   "id": "c4cc87ed-28c9-017d-eca3-12c08d01776a",
+   "name": "Cantabrico",
+   "category": "Gourmet",
+   "description": "pomodoro, mozz.fior di latte, fuori cottura: acciughe del mar Cantabrico",
+   "image_url": null
+  },
+  {
+   "id": "e15e4f9e-2c4c-dac7-cc60-4718af1d1c3b",
+   "name": "Bologna",
+   "category": "Gourmet",
+   "description": "Stria, fuori cottura: mortadella, straciatella, crema di pistacchio",
+   "image_url": null
+  },
+  {
+   "id": "5bba5ee7-2027-0ba7-63aa-e40836611a97",
+   "name": "Nord e Sud",
+   "category": "Gustose",
+   "description": "pomodoro, mozz.fior di latte, 'nduja e gorgonzola",
+   "image_url": null
+  },
+  {
+   "id": "55d27bcb-fdb1-eceb-cac1-4c7875927e5e",
+   "name": "Valtellina",
+   "category": "Gustose",
+   "description": "pomodoro, mozz.fior di latte, bresaola, rucola, scaglie di grana",
+   "image_url": null
+  },
+  {
+   "id": "8a1fb53c-4a9f-8af3-8484-9ac1e1b71ba0",
+   "name": "La fumè",
+   "category": "Gustose",
+   "description": "pomodoro, mozz.fior di latte, speck, scamorza affumicata",
+   "image_url": null
+  },
+  {
+   "id": "48c851ca-a589-0737-4574-ad4e2cd5a2eb",
+   "name": "Vegetariana",
+   "category": "Gustose",
+   "description": "pomodoro, mozz.fior di latte, melanzane, peperoni, zucchine",
+   "image_url": null
+  },
+  {
+   "id": "83c6feb1-5c4a-084f-56d9-33acb4bc31c5",
+   "name": "Miami",
+   "category": "Gustose",
+   "description": "pomodoro, mozz.fior di latte, gamberetti, zucchine",
+   "image_url": null
+  },
+  {
+   "id": "c54c0b8a-4ea7-0a43-9f1e-52eeaf685091",
+   "name": "La Corte Vecia",
+   "category": "Gustose",
+   "description": "pomodoro, mozz.fior di latte, rucola, scaglie di grana, glassa di aceto balsamico",
+   "image_url": null
+  },
+  {
+   "id": "50bc1973-f42f-d472-9003-58d321a67c91",
+   "name": "Canossa",
+   "category": "Gustose",
+   "description": "pomodoro, mozz.fior di latte, prosciutto crudo di parma, rucola, scaglie di grana, glassa di aceto balsamico",
+   "image_url": null
+  },
+  {
+   "id": "60dc8568-fc82-4ea9-4b07-18f9275ac214",
+   "name": "Frutti di Mare",
+   "category": "Gustose",
+   "description": "pomodoro, mozz.fior di latte, seppie, calamari, vongole, cozze, polpi, surimi",
+   "image_url": null
+  },
+  {
+   "id": "6ed0c042-e272-74a2-1b9e-8e35b5ac40fe",
+   "name": "Amalfi",
+   "category": "Gustose",
+   "description": "pomodoro, mozz.fior di latte, scamorza affumicata, pomodorini",
+   "image_url": null
+  },
+  {
+   "id": "d91f0e5d-7a7e-dd4e-3dfe-f6467cab8c2f",
+   "name": "Trentina",
+   "category": "Gustose",
+   "description": "pomodoro, mozz.fior di latte, gorgonzola, speck",
+   "image_url": null
+  },
+  {
+   "id": "ed918e23-e4db-f042-2f1d-0f3bbb86fd4e",
+   "name": "Francescana",
+   "category": "Gustose",
+   "description": "pomodoro, mozz.fior di latte, gorgonzola, porcini trifolati",
+   "image_url": null
+  },
+  {
+   "id": "d8585032-7b09-e145-17d2-6fa01a49441b",
+   "name": "Tirolese",
+   "category": "Gustose",
+   "description": "pomodoro, mozz.fior di latte e di bufala, porcini trifolati, speck",
+   "image_url": null
+  },
+  {
+   "id": "42f86782-d03a-633c-260d-0494e2e66c70",
+   "name": "Matildica",
+   "category": "Gustose",
+   "description": "pomodoro, mozz.fior di latte, funghi porcini trifolati, pomodorini, parmigiano reggiano",
+   "image_url": null
+  },
+  {
+   "id": "cb87873f-000c-2283-bab2-bf021f9b5eb7",
+   "name": "Buna",
+   "category": "Bianche",
+   "description": "mozz.fior di latte, salsiccia, friarielli",
+   "image_url": null
+  },
+  {
+   "id": "638ef407-8372-1dde-1281-8f0c49e4bae7",
+   "name": "Tartufata",
+   "category": "Bianche",
+   "description": "mozz.fior di latte, porcini, crema tartufata",
+   "image_url": null
+  },
+  {
+   "id": "4f5d8d14-972c-247e-180b-fbe667d11888",
+   "name": "Messicana",
+   "category": "Bianche",
+   "description": "mozz.fior di latte e di bufala, pancetta, olio piccante",
+   "image_url": null
+  },
+  {
+   "id": "d5cf8733-16e6-0f92-23f2-bc1ce260903a",
+   "name": "Piccantina",
+   "category": "Bianche",
+   "description": "mozz.fior di latte, spianata calabra, acciughe, friarielli",
+   "image_url": null
+  },
+  {
+   "id": "3db94745-690b-6cd6-193b-d98e2dd693c5",
+   "name": "Stria",
+   "category": "Bianche",
+   "description": null,
+   "image_url": null
+  },
+  {
+   "id": "6fe456ff-2489-0d9c-817e-796a07a06412",
+   "name": "Beach",
+   "category": "Bianche",
+   "description": "mozz.fior di latte, rucola, pomodorini, gamberetti",
+   "image_url": null
+  },
+  {
+   "id": "80ab95e6-647b-d8c6-5906-b63096fa0fb5",
+   "name": "Pizza del Centro",
+   "category": "Bianche",
+   "description": "mozz.fior di latte, melanzane, zucchine, peperoni, pomodorini, porcini",
+   "image_url": null
+  },
+  {
+   "id": "9f0d44a9-07b8-7371-1884-ffe12d66d699",
+   "name": "Gorgonzola e Noci",
+   "category": "Bianche",
+   "description": "mozz.fior di latte, gorgonzola, noci",
+   "image_url": null
+  },
+  {
+   "id": "05e8aca4-c6cb-31f4-dfdc-f786907c6989",
+   "name": "Margherita",
+   "category": "Classiche",
+   "description": "pomodoro, mozz.fior di latte",
+   "image_url": "https://zqubwvhstobaugifzoyb.supabase.co/storage/v1/object/public/products/ambrosia/margherita.jpg"
+  },
+  {
+   "id": "4b1a90b1-a400-9f0b-bdbf-3c98e4488fc4",
+   "name": "Romana",
+   "category": "Classiche",
+   "description": "pomodoro, mozz.fior di latte, acciughe, capperi, origano, olive",
+   "image_url": null
+  },
+  {
+   "id": "1061fbe6-509a-62e0-ae37-3f90cc918671",
+   "name": "Marinara",
+   "category": "Classiche",
+   "description": "pomodoro, aglio, origano",
+   "image_url": null
+  },
+  {
+   "id": "21e5edaf-f9f9-90f2-d4da-71b5ee01360d",
+   "name": "Diavola",
+   "category": "Classiche",
+   "description": "pomodoro, mozz.fior di latte, spianata calabra",
+   "image_url": null
+  },
+  {
+   "id": "2f6ad905-62dc-47c9-2b68-8e9542812ee1",
+   "name": "Stracchino e Rucola",
+   "category": "Classiche",
+   "description": "pomodoro, mozz.fior di latte, stracchino, rucola",
+   "image_url": null
+  },
+  {
+   "id": "2d2e53df-ec08-225c-c4ba-7daf6f4af516",
+   "name": "Napoli",
+   "category": "Classiche",
+   "description": "pomodoro, mozz.fior di latte, acciughe, origano",
+   "image_url": null
+  },
+  {
+   "id": "87f43a21-0340-b4c2-ea2c-fbdacfb41127",
+   "name": "Calzone",
+   "category": "Classiche",
+   "description": "pomodoro, mozz.fior di latte, prosciutto cotto",
+   "image_url": null
+  },
+  {
+   "id": "8b850d81-139f-841c-d853-2706cefe3153",
+   "name": "Calzone farcito",
+   "category": "Classiche",
+   "description": "pomodoro, mozz.fior di latte, prosciutto cotto, funghi",
+   "image_url": null
+  },
+  {
+   "id": "749f03a8-2b46-d080-faf2-d6b375e2228b",
+   "name": "Quattro Stagioni",
+   "category": "Classiche",
+   "description": "pomodoro, mozz.fior di latte, prosciutto cotto, funghi, carciofi, salsiccia",
+   "image_url": null
+  },
+  {
+   "id": "5576b740-1edb-5307-f2f6-4d7b8e2ff0aa",
+   "name": "Crudo di Parma",
+   "category": "Classiche",
+   "description": "pomodoro, mozz.fior di latte, prosciutto crudo di Parma",
+   "image_url": null
+  },
+  {
+   "id": "9b363f85-a930-d75f-3160-2a98996142b1",
+   "name": "Pancetta",
+   "category": "Classiche",
+   "description": "pomodoro, mozz.fior di latte, pancetta",
+   "image_url": null
+  },
+  {
+   "id": "8588a45b-f05b-da59-aeeb-e8aa336b06a6",
+   "name": "Prosciutto",
+   "category": "Classiche",
+   "description": "pomodoro, mozz.fior di latte, prosciutto cotto",
+   "image_url": null
+  },
+  {
+   "id": "c275e551-dcf3-12f3-c9f4-9f8a55351ce1",
+   "name": "Würstel",
+   "category": "Classiche",
+   "description": "pomodoro, mozz.fior di latte, Würstel",
+   "image_url": null
+  },
+  {
+   "id": "d71787f2-8190-e631-51b3-5250e289efdf",
+   "name": "Speck",
+   "category": "Classiche",
+   "description": "pomodoro, mozz.fior di latte, speck",
+   "image_url": null
+  },
+  {
+   "id": "911dca27-294f-f4ac-1e63-d4923f96b154",
+   "name": "Funghi",
+   "category": "Classiche",
+   "description": "pomodoro, mozz.fior di latte, funghi",
+   "image_url": "https://zqubwvhstobaugifzoyb.supabase.co/storage/v1/object/public/products/ambrosia/funghi.jpg"
+  },
+  {
+   "id": "17c5fe9c-fc81-90f8-5a03-c5b4a0b9e573",
+   "name": "Tonno",
+   "category": "Classiche",
+   "description": "pomodoro, mozz.fior di latte, tonno",
+   "image_url": null
+  },
+  {
+   "id": "0348bd5e-ec70-3df8-3540-b81fcd9cff68",
+   "name": "Salsiccia",
+   "category": "Classiche",
+   "description": "pomodoro, mozz.fior di latte, salsiccia",
+   "image_url": null
+  },
+  {
+   "id": "a85dece1-5bb3-b377-1719-7f9e936f9532",
+   "name": "Quattro Formaggi",
+   "category": "Classiche",
+   "description": "pomodoro, mozz.fior di latte, pecorino, emmental, gorgonzola",
+   "image_url": null
+  },
+  {
+   "id": "ded35530-96c1-52e7-421c-20876b27124b",
+   "name": "Hanz",
+   "category": "Classiche",
+   "description": "pomodoro, mozz.fior di latte, würstel, patatine fritte",
+   "image_url": null
+  },
+  {
+   "id": "4acc4693-1c18-e39a-10bb-70f130b2e8e4",
+   "name": "Capricciosa",
+   "category": "Classiche",
+   "description": "pomodoro, mozz.fior di latte, prosciutto cotto, funghi, carciofi, salsiccia, olive",
+   "image_url": null
+  },
+  {
+   "id": "3f3c8d25-16be-242d-7fac-f7430168ee69",
+   "name": "Speciale",
+   "category": "Classiche",
+   "description": "pomodoro, mozz.fior di latte di bufala, pomodorini, basilico",
+   "image_url": "https://zqubwvhstobaugifzoyb.supabase.co/storage/v1/object/public/products/ambrosia/speciale.jpg"
+  },
+  {
+   "id": "55f10930-0b4a-9cf0-41ea-4c09bf28422f",
+   "name": "Margherita",
+   "category": "Al metro",
+   "description": null,
+   "image_url": null
+  },
+  {
+   "id": "8e6290f1-a07f-1ae6-3ef4-89f3db338abb",
+   "name": "Metà Margherita Metà Farcita",
+   "category": "Al metro",
+   "description": null,
+   "image_url": null
+  },
+  {
+   "id": "4d889992-35e1-5266-9d88-29f45f8d0581",
+   "name": "Super Farcita",
+   "category": "Al metro",
+   "description": null,
+   "image_url": null
+  },
+  {
+   "id": "7ee570c3-28b7-f18c-ab42-eb739b2e2a64",
+   "name": "Gourmet",
+   "category": "Al metro",
+   "description": null,
+   "image_url": null
+  },
+  {
+   "id": "35a1362c-ccd9-3e1e-09e3-d8a37c91769e",
+   "name": "Farcita",
+   "category": "Al metro",
+   "description": null,
+   "image_url": null
+  }
+ ]
+}
