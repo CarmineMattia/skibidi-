@@ -1,6 +1,6 @@
 # TODO — Skibidi Orders (Ambrosia)
 
-Riferimento: [piano](./SKIBIDI-ORDERS-PLAN.md). Stato aggiornato il **2026-10-21** (main @ `5d0e9c7`).
+Riferimento: [piano](./SKIBIDI-ORDERS-PLAN.md). Stato aggiornato il **2026-10-21**: #35, #36 e #37 unite su main il 21/10, con l'OK di Carmine.
 Piano per ordini vuoti e foto mancanti: [piano-dati-2026-10-21.md](./piano-dati-2026-10-21.md).
 
 ## POS / integrazione
@@ -36,8 +36,15 @@ Piano per ordini vuoti e foto mancanti: [piano-dati-2026-10-21.md](./piano-dati-
 
 Deploy Vercel di `5d0e9c7` completato il 20/10 alle 17:27. Controllo in sola lettura: `/`, `/menu` e rotte profonde rispondono 200, una rotta inesistente 404, nessun errore #418 in console.
 
+### Unite il 21/10 (OK di Carmine, 10:55 CEST)
+| PR | Cosa |
+|---|---|
+| #35 | Menu visibile ai clienti senza azienda: lettura del menu delle aziende attive, azienda di default ai nuovi clienti, backfill. Migration `20261020170000_customer_company_menu.sql` applicata su prod (versione `20261021085655`): i 2 profili cliente con `company_id` NULL ora hanno Ambrosia |
+| #37 | Immagini: la foto in Supabase Storage vince su quella generata. Ora sul sito si vedono le 4 foto vere (Margherita, Funghi, Speciale, Crudo e Burrata) |
+| #36 | Questi documenti |
+
 ### Aperte
-- [ ] **#35** `fix/customer-company-menu`. Il menu era vuoto per i clienti con `company_id` NULL, cioè ogni signup Google (2 profili live). Rende il menu delle aziende attive leggibile ai clienti, assegna l'azienda ai nuovi clienti e fa il backfill. Skibidi Tester: **PASS**. **Serve l'OK di Carmine** per il merge e la migration `20261020170000_customer_company_menu.sql`.
+- Nessuna. Prossima PR prevista: editor admin (vedi "Admin" nei seguiti).
 
 ## Migration su prod (`list_migrations`, 2026-10-21)
 Le versioni su prod sono l'ora di applicazione, non il timestamp del file. Il confronto è fatto per nome e contenuto.
@@ -52,7 +59,7 @@ Le versioni su prod sono l'ora di applicazione, non il timestamp del file. Il co
 | #32 | `20261020140000_order_items_insert_guard.sql` | `20261020091715` | applicata |
 | #33 | `20261020150000_server_side_pricing.sql` | `20261020151133` | applicata |
 | #34 | `20261020160000_customer_order_update_lock.sql` | `20261020151554` | applicata |
-| #35 | `20261020170000_customer_company_menu.sql` | — | **non applicata: attende l'OK di Carmine** |
+| #35 | `20261020170000_customer_company_menu.sql` | `20261021085655` | applicata (21/10) |
 
 Verifica degli oggetti di #18 e #20, oltre alla storia delle migration:
 - **#18:** l'enum `order_status` ha pending, accepted, preparing, ready, delivered, cancelled e rejected. Esistono `accepted_at`/`accepted_by` e i trigger `trg_enforce_order_manual_approval` e `trg_prevent_empty_order_acceptance`.
@@ -66,7 +73,7 @@ File presenti nel repo ma assenti dalla storia di prod, con gli oggetti già pre
 
 Per allineare la storia basta un `migration repair`, che è solo registrazione e va comunque fatto con l'OK di Carmine.
 
-**Nessuna migration delle PR unite attende l'OK. Resta solo #35.**
+**Tutte le migration delle PR unite sono applicate. Nessuna attende l'OK.**
 
 ## Seguiti aperti
 ### CI e test
@@ -85,6 +92,12 @@ Per allineare la storia basta un `migration repair`, che è solo registrazione e
 - [ ] `anon` ha ancora MAINTAIN su `orders`/`order_items`. Restano anche i default privileges di `supabase_admin` su `public`
 - [ ] Default privileges dello schema `storage`
 - [ ] `anon` legge via API prodotti inattivi e aziende inattive: limitare a quelli attivi
+### Test e immagini (Skibidi Tester, round21)
+- [ ] Playwright: `baseURL` su `localhost`, non `127.0.0.1` (`127.0.0.1` viene letto come sottodominio di un'azienda da `TenantContext`)
+- [ ] (Opzionale) Rafforzare la precedenza delle foto: accettare solo l'host Storage del nostro progetto (`zqubwvhstobaugifzoyb.supabase.co`), non qualsiasi `*.supabase.co`
+- [ ] `image_url` fatto di soli spazi: trattarlo come vuoto anche lato DB e admin
+### Admin
+- [ ] L'editor prodotto in admin, al salvataggio, manda sempre `active: true`, `display_order: 0` e gli ingredienti vuoti se il campo è vuoto: riattiva i prodotti inattivi e ne perde l'ordine. PR separata prevista
 ### Web
 - [ ] Titoli pagina vuoti su `/menu`, `/account` e `/order-tracking`
 ### Antiabuso e pagamenti
@@ -94,7 +107,7 @@ Per allineare la storia basta un `migration repair`, che è solo registrazione e
 ### Dati (vedi [piano-dati-2026-10-21.md](./piano-dati-2026-10-21.md), serve l'OK di Carmine)
 - [ ] 16 vecchi ordini senza `order_items`
 - [ ] 11 prodotti senza foto (5 Al metro, Stria, 5 dolci): aspettiamo le foto di Carmine
-- [ ] Le 4 foto vere in Storage (Margherita, Funghi, Speciale, Crudo e Burrata) sono coperte dalle foto generate locali di `lib/data/pizzaPhotos.ts`: decidere la precedenza
+- [x] Le 4 foto vere in Storage (Margherita, Funghi, Speciale, Crudo e Burrata) ora si vedono sul sito: la foto in Storage vince su quella generata (#37)
 ### POS
 - [ ] Integrazione con il POS Windows 10 (vedi sopra)
 
