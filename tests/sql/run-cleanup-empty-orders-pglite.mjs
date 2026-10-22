@@ -15,6 +15,10 @@ const fixture = read('tests/sql/cleanup-empty-orders-schema.sql');
 const backupSql = read('scripts/sql/cleanup-empty-orders-2026-10-backup.sql');
 const cleanupSql = read('scripts/sql/cleanup-empty-orders-2026-10.sql');
 const restoreTemplate = read('scripts/sql/cleanup-empty-orders-2026-10-restore.sql');
+// cancellazione vera: flag esplicito nella stessa sessione (senza: dry-run)
+const CONFIRM = "SELECT set_config('skibidi.cleanup_confirm', 'CANCELLA-16-ORDINI-VUOTI', false);\n";
+const realCleanupSql = CONFIRM + cleanupSql;
+const resultRow = (res) => res.filter((r) => r.rows?.length).at(-1).rows[0];
 
 const idRe = /'([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})'/g;
 const idsOf = (sql) => [...sql.matchAll(idRe)].map((m) => m[1]);
@@ -85,20 +89,37 @@ ok('stessi 16 id in backup, pulizia, ripristino e piano dati');
   assert.match(String(ro.error?.message), /read-only/i, 'il backup gira in una transazione READ ONLY');
   ok('backup protetto da BEGIN READ ONLY');
 
-  const c = await exec(db, cleanupSql);
+  assert.match(b.backup.sha256, /^[0-9a-f]{64}$/);
+  ok('backup con checksum sha256');
+
+  const dry = await exec(db, cleanupSql);
+  assert.equal(dry.error, undefined, dry.error?.message);
+  assert.deepEqual({ ...resultRow(dry.res) }, { mode: 'dry-run', deleted: 16, orders_total: 37, order_items_total: 42, empty_orders_total: 16 });
+  assert.deepEqual(await state(db), { orders: 37, items: 42, empty: 16 });
+  assert.deepEqual(await dump(db), before);
+  const wrongFlag = await exec(db, "SELECT set_config('skibidi.cleanup_confirm', 'si', false);\n" + cleanupSql);
+  assert.equal(resultRow(wrongFlag.res).mode, 'dry-run');
+  assert.deepEqual(await state(db), { orders: 37, items: 42, empty: 16 });
+  ok('dry-run predefinito: controlli e DELETE annullati (ROLLBACK), nulla cancellato; flag sbagliato = dry-run');
+
+  const c = await exec(db, realCleanupSql);
   assert.equal(c.error, undefined, c.error?.message);
   assert.deepEqual(await state(db), { orders: 21, items: 42, empty: 0 });
-  const after = c.res.at(-1).rows[0];
-  assert.deepEqual({ ...after }, { orders_total: 21, order_items_total: 42, empty_orders_total: 0 });
-  ok('pulizia: cancellati 16, restano 21 ordini e 42 righe, nessun ordine vuoto');
+  assert.deepEqual({ ...resultRow(c.res) }, { mode: 'deleted', deleted: 16, orders_total: 21, order_items_total: 42, empty_orders_total: 0 });
+  const flag = await one(db, "SELECT current_setting('skibidi.cleanup_confirm', true) AS f");
+  assert.equal(flag.f, '', 'flag monouso azzerato');
+  ok('pulizia con flag: cancellati 16, restano 21 ordini e 42 righe, nessun ordine vuoto; flag azzerato');
 
-  const again = await exec(db, cleanupSql);
+  const again = await exec(db, realCleanupSql);
   assert.match(String(again.error?.message), /CLEANUP_ABORT: attesi 16 ordini, trovati 0/);
   assert.deepEqual(await state(db), { orders: 21, items: 42, empty: 0 });
   ok('rieseguire la pulizia si annulla e non cambia nulla');
 
   const restoreSql = buildRestoreSql(restoreTemplate, JSON.stringify([b]));
+  // sessione con un altro fuso: il ripristino lavora in UTC, checksum e date identici
+  await db.exec("SET TimeZone = 'Europe/Rome'");
   const r = await exec(db, restoreSql);
+  await db.exec('RESET TimeZone');
   assert.equal(r.error, undefined, r.error?.message);
   assert.deepEqual(await state(db), { orders: 37, items: 42, empty: 16 });
   const restored = await dump(db);
@@ -121,10 +142,13 @@ ok('stessi 16 id in backup, pulizia, ripristino e piano dati');
   assert.deepEqual(await dump(db), before);
   ok('ripristino rieseguibile senza cambiare nulla');
 
-  const c2 = await exec(db, cleanupSql);
+  const dry2 = await exec(db, cleanupSql);
+  assert.equal(resultRow(dry2.res).mode, 'dry-run', 'senza flag di nuovo dry-run (flag monouso)');
+  assert.deepEqual(await state(db), { orders: 37, items: 42, empty: 16 });
+  const c2 = await exec(db, realCleanupSql);
   assert.equal(c2.error, undefined, c2.error?.message);
   assert.deepEqual(await state(db), { orders: 21, items: 42, empty: 0 });
-  ok('pulizia di nuovo possibile dopo il ripristino');
+  ok('pulizia di nuovo possibile dopo il ripristino (senza flag resta dry-run)');
 }
 
 // 2) Casi in cui la pulizia deve annullarsi senza cancellare nulla.
@@ -138,17 +162,19 @@ const abortCases = [
 for (const [name, setup, re, expectState] of abortCases) {
   const db = await fresh();
   await db.exec(setup);
-  const res = await exec(db, cleanupSql);
-  assert.match(String(res.error?.message), re, name);
-  assert.deepEqual(await state(db), expectState, `${name}: nessuna riga cancellata`);
-  ok(`annulla se ${name}`);
+  for (const sql of [cleanupSql, realCleanupSql]) {
+    const res = await exec(db, sql);
+    assert.match(String(res.error?.message), re, name);
+    assert.deepEqual(await state(db), expectState, `${name}: nessuna riga cancellata`);
+  }
+  ok(`annulla se ${name} (dry-run e con flag)`);
 }
 
 // 3) Un nuovo ordine vuoto NON in lista non viene toccato: si cancellano solo i 16 id espliciti.
 {
   const db = await fresh();
   await db.exec(`INSERT INTO orders (total_amount, company_id) VALUES (9, '00000000-0000-0000-0000-000000000001')`);
-  const res = await exec(db, cleanupSql);
+  const res = await exec(db, realCleanupSql);
   assert.equal(res.error, undefined, res.error?.message);
   assert.deepEqual(await state(db), { orders: 22, items: 42, empty: 1 });
   ok('cancella solo i 16 id della lista (un nuovo ordine vuoto resta)');
@@ -162,14 +188,33 @@ for (const [name, setup, re, expectState] of abortCases) {
   const b = await backup(db);
   const tampered = structuredClone(b.backup);
   tampered.orders[0].id = '11111111-1111-1111-1111-111111111111';
-  await exec(db, cleanupSql);
+  await exec(db, realCleanupSql);
   const res = await exec(db, buildRestoreSql(restoreTemplate, tampered));
-  assert.match(String(res.error?.message), /RESTORE_ABORT: il backup non contiene esattamente i 16 ordini attesi/);
+  assert.match(String(res.error?.message), /RESTORE_ABORT: checksum sha256/);
+  assert.deepEqual(await state(db), { orders: 21, items: 42, empty: 0 });
+  // totale modificato a mano: rifiutato (prima veniva ripristinato così com'era)
+  const edited = structuredClone(b.backup);
+  edited.orders.find((o) => o.id === 'd7c6ef59-9d66-43ab-9860-f67b79f8fdbc').total_amount = 8.5;
+  const resEdited = await exec(db, buildRestoreSql(restoreTemplate, edited));
+  assert.match(String(resEdited.error?.message), /RESTORE_ABORT: checksum sha256/);
+  assert.deepEqual(await state(db), { orders: 21, items: 42, empty: 0 });
+  // id manomesso con checksum ricalcolato: resta il controllo dei 16 id
+  await db.exec("SET TimeZone = 'UTC'");
+  const forgedSha = (await db.query(`SELECT encode(sha256(convert_to((($1::jsonb - 'sha256' - 'orders') || jsonb_build_object('orders',
+      (SELECT COALESCE(jsonb_agg(to_jsonb(r) ORDER BY r.id), '[]'::jsonb) FROM jsonb_populate_recordset(NULL::public.orders, $1::jsonb->'orders') r)))::text, 'UTF8')), 'hex') AS h`,
+    [JSON.stringify(tampered)])).rows[0].h;
+  await db.exec('RESET TimeZone');
+  const resForged = await exec(db, buildRestoreSql(restoreTemplate, { ...tampered, sha256: forgedSha }));
+  assert.match(String(resForged.error?.message), /RESTORE_ABORT: il backup non contiene esattamente i 16 ordini attesi/);
+  // backup senza checksum: rifiutato già dal generatore
+  const noSha = structuredClone(b.backup);
+  delete noSha.sha256;
+  assert.throws(() => buildRestoreSql(restoreTemplate, noSha), /checksum sha256/);
   assert.deepEqual(await state(db), { orders: 21, items: 42, empty: 0 });
   const unfilled = await exec(db, restoreTemplate);
   assert.ok(unfilled.error, 'il template senza backup non si può eseguire');
   assert.deepEqual(await state(db), { orders: 21, items: 42, empty: 0 });
-  ok('ripristino: rifiuta backup estranei/manomessi e il template non compilato');
+  ok('ripristino: rifiuta backup estranei/manomessi (checksum sha256, id), senza checksum e il template non compilato');
 }
 
 console.log(`ALL PASS (${passed})`);

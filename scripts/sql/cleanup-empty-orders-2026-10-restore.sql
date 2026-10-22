@@ -12,8 +12,22 @@
 --     pending", codice ordine) sono disattivati SOLO durante l'insert e riattivati subito;
 --   - alla fine verifica che tutti i 16 ordini esistano e siano identici al backup,
 --     altrimenti annulla tutto.
+--   - prima di tutto ricalcola lo sha256 del backup e lo confronta con il campo `sha256`
+--     scritto dal backup: se il file è stato modificato a mano o è incompleto, annulla.
 -- Si può rieseguire: se gli ordini sono già presenti e identici non cambia nulla.
+--
+-- DA SAPERE PRIMA DI ESEGUIRLO
+--   - ALTER TABLE orders DISABLE/ENABLE TRIGGER USER: serve il proprietario di orders (postgres)
+--     e prende un lock (SHARE ROW EXCLUSIVE) su orders fino al COMMIT. In quei secondi i nuovi
+--     ordini e gli aggiornamenti di stato restano in attesa (le letture no). Le altre sessioni
+--     non vedono mai i trigger spenti: il lock le fa aspettare e al COMMIT sono già riattivati.
+--     Eseguirlo comunque a pizzeria chiusa.
+--   - I 16 ordini reinseriti escono sulla pubblicazione supabase_realtime come INSERT: una
+--     schermata cucina/admin aperta in quel momento li riceve come "nuovi ordini" (sono
+--     annullati o consegnati, ma possono comparire o suonare). Chiudere o ricaricare le
+--     schermate cucina dopo il ripristino.
 BEGIN;
+SET LOCAL TimeZone = 'UTC';  -- come il backup: stesso testo per date e checksum
 
 CREATE TEMP TABLE _cleanup_backup (doc jsonb NOT NULL) ON COMMIT DROP;
 INSERT INTO _cleanup_backup (doc) VALUES ($backup$__BACKUP_JSON__$backup$::jsonb);
@@ -47,6 +61,15 @@ BEGIN
   SELECT b.doc INTO doc FROM _cleanup_backup b;
   IF doc->>'kind' IS DISTINCT FROM 'skibidi-cleanup-empty-orders-2026-10' THEN
     RAISE EXCEPTION 'RESTORE_ABORT: il file non è un backup di cleanup-empty-orders-2026-10';
+  END IF;
+
+  -- checksum: stesso calcolo di cleanup-empty-orders-2026-10-backup.sql (tenerli uguali)
+  IF doc->>'sha256' IS NULL OR doc->>'sha256' IS DISTINCT FROM encode(sha256(convert_to((
+       (doc - 'sha256' - 'orders') || jsonb_build_object('orders',
+         (SELECT COALESCE(jsonb_agg(to_jsonb(r) ORDER BY r.id), '[]'::jsonb)
+          FROM jsonb_populate_recordset(NULL::public.orders, doc->'orders') r))
+     )::text, 'UTF8')), 'hex') THEN
+    RAISE EXCEPTION 'RESTORE_ABORT: checksum sha256 del backup mancante o diverso (backup modificato o incompleto)';
   END IF;
 
   SELECT array_agg((e->>'id')::uuid ORDER BY (e->>'id')) INTO backup_ids

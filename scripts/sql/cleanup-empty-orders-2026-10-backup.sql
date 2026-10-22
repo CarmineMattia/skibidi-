@@ -5,12 +5,17 @@
 --   1. Eseguire questo file (SQL editor di Supabase o execute_sql). Restituisce UNA riga.
 --   2. Salvare la colonna `backup` in /workspace/backups/<ts>-pre-cleanup-empty-orders/backup.json
 --      e controllare: order_count = 16, item_count = 0, ref_count = 0.
+--      La colonna contiene anche `sha256`: checksum del contenuto, ricontrollato dal ripristino
+--      (un backup modificato o troncato viene rifiutato). Calcolato con TimeZone UTC sulle righe
+--      tipizzate come public.orders, quindi non cambia se il JSON passa per un parser (13.50 -> 13.5)
+--      o se cambia l'ordine delle chiavi.
 --   3. Generare lo script di ripristino già pronto:
 --        node scripts/sql/make-restore-empty-orders.mjs backup.json > restore-filled.sql
 --
 -- Il backup contiene i dati completi delle righe (anche nome/telefono/indirizzo se presenti):
 -- tenerlo solo nella cartella di backup, MAI nel repo.
 BEGIN READ ONLY;
+SET LOCAL TimeZone = 'UTC';  -- date del backup e checksum sempre in UTC
 
 WITH ids(id) AS (
   SELECT unnest(ARRAY[
@@ -31,14 +36,9 @@ WITH ids(id) AS (
     '647a7ff6-a669-4dc5-916c-29b392aec653', -- 15 2026-09-25 cancelled  26.00 Marinara #1
     'a1af41ad-53f6-49f6-ab3b-cd3c884514ff'  -- 16 2026-09-25 cancelled  33.00 Gamberi #2
   ]::uuid[])
-)
-SELECT
-  (SELECT count(*) FROM public.orders o WHERE o.id IN (SELECT id FROM ids)) AS order_count,
-  (SELECT count(*) FROM public.order_items oi WHERE oi.order_id IN (SELECT id FROM ids)) AS item_count,
-  (SELECT count(*) FROM public.fiscal_audit_log f WHERE f.order_id IN (SELECT id FROM ids))
-  + (SELECT count(*) FROM public.fiscal_retry_queue f WHERE f.order_id IN (SELECT id FROM ids))
-  + (SELECT count(*) FROM public.order_no_shows n WHERE n.order_id IN (SELECT id FROM ids)) AS ref_count,
-  jsonb_build_object(
+),
+doc AS (
+  SELECT jsonb_build_object(
     'kind', 'skibidi-cleanup-empty-orders-2026-10',
     'taken_at', now(),
     'ids', (SELECT jsonb_agg(id ORDER BY id) FROM ids),
@@ -57,6 +57,20 @@ SELECT
       'order_items_total', (SELECT count(*) FROM public.order_items),
       'empty_orders_total', (SELECT count(*) FROM public.orders o
                              WHERE NOT EXISTS (SELECT 1 FROM public.order_items oi WHERE oi.order_id = o.id)))
-  ) AS backup;
+  ) AS d
+)
+SELECT
+  (SELECT count(*) FROM public.orders o WHERE o.id IN (SELECT id FROM ids)) AS order_count,
+  (SELECT count(*) FROM public.order_items oi WHERE oi.order_id IN (SELECT id FROM ids)) AS item_count,
+  (SELECT count(*) FROM public.fiscal_audit_log f WHERE f.order_id IN (SELECT id FROM ids))
+  + (SELECT count(*) FROM public.fiscal_retry_queue f WHERE f.order_id IN (SELECT id FROM ids))
+  + (SELECT count(*) FROM public.order_no_shows n WHERE n.order_id IN (SELECT id FROM ids)) AS ref_count,
+  -- sha256 del contenuto canonico: lo stesso calcolo è nel ripristino (tenerli uguali)
+  doc.d || jsonb_build_object('sha256', encode(sha256(convert_to((
+    (doc.d - 'sha256' - 'orders') || jsonb_build_object('orders',
+      (SELECT COALESCE(jsonb_agg(to_jsonb(r) ORDER BY r.id), '[]'::jsonb)
+       FROM jsonb_populate_recordset(NULL::public.orders, doc.d->'orders') r))
+  )::text, 'UTF8')), 'hex')) AS backup
+FROM doc;
 
 ROLLBACK;

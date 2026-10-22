@@ -4,6 +4,15 @@
 -- Eseguire SOLO con l'OK esplicito di Carmine e SOLO dopo il backup
 -- (cleanup-empty-orders-2026-10-backup.sql, salvato in /workspace/backups/<ts>-pre-cleanup-empty-orders/).
 --
+-- MODALITÀ
+--   - DRY-RUN (predefinita): fa tutti i controlli e il DELETE dentro una sotto-transazione,
+--     poi la annulla (ROLLBACK della sotto-transazione): non cancella nulla. La tabella finale
+--     mostra mode = 'dry-run', quante righe cancellerebbe e i totali (invariati).
+--   - CANCELLAZIONE VERA: solo se nella stessa sessione, PRIMA di questo file, si imposta
+--       SELECT set_config('skibidi.cleanup_confirm', 'CANCELLA-16-ORDINI-VUOTI', false);
+--     (con execute_sql: la riga va messa in testa allo stesso testo SQL). Il flag vale una
+--     volta sola: lo script lo azzera subito dopo averlo letto.
+--
 -- Una sola transazione. Annulla tutto (nessuna riga cancellata) se:
 --   - gli ordini con questi id non sono esattamente 16;
 --   - anche uno solo ha order_items, oppure righe in fiscal_audit_log, fiscal_retry_queue o order_no_shows;
@@ -12,6 +21,11 @@
 -- righe d'ordine a questi ordini tra il controllo e il DELETE.
 -- Rieseguirlo dopo una pulizia riuscita fallisce (trova 0 ordini) e non cambia nulla.
 BEGIN;
+
+CREATE TEMP TABLE _cleanup_result (
+  mode text NOT NULL, deleted int NOT NULL,
+  orders_total int, order_items_total int, empty_orders_total int
+) ON COMMIT DROP;
 
 DO $cleanup$
 DECLARE
@@ -36,48 +50,70 @@ DECLARE
   found_count int;
   bad_count int;
   deleted_count int;
+  confirmed boolean := coalesce(current_setting('skibidi.cleanup_confirm', true), '') = 'CANCELLA-16-ORDINI-VUOTI';
+  dry_run_done boolean := false;
 BEGIN
+  PERFORM set_config('skibidi.cleanup_confirm', '', false);  -- flag monouso
+
   IF cardinality(target_ids) <> 16
      OR (SELECT count(DISTINCT x) FROM unnest(target_ids) AS x) <> 16 THEN
     RAISE EXCEPTION 'CLEANUP_ABORT: la lista deve contenere 16 id distinti';
   END IF;
 
-  PERFORM 1 FROM public.orders WHERE id = ANY (target_ids) FOR UPDATE;
-  GET DIAGNOSTICS found_count = ROW_COUNT;
-  IF found_count <> 16 THEN
-    RAISE EXCEPTION 'CLEANUP_ABORT: attesi 16 ordini, trovati %', found_count;
-  END IF;
+  BEGIN
+    PERFORM 1 FROM public.orders WHERE id = ANY (target_ids) FOR UPDATE;
+    GET DIAGNOSTICS found_count = ROW_COUNT;
+    IF found_count <> 16 THEN
+      RAISE EXCEPTION 'CLEANUP_ABORT: attesi 16 ordini, trovati %', found_count;
+    END IF;
 
-  SELECT count(*) INTO bad_count FROM public.order_items WHERE order_id = ANY (target_ids);
-  IF bad_count <> 0 THEN
-    RAISE EXCEPTION 'CLEANUP_ABORT: % order_items collegati (attesi 0)', bad_count;
-  END IF;
+    SELECT count(*) INTO bad_count FROM public.order_items WHERE order_id = ANY (target_ids);
+    IF bad_count <> 0 THEN
+      RAISE EXCEPTION 'CLEANUP_ABORT: % order_items collegati (attesi 0)', bad_count;
+    END IF;
 
-  SELECT (SELECT count(*) FROM public.fiscal_audit_log WHERE order_id = ANY (target_ids))
-       + (SELECT count(*) FROM public.fiscal_retry_queue WHERE order_id = ANY (target_ids))
-       + (SELECT count(*) FROM public.order_no_shows WHERE order_id = ANY (target_ids))
-    INTO bad_count;
-  IF bad_count <> 0 THEN
-    RAISE EXCEPTION 'CLEANUP_ABORT: % righe fiscali/mancati ritiri collegate (attese 0)', bad_count;
-  END IF;
+    SELECT (SELECT count(*) FROM public.fiscal_audit_log WHERE order_id = ANY (target_ids))
+         + (SELECT count(*) FROM public.fiscal_retry_queue WHERE order_id = ANY (target_ids))
+         + (SELECT count(*) FROM public.order_no_shows WHERE order_id = ANY (target_ids))
+      INTO bad_count;
+    IF bad_count <> 0 THEN
+      RAISE EXCEPTION 'CLEANUP_ABORT: % righe fiscali/mancati ritiri collegate (attese 0)', bad_count;
+    END IF;
 
-  DELETE FROM public.orders o
-  WHERE o.id = ANY (target_ids)
-    AND NOT EXISTS (SELECT 1 FROM public.order_items oi WHERE oi.order_id = o.id);
-  GET DIAGNOSTICS deleted_count = ROW_COUNT;
-  IF deleted_count <> 16 THEN
-    RAISE EXCEPTION 'CLEANUP_ABORT: cancellati % ordini (attesi 16)', deleted_count;
-  END IF;
+    DELETE FROM public.orders o
+    WHERE o.id = ANY (target_ids)
+      AND NOT EXISTS (SELECT 1 FROM public.order_items oi WHERE oi.order_id = o.id);
+    GET DIAGNOSTICS deleted_count = ROW_COUNT;
+    IF deleted_count <> 16 THEN
+      RAISE EXCEPTION 'CLEANUP_ABORT: cancellati % ordini (attesi 16)', deleted_count;
+    END IF;
 
-  RAISE NOTICE 'CLEANUP_OK: cancellati % ordini senza righe', deleted_count;
+    IF NOT confirmed THEN
+      RAISE EXCEPTION 'CLEANUP_DRY_RUN';  -- annulla la sotto-transazione: nulla cancellato
+    END IF;
+  EXCEPTION WHEN raise_exception THEN
+    IF SQLERRM IS DISTINCT FROM 'CLEANUP_DRY_RUN' THEN
+      RAISE;  -- CLEANUP_ABORT: annulla tutto
+    END IF;
+    dry_run_done := true;
+  END;
+
+  INSERT INTO _cleanup_result
+  SELECT CASE WHEN dry_run_done THEN 'dry-run' ELSE 'deleted' END, deleted_count,
+    (SELECT count(*) FROM public.orders),
+    (SELECT count(*) FROM public.order_items),
+    (SELECT count(*) FROM public.orders o
+     WHERE NOT EXISTS (SELECT 1 FROM public.order_items oi WHERE oi.order_id = o.id));
+
+  IF dry_run_done THEN
+    RAISE NOTICE 'CLEANUP_DRY_RUN_OK: cancellerebbe % ordini; nulla cancellato (ROLLBACK)', deleted_count;
+  ELSE
+    RAISE NOTICE 'CLEANUP_OK: cancellati % ordini senza righe', deleted_count;
+  END IF;
 END
 $cleanup$;
 
-COMMIT;
+-- Esito: mode = 'dry-run' (nulla cancellato, totali invariati) oppure 'deleted'.
+SELECT mode, deleted, orders_total, order_items_total, empty_orders_total FROM _cleanup_result;
 
--- Verifica dopo (sola lettura): ordini totali -16 rispetto al backup, nessun ordine senza righe.
-SELECT
-  (SELECT count(*) FROM public.orders) AS orders_total,
-  (SELECT count(*) FROM public.order_items) AS order_items_total,
-  (SELECT count(*) FROM public.orders o
-   WHERE NOT EXISTS (SELECT 1 FROM public.order_items oi WHERE oi.order_id = o.id)) AS empty_orders_total;
+COMMIT;

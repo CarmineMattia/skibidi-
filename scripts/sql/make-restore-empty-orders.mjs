@@ -18,6 +18,10 @@ export function buildRestoreSql(template, backupInput) {
   if (!Array.isArray(doc.orders) || doc.orders.length !== 16) {
     throw new Error(`Backup non valido: attesi 16 ordini, trovati ${doc.orders?.length ?? 0}`);
   }
+  if (typeof doc.sha256 !== 'string' || !/^[0-9a-f]{64}$/.test(doc.sha256)) {
+    // il ripristino ricalcola e confronta lo sha256 nel DB; qui solo un controllo di forma
+    throw new Error('Backup non valido: manca il checksum sha256 (rifare il backup con lo script aggiornato)');
+  }
   const json = JSON.stringify(doc);
   if (json.includes('$backup$')) throw new Error('Il backup contiene il delimitatore $backup$');
   if (!template.includes('__BACKUP_JSON__')) throw new Error('Template senza __BACKUP_JSON__');

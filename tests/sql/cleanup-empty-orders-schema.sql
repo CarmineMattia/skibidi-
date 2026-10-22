@@ -13,7 +13,7 @@ CREATE TABLE public.orders (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   customer_id uuid,
   status order_status NOT NULL DEFAULT 'pending',
-  total_amount numeric NOT NULL,
+  total_amount numeric(10,2) NOT NULL,  -- come su prod
   fiscal_status fiscal_status NOT NULL DEFAULT 'pending',
   fiscal_external_id text,
   pdf_url text,
