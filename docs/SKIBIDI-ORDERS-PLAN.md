@@ -1,6 +1,6 @@
 # Skibidi Orders — Piano (decisioni ottobre 2026)
 
-_Aggiornato il 2026-10-21 (dopo il merge di #35, #36 e #37). Dettaglio di PR, migration e seguiti in [`TODO.md`](./TODO.md)._
+_Aggiornato il 2026-10-22 (dopo il merge di #35, #36 e #37; batch #38–#42 aperto). Dettaglio di PR, migration e seguiti in [`TODO.md`](./TODO.md)._
 
 Questo documento sostituisce, per Pizzeria Ambrosia, le parti di `roadmap.md` in conflitto (pagamenti online, POS proprietario, fiscalità diretta).
 
@@ -55,8 +55,9 @@ Ordine di preferenza per l'integrazione:
   - menu visibile anche ai clienti senza azienda, cioè ai nuovi utenti Google (#35, migration applicata il 21/10);
   - le foto vere in Storage hanno la precedenza su quelle generate (#37).
 - **In attesa dell'OK di Carmine:**
+  - batch del 22/10, PR aperte e testate da Skibidi Tester (dettaglio in [`TODO.md`](./TODO.md)): #38 script ordini vuoti, #39 editor admin, #40 note e permessi (migration solo nella PR), #41 Turnstile, #42 questi documenti;
   - pulizia dei 16 ordini vuoti e foto dei prodotti mancanti (vedi [`piano-dati-2026-10-21.md`](./piano-dati-2026-10-21.md)).
-- **Ancora da fare per l'antiabuso:** Cloudflare Turnstile (serve il deploy di `verify-turnstile`).
+- **Ancora da fare per l'antiabuso:** Cloudflare Turnstile: codice in #41, poi chiavi di Carmine e deploy di `verify-turnstile` (vedi `docs/ANTIABUSE.md`).
 
 ## Da verificare
 - Nome e API del gestionale

@@ -1,6 +1,6 @@
 # TODO — Skibidi Orders (Ambrosia)
 
-Riferimento: [piano](./SKIBIDI-ORDERS-PLAN.md). Stato aggiornato il **2026-10-22**: #35, #36 e #37 unite su main il 21/10, con l'OK di Carmine; batch #38–#41 aperto il 22/10.
+Riferimento: [piano](./SKIBIDI-ORDERS-PLAN.md). Stato aggiornato il **2026-10-22**: #35, #36 e #37 unite su main il 21/10, con l'OK di Carmine; batch #38–#42 aperto il 22/10.
 Piano per ordini vuoti e foto mancanti: [piano-dati-2026-10-21.md](./piano-dati-2026-10-21.md).
 
 ## POS / integrazione
@@ -45,11 +45,11 @@ Deploy Vercel di `5d0e9c7` completato il 20/10 alle 17:27. Controllo in sola let
 
 ### Aperte
 Batch del 22/10 (nessuna unita; merge e migration solo con l'OK di Carmine, niente eseguito su prod):
-- [ ] **#38** `chore/cleanup-empty-orders`: script di backup, pulizia e ripristino dei 16 ordini vuoti (opzione 4 del piano dati). Non eseguiti
-- [ ] **#39** `fix/admin-editor-preserve-fields`: l'editor admin salva solo i campi cambiati (non riattiva i prodotti spenti, non azzera l'ordine nel menu). Include `baseURL` Playwright su `localhost`
-- [ ] **#40** `fix/order-notes-hardening`: note ordine pulite (zero-width/bidi) e limitate a 1000 caratteri, `reserve_order_display_code` solo server, menu anon solo prodotti/categorie attivi. Migration `20261022100000_order_notes_menu_hardening.sql` solo nella PR, **non applicata**
-- [ ] **#41** `feat/turnstile-checkout`: Turnstile end to end (widget + `verify-turnstile`), chiavi solo da env. Non deployato: chiavi e impostazioni da fornire in `docs/ANTIABUSE.md`
-- [ ] `docs/status-2026-10-22`: questi documenti
+- [ ] **#38** `chore/cleanup-empty-orders`: script di backup, pulizia e ripristino dei 16 ordini vuoti (opzione 4 del piano dati). Non eseguiti. Fix del round22 (`b71015c`): dry-run predefinito (cancella solo con flag esplicito), checksum sha256 del backup verificato dal ripristino, note su lock dei trigger e INSERT realtime in cucina
+- [ ] **#39** `fix/admin-editor-preserve-fields`: l'editor admin salva solo i campi cambiati (non riattiva i prodotti spenti, non azzera l'ordine nel menu). Include `baseURL` Playwright su `localhost`. Skibidi Tester round22: PASS
+- [ ] **#40** `fix/order-notes-hardening`: note ordine pulite (zero-width/bidi/invisibili; ZWJ tra emoji e bandiere a tag tenuti), 1000 caratteri di testo libero per riga (tetto riga 8000, nota ordine 1000), `reserve_order_display_code` solo server, menu anon solo prodotti/categorie attivi. Migration `20261022100000_order_notes_menu_hardening.sql` solo nella PR, **non applicata**. Fix del round22 (`56fce27`): pulizia in un solo punto, così il retry con lo stesso id non viene più rifiutato quando la nota contiene caratteri tolti
+- [ ] **#41** `feat/turnstile-checkout`: Turnstile end to end (widget + `verify-turnstile`), chiavi solo da env. Non deployato: chiavi e impostazioni da fornire in `docs/ANTIABUSE.md`. Skibidi Tester round22: PASS. Rifinitura (`96186cc`): timeout 5 s su siteverify e sul client, il checkout si ferma solo con `turnstile_failed` (problemi di provider/configurazione non bloccano con `require_turnstile = false`), azione obbligatoria, niente `remoteip`, spec anche su `/modal`
+- [ ] **#42** `docs/status-2026-10-22`: questi documenti. Skibidi Tester round22: PASS
 
 ## Migration su prod (`list_migrations`, 2026-10-21)
 Le versioni su prod sono l'ora di applicazione, non il timestamp del file. Il confronto è fatto per nome e contenuto.
@@ -106,6 +106,7 @@ Per allineare la storia basta un `migration repair`, che è solo registrazione e
 ### Web
 - [ ] Titoli pagina vuoti su `/menu`, `/account` e `/order-tracking`
 ### Antiabuso e pagamenti
+- [ ] (Facoltativo, round22) Con la site key attiva: disattivare "Conferma ordine" finché il widget non ha dato un token
 - [ ] Turnstile: serve prima il deploy della edge function `verify-turnstile` (codice in #41, chiavi da Carmine)
 - [ ] Edge function Stripe: tenere per la v2 o cancellare
 - [ ] Confermare i limiti antiabuso (€150, 2 ordini aperti, 3 ogni 10 min, blocco dopo 3 mancati ritiri)
