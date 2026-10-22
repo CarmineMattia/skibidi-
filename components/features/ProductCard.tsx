@@ -128,6 +128,8 @@ export function ProductCard({ product, onAddToCart, onPress, onEditPress, quickA
           className={`absolute z-20 rounded-full bg-black/45 active:bg-black/60 ${
             isMobile ? 'top-2 right-2 p-2' : 'top-3 right-3 p-3'
           }`}
+          accessibilityRole="button"
+          accessibilityLabel={`Modifica ${product.name}`}
           onPress={(e) => {
             e.stopPropagation();
             onEditPress?.();
