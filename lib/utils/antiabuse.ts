@@ -53,6 +53,50 @@ export function isTurnstileEnabled(raw: string | undefined = process.env.EXPO_PU
   return getTurnstileSiteKey(raw) !== null;
 }
 
+/** Azione Turnstile del checkout: l'edge function rifiuta token emessi per altre azioni. */
+export const TURNSTILE_ACTION = 'checkout';
+
+/**
+ * Esito della chiamata a verify-turnstile, visto dal client.
+ * - verified: pass salvato, si invia l'ordine;
+ * - rejected: Cloudflare ha rifiutato il token (400/403): si chiede di rifare la verifica;
+ * - unverified: funzione non deployata (404), non configurata (503), token scaduto/già usato (409),
+ *   login mancante (401), rete o Cloudflare giù. Si invia comunque l'ordine: decide il server
+ *   (create_order_with_items chiede il pass solo se companies.require_turnstile = true).
+ * Così le chiavi mancanti o la funzione non ancora deployata non bloccano il checkout.
+ */
+export type TurnstileVerification = 'verified' | 'rejected' | 'unverified';
+
+export function classifyTurnstileVerification(error: unknown): TurnstileVerification {
+  if (!error) return 'verified';
+  const status = (error as { context?: { status?: unknown } } | null)?.context?.status;
+  if (status === 400 || status === 403) return 'rejected';
+  return 'unverified';
+}
+
+type InvokeVerifyTurnstile = (
+  name: 'verify-turnstile',
+  options: { body: { token: string } }
+) => Promise<{ error: unknown }>;
+
+/**
+ * Passo Turnstile prima di create_order_with_items. 'skipped' = Turnstile spento (nessuna site key)
+ * o nessun token (widget non caricato/non risolto): l'ordine parte e decide il server.
+ */
+export async function verifyTurnstileBeforeOrder(
+  token: string | null | undefined,
+  invoke: InvokeVerifyTurnstile,
+  enabled: boolean = isTurnstileEnabled()
+): Promise<TurnstileVerification | 'skipped'> {
+  if (!enabled || !token) return 'skipped';
+  try {
+    const { error } = await invoke('verify-turnstile', { body: { token } });
+    return classifyTurnstileVerification(error);
+  } catch {
+    return 'unverified';
+  }
+}
+
 /** Errore già tradotto da mostrare così com'è al cliente. */
 export class AntiabuseError extends Error {
   constructor(message: string) {
