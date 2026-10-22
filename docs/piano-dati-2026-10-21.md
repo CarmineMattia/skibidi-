@@ -52,6 +52,14 @@ Sono dati di prova e sviluppo di prima del lancio, senza righe né riferimenti, 
 
 Non è una migration di schema: è un passo dati una tantum. Lo script va in una PR (es. `scripts/sql/cleanup-empty-orders-2026-10.sql`) e si esegue solo dopo l'OK.
 
+**Script pronti (PR del 22/10, nulla eseguito su prod):**
+- `scripts/sql/cleanup-empty-orders-2026-10-backup.sql`: backup in sola lettura (`BEGIN READ ONLY`). Restituisce una riga con `order_count`, `item_count`, `ref_count` e la colonna `backup` (JSON completo dei 16 ordini e delle eventuali righe collegate, più i totali). Va salvato in `/workspace/backups/<ts>-pre-cleanup-empty-orders/backup.json`, mai nel repo (contiene nomi e telefoni se presenti).
+- `scripts/sql/cleanup-empty-orders-2026-10.sql`: una transazione, i 16 id scritti per esteso. Blocca le 16 righe, poi si annulla se gli ordini non sono esattamente 16, se uno ha `order_items` o righe in `fiscal_audit_log`/`fiscal_retry_queue`/`order_no_shows`, o se il `DELETE` non cancella 16 righe. Alla fine mostra i totali.
+- `scripts/sql/cleanup-empty-orders-2026-10-restore.sql` + `node scripts/sql/make-restore-empty-orders.mjs backup.json > restore-filled.sql`: reinserisce i 16 ordini identici (trigger utente di `orders` spenti solo durante l'insert), verifica che siano uguali al backup ed è rieseguibile.
+- Test: `node tests/sql/run-cleanup-empty-orders-pglite.mjs` (fixture `tests/sql/cleanup-empty-orders-schema.sql` con lo schema live di `orders`).
+
+Gli id sono stati riletti da prod in sola lettura il 22/10 alle 09:55 CEST: ancora gli stessi 16, 37 ordini e 42 righe in totale. `postgres` è il proprietario di `orders` (serve per spegnere i trigger nel ripristino).
+
 ## B) Foto prodotti
 
 ### Il conto: 55 senza `image_url` vs 11 senza foto
