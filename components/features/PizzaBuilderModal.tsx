@@ -27,6 +27,7 @@ import { FontAwesome } from '@expo/vector-icons';
 import { useEffect, useMemo, useState } from 'react';
 import { Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ORDER_NOTE_INPUT_MAX_CHARS } from '@/lib/utils/orderLineErrors';
 
 
 
@@ -447,6 +448,7 @@ export function PizzaBuilderModal({ visible, onClose, product }: PizzaBuilderMod
                                 textAlignVertical="top"
                                 value={notes}
                                 onChangeText={setNotes}
+                                maxLength={ORDER_NOTE_INPUT_MAX_CHARS}
                             />
                         </View>
 
