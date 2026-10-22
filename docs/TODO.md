@@ -1,6 +1,6 @@
 # TODO — Skibidi Orders (Ambrosia)
 
-Riferimento: [piano](./SKIBIDI-ORDERS-PLAN.md). Stato aggiornato il **2026-10-21**: #35, #36 e #37 unite su main il 21/10, con l'OK di Carmine.
+Riferimento: [piano](./SKIBIDI-ORDERS-PLAN.md). Stato aggiornato il **2026-10-22**: #35, #36 e #37 unite su main il 21/10, con l'OK di Carmine; batch #38–#41 aperto il 22/10.
 Piano per ordini vuoti e foto mancanti: [piano-dati-2026-10-21.md](./piano-dati-2026-10-21.md).
 
 ## POS / integrazione
@@ -44,7 +44,12 @@ Deploy Vercel di `5d0e9c7` completato il 20/10 alle 17:27. Controllo in sola let
 | #36 | Questi documenti |
 
 ### Aperte
-- Nessuna. Prossima PR prevista: editor admin (vedi "Admin" nei seguiti).
+Batch del 22/10 (nessuna unita; merge e migration solo con l'OK di Carmine, niente eseguito su prod):
+- [ ] **#38** `chore/cleanup-empty-orders`: script di backup, pulizia e ripristino dei 16 ordini vuoti (opzione 4 del piano dati). Non eseguiti
+- [ ] **#39** `fix/admin-editor-preserve-fields`: l'editor admin salva solo i campi cambiati (non riattiva i prodotti spenti, non azzera l'ordine nel menu). Include `baseURL` Playwright su `localhost`
+- [ ] **#40** `fix/order-notes-hardening`: note ordine pulite (zero-width/bidi) e limitate a 1000 caratteri, `reserve_order_display_code` solo server, menu anon solo prodotti/categorie attivi. Migration `20261022100000_order_notes_menu_hardening.sql` solo nella PR, **non applicata**
+- [ ] **#41** `feat/turnstile-checkout`: Turnstile end to end (widget + `verify-turnstile`), chiavi solo da env. Non deployato: chiavi e impostazioni da fornire in `docs/ANTIABUSE.md`
+- [ ] `docs/status-2026-10-22`: questi documenti
 
 ## Migration su prod (`list_migrations`, 2026-10-21)
 Le versioni su prod sono l'ora di applicazione, non il timestamp del file. Il confronto è fatto per nome e contenuto.
@@ -79,8 +84,8 @@ Per allineare la storia basta un `migration repair`, che è solo registrazione e
 ### CI e test
 - [ ] Far girare in CI vitest e i runner SQL PGlite (`tests/sql/run-*-pglite.mjs`). Oggi il job "Tests (Future)" è un segnaposto
 ### Ordini e note
-- [ ] Limite di lunghezza delle note lato server
-- [ ] Caratteri zero-width e bidi (RTL) nelle note: rifiutarli o ripulirli
+- [ ] Limite di lunghezza delle note lato server (in #40)
+- [ ] Caratteri zero-width e bidi (RTL) nelle note: rifiutarli o ripulirli (in #40)
 - [ ] Titolo della card "mezzo metro" in cucina e in admin
 - [ ] Setter della consegna in admin: arrotondare ai centesimi (il server rifiuta più di 2 decimali)
 - [ ] Client fiscali vecchi in cache rifiutati: messaggio chiaro e ricarica
@@ -88,24 +93,24 @@ Per allineare la storia basta un `migration repair`, che è solo registrazione e
 - [ ] `/order-success` con un orderId falso mostra "Ordine #N" e "non verificabile" invece di "non trovato"
 - [ ] Chi può annullare un ordine già accettato (solo admin o anche il cliente)
 ### Permessi DB
-- [ ] Revocare `reserve_order_display_code` ad `authenticated` (serve solo dentro `create_order_with_items`)
+- [ ] Revocare `reserve_order_display_code` ad `authenticated` (serve solo dentro `create_order_with_items`) (in #40)
 - [ ] `anon` ha ancora MAINTAIN su `orders`/`order_items`. Restano anche i default privileges di `supabase_admin` su `public`
 - [ ] Default privileges dello schema `storage`
-- [ ] `anon` legge via API prodotti inattivi e aziende inattive: limitare a quelli attivi
+- [ ] `anon` legge via API prodotti inattivi e aziende inattive: limitare a quelli attivi (in #40)
 ### Test e immagini (Skibidi Tester, round21)
-- [ ] Playwright: `baseURL` su `localhost`, non `127.0.0.1` (`127.0.0.1` viene letto come sottodominio di un'azienda da `TenantContext`)
+- [ ] (in #39) Playwright: `baseURL` su `localhost`, non `127.0.0.1` (`127.0.0.1` viene letto come sottodominio di un'azienda da `TenantContext`)
 - [ ] (Opzionale) Rafforzare la precedenza delle foto: accettare solo l'host Storage del nostro progetto (`zqubwvhstobaugifzoyb.supabase.co`), non qualsiasi `*.supabase.co`
 - [ ] `image_url` fatto di soli spazi: trattarlo come vuoto anche lato DB e admin
 ### Admin
-- [ ] L'editor prodotto in admin, al salvataggio, manda sempre `active: true`, `display_order: 0` e gli ingredienti vuoti se il campo è vuoto: riattiva i prodotti inattivi e ne perde l'ordine. PR separata prevista
+- [ ] L'editor prodotto in admin, al salvataggio, manda sempre `active: true`, `display_order: 0` e gli ingredienti vuoti se il campo è vuoto: riattiva i prodotti inattivi e ne perde l'ordine. In #39
 ### Web
 - [ ] Titoli pagina vuoti su `/menu`, `/account` e `/order-tracking`
 ### Antiabuso e pagamenti
-- [ ] Turnstile: serve prima il deploy della edge function `verify-turnstile`
+- [ ] Turnstile: serve prima il deploy della edge function `verify-turnstile` (codice in #41, chiavi da Carmine)
 - [ ] Edge function Stripe: tenere per la v2 o cancellare
 - [ ] Confermare i limiti antiabuso (€150, 2 ordini aperti, 3 ogni 10 min, blocco dopo 3 mancati ritiri)
 ### Dati (vedi [piano-dati-2026-10-21.md](./piano-dati-2026-10-21.md), serve l'OK di Carmine)
-- [ ] 16 vecchi ordini senza `order_items`
+- [ ] 16 vecchi ordini senza `order_items` (script in #38, da eseguire solo con l'OK)
 - [ ] 11 prodotti senza foto (5 Al metro, Stria, 5 dolci): aspettiamo le foto di Carmine
 - [x] Le 4 foto vere in Storage (Margherita, Funghi, Speciale, Crudo e Burrata) ora si vedono sul sito: la foto in Storage vince su quella generata (#37)
 ### POS
