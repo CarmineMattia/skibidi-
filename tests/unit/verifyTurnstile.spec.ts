@@ -46,9 +46,9 @@ async function call(handler: (r: Request) => Promise<Response>, req: Request) {
 }
 
 describe('edge function verify-turnstile (mock di Cloudflare e Supabase)', () => {
-  test('token valido: chiama siteverify con secret, token e IP e salva un pass di 5 minuti', async () => {
+  test('token valido: chiama siteverify con secret e token (senza remoteip) e salva un pass di 5 minuti', async () => {
     const { handler, fetchMock, savePass, getUser } = setup();
-    const r = await call(handler, post({ token: 'tok-1' }, { 'CF-Connecting-IP': '1.2.3.4' }));
+    const r = await call(handler, post({ token: 'tok-1' }, { 'CF-Connecting-IP': '1.2.3.4', 'x-forwarded-for': '6.6.6.6' }));
     expect(r).toEqual({ status: 200, body: { ok: true } });
     expect(getUser).toHaveBeenCalledWith('Bearer user-jwt');
     expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -57,7 +57,9 @@ describe('edge function verify-turnstile (mock di Cloudflare e Supabase)', () =>
     expect(init.method).toBe('POST');
     expect(init.body.get('secret')).toBe('test-secret');
     expect(init.body.get('response')).toBe('tok-1');
-    expect(init.body.get('remoteip')).toBe('1.2.3.4');
+    // gli header con l'IP sono impostabili dal client: remoteip non viene inviato
+    expect(init.body.get('remoteip')).toBeNull();
+    expect((init as unknown as { signal?: AbortSignal }).signal).toBeInstanceOf(AbortSignal);
     expect(savePass).toHaveBeenCalledWith(USER.id, NOW, new Date(NOW.getTime() + PASS_TTL_MS));
   });
 
@@ -99,8 +101,35 @@ describe('edge function verify-turnstile (mock di Cloudflare e Supabase)', () =>
     const { handler, savePass } = setup({ outcome: { success: false, 'error-codes': ['invalid-input-response'] } });
     expect(await call(handler, post({ token: 't' }))).toEqual({ status: 403, body: { error: 'turnstile_failed' } });
     expect(savePass).not.toHaveBeenCalled();
-    const { handler: h2 } = setup({ outcome: null });
-    expect((await call(h2, post({ token: 't' }))).status).toBe(403);
+  });
+
+  test('problemi del provider (internal-error, bad-request, codici sconosciuti, risposta non valida): 502, nessun pass', async () => {
+    for (const outcome of [
+      { success: false, 'error-codes': ['internal-error'] },
+      { success: false, 'error-codes': ['bad-request'] },
+      { success: false, 'error-codes': ['qualcosa-di-nuovo'] },
+      { success: false },
+      { success: 'true', action: 'checkout' },
+      null,
+    ]) {
+      const { handler, savePass } = setup({ outcome });
+      expect(await call(handler, post({ token: 't' }))).toEqual({ status: 502, body: { error: 'turnstile_unavailable' } });
+      expect(savePass).not.toHaveBeenCalled();
+    }
+  });
+
+  test('siteverify oltre il timeout: 502 entro il limite, nessun pass', async () => {
+    const hang = vi.fn((_url: string, init: { signal?: AbortSignal }) => new Promise<{ json: () => Promise<unknown> }>((_, reject) => {
+      init.signal?.addEventListener('abort', () => reject(new Error('aborted')));
+    }));
+    const { handler, savePass } = setup({ fetch: hang, timeoutMs: 50 });
+    const t0 = Date.now();
+    expect(await call(handler, post({ token: 't' }))).toEqual({ status: 502, body: { error: 'turnstile_unavailable' } });
+    expect(Date.now() - t0).toBeLessThan(2000);
+    expect(savePass).not.toHaveBeenCalled();
+    // anche se fetch ignora il segnale
+    const { handler: h2 } = setup({ fetch: () => new Promise(() => {}), timeoutMs: 50 });
+    expect((await call(h2, post({ token: 't' }))).status).toBe(502);
   });
 
   test('token scaduto o già usato: 409 (serve un nuovo widget)', async () => {
@@ -109,11 +138,17 @@ describe('edge function verify-turnstile (mock di Cloudflare e Supabase)', () =>
     expect(savePass).not.toHaveBeenCalled();
   });
 
-  test('hostname non ammesso o azione diversa: 403 turnstile_wrong_site', async () => {
-    const { handler } = setup({ outcome: { success: true, hostname: 'evil.example', action: 'checkout' } });
-    expect((await call(handler, post({ token: 't' }))).body).toEqual({ error: 'turnstile_wrong_site' });
+  test('hostname non ammesso: 503 turnstile_wrong_site (configurazione); azione mancante o diversa: 403 turnstile_wrong_action', async () => {
+    const { handler, savePass } = setup({ outcome: { success: true, hostname: 'evil.example', action: 'checkout' } });
+    expect(await call(handler, post({ token: 't' }))).toEqual({ status: 503, body: { error: 'turnstile_wrong_site' } });
+    expect(savePass).not.toHaveBeenCalled();
     const { handler: h2 } = setup({ outcome: { success: true, hostname: 'localhost', action: 'login' } });
-    expect((await call(h2, post({ token: 't' }))).body).toEqual({ error: 'turnstile_wrong_site' });
+    expect(await call(h2, post({ token: 't' }))).toEqual({ status: 403, body: { error: 'turnstile_wrong_action' } });
+    for (const action of [undefined, '']) {
+      const { handler: h, savePass: sp } = setup({ outcome: { success: true, hostname: 'localhost', action } });
+      expect(await call(h, post({ token: 't' }))).toEqual({ status: 403, body: { error: 'turnstile_wrong_action' } });
+      expect(sp).not.toHaveBeenCalled();
+    }
     const { handler: h3 } = setup({ allowedHostnames: undefined, outcome: { success: true, hostname: 'anything.dev', action: 'checkout' } });
     expect((await call(h3, post({ token: 't' }))).status).toBe(200);
   });
@@ -144,15 +179,28 @@ describe('edge function verify-turnstile (mock di Cloudflare e Supabase)', () =>
 });
 
 describe('checkout: passo Turnstile prima di create_order_with_items', () => {
-  const httpError = (status: number) => ({ name: 'FunctionsHttpError', context: { status } });
+  // come FunctionsHttpError di supabase-js: context è la Response della funzione
+  const httpError = (status: number, error = `status ${status}`) => ({
+    name: 'FunctionsHttpError',
+    context: new Response(JSON.stringify({ error }), { status }),
+  });
 
-  test('classifica le risposte della funzione', () => {
-    expect(classifyTurnstileVerification(null)).toBe('verified');
-    expect(classifyTurnstileVerification(httpError(403))).toBe('rejected');
-    expect(classifyTurnstileVerification(httpError(400))).toBe('rejected');
-    for (const s of [401, 404, 409, 500, 502, 503]) expect(classifyTurnstileVerification(httpError(s))).toBe('unverified');
-    expect(classifyTurnstileVerification({ name: 'FunctionsFetchError', context: {} })).toBe('unverified');
-    expect(classifyTurnstileVerification(new Error('x'))).toBe('unverified');
+  test('classifica le risposte della funzione: blocca solo il verdetto definitivo turnstile_failed', async () => {
+    expect(await classifyTurnstileVerification(null)).toBe('verified');
+    expect(await classifyTurnstileVerification(httpError(403, 'turnstile_failed'))).toBe('rejected');
+    for (const [s, e] of [[403, 'turnstile_wrong_action'], [403, 'altro'], [400, 'missing_token'], [503, 'turnstile_wrong_site'],
+      [502, 'turnstile_unavailable'], [503, 'turnstile_not_configured'], [401, 'login_required'], [404, 'x'], [409, 'turnstile_expired'], [500, 'pass_not_saved']] as const) {
+      expect(await classifyTurnstileVerification(httpError(s, e))).toBe('unverified');
+    }
+    expect(await classifyTurnstileVerification({ name: 'FunctionsHttpError', context: new Response('not json', { status: 403 }) })).toBe('unverified');
+    expect(await classifyTurnstileVerification({ name: 'FunctionsFetchError', context: {} })).toBe('unverified');
+    expect(await classifyTurnstileVerification(new Error('x'))).toBe('unverified');
+  });
+
+  test('verify-turnstile appesa: dopo il timeout il checkout prosegue (unverified)', async () => {
+    const t0 = Date.now();
+    expect(await verifyTurnstileBeforeOrder('t', () => new Promise(() => {}), true, 50)).toBe('unverified');
+    expect(Date.now() - t0).toBeLessThan(2000);
   });
 
   test('senza site key (prod oggi) non chiama la funzione: checkout invariato', async () => {
@@ -171,17 +219,19 @@ describe('checkout: passo Turnstile prima di create_order_with_items', () => {
   test('con site key e token chiama verify-turnstile con il token', async () => {
     const invoke = vi.fn(async () => ({ error: null }));
     expect(await verifyTurnstileBeforeOrder('tok-9', invoke, true)).toBe('verified');
-    expect(invoke).toHaveBeenCalledWith('verify-turnstile', { body: { token: 'tok-9' } });
+    expect(invoke).toHaveBeenCalledWith('verify-turnstile', { body: { token: 'tok-9' }, timeout: 5000 });
   });
 
   test('funzione non deployata / non configurata / rete giù: non blocca il checkout', async () => {
-    for (const status of [404, 503, 502, 409]) {
+    for (const status of [404, 503, 502, 409, 400]) {
       expect(await verifyTurnstileBeforeOrder('t', async () => ({ error: httpError(status) }), true)).toBe('unverified');
     }
     expect(await verifyTurnstileBeforeOrder('t', async () => { throw new Error('offline'); }, true)).toBe('unverified');
   });
 
   test('token rifiutato: il checkout si ferma (rejected)', async () => {
-    expect(await verifyTurnstileBeforeOrder('t', async () => ({ error: httpError(403) }), true)).toBe('rejected');
+    expect(await verifyTurnstileBeforeOrder('t', async () => ({ error: httpError(403, 'turnstile_failed') }), true)).toBe('rejected');
+    // 403 di configurazione/azione: non blocca
+    expect(await verifyTurnstileBeforeOrder('t', async () => ({ error: httpError(403, 'turnstile_wrong_action') }), true)).toBe('unverified');
   });
 });

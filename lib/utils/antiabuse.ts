@@ -56,44 +56,70 @@ export function isTurnstileEnabled(raw: string | undefined = process.env.EXPO_PU
 /** Azione Turnstile del checkout: l'edge function rifiuta token emessi per altre azioni. */
 export const TURNSTILE_ACTION = 'checkout';
 
+/** Oltre questo tempo il checkout smette di aspettare verify-turnstile e invia l'ordine (decide il server). */
+export const VERIFY_TURNSTILE_TIMEOUT_MS = 5000;
+
 /**
  * Esito della chiamata a verify-turnstile, visto dal client.
  * - verified: pass salvato, si invia l'ordine;
- * - rejected: Cloudflare ha rifiutato il token (400/403): si chiede di rifare la verifica;
- * - unverified: funzione non deployata (404), non configurata (503), token scaduto/già usato (409),
- *   login mancante (401), rete o Cloudflare giù. Si invia comunque l'ordine: decide il server
+ * - rejected: SOLO 403 { error: 'turnstile_failed' }, cioè Cloudflare dice che il token non è valido:
+ *   si chiede di rifare la verifica;
+ * - unverified: tutto il resto (funzione non deployata 404, non configurata o hostname non ammesso 503,
+ *   token scaduto 409, azione diversa 403 turnstile_wrong_action, login 401, provider giù 502, oltre 5 s,
+ *   rete giù, corpo illeggibile). Si invia comunque l'ordine: decide il server
  *   (create_order_with_items chiede il pass solo se companies.require_turnstile = true).
- * Così le chiavi mancanti o la funzione non ancora deployata non bloccano il checkout.
+ * Così chiavi mancanti, configurazione sbagliata o Cloudflare giù non bloccano il checkout quando
+ * require_turnstile = false; con true il server resta rigido (niente pass = ordine rifiutato).
  */
 export type TurnstileVerification = 'verified' | 'rejected' | 'unverified';
 
-export function classifyTurnstileVerification(error: unknown): TurnstileVerification {
+type FunctionErrorLike = { context?: { status?: unknown; json?: () => Promise<unknown>; clone?: () => { json: () => Promise<unknown> } } } | null;
+
+export async function classifyTurnstileVerification(error: unknown): Promise<TurnstileVerification> {
   if (!error) return 'verified';
-  const status = (error as { context?: { status?: unknown } } | null)?.context?.status;
-  if (status === 400 || status === 403) return 'rejected';
-  return 'unverified';
+  const ctx = (error as FunctionErrorLike)?.context;
+  if (ctx?.status !== 403) return 'unverified';
+  try {
+    const body = (await (ctx.clone ? ctx.clone().json() : ctx.json?.())) as { error?: unknown } | undefined;
+    return body?.error === 'turnstile_failed' ? 'rejected' : 'unverified';
+  } catch {
+    return 'unverified';
+  }
 }
 
 type InvokeVerifyTurnstile = (
   name: 'verify-turnstile',
-  options: { body: { token: string } }
+  options: { body: { token: string }; timeout?: number }
 ) => Promise<{ error: unknown }>;
 
 /**
  * Passo Turnstile prima di create_order_with_items. 'skipped' = Turnstile spento (nessuna site key)
  * o nessun token (widget non caricato/non risolto): l'ordine parte e decide il server.
+ * Mai più di timeoutMs: oltre, 'unverified' (il checkout non resta su "Invio in corso…").
  */
 export async function verifyTurnstileBeforeOrder(
   token: string | null | undefined,
   invoke: InvokeVerifyTurnstile,
-  enabled: boolean = isTurnstileEnabled()
+  enabled: boolean = isTurnstileEnabled(),
+  timeoutMs: number = VERIFY_TURNSTILE_TIMEOUT_MS
 ): Promise<TurnstileVerification | 'skipped'> {
   if (!enabled || !token) return 'skipped';
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<TurnstileVerification>((resolve) => {
+    timer = setTimeout(() => resolve('unverified'), timeoutMs);
+  });
+  const attempt = (async (): Promise<TurnstileVerification> => {
+    try {
+      const { error } = await invoke('verify-turnstile', { body: { token }, timeout: timeoutMs });
+      return await classifyTurnstileVerification(error);
+    } catch {
+      return 'unverified';
+    }
+  })();
   try {
-    const { error } = await invoke('verify-turnstile', { body: { token } });
-    return classifyTurnstileVerification(error);
-  } catch {
-    return 'unverified';
+    return await Promise.race([attempt, timeout]);
+  } finally {
+    clearTimeout(timer);
   }
 }
 

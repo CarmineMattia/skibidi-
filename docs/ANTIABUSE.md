@@ -30,14 +30,15 @@ Blocchi e mancati ritiri valgono **solo per la pizzeria dell'admin**: un cliente
 
 Come funziona:
 1. Sul web il checkout (`/modal` e `/one-screen-checkout`) mostra il widget solo se c'è `EXPO_PUBLIC_TURNSTILE_SITE_KEY` (azione `checkout`).
-2. Prima di `create_order_with_items` il client manda il token all'edge function `verify-turnstile`. La funzione lo verifica con Cloudflare siteverify (secret dall'env, hostname e azione controllati) e salva in `order_captcha_passes` un pass monouso di 5 minuti per l'utente.
+2. Prima di `create_order_with_items` il client manda il token all'edge function `verify-turnstile`. La funzione lo verifica con Cloudflare siteverify (secret dall'env; azione `checkout` obbligatoria; hostname controllato se c'è `TURNSTILE_ALLOWED_HOSTNAMES`; `remoteip` non inviato perché gli header con l'IP sono impostabili dal client; timeout di 5 s) e salva in `order_captcha_passes` un pass monouso di 5 minuti per l'utente.
 3. **Chi blocca è il server:** se `companies.require_turnstile = true`, `create_order_with_items` (via `assert_order_antiabuse`) consuma il pass e, senza pass, rifiuta con `ANTIABUSE_CAPTCHA_REQUIRED`. Un bot che chiama la RPC direttamente non passa.
 4. Il token vale una volta sola: dopo ogni invio fallito il widget si resetta e ne genera uno nuovo.
 
 Scelta per le chiavi mancanti (il checkout di prod non deve rompersi):
 - Nessuna site key (prod oggi): nessun widget, nessuna chiamata alla funzione, `require_turnstile = false`. Tutto come prima.
-- Site key presente ma funzione non deployata (404), senza secret o con secret sbagliata (503), token scaduto (409), Cloudflare o rete giù: l'ordine parte lo stesso e decide il server. Con `require_turnstile = false` passa; con `true` serve un pass valido.
-- Solo un token rifiutato da Cloudflare (403/400) ferma il checkout lato client, con il messaggio "Conferma di non essere un robot e riprova".
+- Site key presente ma funzione non deployata (404), senza secret o con secret sbagliata (503), hostname non in `TURNSTILE_ALLOWED_HOSTNAMES` (503 `turnstile_wrong_site`), token scaduto (409), azione mancante o diversa (403 `turnstile_wrong_action`), Cloudflare `internal-error`/risposta non valida/rete giù (502), funzione o siteverify oltre 5 s: l'ordine parte lo stesso, senza pass, e decide il server. Con `require_turnstile = false` passa; con `true` serve un pass valido e l'ordine viene rifiutato.
+- Il checkout lato client si ferma SOLO con il verdetto definitivo di Cloudflare sul token (403 `turnstile_failed`, da `invalid-input-response`), con il messaggio "Conferma di non essere un robot e riprova".
+- Il client non aspetta mai più di 5 s la funzione: il checkout non resta su "Invio in corso…".
 - Si accende l'obbligo (`require_turnstile = true`) solo per ultimo, dopo aver visto un ordine di prova passare con il widget. Accenderlo prima blocca tutti gli ordini.
 - Gli ordini salvati offline e inviati più tardi non hanno un token: con `require_turnstile = true` vengono rifiutati e il cliente deve rifarli online.
 

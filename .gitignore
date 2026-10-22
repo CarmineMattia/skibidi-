@@ -70,3 +70,6 @@ memory.md
 
 # Local recipe-photo QA and preview artifacts
 tmp/
+
+# lockfile Deno generato da `deno check` alla radice: non serve (la funzione usa import URL)
+/deno.lock
