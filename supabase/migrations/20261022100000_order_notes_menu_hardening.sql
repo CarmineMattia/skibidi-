@@ -11,8 +11,9 @@
 --      (e.g. a RLO turning "nessun extra" around);
 --    - ZWJ (U+200D) is kept only between two emoji, so 👨‍🍳, ❤️‍🔥, 👨‍👩‍👧, 🏳️‍🌈 stay intact;
 --      anywhere else it is removed;
---    - tag characters (U+E0000-U+E007F) are kept only inside a valid emoji tag sequence
---      (🏴 + tags + CANCEL TAG, e.g. the England / Scotland flags), removed elsewhere;
+--    - tag characters (U+E0000-U+E007F) are kept only inside the three RGI flags
+--      🏴 gbeng / gbsct / gbwls (England, Scotland, Wales), removed everywhere else: any
+--      other well-formed 🏴 + tags + CANCEL TAG could carry invisible ASCII text;
 --    - Unicode line/paragraph separators and VT/FF/NEL (U+2028, U+2029, U+0085, U+000B,
 --      U+000C) become a space: the kitchen would show them as new lines, so a free-text
 --      note could look like an extra option line ("+ Burrata") the server never priced;
@@ -54,9 +55,11 @@ BEGIN
   v := regexp_replace(p, '[\u2028\u2029\u0085\u000B\u000C]', ' ', 'g');
   -- invisible / bidi / filler characters
   v := regexp_replace(v, '[\u00AD\u034F\u061C\u115F\u1160\u180E\u200B\u200C\u200E\u200F\u202A-\u202E\u2060-\u2064\u2066-\u2069\u2800\u3164\uFEFF\uFFA0\uFFF9-\uFFFB\U0001D173-\U0001D17A]', '', 'g');
-  -- tag characters: only inside a valid emoji tag sequence (🏴 + tags + CANCEL TAG)
+  -- tag characters: only inside the England / Scotland / Wales flags, removed everywhere else
   LOOP
-    v_seq := substring(v FROM '\U0001F3F4[\U000E0020-\U000E007E]+\U000E007F');
+    -- solo le 3 bandiere RGI (Inghilterra gbeng, Scozia gbsct, Galles gbwls): qualsiasi altra
+    -- sequenza 🏴+tag potrebbe nascondere testo ASCII invisibile
+    v_seq := substring(v FROM '\U0001F3F4\U000E0067\U000E0062(?:\U000E0065\U000E006E\U000E0067|\U000E0073\U000E0063\U000E0074|\U000E0077\U000E006C\U000E0073)\U000E007F');
     EXIT WHEN v_seq IS NULL;
     v_pos := strpos(v, v_seq);
     v_out := v_out || regexp_replace(substr(v, 1, v_pos - 1), '[\U000E0000-\U000E007F]', '', 'g') || v_seq;
