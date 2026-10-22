@@ -68,7 +68,15 @@ console.log('== A) note ordine + reserve_order_display_code (catena ordini)');
   const margherita = catalogue.products.find((p) => p.name === 'Margherita');
   if (!margherita) fail('Margherita non nel catalogo');
   try {
-    await runNotesCases(db, { company, product: margherita.id, productName: margherita.name });
+    // mezzo metro con 3 gusti (come i casi di prezzo) e 12 ingredienti aggiunti del listino
+    const metroCase = cases.find((c) => /\nTaglia: Mezzo metro\n/.test(c.notes ?? '') && /\nGusto 3: /.test(c.notes));
+    if (!metroCase) fail('nessun caso mezzo metro a 3 gusti nei casi di prezzo');
+    const gusti = [1, 2, 3].map((k) => metroCase.notes.match(new RegExp(`\\nGusto ${k}: ([^+\\n][^\\n]*)`))[1])
+      .map((g) => g.replace(/^(No|Extra) .*/, ''));
+    const extras = (await db.query(`SELECT i->>'name' AS name FROM jsonb_array_elements(public.menu_pricing_default()->'ingredients') i`)).rows.map((r) => r.name);
+    const metroProduct = catalogue.products.find((p) => p.id === metroCase.product_id);
+    await runNotesCases(db, { company, product: margherita.id, productName: margherita.name,
+      metro: { id: metroCase.product_id, name: metroProduct.name, gusti, extras } });
   } catch (e) {
     fail(e.message);
   }

@@ -18,11 +18,11 @@ export type OrderLineErrorCode =
 const CODES: OrderLineErrorCode[] = [
   'ORDER_PRODUCT_UNAVAILABLE', 'ORDER_INVALID_OPTIONS', 'ORDER_INVALID_NOTE',
   'ORDER_INVALID_QUANTITY', 'ORDER_TOTAL_TOO_LOW', 'ORDER_DELIVERY_FEE_INVALID',
-  // 20261022100000_order_notes_menu_hardening.sql: notes > 1000 characters (orders or order_items)
+  // 20261022100000_order_notes_menu_hardening.sql: free text of a line note > 1000, whole line > 8000, order note > 1000
   'ORDER_NOTES_TOO_LONG',
 ];
 
-/** Limite dei campi "Note per la cucina" (il server accetta fino a 1000 caratteri per riga). */
+/** Limite dei campi "Note per la cucina" (il server accetta fino a 1000 caratteri di testo libero per riga). */
 export const ORDER_NOTE_INPUT_MAX_CHARS = 200;
 
 /** Shown as is (isAntiabuseError → true); carries the cart line to fix. */
