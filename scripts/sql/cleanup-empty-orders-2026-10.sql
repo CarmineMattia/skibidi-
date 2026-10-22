@@ -8,10 +8,13 @@
 --   - DRY-RUN (predefinita): fa tutti i controlli e il DELETE dentro una sotto-transazione,
 --     poi la annulla (ROLLBACK della sotto-transazione): non cancella nulla. La tabella finale
 --     mostra mode = 'dry-run', quante righe cancellerebbe e i totali (invariati).
---   - CANCELLAZIONE VERA: solo se nella stessa sessione, PRIMA di questo file, si imposta
---       SELECT set_config('skibidi.cleanup_confirm', 'CANCELLA-16-ORDINI-VUOTI', false);
---     (con execute_sql: la riga va messa in testa allo stesso testo SQL). Il flag vale una
---     volta sola: lo script lo azzera subito dopo averlo letto.
+--   - CANCELLAZIONE VERA: solo con il flag LOCALE alla transazione dello script. In una copia del
+--     file (mai nel repo), togliere il "-- " davanti alla riga
+--       SELECT set_config('skibidi.cleanup_confirm', 'CANCELLA-16-ORDINI-VUOTI', true);
+--     che sta subito dopo BEGIN. Con execute_sql si invia quel testo modificato.
+--     Un flag di sessione impostato prima (in un'altra chiamata o in testa al testo) non vale:
+--     lo script lo azzera PRIMA di BEGIN e di nuovo DOPO COMMIT, e il flag locale sparisce con
+--     la transazione (anche se si annulla). Nessun flag rimasto in sessione può far cancellare.
 --
 -- Una sola transazione. Annulla tutto (nessuna riga cancellata) se:
 --   - gli ordini con questi id non sono esattamente 16;
@@ -20,7 +23,12 @@
 -- Le 16 righe vengono bloccate (FOR UPDATE) prima dei controlli: nessuno può aggiungere
 -- righe d'ordine a questi ordini tra il controllo e il DELETE.
 -- Rieseguirlo dopo una pulizia riuscita fallisce (trova 0 ordini) e non cambia nulla.
+-- nessun flag di sessione rimasto da prima (vedi MODALITÀ)
+SELECT set_config('skibidi.cleanup_confirm', '', false);
+
 BEGIN;
+-- CONFERMA: per cancellare davvero togliere il "-- " qui sotto (solo in una copia del file).
+-- SELECT set_config('skibidi.cleanup_confirm', 'CANCELLA-16-ORDINI-VUOTI', true);
 
 CREATE TEMP TABLE _cleanup_result (
   mode text NOT NULL, deleted int NOT NULL,
@@ -53,7 +61,7 @@ DECLARE
   confirmed boolean := coalesce(current_setting('skibidi.cleanup_confirm', true), '') = 'CANCELLA-16-ORDINI-VUOTI';
   dry_run_done boolean := false;
 BEGIN
-  PERFORM set_config('skibidi.cleanup_confirm', '', false);  -- flag monouso
+  PERFORM set_config('skibidi.cleanup_confirm', '', true);  -- letto una volta, poi azzerato
 
   IF cardinality(target_ids) <> 16
      OR (SELECT count(DISTINCT x) FROM unnest(target_ids) AS x) <> 16 THEN
@@ -117,3 +125,6 @@ $cleanup$;
 SELECT mode, deleted, orders_total, order_items_total, empty_orders_total FROM _cleanup_result;
 
 COMMIT;
+
+-- di nuovo nessun flag in sessione, qualunque cosa sia successa sopra
+SELECT set_config('skibidi.cleanup_confirm', '', false);

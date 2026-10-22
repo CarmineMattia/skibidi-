@@ -15,10 +15,13 @@ const fixture = read('tests/sql/cleanup-empty-orders-schema.sql');
 const backupSql = read('scripts/sql/cleanup-empty-orders-2026-10-backup.sql');
 const cleanupSql = read('scripts/sql/cleanup-empty-orders-2026-10.sql');
 const restoreTemplate = read('scripts/sql/cleanup-empty-orders-2026-10-restore.sql');
-// cancellazione vera: flag esplicito nella stessa sessione (senza: dry-run)
-const CONFIRM = "SELECT set_config('skibidi.cleanup_confirm', 'CANCELLA-16-ORDINI-VUOTI', false);\n";
-const realCleanupSql = CONFIRM + cleanupSql;
-const resultRow = (res) => res.filter((r) => r.rows?.length).at(-1).rows[0];
+// cancellazione vera: si toglie il "-- " davanti al flag locale subito dopo BEGIN (copia del file)
+const CONFIRM_LINE = "SELECT set_config('skibidi.cleanup_confirm', 'CANCELLA-16-ORDINI-VUOTI', true);";
+assert.equal(cleanupSql.split(`-- ${CONFIRM_LINE}`).length, 2, 'una sola riga di conferma commentata');
+const realCleanupSql = cleanupSql.replace(`-- ${CONFIRM_LINE}`, CONFIRM_LINE);
+assert.ok(realCleanupSql.indexOf('\n' + CONFIRM_LINE) > realCleanupSql.indexOf('\nBEGIN;\n'), 'conferma dentro la transazione');
+const SESSION_FLAG = "SELECT set_config('skibidi.cleanup_confirm', 'CANCELLA-16-ORDINI-VUOTI', false);";
+const resultRow = (res) => res.find((r) => r.rows?.length && 'mode' in r.rows[0]).rows[0];
 
 const idRe = /'([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})'/g;
 const idsOf = (sql) => [...sql.matchAll(idRe)].map((m) => m[1]);
@@ -178,6 +181,41 @@ for (const [name, setup, re, expectState] of abortCases) {
   assert.equal(res.error, undefined, res.error?.message);
   assert.deepEqual(await state(db), { orders: 22, items: 42, empty: 1 });
   ok('cancella solo i 16 id della lista (un nuovo ordine vuoto resta)');
+}
+
+// 3b) Nessun flag di sessione (impostato prima, anche dopo una pulizia confermata annullata) fa cancellare.
+{
+  const db = await fresh();
+  const flag = async () => (await one(db, "SELECT coalesce(current_setting('skibidi.cleanup_confirm', true), '<unset>') AS f")).f;
+  // repro round22 (harness/stale38.mjs): flag di sessione in una chiamata separata, poi pulizia annullata
+  await db.exec(SESSION_FLAG);
+  await db.exec(`INSERT INTO order_items (order_id, unit_price) VALUES ('0d050c47-a5f1-456c-9aec-8e2b7ca9ced2', 5)`);
+  const aborted = await exec(db, cleanupSql);
+  assert.match(String(aborted.error?.message), /CLEANUP_ABORT: 1 order_items/);
+  await db.exec(`DELETE FROM order_items WHERE order_id = '0d050c47-a5f1-456c-9aec-8e2b7ca9ced2'`);
+  const plain = await exec(db, cleanupSql);
+  assert.equal(resultRow(plain.res).mode, 'dry-run', 'flag di sessione rimasto: deve restare dry-run');
+  assert.deepEqual(await state(db), { orders: 37, items: 42, empty: 16 });
+  assert.equal(await flag(), '');
+  // flag di sessione in una chiamata separata, subito prima: dry-run
+  await db.exec(SESSION_FLAG);
+  assert.equal(resultRow((await exec(db, cleanupSql)).res).mode, 'dry-run');
+  // flag in testa allo stesso testo (anche locale): azzerato prima di BEGIN, dry-run
+  assert.equal(resultRow((await exec(db, SESSION_FLAG + '\n' + cleanupSql)).res).mode, 'dry-run');
+  assert.equal(resultRow((await exec(db, SESSION_FLAG.replace('false', 'true') + '\n' + cleanupSql)).res).mode, 'dry-run');
+  assert.deepEqual(await state(db), { orders: 37, items: 42, empty: 16 });
+  // pulizia CONFERMATA annullata: il flag locale sparisce, la successiva senza flag è dry-run
+  await db.exec(`INSERT INTO order_no_shows (order_id) VALUES ('d7c6ef59-9d66-43ab-9860-f67b79f8fdbc')`);
+  assert.match(String((await exec(db, realCleanupSql)).error?.message), /CLEANUP_ABORT/);
+  assert.equal(await flag(), '');
+  await db.exec(`DELETE FROM order_no_shows`);
+  assert.equal(resultRow((await exec(db, cleanupSql)).res).mode, 'dry-run');
+  assert.deepEqual(await state(db), { orders: 37, items: 42, empty: 16 });
+  // e con la conferma locale si cancella davvero; dopo il COMMIT nessun flag in sessione
+  assert.equal(resultRow((await exec(db, realCleanupSql)).res).mode, 'deleted');
+  assert.equal(await flag(), '');
+  assert.deepEqual(await state(db), { orders: 21, items: 42, empty: 0 });
+  ok('flag solo locale: un flag di sessione (anche rimasto dopo una pulizia annullata) non cancella mai; azzerato prima di BEGIN e dopo COMMIT');
 }
 
 // 4) Il ripristino rifiuta backup sbagliati.
