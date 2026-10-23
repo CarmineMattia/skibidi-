@@ -39,6 +39,14 @@ const ANTIPASTO_FALLBACK =
 const DESSERT_FALLBACK =
   'https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=400&q=80';
 
+/**
+ * The combos below are placeholders, not Ambrosia's real offers: the shown
+ * discount is not applied (the server charges the menu price of each product)
+ * and some matchers pick the wrong product (e.g. "Margherita" -> al metro).
+ * Kept off until the pizzeria defines real offers and the server applies them.
+ */
+export const COMBO_OFFERS_ENABLED = false;
+
 export const COMBO_OFFERS: ComboOfferDefinition[] = [
   {
     id: 'combo-pizza-drink',
@@ -131,7 +139,8 @@ function findProductByMatcher(products: Product[], matcher: string): Product | u
   return products.find((p) => p.name.toLowerCase().includes(needle) || needle.includes(p.name.toLowerCase()));
 }
 
-export function resolveComboOffers(products: Product[]): ResolvedComboOffer[] {
+export function resolveComboOffers(products: Product[], enabled: boolean = COMBO_OFFERS_ENABLED): ResolvedComboOffer[] {
+  if (!enabled) return [];
   if (products.length === 0) {
     return COMBO_OFFERS.map((def) => ({
       id: def.id,

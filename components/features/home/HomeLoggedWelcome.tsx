@@ -33,7 +33,7 @@ export function HomeLoggedWelcome({
         <Text className="text-gray-600 text-sm">
           {showReorder
             ? 'Riordina in un tap o continua con il menu artigianale del giorno.'
-            : 'Scopri le novita del menu artigianale e crea il tuo primo ordine.'}
+            : 'Scopri le novità del menu artigianale e crea il tuo primo ordine.'}
         </Text>
 
         {showActions ? (
