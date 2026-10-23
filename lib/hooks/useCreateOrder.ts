@@ -4,7 +4,7 @@
  */
 
 import { supabase } from '@/lib/api/supabase';
-import { AntiabuseError, getAntiabuseMessage, isTurnstileEnabled } from '@/lib/utils/antiabuse';
+import { AntiabuseError, getAntiabuseMessage, verifyTurnstileBeforeOrder } from '@/lib/utils/antiabuse';
 import { toOrderLineError } from '@/lib/utils/orderLineErrors';
 import { getCartItemUnitPrice, type CartItem } from '@/lib/stores/CartContext';
 import { useAppSettings } from '@/lib/stores/AppSettingsContext';
@@ -40,7 +40,7 @@ interface CreateOrderInput {
   fulfillmentAt?: string;
   paymentMethod?: PaymentMethod; // For fiscalization
   skipFiscal?: boolean; // Option to skip fiscalization for testing
-  turnstileToken?: string | null; // Cloudflare Turnstile (solo se EXPO_PUBLIC_TURNSTILE_SITE_KEY)
+  turnstileToken?: string | null; // Cloudflare Turnstile (solo se EXPO_PUBLIC_TURNSTILE_SITE_KEY), monouso
 }
 
 interface CreateOrderResult {
@@ -179,12 +179,14 @@ export function useCreateOrder() {
           notes: formatOrderItemNotes(item.notes, item.modifiers, item.product.name),
         };
       });
-      if (isTurnstileEnabled()) {
-        if (!turnstileToken) throw new AntiabuseError(getAntiabuseMessage('ANTIABUSE_CAPTCHA_REQUIRED', lang)!);
-        const { error: captchaError } = await supabase.functions.invoke('verify-turnstile', {
-          body: { token: turnstileToken },
-        });
-        if (captchaError) throw new AntiabuseError(getAntiabuseMessage('ANTIABUSE_CAPTCHA_REQUIRED', lang)!);
+      // Turnstile: il client verifica il token (pass monouso lato server), ma chi blocca davvero è
+      // create_order_with_items, e solo se companies.require_turnstile = true. Senza site key, senza
+      // token o con la funzione non deployata/non configurata si invia comunque: decide il server.
+      const turnstile = await verifyTurnstileBeforeOrder(turnstileToken, (name, options) =>
+        supabase.functions.invoke(name, options)
+      );
+      if (turnstile === 'rejected') {
+        throw new AntiabuseError(getAntiabuseMessage('ANTIABUSE_CAPTCHA_REQUIRED', lang)!);
       }
 
       const { data: persisted, error: orderError } = await supabase.rpc('create_order_with_items', {

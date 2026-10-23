@@ -209,6 +209,7 @@ export default function CheckoutScreen() {
   const insets = useSafeAreaInsets();
   const createOrder = useCreateOrder();
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
 
   // Restart validation after a reload: customer and scheduling fields are not persisted.
   const [step, setStep] = useState<CheckoutStep>('type');
@@ -1002,6 +1003,9 @@ export default function CheckoutScreen() {
       );
     } catch (error) {
       await complete(false);
+      // Il token Turnstile è monouso: dopo un invio fallito ne serve uno nuovo.
+      setTurnstileToken(null);
+      setTurnstileResetKey((k) => k + 1);
       console.error('❌ Order creation failed:', error);
       // Prodotto non più disponibile / opzioni non valide: tolto dal carrello.
       if (isOrderLineError(error) && error.removeFromCart && error.productId) {
@@ -1531,7 +1535,7 @@ export default function CheckoutScreen() {
         </View>
 
         <View className="mt-4">
-          <TurnstileWidget onToken={setTurnstileToken} />
+          <TurnstileWidget onToken={setTurnstileToken} resetKey={turnstileResetKey} />
         </View>
 
         {/* Footer Buttons */}
