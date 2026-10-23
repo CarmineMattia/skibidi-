@@ -39,6 +39,7 @@ export default function OneScreenCheckout() {
   const { items, totalAmount, clearCart, removeProductLines } = useCart();
   const createOrder = useCreateOrder();
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
 
   const [orderType, setOrderType] = useState<OrderType>('take_away');
   const [customerName, setCustomerName] = useState('');
@@ -95,6 +96,9 @@ export default function OneScreenCheckout() {
       );
     } catch (error) {
       await complete(false);
+      // Il token Turnstile è monouso: dopo un invio fallito ne serve uno nuovo.
+      setTurnstileToken(null);
+      setTurnstileResetKey((k) => k + 1);
       console.error('Order creation failed:', error);
       // Prodotto non più disponibile / opzioni non valide: tolto dal carrello.
       if (isOrderLineError(error) && error.removeFromCart && error.productId) {
@@ -225,7 +229,7 @@ export default function OneScreenCheckout() {
             <Text className="text-xs text-primary-foreground">Contanti o carta al banco. Nessun pagamento online.</Text>
           </View>
         </View>
-        <TurnstileWidget onToken={setTurnstileToken} />
+        <TurnstileWidget onToken={setTurnstileToken} resetKey={turnstileResetKey} />
       </ScrollView>
 
       {/* Confirm bar */}
