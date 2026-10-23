@@ -9,6 +9,7 @@ import {
 import { BRAND } from '@/lib/data/brand';
 import type { ResolvedComboOffer } from '@/lib/data/offers';
 import { useOffers } from '@/lib/hooks/useOffers';
+import { COMBO_OFFERS_ENABLED } from '@/lib/data/offers';
 import { useAuth } from '@/lib/stores/AuthContext';
 import { useCart } from '@/lib/stores/CartContext';
 import { useRouter } from 'expo-router';
@@ -121,6 +122,7 @@ export default function HomeScreen() {
         onMenu={() => router.push('/(tabs)/menu')}
       />
 
+      {offers.length > 0 || (COMBO_OFFERS_ENABLED && isLoading) ? (
       <View className="bg-[#f1dcc3]">
         <View className="w-full max-w-[1240px] self-center px-5 py-16 sm:px-8 sm:py-24">
           <View className="mb-8 flex-row items-end justify-between gap-4">
@@ -148,6 +150,7 @@ export default function HomeScreen() {
           />
         </View>
       </View>
+      ) : null}
 
       <View onLayout={saveSectionOffset('gallery')}>
         <LandingGallery isDesktop={isWide} isCompact={isCompact} />

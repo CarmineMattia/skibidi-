@@ -20,7 +20,7 @@ import { getOrderDisplayCode } from '@/lib/utils/orderDisplayCode';
 import type { PaymentMethod } from '@/types/fiscal.types';
 import { FontAwesome } from '@expo/vector-icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
 
 type PendingReceiptOrder = {
@@ -74,6 +74,10 @@ export function PendingReceiptsPanel({ visible, onClose }: PendingReceiptsPanelP
     enabled: visible,
   });
 
+  // Synchronous lock: the button is disabled only after the re-render, so fast
+  // repeated clicks would otherwise send several claims for the same order.
+  const issuingRef = useRef(false);
+
   const issueMutation = useMutation({
     mutationFn: async (orderId: string) => {
       setIssuingOrderId(orderId);
@@ -102,8 +106,17 @@ export function PendingReceiptsPanel({ visible, onClose }: PendingReceiptsPanelP
     onError: (err, orderId) => {
       setFeedback({ orderId, ok: false, text: err instanceof Error ? err.message : 'Errore sconosciuto' });
     },
-    onSettled: () => setIssuingOrderId(null),
+    onSettled: () => {
+      issuingRef.current = false;
+      setIssuingOrderId(null);
+    },
   });
+
+  const handleIssue = (orderId: string) => {
+    if (issuingRef.current) return;
+    issuingRef.current = true;
+    issueMutation.mutate(orderId);
+  };
 
   if (!visible) return null;
 
@@ -143,6 +156,9 @@ export function PendingReceiptsPanel({ visible, onClose }: PendingReceiptsPanelP
               <View className="items-center justify-center py-8">
                 <FontAwesome name="exclamation-circle" size={48} color="#ef4444" />
                 <Text className="text-card-foreground mt-4">Errore nel caricamento degli ordini</Text>
+                <View className="mt-4">
+                  <Button title="Riprova" size="sm" variant="outline" onPress={() => refetch()} />
+                </View>
               </View>
             ) : isLoading ? (
               <Text className="text-muted-foreground text-center py-8">Caricamento…</Text>
@@ -161,7 +177,7 @@ export function PendingReceiptsPanel({ visible, onClose }: PendingReceiptsPanelP
                       <View className="flex-row justify-between items-start gap-3">
                         <View className="flex-1">
                           <Text className="text-card-foreground font-semibold">
-                            Ordine {getOrderDisplayCode(order)}
+                            {getOrderDisplayCode(order)}
                             {order.customer_name ? ` · ${order.customer_name}` : ''}
                           </Text>
                           <Text className="text-muted-foreground text-sm mt-1">
@@ -177,7 +193,7 @@ export function PendingReceiptsPanel({ visible, onClose }: PendingReceiptsPanelP
                           size="sm"
                           variant="brand"
                           disabled={issueMutation.isPending}
-                          onPress={() => issueMutation.mutate(order.id)}
+                          onPress={() => handleIssue(order.id)}
                         />
                       </View>
                       {feedback?.orderId === order.id ? (
