@@ -7,6 +7,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { supabase } from '@/lib/api/supabase';
 import type { Database } from '@/types/database.types.generated';
+import { OrderNotFoundError, isMissingOrderResponse, isOrderNotFoundError, isValidOrderId } from '@/lib/utils/orderLookup';
 
 type Order = Database['public']['Tables']['orders']['Row'];
 type OrderItem = Database['public']['Tables']['order_items']['Row'];
@@ -119,17 +120,19 @@ export function useOrder(orderId: string) {
   return useQuery({
     queryKey: ['orders', orderId],
     queryFn: async (): Promise<OrderWithItems> => {
+      // A made-up id never reaches the server: it is simply not an order.
+      if (!isValidOrderId(orderId)) throw new OrderNotFoundError();
       const { data, error } = await supabase.rpc('get_order_tracking', {
         p_order_id: orderId,
       });
 
+      if (isMissingOrderResponse(data, error)) {
+        throw new OrderNotFoundError();
+      }
+
       if (error) {
         console.error('Order fetch error:', error);
         throw new Error(`Errore nel recupero dell'ordine: ${error.message}`);
-      }
-
-      if (!data) {
-        throw new Error('Ordine non trovato');
       }
 
       return data as unknown as OrderWithItems;
@@ -139,7 +142,8 @@ export function useOrder(orderId: string) {
     staleTime: 0,
     // Guests cannot receive protected order rows over Realtime: poll the
     // tracking RPC so acceptance remains visible without a WebSocket.
-    refetchInterval: 5 * 1000,
-    retry: 1,
+    // A missing order is final: no polling, no retry.
+    refetchInterval: (query) => (isOrderNotFoundError(query.state.error) ? false : 5 * 1000),
+    retry: (failureCount, error) => !isOrderNotFoundError(error) && failureCount < 1,
   });
 }
