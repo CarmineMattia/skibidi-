@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/Button';
 import { supabase } from '@/lib/api/supabase';
 import { useTenant } from '@/lib/stores/TenantContext';
-import { imageUrlToPersist } from '@/lib/utils/productImage';
+import { buildProductSave, ingredientsToText } from '@/lib/utils/productEditor';
 import type { Product } from '@/types';
 import { FontAwesome } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
@@ -34,7 +34,7 @@ export function EditProductModal({ visible, onClose, product }: EditProductModal
                 setName(product.name);
                 setPrice(product.price.toString());
                 setImage(product.image_url);
-                setIngredients(product.ingredients?.join(', ') || '');
+                setIngredients(ingredientsToText(product.ingredients));
             } else {
                 setName('');
                 setPrice('');
@@ -112,49 +112,37 @@ export function EditProductModal({ visible, onClose, product }: EditProductModal
     };
 
     const handleSave = async () => {
-        if (!name || !price) {
-            Alert.alert('Errore', 'Nome e prezzo sono obbligatori');
-            return;
-        }
         if (!companyId) {
             Alert.alert('Errore', 'Tenant non risolto. Riprova tra qualche secondo.');
+            return;
+        }
+        // In modifica solo i campi cambiati: stato attivo, ordine nel menu, categoria e
+        // ingredienti non toccati restano come sono nel DB (lib/utils/productEditor.ts).
+        const plan = buildProductSave({ name, price, image, ingredients }, product, companyId);
+        if (plan.kind === 'error') {
+            Alert.alert('Errore', plan.message);
+            return;
+        }
+        if (plan.kind === 'noop') {
+            onClose();
             return;
         }
 
         setIsLoading(true);
         try {
-            const ingredientsArray = ingredients
-                .split(',')
-                .map(i => i.trim())
-                .filter(i => i.length > 0);
-
-            const productData = {
-                name,
-                price: parseFloat(price),
-                // untouched bundled photo -> keep the DB value (never save an asset uri)
-                image_url: imageUrlToPersist(image, product),
-                ingredients: ingredientsArray,
-                category_id: product?.category_id || '85316818-56a5-4eed-9066-7a23341db9cb', // Use existing category or default to "Panini"
-                active: true,
-                display_order: 0,
-                company_id: companyId,
-            };
-
-            console.log('Saving product:', productData);
-
             let error;
 
-            if (isEditing && product) {
+            if (plan.kind === 'update') {
                 const { error: updateError } = await supabase
                     .from('products')
-                    .update(productData)
-                    .eq('id', product.id)
+                    .update(plan.patch)
+                    .eq('id', plan.id)
                     .eq('company_id', companyId);
                 error = updateError;
             } else {
                 const { error: insertError } = await supabase
                     .from('products')
-                    .insert(productData);
+                    .insert(plan.row);
                 error = insertError;
             }
 
@@ -231,6 +219,7 @@ export function EditProductModal({ visible, onClose, product }: EditProductModal
                                 className="bg-background border border-border rounded-lg p-3 text-foreground"
                                 value={name}
                                 onChangeText={setName}
+                                accessibilityLabel="Nome prodotto"
                             />
                         </View>
                         <View>
@@ -239,6 +228,7 @@ export function EditProductModal({ visible, onClose, product }: EditProductModal
                                 className="bg-background border border-border rounded-lg p-3 text-foreground"
                                 value={price}
                                 onChangeText={setPrice}
+                                accessibilityLabel="Prezzo prodotto"
                                 keyboardType="numeric"
                             />
                         </View>
@@ -248,6 +238,7 @@ export function EditProductModal({ visible, onClose, product }: EditProductModal
                                 className="bg-background border border-border rounded-lg p-3 text-foreground"
                                 value={ingredients}
                                 onChangeText={setIngredients}
+                                accessibilityLabel="Ingredienti prodotto"
                                 placeholder="Pomodoro, Mozzarella, Basilico"
                                 placeholderTextColor="#9ca3af"
                             />

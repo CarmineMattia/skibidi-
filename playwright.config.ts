@@ -6,7 +6,10 @@
 import { defineConfig, devices } from '@playwright/test';
 import os from 'os';
 
-const externalBaseURL = process.env.PLAYWRIGHT_BASE_URL;
+import { normalizePlaywrightBaseURL } from './tests/fixtures/playwrightBaseUrl';
+
+// localhost, non 127.0.0.1 (vedi tests/fixtures/playwrightBaseUrl.ts).
+const externalBaseURL = normalizePlaywrightBaseURL(process.env.PLAYWRIGHT_BASE_URL);
 
 export default defineConfig({
   testDir: './tests',

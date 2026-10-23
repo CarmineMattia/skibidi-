@@ -4,7 +4,7 @@
  */
 
 import { supabase } from '@/lib/api/supabase';
-import { AntiabuseError, getAntiabuseMessage, isTurnstileEnabled } from '@/lib/utils/antiabuse';
+import { AntiabuseError, getAntiabuseMessage, verifyTurnstileBeforeOrder } from '@/lib/utils/antiabuse';
 import { toOrderLineError } from '@/lib/utils/orderLineErrors';
 import { getCartItemUnitPrice, type CartItem } from '@/lib/stores/CartContext';
 import { useAppSettings } from '@/lib/stores/AppSettingsContext';
@@ -40,7 +40,7 @@ interface CreateOrderInput {
   fulfillmentAt?: string;
   paymentMethod?: PaymentMethod; // For fiscalization
   skipFiscal?: boolean; // Option to skip fiscalization for testing
-  turnstileToken?: string | null; // Cloudflare Turnstile (solo se EXPO_PUBLIC_TURNSTILE_SITE_KEY)
+  turnstileToken?: string | null; // Cloudflare Turnstile (solo se EXPO_PUBLIC_TURNSTILE_SITE_KEY), monouso
 }
 
 interface CreateOrderResult {
@@ -50,6 +50,20 @@ interface CreateOrderResult {
   fiscalStatus: 'pending' | 'success' | 'error';
   fiscalExternalId?: string;
   pdfUrl?: string;
+}
+
+/**
+ * Only an admin of the restaurant records the receipt outcome from the app.
+ * Any lookup problem counts as "not staff" (the order simply stays pending).
+ */
+async function isStaffUser(userId: string | undefined): Promise<boolean> {
+  if (!userId) return false;
+  try {
+    const { data, error } = await supabase.from('profiles').select('role').eq('id', userId).maybeSingle();
+    return !error && (data as { role?: string } | null)?.role === 'admin';
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -179,12 +193,14 @@ export function useCreateOrder() {
           notes: formatOrderItemNotes(item.notes, item.modifiers, item.product.name),
         };
       });
-      if (isTurnstileEnabled()) {
-        if (!turnstileToken) throw new AntiabuseError(getAntiabuseMessage('ANTIABUSE_CAPTCHA_REQUIRED', lang)!);
-        const { error: captchaError } = await supabase.functions.invoke('verify-turnstile', {
-          body: { token: turnstileToken },
-        });
-        if (captchaError) throw new AntiabuseError(getAntiabuseMessage('ANTIABUSE_CAPTCHA_REQUIRED', lang)!);
+      // Turnstile: il client verifica il token (pass monouso lato server), ma chi blocca davvero è
+      // create_order_with_items, e solo se companies.require_turnstile = true. Senza site key, senza
+      // token o con la funzione non deployata/non configurata si invia comunque: decide il server.
+      const turnstile = await verifyTurnstileBeforeOrder(turnstileToken, (name, options) =>
+        supabase.functions.invoke(name, options)
+      );
+      if (turnstile === 'rejected') {
+        throw new AntiabuseError(getAntiabuseMessage('ANTIABUSE_CAPTCHA_REQUIRED', lang)!);
       }
 
       const { data: persisted, error: orderError } = await supabase.rpc('create_order_with_items', {
@@ -215,10 +231,24 @@ export function useCreateOrder() {
       );
       const order = { id: orderId, total_amount: confirmed.total, fiscal_status: 'pending' as const };
 
-      // 5. Fiscalize the order (unless skipped)
+      // 5. Fiscalize the order (unless skipped). Payment is only at the till:
+      //    the receipt outcome is written by staff (admin) or by the server,
+      //    never by the customer (20261023100000_server_side_receipt_status).
+      //    Customer / guest / kiosk orders stay fiscal_status 'pending'.
       let fiscalResult: FiscalProviderResult = { success: true };
+      const recordsReceipt = !skipFiscal && (await isStaffUser(user?.id));
 
-      if (!skipFiscal) {
+      if (!recordsReceipt) {
+        return {
+          orderId: order.id,
+          displayCode,
+          totalAmount: order.total_amount,
+          fiscalStatus: 'pending',
+        };
+      }
+
+      {
+        // Staff (admin) only from here on.
         try {
           // Prepare fiscal data
           const fiscalData: FiscalOrderData = {
@@ -260,8 +290,8 @@ export function useCreateOrder() {
             const { error: updateError } = await supabase
               .from('orders')
               .update({
-                // Customers may only record the receipt outcome (orders are
-                // locked after creation): the error stays in the console.
+                // Only the outcome is recorded: the provider error stays in
+                // the console (FiscalRetryPanel lists the failed receipts).
                 fiscal_status: 'error',
               })
               .eq('id', order.id);
