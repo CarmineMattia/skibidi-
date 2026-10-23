@@ -38,6 +38,7 @@ import { FontAwesome } from '@expo/vector-icons';
 import { useEffect, useMemo, useState } from 'react';
 import { Image, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ORDER_NOTE_INPUT_MAX_CHARS } from '@/lib/utils/orderLineErrors';
 
 type WizardStepId = 'size' | 'gusti' | 'mezzo_gusti' | 'ingredients' | 'finish';
 
@@ -803,6 +804,7 @@ export function ProductDetailsModal({ visible, onClose, product, categoryName }:
                                         textAlignVertical="top"
                                         value={notes}
                                         onChangeText={setNotes}
+                                        maxLength={ORDER_NOTE_INPUT_MAX_CHARS}
                                     />
                                 </View>
                             </View>
