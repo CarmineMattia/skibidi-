@@ -9,7 +9,7 @@ import { SkeletonKitchenGrid } from '@/components/ui/Skeleton';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useKitchenOrders } from '@/lib/hooks/useKitchenOrders';
 import { KitchenOrderCard } from '@/components/features/KitchenOrderCard';
-import { FiscalRetryPanel } from '@/components/features/FiscalRetryPanel';
+import { PendingReceiptsPanel } from '@/components/features/PendingReceiptsPanel';
 import { TimeWheelModal } from '@/components/ui/TimeWheelModal';
 import { useEffect, useState } from 'react';
 import type { Database } from '@/types/database.types.generated';
@@ -78,7 +78,7 @@ export default function KitchenScreen() {
   const isTablet = effectiveWidth >= 768 && effectiveWidth < 1200;
   const columns = effectiveWidth >= 1200 ? 3 : effectiveWidth >= 768 ? 2 : 1;
   const [selectedFilterIndex, setSelectedFilterIndex] = useState(0);
-  const [showFiscalRetry, setShowFiscalRetry] = useState(false);
+  const [showReceipts, setShowReceipts] = useState(false);
   const [showPausePicker, setShowPausePicker] = useState(false);
   const [deviceNow, setDeviceNow] = useState(() => new Date());
   const router = useRouter();
@@ -179,15 +179,15 @@ export default function KitchenScreen() {
 
           <View className="flex-row items-center gap-1.5 md:gap-2">
             <Pressable
-              accessibilityLabel="Errori fiscali"
+              accessibilityLabel="Scontrini da emettere"
               className={`rounded-xl bg-[#c45c16] flex-row items-center active:opacity-85 ${
                 isUltraCompact ? 'px-2 py-2' : isMobile ? 'px-2.5 py-2 gap-1' : 'px-3.5 py-2.5 gap-2'
               }`}
-              onPress={() => setShowFiscalRetry(true)}
+              onPress={() => setShowReceipts(true)}
             >
               <FontAwesome name="file-text-o" size={isUltraCompact ? 12 : 14} color="white" />
               {!isUltraCompact ? (
-                <Text className={`text-white font-bold ${isMobile ? 'text-xs' : 'text-sm'}`}>Fiscal</Text>
+                <Text className={`text-white font-bold ${isMobile ? 'text-xs' : 'text-sm'}`}>Scontrini</Text>
               ) : null}
             </Pressable>
 
@@ -365,9 +365,9 @@ export default function KitchenScreen() {
         />
       )}
 
-      <FiscalRetryPanel
-        visible={showFiscalRetry}
-        onClose={() => setShowFiscalRetry(false)}
+      <PendingReceiptsPanel
+        visible={showReceipts}
+        onClose={() => setShowReceipts(false)}
       />
       <TimeWheelModal
         visible={showPausePicker}

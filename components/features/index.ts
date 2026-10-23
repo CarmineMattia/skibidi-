@@ -11,7 +11,7 @@ export * from './ProductDetailsModal';
 export * from './MezzoMetroGustiStep';
 export * from './EditProductModal';
 export * from './KitchenOrderCard';
-export * from './FiscalRetryPanel';
+export * from './PendingReceiptsPanel';
 export * from './DigitalReceipt';
 export * from './OfflineQueueStatus';
 export * from './DeliveryAddressField';
