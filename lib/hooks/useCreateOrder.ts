@@ -53,6 +53,20 @@ interface CreateOrderResult {
 }
 
 /**
+ * Only an admin of the restaurant records the receipt outcome from the app.
+ * Any lookup problem counts as "not staff" (the order simply stays pending).
+ */
+async function isStaffUser(userId: string | undefined): Promise<boolean> {
+  if (!userId) return false;
+  try {
+    const { data, error } = await supabase.from('profiles').select('role').eq('id', userId).maybeSingle();
+    return !error && (data as { role?: string } | null)?.role === 'admin';
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Fiscal lines in cents from the confirmed prices (server ones when available).
  */
 function toFiscalItems(totals: ResolvedOrderTotals): FiscalOrderData['items'] {
@@ -215,10 +229,24 @@ export function useCreateOrder() {
       );
       const order = { id: orderId, total_amount: confirmed.total, fiscal_status: 'pending' as const };
 
-      // 5. Fiscalize the order (unless skipped)
+      // 5. Fiscalize the order (unless skipped). Payment is only at the till:
+      //    the receipt outcome is written by staff (admin) or by the server,
+      //    never by the customer (20261023100000_server_side_receipt_status).
+      //    Customer / guest / kiosk orders stay fiscal_status 'pending'.
       let fiscalResult: FiscalProviderResult = { success: true };
+      const recordsReceipt = !skipFiscal && (await isStaffUser(user?.id));
 
-      if (!skipFiscal) {
+      if (!recordsReceipt) {
+        return {
+          orderId: order.id,
+          displayCode,
+          totalAmount: order.total_amount,
+          fiscalStatus: 'pending',
+        };
+      }
+
+      {
+        // Staff (admin) only from here on.
         try {
           // Prepare fiscal data
           const fiscalData: FiscalOrderData = {
@@ -260,8 +288,8 @@ export function useCreateOrder() {
             const { error: updateError } = await supabase
               .from('orders')
               .update({
-                // Customers may only record the receipt outcome (orders are
-                // locked after creation): the error stays in the console.
+                // Only the outcome is recorded: the provider error stays in
+                // the console (FiscalRetryPanel lists the failed receipts).
                 fiscal_status: 'error',
               })
               .eq('id', order.id);
