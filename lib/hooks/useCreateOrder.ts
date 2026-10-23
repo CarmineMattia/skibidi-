@@ -291,7 +291,7 @@ export function useCreateOrder() {
               .from('orders')
               .update({
                 // Only the outcome is recorded: the provider error stays in
-                // the console (FiscalRetryPanel lists the failed receipts).
+                // the console (PendingReceiptsPanel lists the receipts to issue).
                 fiscal_status: 'error',
               })
               .eq('id', order.id);

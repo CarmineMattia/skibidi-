@@ -2,6 +2,7 @@ import { createContext, useContext, type ReactNode } from 'react';
 import type { FiscalConfig } from '@/types/fiscal.types';
 import { getFiscalService, type FiscalService } from '@/lib/fiscal/FiscalService';
 import { supabase } from '@/lib/api/supabase';
+import { fiscalProviderLabel, issueReceipt, type RpcClient } from '@/lib/fiscal/issueReceipt';
 import { Alert } from 'react-native';
 
 /**
@@ -49,99 +50,23 @@ export function FiscalProvider({ children, config }: FiscalProviderProps) {
     };
 
     /**
-     * Process an order through fiscalization
-     * Fetches order details from database and calls fiscal provider
+     * Emit the receipt for a saved order (staff only). Order data, role and
+     * company checks and the outcome all go through the server RPCs
+     * (lib/fiscal/issueReceipt.ts); order notes are never written.
      */
     const processOrder = async (orderId: string): Promise<boolean> => {
         try {
-            // Fetch order with items
-            const { data: order, error: orderError } = await supabase
-                .from('orders')
-                .select(`
-                    *,
-                    order_items (
-                        product_id,
-                        quantity,
-                        unit_price,
-                        total_price
-                    ),
-                    products:order_items (
-                        product:products (
-                            name,
-                            ingredients
-                        )
-                    )
-                `)
-                .eq('id', orderId)
-                .single();
-
-            if (orderError) {
-                console.error('Failed to fetch order:', orderError);
+            const result = await issueReceipt(orderId, {
+                rpc: supabase as unknown as RpcClient,
+                emitter: service,
+                paymentMethod: 'cash',
+                provider: fiscalProviderLabel(service.getConfig()),
+            });
+            if (result.outcome === 'failed') {
+                Alert.alert('Errore Fiscalizzazione', result.error);
                 return false;
             }
-
-            if (!order) {
-                console.error('Order not found:', orderId);
-                return false;
-            }
-
-            // Convert order to fiscal format
-            const orderData = {
-                order_id: order.id,
-                timestamp: order.created_at,
-                payment_method: 'cash' as const, // Default, could be stored in order
-                items: (order.order_items || []).map((item: any) => ({
-                    product_id: item.product_id,
-                    name: item.product?.name || 'Product',
-                    quantity: item.quantity,
-                    unit_price: Math.round(item.unit_price * 100), // Convert to cents
-                    total_price: Math.round(item.total_price * 100),
-                    vat_rate: 22, // Default VAT rate, could be product-specific
-                })),
-                total_amount: Math.round(order.total_amount * 100),
-                total_vat: Math.round((order.total_amount * 22) / 122 * 100), // Simplified VAT calc
-            };
-
-            // Call fiscal service
-            const result = await service.emitReceipt(orderData);
-
-            if (result.success) {
-                // Update order with fiscal success
-                const { error: updateError } = await supabase
-                    .from('orders')
-                    .update({
-                        fiscal_status: 'success',
-                        fiscal_external_id: result.external_id,
-                        pdf_url: result.pdf_url,
-                    })
-                    .eq('id', orderId);
-
-                if (updateError) {
-                    console.error('Failed to update order fiscal status:', updateError);
-                }
-
-                return true;
-            } else {
-                // Update order with fiscal error
-                const { error: updateError } = await supabase
-                    .from('orders')
-                    .update({
-                        fiscal_status: 'error',
-                        notes: `Fiscal error: ${result.error}`,
-                    })
-                    .eq('id', orderId);
-
-                if (updateError) {
-                    console.error('Failed to update order fiscal status:', updateError);
-                }
-
-                Alert.alert(
-                    'Errore Fiscalizzazione',
-                    result.error || 'Impossibile fiscalizzare l\'ordine',
-                );
-
-                return false;
-            }
+            return true;
         } catch (error) {
             console.error('Error processing order:', error);
             return false;
