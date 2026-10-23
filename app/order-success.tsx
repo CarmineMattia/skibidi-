@@ -1,4 +1,4 @@
-import { useHydratedSearchParams } from '@/lib/hooks/useHydrated';
+import { useHydrated, useHydratedSearchParams } from '@/lib/hooks/useHydrated';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
@@ -15,6 +15,7 @@ import { FontAwesome } from '@expo/vector-icons';
 import { useOrder } from '@/lib/hooks/useOrders';
 import { formatCustomerOrderCode } from '@/lib/utils/orderDisplayCode';
 import { getOrderConfirmation } from '@/lib/utils/orderTracking';
+import { resolveOrderSuccessState } from '@/lib/utils/orderLookup';
 
 export default function OrderSuccessScreen() {
     const router = useRouter();
@@ -23,15 +24,18 @@ export default function OrderSuccessScreen() {
         orderType?: string;
         displayCode?: string;
     }>();
-    const { data: orderData, isError, refetch } = useOrder(orderId || '');
+    const hydrated = useHydrated();
+    const { data: orderData, error: orderError, isError, refetch } = useOrder(orderId || '');
     const confirmation = getOrderConfirmation(orderData?.status);
-    const orderLabel = displayCode
-        ? `🍕 ${displayCode}`
-        : orderData
-          ? formatCustomerOrderCode(orderData)
-          : orderId
-            ? formatCustomerOrderCode({ id: orderId, display_code: null })
-            : 'N/A';
+    const successState = resolveOrderSuccessState({
+        hydrated,
+        orderId,
+        displayCode,
+        order: orderData,
+        error: isError ? orderError : null,
+        formatLabel: formatCustomerOrderCode,
+    });
+    const orderLabel = successState.kind === 'found' || successState.kind === 'unverified' ? successState.label : '';
     const [showReceipt, setShowReceipt] = useState(false);
     // With reduced motion the confirmation renders fully visible right away.
     // Otherwise keep the entrance short: this is the page's primary content,
@@ -56,6 +60,39 @@ export default function OrderSuccessScreen() {
     const animatedTextStyle = useAnimatedStyle(() => ({
         opacity: opacity.value,
     }));
+
+    if (successState.kind === 'not_found') {
+        return (
+            <View className="flex-1 bg-primary items-center justify-center px-4 sm:px-8">
+                <View
+                    className="bg-card p-6 sm:p-8 md:p-12 rounded-3xl items-center shadow-2xl w-full max-w-md"
+                    testID="order-not-found"
+                >
+                    <View className="bg-muted h-24 w-24 sm:h-32 sm:w-32 rounded-full items-center justify-center mb-6">
+                        <Text className="text-foreground text-5xl sm:text-6xl">?</Text>
+                    </View>
+                    <Text
+                        accessibilityRole="header"
+                        className="text-foreground font-extrabold text-2xl sm:text-3xl mb-3 text-center"
+                    >
+                        Ordine non trovato
+                    </Text>
+                    <Text className="text-muted-foreground text-base sm:text-lg text-center mb-8 leading-relaxed">
+                        Non troviamo nessun ordine con questo link. Controlla di aver aperto il link giusto oppure torna al menu.
+                    </Text>
+                    <Pressable
+                        accessibilityRole="button"
+                        className="bg-foreground w-full py-5 sm:py-6 rounded-xl items-center active:opacity-90 min-h-[56px]"
+                        onPress={() => router.replace('/(tabs)/menu')}
+                    >
+                        <Text className="text-background font-bold text-lg sm:text-xl">
+                            Torna al menu
+                        </Text>
+                    </Pressable>
+                </View>
+            </View>
+        );
+    }
 
     return (
         <View className="flex-1 bg-primary items-center justify-center px-4 sm:px-8">
