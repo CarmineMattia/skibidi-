@@ -1,6 +1,6 @@
 # TODO — Skibidi Orders (Ambrosia)
 
-Riferimento: [piano](./SKIBIDI-ORDERS-PLAN.md). Stato aggiornato il **2026-10-21** (main @ `5d0e9c7`).
+Riferimento: [piano](./SKIBIDI-ORDERS-PLAN.md). Stato aggiornato il **2026-10-22**: #35, #36 e #37 unite su main il 21/10, con l'OK di Carmine; batch #38–#42 aperto il 22/10.
 Piano per ordini vuoti e foto mancanti: [piano-dati-2026-10-21.md](./piano-dati-2026-10-21.md).
 
 ## POS / integrazione
@@ -36,8 +36,20 @@ Piano per ordini vuoti e foto mancanti: [piano-dati-2026-10-21.md](./piano-dati-
 
 Deploy Vercel di `5d0e9c7` completato il 20/10 alle 17:27. Controllo in sola lettura: `/`, `/menu` e rotte profonde rispondono 200, una rotta inesistente 404, nessun errore #418 in console.
 
+### Unite il 21/10 (OK di Carmine, 10:55 CEST)
+| PR | Cosa |
+|---|---|
+| #35 | Menu visibile ai clienti senza azienda: lettura del menu delle aziende attive, azienda di default ai nuovi clienti, backfill. Migration `20261020170000_customer_company_menu.sql` applicata su prod (versione `20261021085655`): i 2 profili cliente con `company_id` NULL ora hanno Ambrosia |
+| #37 | Immagini: la foto in Supabase Storage vince su quella generata. Ora sul sito si vedono le 4 foto vere (Margherita, Funghi, Speciale, Crudo e Burrata) |
+| #36 | Questi documenti |
+
 ### Aperte
-- [ ] **#35** `fix/customer-company-menu`. Il menu era vuoto per i clienti con `company_id` NULL, cioè ogni signup Google (2 profili live). Rende il menu delle aziende attive leggibile ai clienti, assegna l'azienda ai nuovi clienti e fa il backfill. Skibidi Tester: **PASS**. **Serve l'OK di Carmine** per il merge e la migration `20261020170000_customer_company_menu.sql`.
+Batch del 22/10 (nessuna unita; merge e migration solo con l'OK di Carmine, niente eseguito su prod):
+- [ ] **#38** `chore/cleanup-empty-orders`: script di backup, pulizia e ripristino dei 16 ordini vuoti (opzione 4 del piano dati). Non eseguiti. Fix del round22 (`b71015c`): dry-run predefinito (cancella solo con flag esplicito), checksum sha256 del backup verificato dal ripristino, note su lock dei trigger e INSERT realtime in cucina. Retest 22A (`993360c`): la conferma vale solo come flag locale alla transazione (riga commentata dopo `BEGIN`); il flag di sessione viene azzerato prima di `BEGIN` e dopo `COMMIT`, così un flag rimasto dopo una pulizia annullata non cancella più
+- [ ] **#39** `fix/admin-editor-preserve-fields`: l'editor admin salva solo i campi cambiati (non riattiva i prodotti spenti, non azzera l'ordine nel menu). Include `baseURL` Playwright su `localhost`. Skibidi Tester round22: PASS
+- [ ] **#40** `fix/order-notes-hardening`: note ordine pulite (zero-width/bidi/invisibili; ZWJ tra emoji e bandiere a tag tenuti), 1000 caratteri di testo libero per riga (tetto riga 8000, nota ordine 1000), `reserve_order_display_code` solo server, menu anon solo prodotti/categorie attivi. Migration `20261022100000_order_notes_menu_hardening.sql` solo nella PR, **non applicata**. Fix del round22 (`56fce27`): pulizia in un solo punto, così il retry con lo stesso id non viene più rifiutato quando la nota contiene caratteri tolti. Retest 22A (`4b93974`): dei tag restano solo le bandiere Inghilterra/Scozia/Galles, niente più testo nascosto in 🏴+tag
+- [ ] **#41** `feat/turnstile-checkout`: Turnstile end to end (widget + `verify-turnstile`), chiavi solo da env. Non deployato: chiavi e impostazioni da fornire in `docs/ANTIABUSE.md`. Skibidi Tester round22: PASS. Rifinitura (`96186cc`): timeout 5 s su siteverify e sul client, il checkout si ferma solo con `turnstile_failed` (problemi di provider/configurazione non bloccano con `require_turnstile = false`), azione obbligatoria, niente `remoteip`, spec anche su `/modal`
+- [ ] **#42** `docs/status-2026-10-22`: questi documenti. Skibidi Tester round22: PASS
 
 ## Migration su prod (`list_migrations`, 2026-10-21)
 Le versioni su prod sono l'ora di applicazione, non il timestamp del file. Il confronto è fatto per nome e contenuto.
@@ -52,7 +64,7 @@ Le versioni su prod sono l'ora di applicazione, non il timestamp del file. Il co
 | #32 | `20261020140000_order_items_insert_guard.sql` | `20261020091715` | applicata |
 | #33 | `20261020150000_server_side_pricing.sql` | `20261020151133` | applicata |
 | #34 | `20261020160000_customer_order_update_lock.sql` | `20261020151554` | applicata |
-| #35 | `20261020170000_customer_company_menu.sql` | — | **non applicata: attende l'OK di Carmine** |
+| #35 | `20261020170000_customer_company_menu.sql` | `20261021085655` | applicata (21/10) |
 
 Verifica degli oggetti di #18 e #20, oltre alla storia delle migration:
 - **#18:** l'enum `order_status` ha pending, accepted, preparing, ready, delivered, cancelled e rejected. Esistono `accepted_at`/`accepted_by` e i trigger `trg_enforce_order_manual_approval` e `trg_prevent_empty_order_acceptance`.
@@ -66,14 +78,14 @@ File presenti nel repo ma assenti dalla storia di prod, con gli oggetti già pre
 
 Per allineare la storia basta un `migration repair`, che è solo registrazione e va comunque fatto con l'OK di Carmine.
 
-**Nessuna migration delle PR unite attende l'OK. Resta solo #35.**
+**Tutte le migration delle PR unite sono applicate. Nessuna attende l'OK.**
 
 ## Seguiti aperti
 ### CI e test
 - [ ] Far girare in CI vitest e i runner SQL PGlite (`tests/sql/run-*-pglite.mjs`). Oggi il job "Tests (Future)" è un segnaposto
 ### Ordini e note
-- [ ] Limite di lunghezza delle note lato server
-- [ ] Caratteri zero-width e bidi (RTL) nelle note: rifiutarli o ripulirli
+- [ ] Limite di lunghezza delle note lato server (in #40)
+- [ ] Caratteri zero-width e bidi (RTL) nelle note: rifiutarli o ripulirli (in #40)
 - [ ] Titolo della card "mezzo metro" in cucina e in admin
 - [ ] Setter della consegna in admin: arrotondare ai centesimi (il server rifiuta più di 2 decimali)
 - [ ] Client fiscali vecchi in cache rifiutati: messaggio chiaro e ricarica
@@ -81,20 +93,27 @@ Per allineare la storia basta un `migration repair`, che è solo registrazione e
 - [ ] `/order-success` con un orderId falso mostra "Ordine #N" e "non verificabile" invece di "non trovato"
 - [ ] Chi può annullare un ordine già accettato (solo admin o anche il cliente)
 ### Permessi DB
-- [ ] Revocare `reserve_order_display_code` ad `authenticated` (serve solo dentro `create_order_with_items`)
+- [ ] Revocare `reserve_order_display_code` ad `authenticated` (serve solo dentro `create_order_with_items`) (in #40)
 - [ ] `anon` ha ancora MAINTAIN su `orders`/`order_items`. Restano anche i default privileges di `supabase_admin` su `public`
 - [ ] Default privileges dello schema `storage`
-- [ ] `anon` legge via API prodotti inattivi e aziende inattive: limitare a quelli attivi
+- [ ] `anon` legge via API prodotti inattivi e aziende inattive: limitare a quelli attivi (in #40)
+### Test e immagini (Skibidi Tester, round21)
+- [ ] (in #39) Playwright: `baseURL` su `localhost`, non `127.0.0.1` (`127.0.0.1` viene letto come sottodominio di un'azienda da `TenantContext`)
+- [ ] (Opzionale) Rafforzare la precedenza delle foto: accettare solo l'host Storage del nostro progetto (`zqubwvhstobaugifzoyb.supabase.co`), non qualsiasi `*.supabase.co`
+- [ ] `image_url` fatto di soli spazi: trattarlo come vuoto anche lato DB e admin
+### Admin
+- [ ] L'editor prodotto in admin, al salvataggio, manda sempre `active: true`, `display_order: 0` e gli ingredienti vuoti se il campo è vuoto: riattiva i prodotti inattivi e ne perde l'ordine. In #39
 ### Web
 - [ ] Titoli pagina vuoti su `/menu`, `/account` e `/order-tracking`
 ### Antiabuso e pagamenti
-- [ ] Turnstile: serve prima il deploy della edge function `verify-turnstile`
+- [ ] (Facoltativo, round22) Con la site key attiva: disattivare "Conferma ordine" finché il widget non ha dato un token
+- [ ] Turnstile: serve prima il deploy della edge function `verify-turnstile` (codice in #41, chiavi da Carmine)
 - [ ] Edge function Stripe: tenere per la v2 o cancellare
 - [ ] Confermare i limiti antiabuso (€150, 2 ordini aperti, 3 ogni 10 min, blocco dopo 3 mancati ritiri)
 ### Dati (vedi [piano-dati-2026-10-21.md](./piano-dati-2026-10-21.md), serve l'OK di Carmine)
-- [ ] 16 vecchi ordini senza `order_items`
+- [ ] 16 vecchi ordini senza `order_items` (script in #38, da eseguire solo con l'OK)
 - [ ] 11 prodotti senza foto (5 Al metro, Stria, 5 dolci): aspettiamo le foto di Carmine
-- [ ] Le 4 foto vere in Storage (Margherita, Funghi, Speciale, Crudo e Burrata) sono coperte dalle foto generate locali di `lib/data/pizzaPhotos.ts`: decidere la precedenza
+- [x] Le 4 foto vere in Storage (Margherita, Funghi, Speciale, Crudo e Burrata) ora si vedono sul sito: la foto in Storage vince su quella generata (#37)
 ### POS
 - [ ] Integrazione con il POS Windows 10 (vedi sopra)
 

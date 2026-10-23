@@ -78,7 +78,7 @@ Prodotti attivi su prod: **85**.
 
 Skibidi Tester ha contato i prodotti con `image_url` NULL nel DB: **55** (44 + 11). L'app però applica `withPizzaPhoto()` (`useProducts`, `CartItem`), che assegna le 48 foto generate locali (`assets/images/products/*-generated-*.webp`) per id e ricetta. Quindi solo **11** prodotti mostrano l'icona segnaposto. È lo stesso numero del report del 15/10 (`docs/product-images-2026-10-15.md`).
 
-**Nota:** le 4 foto vere in Storage sono anche nella mappa locale, e `withPizzaPhoto()` le **sostituisce** con la versione generata. Per esempio, sul sito Margherita mostra la foto generata, non quella vera in Storage. Serve decidere la precedenza: proposta di una piccola PR in cui, se `image_url` punta allo Storage Supabase, vince la foto vera.
+**Nota (risolta con #37, 21/10):** le 4 foto vere in Storage sono anche nella mappa locale, e prima `withPizzaPhoto()` le sostituiva con la versione generata. Ora un `image_url` su Supabase Storage vince sulla foto generata. Quindi una foto vera caricata in Storage si vede anche per i 44 prodotti che oggi usano una foto generata.
 
 ### Gli 11 prodotti senza foto (nomi dal DB live)
 | Categoria | Prodotto | Prezzo € | id |
