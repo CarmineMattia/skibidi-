@@ -51,16 +51,19 @@ function downloadVCardOnWeb(vcard: string) {
   }
 }
 
+/** Apre la chat WhatsApp con il messaggio precompilato (stesso numero di BRAND.whatsapp). */
+function openWhatsAppChat() {
+  const wa = BRAND.whatsapp;
+  if (!wa) return;
+  const text = encodeURIComponent(`Ciao ${BRAND.name}, vorrei ordinare 🍕`);
+  void Linking.openURL(`https://wa.me/${wa}?text=${text}`);
+}
+
 /** Salva contatto (vCard) + apre chat WhatsApp se il numero è configurato */
 function openWhatsAppOrSaveContact() {
   const vcard = buildAmbrosiaVCard();
   downloadVCardOnWeb(vcard);
-
-  const wa = BRAND.whatsapp;
-  if (wa) {
-    const text = encodeURIComponent(`Ciao ${BRAND.name}, vorrei ordinare 🍕`);
-    void Linking.openURL(`https://wa.me/${wa}?text=${text}`);
-  }
+  openWhatsAppChat();
 }
 
 // Layout is driven by CSS breakpoints (sm/md), not JS width props: media
@@ -117,13 +120,13 @@ export function LandingHero({ isDesktop, onMenu }: LandingHeroProps) {
               Il nettare{'\n'}degli dei.
             </Text>
 
-            <View className="mt-6 sm:max-w-[420px]">
+            <View className="mt-6 flex-row items-stretch gap-2.5 sm:max-w-[560px] sm:gap-3">
               {/* Primary: pizzas first — most colorful */}
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Ordina le pizze"
                 onPress={onMenu}
-                className="min-h-[72px] flex-row items-center justify-center gap-3 rounded-2xl px-6 active:scale-[0.98] active:opacity-95 web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-[#f0c486]"
+                className="min-h-[72px] min-w-0 flex-1 flex-row items-center justify-center gap-2.5 rounded-2xl px-3 active:scale-[0.98] active:opacity-95 sm:gap-3 sm:px-6 web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-[#f0c486]"
                 style={{
                   backgroundColor: '#8d171e',
                   borderWidth: 2,
@@ -138,18 +141,45 @@ export function LandingHero({ isDesktop, onMenu }: LandingHeroProps) {
                 <View
                   className="items-center justify-center rounded-xl"
                   style={{
-                    width: 44,
-                    height: 44,
+                    width: 40,
+                    height: 40,
                     backgroundColor: 'rgba(243, 201, 142, 0.22)',
                     borderWidth: 1,
                     borderColor: 'rgba(243, 201, 142, 0.55)',
                   }}
                 >
-                  <MaterialIcons name="local-pizza" size={28} color="#f3c98e" />
+                  <MaterialIcons name="local-pizza" size={26} color="#f3c98e" />
                 </View>
-                <Text className="text-xl font-black tracking-wide text-white">Ordina le pizze</Text>
-                <FontAwesome name="chevron-right" size={16} color="#f3c98e" />
+                <Text className="text-lg font-black tracking-wide text-white sm:text-xl" numberOfLines={1}>
+                  Ordina le pizze
+                </Text>
+                <View className="hidden sm:flex">
+                  <FontAwesome name="chevron-right" size={16} color="#f3c98e" />
+                </View>
               </Pressable>
+
+              {/* WhatsApp: subito visibile accanto alla CTA principale */}
+              {BRAND.whatsapp ? (
+                <Pressable
+                  accessibilityRole="link"
+                  accessibilityLabel="Scrivici su WhatsApp"
+                  onPress={openWhatsAppChat}
+                  className="min-h-[72px] w-[86px] items-center justify-center gap-1 rounded-2xl active:scale-[0.98] active:opacity-90 sm:w-auto sm:flex-row sm:gap-2.5 sm:px-5 web:hover:bg-[#1ebe5b] web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-[#d8ffe8]"
+                  style={{
+                    backgroundColor: '#25D366',
+                    borderWidth: 2,
+                    borderColor: '#b8f5cf',
+                    shadowColor: '#128C7E',
+                    shadowOpacity: 0.4,
+                    shadowRadius: 12,
+                    shadowOffset: { width: 0, height: 6 },
+                    elevation: 6,
+                  }}
+                >
+                  <FontAwesome5 name="whatsapp" size={28} color="#ffffff" />
+                  <Text className="text-xs font-black text-white sm:text-lg">WhatsApp</Text>
+                </Pressable>
+              ) : null}
             </View>
 
             <HomePizzaStrip onOpenMenu={onMenu} />
