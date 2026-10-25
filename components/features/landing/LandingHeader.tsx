@@ -1,6 +1,6 @@
 import { BRAND, BRAND_LOGO } from '@/lib/data/brand';
 import { FontAwesome } from '@expo/vector-icons';
-import { Image, Pressable, ScrollView, Text, View } from 'react-native';
+import { Image, Linking, Pressable, Text, View } from 'react-native';
 
 interface LandingHeaderProps {
   readonly isAuthenticated: boolean;
@@ -8,40 +8,75 @@ interface LandingHeaderProps {
   readonly topInset: number;
   readonly onMenu: () => void;
   readonly onOffers: () => void;
-  readonly onGallery: () => void;
-  readonly onContact: () => void;
   readonly onAccount: () => void;
 }
 
-function HeaderLink({
+type NavIcon = 'cutlery' | 'tag' | 'phone';
+
+function openPhone() {
+  void Linking.openURL(BRAND.phoneHref);
+}
+
+/** Desktop: link testuale con icona, compatto. */
+function DesktopNavLink({
   label,
+  icon,
   onPress,
-  compact = false,
+  accessibilityLabel,
 }: {
   readonly label: string;
+  readonly icon: NavIcon;
   readonly onPress: () => void;
-  readonly compact?: boolean;
+  readonly accessibilityLabel?: string;
 }) {
-  if (compact) {
-    return (
-      <Pressable
-        accessibilityRole="link"
-        onPress={onPress}
-        className="min-h-[48px] items-center justify-center rounded-2xl border border-[#8d171e]/20 bg-white px-5 active:opacity-70 web:hover:bg-white web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-[#8d171e]"
-        style={{ paddingVertical: 12, paddingHorizontal: 18 }}
-      >
-        <Text className="text-base font-extrabold text-[#342b27]">{label}</Text>
-      </Pressable>
-    );
-  }
-
   return (
     <Pressable
       accessibilityRole="link"
+      accessibilityLabel={accessibilityLabel ?? label}
       onPress={onPress}
-      className="rounded-lg px-3 py-2 active:opacity-60 web:hover:bg-[#8d171e]/[0.07] web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-[#8d171e]"
+      className="h-11 flex-row items-center gap-2 rounded-xl px-3.5 active:opacity-60 web:hover:bg-[#8d171e]/[0.07] web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-[#8d171e]"
     >
+      <FontAwesome name={icon} size={14} color="#8d171e" />
       <Text className="text-sm font-bold text-[#342b27]">{label}</Text>
+    </Pressable>
+  );
+}
+
+/** Mobile: tre bottoni grandi a larghezza uguale (niente scroll orizzontale). */
+function MobileNavButton({
+  label,
+  icon,
+  onPress,
+  accessibilityLabel,
+  tone = 'light',
+}: {
+  readonly label: string;
+  readonly icon: NavIcon;
+  readonly onPress: () => void;
+  readonly accessibilityLabel?: string;
+  readonly tone?: 'light' | 'call';
+}) {
+  const isCall = tone === 'call';
+  return (
+    <Pressable
+      accessibilityRole="link"
+      accessibilityLabel={accessibilityLabel ?? label}
+      onPress={onPress}
+      className={`min-h-[52px] flex-1 flex-row items-center justify-center gap-2 rounded-2xl border px-2 active:scale-[0.98] active:opacity-80 web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-[#8d171e] ${
+        isCall ? 'border-[#e1a255] bg-[#fbecd6]' : 'border-[#8d171e]/20 bg-white'
+      }`}
+      style={{
+        shadowColor: '#5a1a12',
+        shadowOpacity: 0.08,
+        shadowRadius: 6,
+        shadowOffset: { width: 0, height: 2 },
+        elevation: 1,
+      }}
+    >
+      <FontAwesome name={icon} size={16} color="#8d171e" />
+      <Text className="text-base font-extrabold text-[#342b27]" numberOfLines={1}>
+        {label}
+      </Text>
     </Pressable>
   );
 }
@@ -52,8 +87,6 @@ export function LandingHeader({
   topInset,
   onMenu,
   onOffers,
-  onGallery,
-  onContact,
   onAccount,
 }: LandingHeaderProps) {
   return (
@@ -95,10 +128,14 @@ export function LandingHeader({
 
         {isDesktop ? (
           <View className="flex-row items-center gap-1">
-            <HeaderLink label="Menu" onPress={onMenu} />
-            <HeaderLink label="Offerte" onPress={onOffers} />
-            <HeaderLink label="Gallery" onPress={onGallery} />
-            <HeaderLink label="Contatti" onPress={onContact} />
+            <DesktopNavLink label="Menu" icon="cutlery" onPress={onMenu} />
+            <DesktopNavLink label="Offerte" icon="tag" onPress={onOffers} />
+            <DesktopNavLink
+              label={`Chiama ${BRAND.phone}`}
+              accessibilityLabel={`Chiama ora ${BRAND.phone}`}
+              icon="phone"
+              onPress={openPhone}
+            />
           </View>
         ) : null}
 
@@ -137,17 +174,17 @@ export function LandingHeader({
       </View>
 
       {!isDesktop ? (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          className="border-t border-[#8d171e]/8"
-          contentContainerClassName="gap-2.5 px-4 py-3"
-        >
-          <HeaderLink compact label="Menu" onPress={onMenu} />
-          <HeaderLink compact label="Offerte" onPress={onOffers} />
-          <HeaderLink compact label="Gallery" onPress={onGallery} />
-          <HeaderLink compact label="Contatti" onPress={onContact} />
-        </ScrollView>
+        <View className="flex-row gap-2 border-t border-[#8d171e]/8 px-4 py-2.5">
+          <MobileNavButton label="Menu" icon="cutlery" onPress={onMenu} />
+          <MobileNavButton label="Offerte" icon="tag" onPress={onOffers} />
+          <MobileNavButton
+            label="Chiama"
+            accessibilityLabel={`Chiama ora ${BRAND.phone}`}
+            icon="phone"
+            tone="call"
+            onPress={openPhone}
+          />
+        </View>
       ) : null}
     </View>
   );

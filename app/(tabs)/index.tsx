@@ -95,8 +95,6 @@ export default function HomeScreen() {
         topInset={isWebDesktop ? 0 : insets.top}
         onMenu={() => router.push('/(tabs)/menu')}
         onOffers={() => router.push('/offers')}
-        onGallery={() => scrollToSection('gallery')}
-        onContact={() => scrollToSection('contact')}
         onAccount={() =>
           router.push(isAuthenticated ? '/(tabs)/account' : '/login')
         }
