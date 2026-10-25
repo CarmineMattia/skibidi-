@@ -1,3 +1,4 @@
+import { HomePizzaStrip } from '@/components/features/home/HomePizzaStrip';
 import { BRAND } from '@/lib/data/brand';
 import { FontAwesome, FontAwesome5, MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -86,7 +87,7 @@ export function LandingHero({ isDesktop, onMenu }: LandingHeroProps) {
           left: 0,
           right: 0,
           width: '100%',
-          height: isDesktop ? '100%' : 250,
+          height: isDesktop ? '100%' : 200,
           // @ts-expect-error React Native Web forwards this CSS image property.
           objectPosition: isDesktop ? 'center' : 'center bottom',
         }}
@@ -103,7 +104,7 @@ export function LandingHero({ isDesktop, onMenu }: LandingHeroProps) {
         style={{ position: 'absolute', inset: 0 }}
       />
 
-      <View className="w-full max-w-[1240px] flex-1 self-center justify-center px-5 pb-14 pt-[270px] sm:px-7 sm:pb-20 sm:pt-[270px] md:px-8 md:py-24">
+      <View className="w-full max-w-[1240px] flex-1 self-center justify-center px-5 pb-14 pt-[210px] sm:px-7 sm:pb-20 sm:pt-[270px] md:px-8 md:py-24">
         <View className="max-w-[620px] md:max-w-[710px]">
             <View className="mb-5 self-start flex-row items-center gap-2 border-l-2 border-[#e7b577] bg-black/25 px-3 py-2">
               <FontAwesome name="map-marker" size={13} color="#f3c98e" />
@@ -116,15 +117,11 @@ export function LandingHero({ isDesktop, onMenu }: LandingHeroProps) {
               Il nettare{'\n'}degli dei.
             </Text>
 
-            <Text className="mt-6 max-w-[600px] font-medium text-[#f5e8d7] text-base leading-7 sm:text-lg sm:leading-8">
-              {BRAND.description} Scegli la tua pizza e ordinala direttamente online.
-            </Text>
-
-            <View className="mt-8 gap-3.5 sm:max-w-[420px]">
-              {/* Primary: Menu — most colorful */}
+            <View className="mt-6 sm:max-w-[420px]">
+              {/* Primary: pizzas first — most colorful */}
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel="Ordina dal menu"
+                accessibilityLabel="Ordina le pizze"
                 onPress={onMenu}
                 className="min-h-[72px] flex-row items-center justify-center gap-3 rounded-2xl px-6 active:scale-[0.98] active:opacity-95 web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-[#f0c486]"
                 style={{
@@ -148,12 +145,20 @@ export function LandingHero({ isDesktop, onMenu }: LandingHeroProps) {
                     borderColor: 'rgba(243, 201, 142, 0.55)',
                   }}
                 >
-                  <MaterialIcons name="restaurant-menu" size={28} color="#f3c98e" />
+                  <MaterialIcons name="local-pizza" size={28} color="#f3c98e" />
                 </View>
-                <Text className="text-xl font-black tracking-wide text-white">Ordina dal menu</Text>
+                <Text className="text-xl font-black tracking-wide text-white">Ordina le pizze</Text>
                 <FontAwesome name="chevron-right" size={16} color="#f3c98e" />
               </Pressable>
+            </View>
 
+            <HomePizzaStrip onOpenMenu={onMenu} />
+
+            <Text className="mt-5 max-w-[600px] font-medium text-[#f5e8d7] text-base leading-7 sm:text-lg sm:leading-8">
+              {BRAND.description} Scegli la tua pizza e ordinala direttamente online.
+            </Text>
+
+            <View className="mt-6 gap-3.5 sm:max-w-[420px]">
               {/* Call */}
               <Pressable
                 accessibilityRole="link"

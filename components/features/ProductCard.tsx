@@ -19,6 +19,8 @@ interface ProductCardProps {
   readonly onEditPress?: () => void;
   /** Se true, il + rapido aggiunge la pizza in formato Normale. */
   readonly quickAddAsNormalPizza?: boolean;
+  /** Nome della categoria mostrato sopra il nome (es. "Classiche"). */
+  readonly categoryName?: string;
 }
 
 // Helper function to get icon name based on product name
@@ -45,7 +47,7 @@ function getProductIcon(product: Product): string {
   return 'cutlery';
 }
 
-export function ProductCard({ product, onAddToCart, onPress, onEditPress, quickAddAsNormalPizza = false }: ProductCardProps) {
+export function ProductCard({ product, onAddToCart, onPress, onEditPress, quickAddAsNormalPizza = false, categoryName }: ProductCardProps) {
   const width = useViewportWidth();
   const { language } = useAppSettings();
   const { items, addItem, updateQuantity } = useCart();
@@ -145,7 +147,9 @@ export function ProductCard({ product, onAddToCart, onPress, onEditPress, quickA
           disabled={!onPress}
           accessibilityRole="button"
         >
-          <Text className="text-[11px] font-bold uppercase tracking-wide text-[#8f7068]">Classic</Text>
+          {categoryName ? (
+            <Text className="text-[11px] font-bold uppercase tracking-wide text-[#8f7068]">{categoryName}</Text>
+          ) : null}
           <Text
             className={`text-gray-900 font-extrabold leading-tight ${
               isMobile ? 'text-lg mt-0.5' : 'text-xl mt-1'

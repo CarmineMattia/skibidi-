@@ -20,7 +20,7 @@ const p = (name: string, category_id: string, display_order: number, image_url: 
 });
 
 describe('sortMenuProducts', () => {
-  it('follows the category order, desserts after the pizzas, then display_order', () => {
+  it('follows the menu category order (Classiche first, desserts after the pizzas), then display_order', () => {
     const list = [
       p('Profiterol', 'dol', 1),
       p('Margherita al metro', 'met', 1),
@@ -30,9 +30,9 @@ describe('sortMenuProducts', () => {
       p('Tiramisù', 'dol', 3),
     ];
     expect(sortMenuProducts(list, categories).map((x) => x.name)).toEqual([
-      'La Rustica',
       'Margherita',
       'Romana',
+      'La Rustica',
       'Margherita al metro',
       'Profiterol',
       'Tiramisù',

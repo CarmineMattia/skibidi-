@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils/cn';
+import { PIZZE_CHIP_LABEL } from '@/lib/utils/menuOrder';
 import type { Category } from '@/types';
 import { FontAwesome } from '@expo/vector-icons';
 import { Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
@@ -11,6 +12,8 @@ interface MobileCategoryBarProps {
   readonly onChangeSearch: (value: string) => void;
   /** image_url preferita per categoria (es. primo prodotto) */
   readonly categoryImages?: Record<string, string | undefined>;
+  /** Foto del chip "Pizze" (es. prima pizza con foto). */
+  readonly pizzeImageUrl?: string;
 }
 
 const FALLBACK_BY_NAME: Record<string, string> = {
@@ -89,6 +92,7 @@ export function MobileCategoryBar({
   searchQuery,
   onChangeSearch,
   categoryImages = {},
+  pizzeImageUrl,
 }: MobileCategoryBarProps) {
   return (
     <View className="z-20 border-b border-[#ead8c7] bg-[#fff9f1] px-3 pb-2.5 pt-2">
@@ -119,9 +123,9 @@ export function MobileCategoryBar({
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingRight: 8 }}>
         <CategoryChip
-          label="Solo mangiare"
+          label={PIZZE_CHIP_LABEL}
           selected={selectedCategoryId === null && searchQuery.trim().length === 0}
-          imageUrl={FALLBACK_BY_NAME.pizza}
+          imageUrl={pizzeImageUrl || FALLBACK_BY_NAME.pizza}
           onPress={() => {
             onChangeSearch('');
             onSelectCategory(null);

@@ -1,5 +1,12 @@
 import { isPizzaCategoryName } from '@/lib/utils/menuCategories';
-import { getProductSubtitle, pickFeaturedProduct, sortMenuProducts } from '@/lib/utils/menuOrder';
+import {
+  getProductSubtitle,
+  isDefaultMenuCategory,
+  pickFeaturedProduct,
+  PIZZE_CHIP_LABEL,
+  sortMenuCategories,
+  sortMenuProducts,
+} from '@/lib/utils/menuOrder';
 /**
  * Menu Screen
  * Main POS interface with product grid and cart
@@ -196,7 +203,9 @@ export default function MenuScreen() {
   const productListRef = useRef<FlatList<Product>>(null);
   const insets = useSafeAreaInsets();
 
-  const { data: categories = [], isLoading: categoriesLoading } = useCategories();
+  const { data: rawCategories = [], isLoading: categoriesLoading } = useCategories();
+  // Menu order (Classiche ... Al metro, Dolci, Bevande), not the DB display_order.
+  const categories = useMemo(() => sortMenuCategories(rawCategories), [rawCategories]);
   const { data: products = [], isLoading: productsLoading } = useProducts();
   const { items, addItem, updateQuantity, totalItems, totalAmount } = useCart();
   const { isAuthenticated, profile, signOut, isAdmin } = useAuth();
@@ -234,14 +243,18 @@ export default function MenuScreen() {
         return hay.includes(query);
       });
     } else if (selectedCategoryId === null) {
-      // Default menu mode: show only food, unless user explicitly selects a drinks category.
-      list = list.filter((product) => !drinkCategoryIds.has(product.category_id));
+      // Default "Pizze" chip: pizzas only (no desserts, no drinks) so the first screen shows pizzas.
+      list = list.filter(
+        (product) =>
+          !drinkCategoryIds.has(product.category_id) &&
+          isDefaultMenuCategory(categoryNameById.get(product.category_id))
+      );
     } else {
       list = list.filter((product) => product.category_id === selectedCategoryId);
     }
 
     return sortMenuProducts(list, categories);
-  }, [products, categories, selectedCategoryId, drinkCategoryIds, menuSearchQuery]);
+  }, [products, categories, categoryNameById, selectedCategoryId, drinkCategoryIds, menuSearchQuery]);
 
   const categoryImages = useMemo(() => {
     const map: Record<string, string | undefined> = {};
@@ -251,6 +264,14 @@ export default function MenuScreen() {
     }
     return map;
   }, [products]);
+  const pizzeImageUrl = useMemo(
+    () =>
+      categories
+        .filter((category) => isDefaultMenuCategory(category.name) && !drinkCategoryIds.has(category.id))
+        .map((category) => categoryImages[category.id])
+        .find(Boolean),
+    [categories, categoryImages, drinkCategoryIds]
+  );
 
   useEffect(() => {
     if (selectedProduct || products.length === 0) return;
@@ -616,6 +637,7 @@ export default function MenuScreen() {
             selectedCategoryId={selectedCategoryId}
             onSelectCategory={(id) => { setMenuSearchQuery(''); setSelectedCategoryId(id); }}
             categoryImages={categoryImages}
+            pizzeImageUrl={pizzeImageUrl}
           />
         )}
 
@@ -632,6 +654,7 @@ export default function MenuScreen() {
               searchQuery={menuSearchQuery}
               onChangeSearch={setMenuSearchQuery}
               categoryImages={categoryImages}
+              pizzeImageUrl={pizzeImageUrl}
             />
           ) : null}
 
@@ -807,6 +830,7 @@ export default function MenuScreen() {
                     >
                       <ProductCard
                         product={item}
+                        categoryName={categoryNameById.get(item.category_id)}
                         onPress={handleProductPress}
                         onAddToCart={handleProductPress}
                         quickAddAsNormalPizza={isStandardMenuPizza(
@@ -882,7 +906,7 @@ export default function MenuScreen() {
                   }}
                 >
                   <Text className={`${selectedCategoryId === null ? 'text-white' : 'text-[#8d171e]'} font-semibold text-sm`}>
-                    Tutti
+                    {PIZZE_CHIP_LABEL}
                   </Text>
                 </Pressable>
                 {categories.map((category) => {

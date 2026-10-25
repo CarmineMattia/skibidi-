@@ -18,7 +18,7 @@ test.describe('Landing Ambrosia', () => {
   });
 
   test('porta dal hero al menu ordini', async ({ page }) => {
-    const hero = page.getByRole('button', { name: 'Ordina dal menu' });
+    const hero = page.getByRole('button', { name: 'Ordina le pizze' });
     await hero.waitFor({ timeout: 15_000 });
     await hero.click();
     await expect(page).toHaveURL(/\/menu(?:\?.*)?$/, { timeout: 15_000 });
