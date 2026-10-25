@@ -5,6 +5,7 @@
 
 import { useAuth } from '@/lib/stores/AuthContext';
 import { cn } from '@/lib/utils/cn';
+import { PIZZE_CHIP_LABEL } from '@/lib/utils/menuOrder';
 import type { Category } from '@/types';
 import { FontAwesome } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -15,6 +16,8 @@ interface CategoryFilterProps {
   readonly selectedCategoryId: string | null;
   readonly onSelectCategory: (categoryId: string | null) => void;
   readonly categoryImages?: Record<string, string | undefined>;
+  /** Foto del bottone "Pizze" (es. prima pizza con foto). */
+  readonly pizzeImageUrl?: string;
 }
 
 // Helper function to get vector icon for category
@@ -51,6 +54,7 @@ export function CategoryFilter({
   selectedCategoryId,
   onSelectCategory,
   categoryImages = {},
+  pizzeImageUrl,
 }: CategoryFilterProps) {
   const { isAuthenticated, profile, signOut } = useAuth();
   const router = useRouter();
@@ -72,8 +76,12 @@ export function CategoryFilter({
           )}
           onPress={() => onSelectCategory(null)}
         >
-          <View className="w-8 h-8 rounded-full bg-white/70 items-center justify-center mb-1">
-            <FontAwesome name="th-large" size={13} color={selectedCategoryId === null ? '#8d171e' : '#374151'} />
+          <View className="w-10 h-10 rounded-xl bg-white/70 items-center justify-center mb-1 overflow-hidden">
+            {pizzeImageUrl ? (
+              <Image source={{ uri: pizzeImageUrl }} style={{ width: 40, height: 40 }} resizeMode="cover" />
+            ) : (
+              <FontAwesome name="circle" size={13} color={selectedCategoryId === null ? '#8d171e' : '#374151'} />
+            )}
           </View>
           <Text
             className={cn(
@@ -83,7 +91,7 @@ export function CategoryFilter({
                 : 'text-[#8d171e]'
             )}
           >
-            Tutti
+            {PIZZE_CHIP_LABEL}
           </Text>
         </Pressable>
 
