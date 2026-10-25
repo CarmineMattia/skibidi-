@@ -22,6 +22,7 @@ import {
   ScrollView,
   Text,
   View,
+  useWindowDimensions,
 } from 'react-native';
 import { useViewportWidth } from '@/lib/hooks/useHydrated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -46,6 +47,10 @@ export default function HomeScreen() {
   const responsiveWidth = hasHydrated ? effectiveWidth : 390;
   const isCompact = responsiveWidth < 430;
   const isWide = responsiveWidth >= 768;
+  const isNarrow = responsiveWidth < 360;
+  // Altezza reale solo dopo il mount (come la larghezza): niente mismatch di idratazione.
+  const { height: windowHeight } = useWindowDimensions();
+  const isShort = hasHydrated && windowHeight > 0 && windowHeight < 700;
   const isWebDesktop = Platform.OS === 'web' && isWide;
   const { isAuthenticated, profile } = useAuth();
   const { addItem } = useCart();
@@ -94,7 +99,7 @@ export default function HomeScreen() {
         isDesktop={isWide}
         topInset={isWebDesktop ? 0 : insets.top}
         onMenu={() => router.push('/(tabs)/menu')}
-        onOffers={() => router.push('/offers')}
+        isNarrow={isNarrow}
         onAccount={() =>
           router.push(isAuthenticated ? '/(tabs)/account' : '/login')
         }
@@ -102,8 +107,9 @@ export default function HomeScreen() {
 
       <LandingHero
         isDesktop={isWide}
+        isNarrow={isNarrow}
+        isShort={isShort}
         onMenu={() => router.push('/(tabs)/menu')}
-        onContact={() => scrollToSection('contact')}
       />
 
       {isAuthenticated ? (

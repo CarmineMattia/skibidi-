@@ -1,4 +1,5 @@
 import { HomePizzaStrip } from '@/components/features/home/HomePizzaStrip';
+import { externalLinkProps } from '@/components/features/landing/linkProps';
 import { BRAND } from '@/lib/data/brand';
 import { FontAwesome, FontAwesome5, MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -8,13 +9,11 @@ const HERO_IMAGE = require('@/assets/images/landing/ambrosia-insegna.jpg') as nu
 
 interface LandingHeroProps {
   readonly isDesktop: boolean;
+  /** schermi stretti (< 360px): etichette e icone più compatte */
+  readonly isNarrow?: boolean;
+  /** schermi bassi (< 700px): foto e titolo più piccoli, così le CTA restano sopra la tab bar */
+  readonly isShort?: boolean;
   readonly onMenu: () => void;
-  /** reserved for scroll-to-contact elsewhere; phone CTA dials directly */
-  readonly onContact: () => void;
-}
-
-function openPhone() {
-  void Linking.openURL(BRAND.phoneHref);
 }
 
 /** vCard → sul telefono apre “Aggiungi contatto” con nome già pronto */
@@ -51,13 +50,17 @@ function downloadVCardOnWeb(vcard: string) {
   }
 }
 
-/** Apre la chat WhatsApp con il messaggio precompilato (stesso numero di BRAND.whatsapp). */
+/** Link chat WhatsApp con il messaggio precompilato (stesso numero di BRAND.whatsapp). */
+const WHATSAPP_CHAT_URL = BRAND.whatsapp
+  ? `https://wa.me/${BRAND.whatsapp}?text=${encodeURIComponent(`Ciao ${BRAND.name}, vorrei ordinare 🍕`)}`
+  : null;
+
 function openWhatsAppChat() {
-  const wa = BRAND.whatsapp;
-  if (!wa) return;
-  const text = encodeURIComponent(`Ciao ${BRAND.name}, vorrei ordinare 🍕`);
-  void Linking.openURL(`https://wa.me/${wa}?text=${text}`);
+  if (WHATSAPP_CHAT_URL) void Linking.openURL(WHATSAPP_CHAT_URL);
 }
+
+/** Verde WhatsApp scuro: testo bianco 5,3:1 (WCAG AA anche per il testo piccolo). */
+const WHATSAPP_GREEN = '#0E7A5E';
 
 /** Salva contatto (vCard) + apre chat WhatsApp se il numero è configurato */
 function openWhatsAppOrSaveContact() {
@@ -77,7 +80,8 @@ const WEB_GLASS = {
   WebkitBackdropFilter: 'blur(14px)',
 } as unknown as ViewStyle;
 
-export function LandingHero({ isDesktop, onMenu }: LandingHeroProps) {
+export function LandingHero({ isDesktop, isNarrow = false, isShort = false, onMenu }: LandingHeroProps) {
+  const compactHero = !isDesktop && isShort;
   return (
     <View className="relative min-h-[590px] overflow-hidden bg-[#211713] sm:min-h-[620px] md:min-h-[650px]">
       <Image
@@ -90,7 +94,7 @@ export function LandingHero({ isDesktop, onMenu }: LandingHeroProps) {
           left: 0,
           right: 0,
           width: '100%',
-          height: isDesktop ? '100%' : 200,
+          height: isDesktop ? '100%' : compactHero ? 130 : 200,
           // @ts-expect-error React Native Web forwards this CSS image property.
           objectPosition: isDesktop ? 'center' : 'center bottom',
         }}
@@ -107,26 +111,26 @@ export function LandingHero({ isDesktop, onMenu }: LandingHeroProps) {
         style={{ position: 'absolute', inset: 0 }}
       />
 
-      <View className="w-full max-w-[1240px] flex-1 self-center justify-center px-5 pb-14 pt-[210px] sm:px-7 sm:pb-20 sm:pt-[270px] md:px-8 md:py-24">
+      <View className={`w-full max-w-[1240px] flex-1 self-center justify-center px-5 pb-14 ${compactHero ? 'pt-[140px]' : 'pt-[210px]'} sm:px-7 sm:pb-20 sm:pt-[270px] md:px-8 md:py-24`}>
         <View className="max-w-[620px] md:max-w-[710px]">
-            <View className="mb-5 self-start flex-row items-center gap-2 border-l-2 border-[#e7b577] bg-black/25 px-3 py-2">
+            <View className={`${compactHero ? 'mb-3' : 'mb-5'} self-start flex-row items-center gap-2 border-l-2 border-[#e7b577] bg-black/25 px-3 py-2`}>
               <FontAwesome name="map-marker" size={13} color="#f3c98e" />
               <Text className="text-xs font-extrabold uppercase tracking-[1.6px] text-[#f7ddba]">
                 Montecchio Emilia · Dal forno a casa
               </Text>
             </View>
 
-            <Text className="font-black tracking-[-2px] text-[#fff8ee] text-[46px] leading-[48px] sm:text-[60px] sm:leading-[61px] md:text-[76px] md:leading-[76px]">
+            <Text className={`font-black tracking-[-2px] text-[#fff8ee] ${compactHero ? 'text-[38px] leading-[40px]' : 'text-[46px] leading-[48px]'} sm:text-[60px] sm:leading-[61px] md:text-[76px] md:leading-[76px]`}>
               Il nettare{'\n'}degli dei.
             </Text>
 
-            <View className="mt-6 flex-row items-stretch gap-2.5 sm:max-w-[560px] sm:gap-3">
+            <View className={`${compactHero ? 'mt-4' : 'mt-6'} flex-row items-stretch gap-2.5 sm:max-w-[560px] sm:gap-3`}>
               {/* Primary: pizzas first — most colorful */}
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Ordina le pizze"
                 onPress={onMenu}
-                className="min-h-[72px] min-w-0 flex-1 flex-row items-center justify-center gap-2.5 rounded-2xl px-3 active:scale-[0.98] active:opacity-95 sm:gap-3 sm:px-6 web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-[#f0c486]"
+                className={`min-h-[72px] min-w-0 flex-1 flex-row items-center justify-center ${isNarrow ? 'gap-1.5 px-2' : 'gap-2.5 px-3'} rounded-2xl active:scale-[0.98] active:opacity-95 sm:gap-3 sm:px-6 web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-[#f0c486]`}
                 style={{
                   backgroundColor: '#8d171e',
                   borderWidth: 2,
@@ -141,16 +145,19 @@ export function LandingHero({ isDesktop, onMenu }: LandingHeroProps) {
                 <View
                   className="items-center justify-center rounded-xl"
                   style={{
-                    width: 40,
-                    height: 40,
+                    width: isNarrow ? 32 : 40,
+                    height: isNarrow ? 32 : 40,
                     backgroundColor: 'rgba(243, 201, 142, 0.22)',
                     borderWidth: 1,
                     borderColor: 'rgba(243, 201, 142, 0.55)',
                   }}
                 >
-                  <MaterialIcons name="local-pizza" size={26} color="#f3c98e" />
+                  <MaterialIcons name="local-pizza" size={isNarrow ? 20 : 26} color="#f3c98e" />
                 </View>
-                <Text className="text-lg font-black tracking-wide text-white sm:text-xl" numberOfLines={1}>
+                <Text
+                  className={`font-black text-white sm:text-xl ${isNarrow ? 'text-base' : 'text-lg tracking-wide'}`}
+                  numberOfLines={1}
+                >
                   Ordina le pizze
                 </Text>
                 <View className="hidden sm:flex">
@@ -159,16 +166,16 @@ export function LandingHero({ isDesktop, onMenu }: LandingHeroProps) {
               </Pressable>
 
               {/* WhatsApp: subito visibile accanto alla CTA principale */}
-              {BRAND.whatsapp ? (
+              {WHATSAPP_CHAT_URL ? (
                 <Pressable
                   accessibilityRole="link"
                   accessibilityLabel="Scrivici su WhatsApp"
-                  onPress={openWhatsAppChat}
-                  className="min-h-[72px] w-[86px] items-center justify-center gap-1 rounded-2xl active:scale-[0.98] active:opacity-90 sm:w-auto sm:flex-row sm:gap-2.5 sm:px-5 web:hover:bg-[#1ebe5b] web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-[#d8ffe8]"
+                  {...externalLinkProps(WHATSAPP_CHAT_URL)}
+                  className="min-h-[72px] w-[86px] items-center justify-center gap-1 rounded-2xl active:scale-[0.98] active:opacity-90 sm:w-auto sm:flex-row sm:gap-2.5 sm:px-5 web:hover:opacity-90 web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-[#d8ffe8]"
                   style={{
-                    backgroundColor: '#25D366',
+                    backgroundColor: WHATSAPP_GREEN,
                     borderWidth: 2,
-                    borderColor: '#b8f5cf',
+                    borderColor: '#7fd9b0',
                     shadowColor: '#128C7E',
                     shadowOpacity: 0.4,
                     shadowRadius: 12,
@@ -193,7 +200,7 @@ export function LandingHero({ isDesktop, onMenu }: LandingHeroProps) {
               <Pressable
                 accessibilityRole="link"
                 accessibilityLabel={`Chiama ${BRAND.phone}`}
-                onPress={openPhone}
+                {...externalLinkProps(BRAND.phoneHref)}
                 className="min-h-[64px] flex-row items-center justify-center gap-3 rounded-2xl border border-white/35 px-6 active:opacity-85 web:hover:bg-white/15 web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-[#f0c486]"
                 style={{
                   backgroundColor: 'rgba(255, 248, 238, 0.14)',
