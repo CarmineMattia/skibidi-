@@ -1,4 +1,5 @@
 import { isPizzaCategoryName } from '@/lib/utils/menuCategories';
+import { getProductSubtitle, pickFeaturedProduct, sortMenuProducts } from '@/lib/utils/menuOrder';
 /**
  * Menu Screen
  * Main POS interface with product grid and cart
@@ -213,6 +214,10 @@ export default function MenuScreen() {
     [drinkCategories]
   );
   const firstDrinkCategoryId = drinkCategories[0]?.id;
+  const categoryNameById = useMemo(
+    () => new Map(categories.map((category) => [category.id, category.name] as const)),
+    [categories]
+  );
   const displayProducts = useMemo(() => {
     const query = menuSearchQuery.trim().toLowerCase();
     let list = products;
@@ -235,8 +240,8 @@ export default function MenuScreen() {
       list = list.filter((product) => product.category_id === selectedCategoryId);
     }
 
-    return list;
-  }, [products, selectedCategoryId, drinkCategoryIds, menuSearchQuery]);
+    return sortMenuProducts(list, categories);
+  }, [products, categories, selectedCategoryId, drinkCategoryIds, menuSearchQuery]);
 
   const categoryImages = useMemo(() => {
     const map: Record<string, string | undefined> = {};
@@ -255,7 +260,7 @@ export default function MenuScreen() {
     if (product) setSelectedProduct(product);
   }, [products, selectedProduct]);
 
-  const featuredProduct = displayProducts[0];
+  const featuredProduct = pickFeaturedProduct(displayProducts);
   const i18n = useMemo(
     () =>
       language === 'en'
@@ -695,7 +700,9 @@ export default function MenuScreen() {
                       <View className="p-4">
                         <Text className="text-xs font-bold uppercase text-[#8d171e]">{i18n.featuredBadge}</Text>
                         <Text className="mt-1 text-xl font-extrabold text-gray-900">{featuredProduct.name}</Text>
-                        <Text className="mt-1 text-xs text-gray-600">{featuredProduct.description || featuredProduct.ingredients?.join(', ') || i18n.artisanalRecipe}</Text>
+                        {getProductSubtitle(featuredProduct, categoryNameById.get(featuredProduct.category_id), i18n.artisanalRecipe) ? (
+                          <Text className="mt-1 text-xs text-gray-600">{getProductSubtitle(featuredProduct, categoryNameById.get(featuredProduct.category_id), i18n.artisanalRecipe)}</Text>
+                        ) : null}
                       </View>
                     </Pressable>
                   </View>
@@ -743,9 +750,11 @@ export default function MenuScreen() {
                             <Text className="mt-0.5 text-base font-extrabold text-gray-900" numberOfLines={2}>
                               {item.name}
                             </Text>
-                            <Text className="mt-1 text-xs text-gray-600" numberOfLines={2}>
-                              {item.description || item.ingredients?.join(', ') || i18n.artisanalRecipe}
-                            </Text>
+                            {getProductSubtitle(item, categoryNameById.get(item.category_id), i18n.artisanalRecipe) ? (
+                              <Text className="mt-1 text-xs text-gray-600" numberOfLines={2}>
+                                {getProductSubtitle(item, categoryNameById.get(item.category_id), i18n.artisanalRecipe)}
+                              </Text>
+                            ) : null}
                             <Text className="mt-2 text-lg font-extrabold text-[#8d171e]">
                               €{item.price.toFixed(2)}
                             </Text>

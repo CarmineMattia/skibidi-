@@ -5,7 +5,7 @@
 import { OffersList } from '@/components/features/offers/OffersList';
 import { SkeletonOffersPage } from '@/components/ui/Skeleton';
 import { BRAND } from '@/lib/data/brand';
-import type { ResolvedComboOffer } from '@/lib/data/offers';
+import { COMBO_OFFERS_ENABLED, type ResolvedComboOffer } from '@/lib/data/offers';
 import { useOffers } from '@/lib/hooks/useOffers';
 import { useCart } from '@/lib/stores/CartContext';
 import { FontAwesome } from '@expo/vector-icons';
@@ -41,7 +41,8 @@ export default function OffersScreen() {
   const isCompact = width < 430;
   const isWide = width >= 768;
   const cardWidth = Math.min(width - (isCompact ? 32 : 40), isWide ? 720 : 680);
-  const showSkeleton = isLoading && offers.length === 0;
+  const showSkeleton = COMBO_OFFERS_ENABLED && isLoading && offers.length === 0;
+  const hasNoOffers = !showSkeleton && offers.length === 0;
 
   const handleSelectOffer = (offer: ResolvedComboOffer) => {
     addOfferToCart(offer, addItem);
@@ -85,11 +86,12 @@ export default function OffersScreen() {
                 isCompact ? 'text-[30px] leading-[34px]' : 'text-[40px] leading-[44px]'
               }`}
             >
-              Scegli il combo giusto per te.
+              {hasNoOffers ? 'Le offerte arrivano presto.' : 'Scegli il combo giusto per te.'}
             </Text>
             <Text className="mt-3 text-base leading-7 text-[#65554c]">
-              Scorri le offerte, aggiungi al carrello in un tap e completa l’ordine dal menu. Le
-              foto mostrano i prodotti reali disponibili oggi.
+              {hasNoOffers
+                ? 'Qui troverai i combo e le promozioni di Ambrosia appena saranno attivi.'
+                : 'Scorri le offerte, aggiungi al carrello in un tap e completa l’ordine dal menu. Le foto mostrano i prodotti reali disponibili oggi.'}
             </Text>
           </View>
         </View>
@@ -101,15 +103,29 @@ export default function OffersScreen() {
         ) : (
           <View className="gap-6">
             <View className="gap-3">
-              <Text className="px-1 text-sm font-bold uppercase tracking-[1.4px] text-[#8d171e]">
-                {offers.length} combo disponibili
-              </Text>
-              <OffersList
-                offers={offers}
-                onSelectOffer={handleSelectOffer}
-                layout="stack"
-                cardWidth={cardWidth}
-              />
+              {offers.length === 0 ? (
+                <View className="items-center gap-3 rounded-2xl border border-[#ead8c7] bg-white px-5 py-10">
+                  <FontAwesome name="tags" size={28} color="#8d171e" />
+                  <Text className="text-center text-lg font-extrabold text-[#271d19]">
+                    Nessuna offerta attiva al momento
+                  </Text>
+                  <Text className="text-center text-sm leading-6 text-[#65554c]">
+                    Le nuove offerte arrivano presto. Intanto scegli dal menu completo.
+                  </Text>
+                </View>
+              ) : (
+                <>
+                  <Text className="px-1 text-sm font-bold uppercase tracking-[1.4px] text-[#8d171e]">
+                    {offers.length} combo disponibili
+                  </Text>
+                  <OffersList
+                    offers={offers}
+                    onSelectOffer={handleSelectOffer}
+                    layout="stack"
+                    cardWidth={cardWidth}
+                  />
+                </>
+              )}
             </View>
 
             <Pressable
