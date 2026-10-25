@@ -1,44 +1,74 @@
 import { BRAND, BRAND_LOGO } from '@/lib/data/brand';
 import { FontAwesome } from '@expo/vector-icons';
-import { Image, Linking, Pressable, Text, View } from 'react-native';
+import { externalLinkProps } from '@/components/features/landing/linkProps';
+import { Link, type Href } from 'expo-router';
+import type { ReactNode } from 'react';
+import { Image, Pressable, Text, View, type PressableProps } from 'react-native';
+
+const MENU_TARGET: NavTarget = { route: '/(tabs)/menu' };
+const OFFERS_TARGET: NavTarget = { route: '/offers' };
+const CALL_TARGET: NavTarget = { url: BRAND.phoneHref };
 
 interface LandingHeaderProps {
   readonly isAuthenticated: boolean;
   readonly isDesktop: boolean;
   readonly topInset: number;
+  /** schermi stretti (< 360px): bottoni con icona sopra l'etichetta */
+  readonly isNarrow?: boolean;
   readonly onMenu: () => void;
-  readonly onOffers: () => void;
   readonly onAccount: () => void;
 }
 
 type NavIcon = 'cutlery' | 'tag' | 'phone';
 
-function openPhone() {
-  void Linking.openURL(BRAND.phoneHref);
+/**
+ * Destinazione di un bottone della barra. Le rotte interne usano <Link> di
+ * expo-router (vero <a href> su web: Invio, clic centrale e "apri in nuova
+ * scheda" funzionano); tel: usa externalLinkProps.
+ */
+type NavTarget = { readonly route: Href } | { readonly url: string };
+
+function NavPressable({
+  target,
+  children,
+  ...rest
+}: PressableProps & { readonly target: NavTarget; readonly children: ReactNode }) {
+  if ('route' in target) {
+    return (
+      <Link href={target.route} asChild>
+        <Pressable {...rest}>{children}</Pressable>
+      </Link>
+    );
+  }
+  return (
+    <Pressable {...rest} {...externalLinkProps(target.url)}>
+      {children}
+    </Pressable>
+  );
 }
 
 /** Desktop: link testuale con icona, compatto. */
 function DesktopNavLink({
   label,
   icon,
-  onPress,
+  target,
   accessibilityLabel,
 }: {
   readonly label: string;
   readonly icon: NavIcon;
-  readonly onPress: () => void;
+  readonly target: NavTarget;
   readonly accessibilityLabel?: string;
 }) {
   return (
-    <Pressable
+    <NavPressable
+      target={target}
       accessibilityRole="link"
       accessibilityLabel={accessibilityLabel ?? label}
-      onPress={onPress}
       className="h-11 flex-row items-center gap-2 rounded-xl px-3.5 active:opacity-60 web:hover:bg-[#8d171e]/[0.07] web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-[#8d171e]"
     >
       <FontAwesome name={icon} size={14} color="#8d171e" />
       <Text className="text-sm font-bold text-[#342b27]">{label}</Text>
-    </Pressable>
+    </NavPressable>
   );
 }
 
@@ -46,23 +76,27 @@ function DesktopNavLink({
 function MobileNavButton({
   label,
   icon,
-  onPress,
+  target,
   accessibilityLabel,
   tone = 'light',
+  isNarrow = false,
 }: {
   readonly label: string;
   readonly icon: NavIcon;
-  readonly onPress: () => void;
+  readonly target: NavTarget;
   readonly accessibilityLabel?: string;
   readonly tone?: 'light' | 'call';
+  readonly isNarrow?: boolean;
 }) {
   const isCall = tone === 'call';
   return (
-    <Pressable
+    <NavPressable
+      target={target}
       accessibilityRole="link"
       accessibilityLabel={accessibilityLabel ?? label}
-      onPress={onPress}
-      className={`min-h-[52px] flex-1 flex-row items-center justify-center gap-2 rounded-2xl border px-2 active:scale-[0.98] active:opacity-80 web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-[#8d171e] ${
+      className={`min-h-[52px] min-w-0 flex-1 items-center justify-center rounded-2xl ${
+        isNarrow ? 'gap-0.5 py-1' : 'flex-row gap-2'
+      } border px-2 active:scale-[0.98] active:opacity-80 web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-[#8d171e] ${
         isCall ? 'border-[#e1a255] bg-[#fbecd6]' : 'border-[#8d171e]/20 bg-white'
       }`}
       style={{
@@ -73,11 +107,14 @@ function MobileNavButton({
         elevation: 1,
       }}
     >
-      <FontAwesome name={icon} size={16} color="#8d171e" />
-      <Text className="text-base font-extrabold text-[#342b27]" numberOfLines={1}>
+      <FontAwesome name={icon} size={isNarrow ? 14 : 16} color="#8d171e" />
+      <Text
+        className={`font-extrabold text-[#342b27] ${isNarrow ? 'text-[13px] leading-4' : 'text-base'}`}
+        numberOfLines={1}
+      >
         {label}
       </Text>
-    </Pressable>
+    </NavPressable>
   );
 }
 
@@ -85,8 +122,8 @@ export function LandingHeader({
   isAuthenticated,
   isDesktop,
   topInset,
+  isNarrow = false,
   onMenu,
-  onOffers,
   onAccount,
 }: LandingHeaderProps) {
   return (
@@ -128,13 +165,13 @@ export function LandingHeader({
 
         {isDesktop ? (
           <View className="flex-row items-center gap-1">
-            <DesktopNavLink label="Menu" icon="cutlery" onPress={onMenu} />
-            <DesktopNavLink label="Offerte" icon="tag" onPress={onOffers} />
+            <DesktopNavLink label="Menu" icon="cutlery" target={MENU_TARGET} />
+            <DesktopNavLink label="Offerte" icon="tag" target={OFFERS_TARGET} />
             <DesktopNavLink
               label={`Chiama ${BRAND.phone}`}
-              accessibilityLabel={`Chiama ora ${BRAND.phone}`}
+              accessibilityLabel={`Chiama ${BRAND.phone}`}
               icon="phone"
-              onPress={openPhone}
+              target={CALL_TARGET}
             />
           </View>
         ) : null}
@@ -175,14 +212,15 @@ export function LandingHeader({
 
       {!isDesktop ? (
         <View className="flex-row gap-2 border-t border-[#8d171e]/8 px-4 py-2.5">
-          <MobileNavButton label="Menu" icon="cutlery" onPress={onMenu} />
-          <MobileNavButton label="Offerte" icon="tag" onPress={onOffers} />
+          <MobileNavButton label="Menu" icon="cutlery" target={MENU_TARGET} isNarrow={isNarrow} />
+          <MobileNavButton label="Offerte" icon="tag" target={OFFERS_TARGET} isNarrow={isNarrow} />
           <MobileNavButton
             label="Chiama"
-            accessibilityLabel={`Chiama ora ${BRAND.phone}`}
+            accessibilityLabel={`Chiama ${BRAND.phone}`}
             icon="phone"
             tone="call"
-            onPress={openPhone}
+            target={CALL_TARGET}
+            isNarrow={isNarrow}
           />
         </View>
       ) : null}
