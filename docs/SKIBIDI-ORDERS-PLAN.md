@@ -1,6 +1,6 @@
 # Skibidi Orders — Piano (decisioni ottobre 2026)
 
-_Aggiornato il 2026-10-22 (dopo il merge di #35, #36 e #37; batch #38–#42 aperto). Dettaglio di PR, migration e seguiti in [`TODO.md`](./TODO.md)._
+_Aggiornato il 2026-10-26 (main @ `970a3d1`, unite #38–#50). Dettaglio di PR, migration e seguiti in [`TODO.md`](./TODO.md)._
 
 Questo documento sostituisce, per Pizzeria Ambrosia, le parti di `roadmap.md` in conflitto (pagamenti online, POS proprietario, fiscalità diretta).
 
@@ -43,21 +43,21 @@ Ordine di preferenza per l'integrazione:
 
 **Fase temporanea:** dashboard ordini su Chrome alla cassa.
 
-## Stato al 2026-10-21
+## Stato al 2026-10-26
 - **Fatto (unito e live):**
   - login solo Google (#17, #31);
   - approvazione manuale con i nuovi stati (#18) e bottone "Non ritirato" (#26);
   - antiabuso lato DB (#20): login obbligatorio, limiti di valore e di ordini aperti, rate limit, blocco, mancati ritiri;
   - pagamento solo alla cassa (#19);
-  - sicurezza DB (#28, #30, #32, #34): funzioni SECURITY DEFINER, privilegi, `order_items` scrivibili solo con `create_order_with_items`, ordine bloccato per il cliente dopo l'invio;
-  - prezzi calcolati sul server (#33);
-  - fix React #418 su Vercel (#25, #29);
-  - menu visibile anche ai clienti senza azienda, cioè ai nuovi utenti Google (#35, migration applicata il 21/10);
-  - le foto vere in Storage hanno la precedenza su quelle generate (#37).
-- **In attesa dell'OK di Carmine:**
-  - batch del 22/10, PR aperte e testate da Skibidi Tester (dettaglio in [`TODO.md`](./TODO.md)): #38 script ordini vuoti, #39 editor admin, #40 note e permessi (migration solo nella PR), #41 Turnstile, #42 questi documenti;
-  - pulizia dei 16 ordini vuoti e foto dei prodotti mancanti (vedi [`piano-dati-2026-10-21.md`](./piano-dati-2026-10-21.md)).
-- **Ancora da fare per l'antiabuso:** Cloudflare Turnstile: codice in #41, poi chiavi di Carmine e deploy di `verify-turnstile` (vedi `docs/ANTIABUSE.md`).
+  - sicurezza DB (#28, #30, #32, #34, #40), prezzi calcolati sul server (#33);
+  - fix React #418 su Vercel (#25, #29); menu ai clienti senza azienda (#35); foto Storage prima di quelle generate (#37);
+  - editor admin che salva solo i campi cambiati (#39), "Ordine non trovato" (#45);
+  - ricevute solo lato server/staff e scontrini in attesa emessi dallo staff (#44, #46);
+  - CI con vitest e runner SQL (#43);
+  - home e menu: pizze per prime, WhatsApp accanto a "Ordina", barra Menu/Offerte/Chiama, link veri e layout a 320px (#47–#50).
+  - Migration di #40, #44 e #46 applicate su prod il 23/10.
+- **Codice pronto ma spento o non eseguito:** Turnstile (#41: mancano chiavi e deploy di `verify-turnstile`); script dei 16 ordini vuoti (#38, pulizia non approvata).
+- **Manca per la produzione** (dettaglio in [`TODO.md`](./TODO.md)): storia migration ancora da sistemare (`db push` fallisce), 11 foto, foto Malvasia 1/2 e 1L, descrizione Stria, fornitore fiscale reale (30 ricevute in attesa), WhatsApp Business sul fisso da confermare, POS, Playwright in CI e lint bloccante.
 
 ## Da verificare
 - Nome e API del gestionale
@@ -66,7 +66,8 @@ Ordine di preferenza per l'integrazione:
 - Chi può annullare un ordine già accettato
 
 ## Prossimi passi
-1. Un ordine di prova controllato con un nuovo account Google (menu visibile, prezzi del server).
-2. Decidere i 16 ordini vuoti e caricare le foto mancanti (piano dati).
-3. Mettere vitest e i runner SQL in CI e chiudere i seguiti di sicurezza in `TODO.md`.
-4. Identificare il POS (chiedere al proprietario e al fornitore) e scegliere il metodo di integrazione.
+1. PR per sistemare la storia delle migration (file con versioni uniche, file per le 6 righe solo su prod, decidere `20260904`), poi repair con l'OK di Carmine.
+2. Foto mancanti e Malvasia (da Carmine), descrizione della Stria; decidere i 16 ordini vuoti.
+3. Chiavi Turnstile e deploy di `verify-turnstile` (con l'OK di Carmine).
+4. Playwright in CI e lint che può fallire.
+5. Identificare il POS e il fornitore fiscale, e scegliere il metodo di integrazione.
