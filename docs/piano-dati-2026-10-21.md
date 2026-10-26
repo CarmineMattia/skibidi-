@@ -2,6 +2,8 @@
 
 Tutto quello che segue è stato letto da prod (`zqubwvhstobaugifzoyb`) **in sola lettura**. Questo documento non cambia nulla. Ogni passo che tocca dati o Storage richiede l'**OK esplicito di Carmine** e un backup prima.
 
+> **Stato al 26/10:** script dei 16 ordini in #38 (unita il 23/10), pulizia **non approvata** e non eseguita. Le 11 foto mancano ancora; Malvasia 1/2 e 1L hanno ancora la foto di un vino rosso (1/4 sistemata il 25/10). Dettaglio in [`TODO.md`](./TODO.md).
+
 ## A) 16 vecchi ordini senza `order_items`
 
 Sono ordini senza nessuna riga, creati tra giugno e settembre 2026, prima dell'invio atomico (#11, poi #32). Tutti della company `…0001` (Ambrosia), tutti con `fiscal_status = pending`. Solo uno ha un cliente collegato.
