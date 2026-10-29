@@ -52,9 +52,9 @@ DO $$ BEGIN
      OR has_table_privilege('authenticated', 'public.hardening_probe_tbl', 'REFERENCES') THEN
     RAISE EXCEPTION 'new tables still grant TRUNCATE/TRIGGER/REFERENCES';
   END IF;
-  IF NOT has_table_privilege('authenticated', 'public.hardening_probe_tbl', 'SELECT') THEN
-    RAISE EXCEPTION 'default DML on new tables changed unexpectedly';
-  END IF;
+  -- Nota: se non c'e' la migration 20261029100000 (privilegi minimi) il default DML su tabelle nuove
+  -- resta ad authenticated; con quella migration non c'e' piu' (grant espliciti per ogni tabella
+  -- nuova, vedi tests/sql/least-privilege-grants.sql). Qui non si asserisce nessuno dei due.
 END $$;
 DROP FUNCTION public.hardening_probe_fn();
 DROP TABLE public.hardening_probe_tbl;
@@ -104,9 +104,13 @@ BEGIN
   IF a !~ '^Ordine #[0-9]+$' OR split_part(b, '#', 2)::int <> split_part(a, '#', 2)::int + 1 THEN
     RAISE EXCEPTION 'display codes not sequential: %, %', a, b;
   END IF;
-  IF EXISTS (SELECT 1 FROM public.order_daily_counters) THEN
-    RAISE EXCEPTION 'order_daily_counters readable by authenticated';
-  END IF;
+  -- Non leggibile: zero righe (RLS senza policy) oppure permission denied (grant tolto da 20261029100000).
+  BEGIN
+    IF EXISTS (SELECT 1 FROM public.order_daily_counters) THEN
+      RAISE EXCEPTION 'order_daily_counters readable by authenticated';
+    END IF;
+  EXCEPTION WHEN insufficient_privilege THEN NULL;
+  END;
 END $$;
 
 -- 5) Checkout still works: create_order_with_items (SECURITY INVOKER) as a
