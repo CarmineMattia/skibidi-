@@ -55,9 +55,9 @@ Ordine di preferenza per l'integrazione:
   - ricevute solo lato server/staff e scontrini in attesa emessi dallo staff (#44, #46);
   - CI con vitest e runner SQL (#43);
   - home e menu: pizze per prime, WhatsApp accanto a "Ordina", barra Menu/Offerte/Chiama, link veri e layout a 320px (#47–#50).
-  - Migration di #40, #44 e #46 applicate su prod il 23/10.
+- **Su prod:** migration di #40, #44 e #46 applicate il 23/10.
 - **Codice pronto ma spento o non eseguito:** Turnstile (#41: mancano chiavi e deploy di `verify-turnstile`); script dei 16 ordini vuoti (#38, pulizia non approvata).
-- **Manca per la produzione** (dettaglio in [`TODO.md`](./TODO.md)): storia migration ancora da sistemare (`db push` fallisce), 11 foto, foto Malvasia 1/2 e 1L, descrizione Stria, fornitore fiscale reale (30 ricevute in attesa), WhatsApp Business sul fisso da confermare, POS, Playwright in CI e lint bloccante.
+- **Manca per la produzione** (dettaglio in [`TODO.md`](./TODO.md)): storia migration ancora da sistemare (`db push` fallisce), 11 foto, foto Malvasia 1/2 e 1L, descrizione Stria, fornitore fiscale reale (30 ricevute in attesa, ma solo 9 emettibili dal pannello: 7 consegnati senza righe, 14 annullati), con i 3 punti del QA obbligatori prima del provider reale (chiave di idempotenza, `record_order_receipt` che non ricontrolla stato/no-show, checkout admin e `fiscal_audit_log` scrivibili da admin), WhatsApp Business sul fisso da confermare, POS, Playwright in CI e lint bloccante.
 
 ## Da verificare
 - Nome e API del gestionale
@@ -66,8 +66,8 @@ Ordine di preferenza per l'integrazione:
 - Chi può annullare un ordine già accettato
 
 ## Prossimi passi
-1. PR per sistemare la storia delle migration (file con versioni uniche, file per le 6 righe solo su prod, decidere `20260904`), poi repair con l'OK di Carmine.
+1. PR per sistemare la storia delle migration (file con versioni uniche, file per le 6 righe solo su prod, decidere `20260904`; la PR A è pronta in locale), poi repair con l'OK di Carmine. Nota: un `db push` applicherebbe anche `20260210_prod_rls_fix`, `20260711_pizza_capacity_snapshot` e `20260711_shift_dough_usage`, che non sono su prod.
 2. Foto mancanti e Malvasia (da Carmine), descrizione della Stria; decidere i 16 ordini vuoti.
 3. Chiavi Turnstile e deploy di `verify-turnstile` (con l'OK di Carmine).
-4. Playwright in CI e lint che può fallire.
+4. Playwright in CI; lint bloccante: prima installare eslint e una config (oggi `npm run lint` esce con 127), poi togliere `continue-on-error`.
 5. Identificare il POS e il fornitore fiscale, e scegliere il metodo di integrazione.
