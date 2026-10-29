@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { getStoredImageUrl, imageUrlToPersist, isStorageImageUrl, resolveProductImage } from '../../lib/utils/productImage';
+import { cleanImageUrl, getStoredImageUrl, imageUrlToPersist, isStorageImageUrl, resolveProductImage } from '../../lib/utils/productImage';
 
 const STORAGE = 'https://zqubwvhstobaugifzoyb.supabase.co/storage/v1/object/public/products/ambrosia/margherita.jpg';
 const UNSPLASH = 'https://images.unsplash.com/photo-1554866585-cd94860890b7?w=800';
@@ -168,5 +168,56 @@ describe('Ambrosia live catalogue', () => {
     };
     const changed = resolved.filter(({ p, out }) => out.image_url !== before(p)).map(({ p }) => p.name).sort();
     expect(changed).toEqual(['Crudo e Burrata', 'Funghi', 'Margherita', 'Speciale']);
+  });
+});
+
+describe('whitespace-only image_url counts as empty', () => {
+  it('cleanImageUrl trims and treats blank as missing', () => {
+    expect(cleanImageUrl('   ')).toBeUndefined();
+    expect(cleanImageUrl('\n\t ')).toBeUndefined();
+    expect(cleanImageUrl('')).toBeUndefined();
+    expect(cleanImageUrl(null)).toBeUndefined();
+    expect(cleanImageUrl(undefined)).toBeUndefined();
+    expect(cleanImageUrl(`  ${UNSPLASH}  `)).toBe(UNSPLASH);
+  });
+
+  it('resolveProductImage clears a blank image_url when there is no bundled photo', () => {
+    const resolved = resolveProductImage({ ...margherita, image_url: '   ' }, undefined);
+    expect(resolved.image_url).toBeUndefined();
+  });
+
+  it('resolveProductImage trims a padded non-storage url', () => {
+    const resolved = resolveProductImage({ ...margherita, image_url: `  ${UNSPLASH} ` }, undefined);
+    expect(resolved.image_url).toBe(UNSPLASH);
+  });
+
+  it('a blank image_url lets the bundled photo be used and is not kept as the stored value', () => {
+    const resolved = resolveProductImage({ ...margherita, image_url: '   ' }, BUNDLED);
+    expect(resolved.image_url).toBe(BUNDLED.uri);
+    expect(resolved.stored_image_url).toBeNull();
+    expect(getStoredImageUrl(resolved)).toBeNull();
+  });
+
+  it('a product without image_url is returned untouched', () => {
+    const p = { ...margherita };
+    expect(resolveProductImage(p, undefined)).toBe(p);
+  });
+
+  it('imageUrlToPersist saves null for a blank value', () => {
+    expect(imageUrlToPersist('   ', null)).toBeNull();
+  });
+
+  it('screens decide "has an image" with cleanImageUrl, not a bare truthy check', () => {
+    const root = path.resolve(__dirname, '../..');
+    for (const file of [
+      'components/features/ProductCard.tsx',
+      'components/features/CartItem.tsx',
+      'components/features/ProductDetailsModal.tsx',
+      'app/(tabs)/menu.tsx',
+    ]) {
+      const src = fs.readFileSync(path.join(root, file), 'utf8');
+      expect(src, file).not.toMatch(/\{\s*(product|item|featuredProduct)\.image_url\s*\?/);
+      expect(src, file).not.toMatch(/uri:\s*(product|item|featuredProduct)\.image_url\s*\}/);
+    }
   });
 });

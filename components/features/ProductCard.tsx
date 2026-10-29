@@ -3,6 +3,7 @@
  * Card per visualizzare prodotto in menu (New Design: Full Image + Gradient)
  */
 
+import { cleanImageUrl } from '@/lib/utils/productImage';
 import type { Product } from '@/types/database.types';
 import { BUILDER_PRODUCT_NAME, getQuickAddPizzaModifiers } from '@/lib/data/pizzaBuilder';
 import { useAppSettings } from '@/lib/stores/AppSettingsContext';
@@ -106,9 +107,9 @@ export function ProductCard({ product, onAddToCart, onPress, onEditPress, quickA
             : `Apri dettagli ${product.name}`
         }
       >
-        {product.image_url ? (
+        {cleanImageUrl(product.image_url) ? (
           <Image
-            source={{ uri: product.image_url }}
+            source={{ uri: cleanImageUrl(product.image_url) }}
             style={{ width: '100%', height: '100%' }}
             resizeMode="cover"
             accessibilityIgnoresInvertColors

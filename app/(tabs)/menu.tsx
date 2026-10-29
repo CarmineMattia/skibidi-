@@ -1,3 +1,5 @@
+import { PageTitle } from '@/components/ui/PageTitle';
+import { cleanImageUrl } from '@/lib/utils/productImage';
 import { isPizzaCategoryName } from '@/lib/utils/menuCategories';
 import {
   getProductSubtitle,
@@ -259,8 +261,9 @@ export default function MenuScreen() {
   const categoryImages = useMemo(() => {
     const map: Record<string, string | undefined> = {};
     for (const product of products) {
-      if (!product.image_url || map[product.category_id]) continue;
-      map[product.category_id] = product.image_url;
+      const image = cleanImageUrl(product.image_url);
+      if (!image || map[product.category_id]) continue;
+      map[product.category_id] = image;
     }
     return map;
   }, [products]);
@@ -474,6 +477,7 @@ export default function MenuScreen() {
   if (categoriesLoading) {
     return (
       <View className="flex-1 bg-[#f9ecdd]" style={{ paddingTop: insets.top }}>
+        <PageTitle page="menu" />
         <SkeletonMenuScreen numColumns={effectiveProductColumns} isMobile={isMobile} />
       </View>
     );
@@ -481,6 +485,7 @@ export default function MenuScreen() {
 
   return (
     <View className="flex-1 bg-[#f9ecdd]" style={{ paddingTop: insets.top }}>
+      <PageTitle page="menu" />
       {/* Top bar — stile sito */}
       <View
         className="z-10 border-b border-[#8d171e]/10 bg-[#fff9f1]/95"
@@ -709,9 +714,9 @@ export default function MenuScreen() {
                       onPress={() => handleProductPress(featuredProduct.id)}
                       className="overflow-hidden rounded-2xl border border-[#e1a255]/40 bg-white active:opacity-90"
                     >
-                      {featuredProduct.image_url ? (
+                      {cleanImageUrl(featuredProduct.image_url) ? (
                         <Image
-                          source={{ uri: featuredProduct.image_url }}
+                          source={{ uri: cleanImageUrl(featuredProduct.image_url) }}
                           style={{ width: '100%', height: 168 }}
                           resizeMode="cover"
                         />
@@ -753,9 +758,9 @@ export default function MenuScreen() {
                     >
                       <View className="flex-row items-stretch gap-0">
                         <View style={{ width: 104, minHeight: 104 }}>
-                          {item.image_url ? (
+                          {cleanImageUrl(item.image_url) ? (
                             <Image
-                              source={{ uri: item.image_url }}
+                              source={{ uri: cleanImageUrl(item.image_url) }}
                               style={{ width: 104, height: '100%', minHeight: 104 }}
                               resizeMode="cover"
                             />
