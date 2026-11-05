@@ -77,6 +77,11 @@ const base = [...chain, 'tests/sql/least-privilege-grants-schema.sql'];
   console.log('OK idempotent (ACL and default privileges identical after a second run)');
   await run(db, ['tests/sql/least-privilege-grants.sql']);
 }
+{
+  const db = new PGlite();
+  await run(db, [...base, migration], true);
+  await run(db, ['tests/sql/products-active-rls.sql']);
+}
 for (const suite of [
   ['tests/sql/server-receipt-status.sql'],
   ['tests/sql/staff-receipt.sql'],

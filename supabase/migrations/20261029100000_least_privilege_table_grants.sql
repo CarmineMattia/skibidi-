@@ -111,3 +111,30 @@ BEGIN
     RAISE NOTICE 'default privileges di supabase_admin in public non modificati (ruolo % non e'' membro)', current_user;
   END IF;
 END $$;
+
+-- order_daily_counters: solo le funzioni SECURITY DEFINER (reserve_order_display_code,
+-- owner postgres) la toccano. RLS accesa, nessuna policy (qualunque policy rimasta viene
+-- tolta), nessun grant ad anon/authenticated (sopra). FORCE RLS non serve: l'owner
+-- postgres ha BYPASSRLS e forzarla non cambierebbe nulla per i client.
+ALTER TABLE public.order_daily_counters ENABLE ROW LEVEL SECURITY;
+DO $$
+DECLARE p record;
+BEGIN
+  FOR p IN SELECT policyname FROM pg_policies
+           WHERE schemaname = 'public' AND tablename = 'order_daily_counters' LOOP
+    EXECUTE format('DROP POLICY %I ON public.order_daily_counters', p.policyname);
+  END LOOP;
+END $$;
+
+-- products_select (punto 10 del QA): un utente loggato leggeva anche i prodotti spenti
+-- (active = false) delle aziende attive. Ora tutti (anon e clienti) vedono solo i prodotti
+-- attivi di aziende attive; i prodotti spenti li vede solo l'admin della propria azienda
+-- (dashboard e modifica prodotti). Le RPC di ordine/prezzo sono SECURITY DEFINER e non
+-- dipendono da questa policy.
+DROP POLICY IF EXISTS products_select ON public.products;
+CREATE POLICY products_select ON public.products
+  FOR SELECT
+  USING (
+    (active AND EXISTS (SELECT 1 FROM public.companies c WHERE c.id = products.company_id AND c.active))
+    OR (company_id = (SELECT public.get_my_company_id()) AND (SELECT public.is_admin()))
+  );
