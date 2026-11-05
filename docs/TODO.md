@@ -44,7 +44,7 @@ Applicate il 23/10 con l'OK di Carmine (backup prima di ognuna):
 - 6 righe solo su prod senza file nel repo (`20260117194108`, `20260724140614`, `20260724143416`, `20260724152401`, `20260901223534`, `20260901224024`): da aggiungere al repo in una PR;
 - 3 file del repo che **non sono su prod** e che un `db push` applicherebbe: `20260210_prod_rls_fix` (superata, potrebbe reintrodurre policy più larghe), `20260711_pizza_capacity_snapshot` e `20260711_shift_dough_usage` (le funzioni sono già live). Fanno parte dei gruppi duplicati, quindi sono solo implicati dal primo punto.
 
-La PR A (aperta in locale, branch `chore/migration-history-repo`, non ancora pubblicata) affronta tutto questo: versioni uniche, i 6 file solo-prod, e le istruzioni di repair che registrano senza eseguire `prod_rls_fix`, `pizza_capacity_snapshot` e `shift_dough_usage`, con l'analisi di `20260904`. Il repair su prod resta da fare solo con l'OK di Carmine.
+La PR #52 (`chore/migration-history-repo`, aperta) affronta tutto questo: versioni uniche, i 6 file solo-prod, e le istruzioni di repair che registrano senza eseguire `prod_rls_fix`, `pizza_capacity_snapshot` e `shift_dough_usage`, con l'analisi di `20260904`. Il repair su prod resta da fare solo con l'OK di Carmine.
 
 Regola: le migration vanno solo nella PR; niente modifiche al DB live senza l'OK di Carmine.
 
@@ -75,7 +75,7 @@ Regola: le migration vanno solo nella PR; niente modifiche al DB live senza l'OK
 - [ ] 7. Pannello ricevute: testo del lease "da un altro dispositivo"; i radio Contanti/Carta senza `aria-checked` (`PendingReceiptsPanel.tsx:141`)
 - [ ] 8. Home: `scrollToSection`/`sectionOffsets` morti in `app/(tabs)/index.tsx` (~42–76); contrasto hover/pressed ~4,94:1; commento in `linkProps.ts` dice che Space attiva il link; ellissi dell'header a 320px; elementi DIV nell'ordine di tab
 - [ ] 9. `main` senza branch protection né check obbligatori; i runner SQL si affidano ai codici di uscita, senza timeout per runner
-- [ ] 10. La policy `products_select` per `authenticated` non filtra `active`: un cliente loggato legge prodotti spenti di aziende attive
+- [ ] 10. La policy `products_select` per `authenticated` non filtra `active`: un cliente loggato legge prodotti spenti di aziende attive (chiusa da PR #53)
 
 ## Altri seguiti aperti
 - [ ] Hero: il secondo bottone WhatsApp "Salva contatto" (QA round25)
@@ -83,10 +83,10 @@ Regola: le migration vanno solo nella PR; niente modifiche al DB live senza l'OK
 - [ ] Setter della consegna in admin: arrotondare ai centesimi
 - [ ] Client fiscali vecchi in cache rifiutati: messaggio chiaro e ricarica
 - [ ] Chi può annullare un ordine già accettato (solo admin o anche il cliente)
-- [ ] Permessi: `anon` ha ancora MAINTAIN su `orders`/`order_items`; default privileges di `supabase_admin` su `public` e dello schema `storage` (PR B pronta in locale, `fix/anon-privileges`, non ancora pubblicata)
+- [ ] Permessi: `anon` ha ancora MAINTAIN su `orders`/`order_items`; default privileges di `supabase_admin` su `public` e dello schema `storage` (PR #53 aperta, `fix/anon-privileges`; chiude anche le policy di `order_daily_counters` e i prodotti spenti, punto 10)
 - [ ] (Opzionale) Precedenza foto solo per l'host Storage del progetto, non qualsiasi `*.supabase.co`
-- [ ] `image_url` fatto di soli spazi: trattarlo come vuoto anche lato DB e admin (lato app: PR C pronta in locale, `fix/page-titles-image-trim`, non ancora pubblicata)
-- [ ] Titoli pagina vuoti su `/menu`, `/account` e `/order-tracking` (PR C, vedi sopra)
+- [ ] `image_url` fatto di soli spazi: trattarlo come vuoto anche lato DB e admin (lato app: PR #54 aperta, `fix/page-titles-image-trim`)
+- [ ] Titoli pagina vuoti su `/menu`, `/account` e `/order-tracking` (PR #54)
 - [ ] (Con Turnstile attivo) "Conferma ordine" disattivato finché il widget non dà un token
 - [ ] Edge function Stripe: tenere per la v2 o cancellare
 - [ ] Confermare i limiti antiabuso (€150, 2 ordini aperti, 3 ogni 10 min, blocco dopo 3 mancati ritiri)

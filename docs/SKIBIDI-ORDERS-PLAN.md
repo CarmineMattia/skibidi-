@@ -66,7 +66,7 @@ Ordine di preferenza per l'integrazione:
 - Chi può annullare un ordine già accettato
 
 ## Prossimi passi
-1. PR per sistemare la storia delle migration (file con versioni uniche, file per le 6 righe solo su prod, decidere `20260904`; la PR A è pronta in locale), poi repair con l'OK di Carmine. Nota: un `db push` applicherebbe anche `20260210_prod_rls_fix`, `20260711_pizza_capacity_snapshot` e `20260711_shift_dough_usage`, che non sono su prod.
+1. PR per sistemare la storia delle migration (file con versioni uniche, file per le 6 righe solo su prod, decidere `20260904`; PR #52 aperta), poi repair con l'OK di Carmine. Nota: un `db push` applicherebbe anche `20260210_prod_rls_fix`, `20260711_pizza_capacity_snapshot` e `20260711_shift_dough_usage`, che non sono su prod.
 2. Foto mancanti e Malvasia (da Carmine), descrizione della Stria; decidere i 16 ordini vuoti.
 3. Chiavi Turnstile e deploy di `verify-turnstile` (con l'OK di Carmine).
 4. Playwright in CI; lint bloccante: prima installare eslint e una config (oggi `npm run lint` esce con 127), poi togliere `continue-on-error`.
