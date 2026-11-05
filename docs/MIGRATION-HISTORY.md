@@ -65,8 +65,8 @@ WHERE NOT EXISTS (SELECT 1 FROM supabase_migrations.schema_migrations WHERE vers
 INSERT INTO supabase_migrations.schema_migrations (version, name, statements)
 SELECT '20260711000200', 'shift_dough_usage', ARRAY['-- already live (get_shift_dough_usage, body identical to the file); recorded only, NOT executed']
 WHERE NOT EXISTS (SELECT 1 FROM supabase_migrations.schema_migrations WHERE version='20260711000200');
--- controllo prima del COMMIT: devono risultare 31 righe
-SELECT count(*) AS righe FROM supabase_migrations.schema_migrations;
+-- controllo prima del COMMIT: devono risultare 31 righe, altrimenti si annulla tutto
+DO $a$ DECLARE n int; BEGIN SELECT count(*) INTO n FROM supabase_migrations.schema_migrations; IF n <> 31 THEN RAISE EXCEPTION 'attese 31 righe in schema_migrations, trovate %: repair annullato', n; END IF; END $a$;
 COMMIT;
 ```
 
