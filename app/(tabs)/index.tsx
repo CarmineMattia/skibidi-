@@ -1,3 +1,4 @@
+import { PageTitle } from '@/components/ui/PageTitle';
 import { HomeOffersSection } from '@/components/features/home/HomeOffersSection';
 import { LandingHeader } from '@/components/features/landing/LandingHeader';
 import { LandingHero } from '@/components/features/landing/LandingHero';
@@ -80,8 +81,8 @@ export default function HomeScreen() {
 
   return (
     <>
+      <PageTitle page="home" />
       <Head>
-        <title>{`${BRAND.name} | Pizza e consegna a Montecchio Emilia`}</title>
         <meta name="description" content={BRAND.description} />
         <meta property="og:title" content={`${BRAND.name} — ${BRAND.tagline}`} />
         <meta property="og:description" content={BRAND.description} />
