@@ -1,6 +1,6 @@
 # TODO — Skibidi Orders (Ambrosia)
 
-Riferimento: [piano](./SKIBIDI-ORDERS-PLAN.md). Stato aggiornato il **2026-10-26** (main @ `970a3d1`, merge di #50).
+Riferimento: [piano](./SKIBIDI-ORDERS-PLAN.md). Stato aggiornato il **2026-11-05** (main @ `970a3d1`, merge di #50; prod in pausa dal 5/11, dati live al 29/10).
 Piano per ordini vuoti e foto mancanti: [piano-dati-2026-10-21.md](./piano-dati-2026-10-21.md).
 
 ## POS / integrazione
@@ -10,8 +10,8 @@ Piano per ordini vuoti e foto mancanti: [piano-dati-2026-10-21.md](./piano-dati-
 - [ ] Scegliere l'integrazione (API > import file > fornitore > Rakijazios GUI)
 - [ ] Fase temporanea: dashboard ordini su Chrome alla cassa
 
-## Stato PR (2026-10-26)
-Nessuna PR aperta oltre a questa. #17–#37 unite entro il 21/10 (dettaglio nella storia di questo file, PR #36 e #42).
+## Stato PR (2026-11-05)
+Aperte, oltre a questa: #52 (storia delle migration, `chore/migration-history-repo`), #53 (privilegi minimi, `fix/anon-privileges`), #54 (titoli pagina e `image_url` di soli spazi, `fix/page-titles-image-trim`). #17–#37 unite entro il 21/10 (dettaglio nella storia di questo file, PR #36 e #42).
 
 ### Unite dal 23/10 (OK di Carmine in chat)
 | PR | Cosa | Merge | Unita |
@@ -46,6 +46,8 @@ Applicate il 23/10 con l'OK di Carmine (backup prima di ognuna):
 
 La PR #52 (`chore/migration-history-repo`, aperta) affronta tutto questo: versioni uniche, i 6 file solo-prod, e le istruzioni di repair che registrano senza eseguire `prod_rls_fix`, `pizza_capacity_snapshot` e `shift_dough_usage`, con l'analisi di `20260904`. Il repair su prod resta da fare solo con l'OK di Carmine.
 
+Nota: un `supabase db reset` (o un progetto nuovo) **non si può costruire dal repo**: manca una migration di schema base (`orders`, `products`, `profiles` non sono mai creati da una migration) e `20260210_performance_indexes.sql` (in #52: `20260210152537_performance_indexes.sql`) usa commenti `#`, SQL non valido. Esisteva già prima di #52; i test usano le fixture `tests/sql/*-schema.sql`.
+
 Regola: le migration vanno solo nella PR; niente modifiche al DB live senza l'OK di Carmine.
 
 ## Cosa manca per la produzione
@@ -71,7 +73,7 @@ Regola: le migration vanno solo nella PR; niente modifiche al DB live senza l'OK
 **Piccoli, non bloccanti:**
 - [ ] 4. Il metodo di pagamento (contanti/carta) non viene salvato
 - [ ] 5. `MockFiscalProvider` fallisce circa il 10% delle volte; `|| true` in `FiscalService.ts:190` forza la modalità mock
-- [ ] 6. `/order-tracking`: l'id con spazi viene mandato senza trim alla RPC (link valido mostra "non trovato"), lampo di caricamento, non usa `orderLookup`, in errore fa polling a ~24 richieste/minuto
+- [ ] 6. `/order-success`: l'id con spazi viene mandato senza trim alla RPC (link valido mostra "non trovato"), lampo di caricamento, in errore fa polling a ~24 richieste/minuto. `/order-tracking`: non usa `orderLookup`
 - [ ] 7. Pannello ricevute: testo del lease "da un altro dispositivo"; i radio Contanti/Carta senza `aria-checked` (`PendingReceiptsPanel.tsx:141`)
 - [ ] 8. Home: `scrollToSection`/`sectionOffsets` morti in `app/(tabs)/index.tsx` (~42–76); contrasto hover/pressed ~4,94:1; commento in `linkProps.ts` dice che Space attiva il link; ellissi dell'header a 320px; elementi DIV nell'ordine di tab
 - [ ] 9. `main` senza branch protection né check obbligatori; i runner SQL si affidano ai codici di uscita, senza timeout per runner

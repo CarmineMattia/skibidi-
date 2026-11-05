@@ -1,6 +1,6 @@
 # Skibidi Orders — Piano (decisioni ottobre 2026)
 
-_Aggiornato il 2026-10-26 (main @ `970a3d1`, unite #38–#50). Dettaglio di PR, migration e seguiti in [`TODO.md`](./TODO.md)._
+_Aggiornato il 2026-11-05 (main @ `970a3d1`, unite #38–#50; aperte #51–#54). Dettaglio di PR, migration e seguiti in [`TODO.md`](./TODO.md)._
 
 Questo documento sostituisce, per Pizzeria Ambrosia, le parti di `roadmap.md` in conflitto (pagamenti online, POS proprietario, fiscalità diretta).
 
