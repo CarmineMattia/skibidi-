@@ -1,4 +1,4 @@
--- Runs after atomic-order-schema + 20261008 + 20261013_order_manual_approval_guard (fixture uses text status).
+-- Runs after atomic-order-schema + 20261008 + 20261013000200_order_manual_approval_guard (fixture uses text status).
 CREATE OR REPLACE FUNCTION pg_temp.expect_fail(sql text, label text) RETURNS void LANGUAGE plpgsql AS $$
 BEGIN
   BEGIN EXECUTE sql; EXCEPTION WHEN raise_exception THEN RETURN; END;

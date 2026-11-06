@@ -7,13 +7,13 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 const root = process.env.SKIBIDI_ROOT || path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const optional = (f) => (fs.existsSync(path.join(root, f)) ? [f] : []);
-const approval = optional('supabase/migrations/20261013_order_manual_approval_guard.sql');
+const approval = optional('supabase/migrations/20261013000200_order_manual_approval_guard.sql');
 console.log(approval.length ? 'Con #18 (approvazione manuale)' : 'Senza #18');
 const base = [
   'tests/sql/atomic-order-schema.sql',
   'tests/sql/antiabuse-schema.sql',
   'supabase/migrations/20260610_tighten_orders_rls_tracking_rpc.sql',
-  'supabase/migrations/20260901_fix_guest_order_items_rls.sql',
+  'supabase/migrations/20260901000000_fix_guest_order_items_rls.sql',
   'supabase/migrations/20261008_atomic_order_submission.sql',
   ...approval,
   'supabase/migrations/20261013140000_order_antiabuse.sql',

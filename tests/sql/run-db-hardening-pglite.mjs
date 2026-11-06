@@ -15,16 +15,16 @@ const base = [
   'tests/sql/atomic-order-schema.sql',
   'tests/sql/antiabuse-schema.sql',
   'supabase/migrations/20260610_tighten_orders_rls_tracking_rpc.sql',
-  'supabase/migrations/20260901_fix_guest_order_items_rls.sql',
+  'supabase/migrations/20260901000000_fix_guest_order_items_rls.sql',
   'supabase/migrations/20261008_atomic_order_submission.sql',
-  'supabase/migrations/20261013_order_manual_approval_guard.sql',
+  'supabase/migrations/20261013000200_order_manual_approval_guard.sql',
   'supabase/migrations/20261013140000_order_antiabuse.sql',
   'tests/sql/db-hardening-schema.sql',
   // Il fixture di #28 definisce un reserve_order_display_code finto: va prima della
   // migration 20260904, così i test girano con la funzione vera (nota del tester su #28).
   ...pr28.slice(0, 1),
   'supabase/migrations/20260904_order_display_code_sequential.sql',
-  'supabase/migrations/20261013_enable_rls_order_daily_counters.sql',
+  'supabase/migrations/20261012234356_enable_rls_order_daily_counters.sql',
   ...pr28.slice(1),
   migration,
 ];

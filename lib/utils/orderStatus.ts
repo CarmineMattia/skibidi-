@@ -2,7 +2,7 @@ import type { OrderStatus } from '@/types/database.types';
 
 /**
  * Order lifecycle with mandatory manual approval.
- * Mirrors public.is_valid_order_transition (supabase/migrations/20261013_order_manual_approval_guard.sql).
+ * Mirrors public.is_valid_order_transition (supabase/migrations/20261013000200_order_manual_approval_guard.sql).
  */
 export const ORDER_STATUS_LABEL_IT: Record<OrderStatus, string> = {
   pending: 'In attesa di conferma',

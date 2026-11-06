@@ -21,16 +21,16 @@ const chain = [
   'tests/sql/atomic-order-schema.sql',
   'tests/sql/antiabuse-schema.sql',
   'supabase/migrations/20260610_tighten_orders_rls_tracking_rpc.sql',
-  'supabase/migrations/20260901_fix_guest_order_items_rls.sql',
+  'supabase/migrations/20260901000000_fix_guest_order_items_rls.sql',
   'supabase/migrations/20261008_atomic_order_submission.sql',
-  'supabase/migrations/20261013_order_manual_approval_guard.sql',
+  'supabase/migrations/20261013000200_order_manual_approval_guard.sql',
   'supabase/migrations/20261013140000_order_antiabuse.sql',
   ...(with30 ? ['tests/sql/db-hardening-schema.sql'] : []),
   // fixture di #28 (funzioni finte) prima della 20260904, così reserve_order_display_code è quella vera
   ...(with28 ? ['tests/sql/security-definer-grants-schema.sql'] : []),
   'tests/sql/order-items-insert-guard-schema.sql',
   'supabase/migrations/20260904_order_display_code_sequential.sql',
-  'supabase/migrations/20261013_enable_rls_order_daily_counters.sql',
+  'supabase/migrations/20261012234356_enable_rls_order_daily_counters.sql',
 ];
 const others = order.flatMap((n) => (n === '28' && with28 ? [m28] : n === '30' && with30 ? [m30] : []));
 const base = [...chain, ...others, migration];
