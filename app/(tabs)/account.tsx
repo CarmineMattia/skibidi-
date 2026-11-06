@@ -1,3 +1,4 @@
+import { PageTitle } from '@/components/ui/PageTitle';
 import { FontAwesome } from '@expo/vector-icons';
 import { useAuth } from '@/lib/stores/AuthContext';
 import { SkeletonAccountProfile } from '@/components/ui/Skeleton';
@@ -30,14 +31,18 @@ export default function AccountScreen() {
 
   if (isLoading) {
     return (
-      <ScrollView className="flex-1 bg-[#f9ecdd] p-5" contentContainerStyle={{ paddingTop: insets.top + 8 }}>
-        <SkeletonAccountProfile />
-      </ScrollView>
+      <>
+        <PageTitle page="account" />
+        <ScrollView className="flex-1 bg-[#f9ecdd] p-5" contentContainerStyle={{ paddingTop: insets.top + 8 }}>
+          <SkeletonAccountProfile />
+        </ScrollView>
+      </>
     );
   }
 
   return (
     <ScrollView className="flex-1 bg-[#f9ecdd] p-5" contentContainerStyle={{ paddingTop: insets.top + 8 }}>
+      <PageTitle page="account" />
       <View className="bg-white rounded-2xl p-5 border border-[#e1a255]/40 mb-4 gap-1">
         <Text className="text-xs font-bold uppercase tracking-wider text-[#8d171e]">Account Ambrosia</Text>
         <Text className="text-2xl font-black text-gray-900">Profilo</Text>

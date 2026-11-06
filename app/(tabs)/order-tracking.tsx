@@ -1,3 +1,4 @@
+import { PageTitle } from '@/components/ui/PageTitle';
 import { useHydratedSearchParams } from '@/lib/hooks/useHydrated';
 import { FontAwesome } from '@expo/vector-icons';
 import { supabase } from '@/lib/api/supabase';
@@ -169,6 +170,7 @@ export default function OrderTrackingScreen() {
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
+      <PageTitle page="orderTracking" />
       <ScrollView
         className="flex-1 bg-[#f9ecdd]"
         contentContainerStyle={{ paddingTop: insets.top + 12, paddingBottom: insets.bottom + 96 }}

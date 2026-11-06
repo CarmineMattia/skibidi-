@@ -1,3 +1,4 @@
+import { cleanImageUrl } from '@/lib/utils/productImage';
 import { COOKING_OPTIONS, type CookingLevel } from '@/lib/data/menuPricing';
 import {
     getMaxGustiForProduct,
@@ -316,9 +317,9 @@ export function ProductDetailsModal({ visible, onClose, product, categoryName }:
                 <View className="bg-card w-full sm:w-[500px] sm:rounded-2xl rounded-t-3xl shadow-2xl border border-border max-h-[90%] flex flex-col">
                     {/* Header Image */}
                     <View className="h-40 bg-muted relative sm:rounded-t-2xl overflow-hidden">
-                        {product.image_url ? (
+                        {cleanImageUrl(product.image_url) ? (
                             <Image
-                                source={{ uri: product.image_url }}
+                                source={{ uri: cleanImageUrl(product.image_url) }}
                                 style={{ width: '100%', height: '100%' }}
                                 resizeMode="cover"
                                 accessibilityIgnoresInvertColors
