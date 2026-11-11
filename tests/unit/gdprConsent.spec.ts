@@ -38,7 +38,14 @@ describe('bozza di informativa', () => {
     expect(CONSENT_DRAFT_BODY).toContain('[PARTITA IVA]');
     expect(CONSENT_DRAFT_BODY).toContain('[SEDE LEGALE]');
     expect(CONSENT_DRAFT_BODY).toContain('[EMAIL PRIVACY]');
+    expect(CONSENT_DRAFT_BODY).toContain('DA DECIDERE DA CARMINE');
+    expect(CONSENT_DRAFT_BODY).toContain('[DURATA CONSERVAZIONE CONSENSO]');
+    expect(CONSENT_DRAFT_BODY).toContain('[CANCELLAZIONE ACCOUNT E TRACCIA CONSENSO]');
+    expect(CONSENT_DRAFT_BODY).toContain('10 anni dalla revoca');
     expect(CONSENT_DRAFT_BODY).not.toContain('12345678901');
+    expect(sql).toMatch(/FUNCTION public\.stats_k_anonymity\(\)[\s\S]*?SELECT 3;/);
+    const kCalls = sql.match(/public\.stats_k_anonymity\(\)/g) ?? [];
+    expect(kCalls.length).toBeGreaterThanOrEqual(3);
     expect(sql).toContain(CONSENT_DRAFT_VERSION);
     expect(sql).not.toMatch(/create\s+(or\s+replace\s+)?function\s+public\.create_order_with_items/i);
   });
@@ -91,8 +98,13 @@ describe('risposte delle RPC', () => {
         daysSinceOrder: 90,
       },
     ]);
-    expect(parseWeekHourStats([{ weekday: '2', hour: 15, order_count: '4' }, { weekday: 0, hour: 3, order_count: 1 }])).toEqual([
+    expect(parseWeekHourStats([
+      { weekday: '2', hour: 15, order_count: '4' },
+      { weekday: 0, hour: 3, order_count: 1 },
+      { weekday: null, hour: null, order_count: 5 },
+    ])).toEqual([
       { weekday: 2, hour: 15, orderCount: 4 },
+      { weekday: null, hour: null, orderCount: 5 },
     ]);
     expect(parseTopProducts([{ product_name: 'Margherita', quantity_total: '9' }])).toEqual([
       { productName: 'Margherita', quantityTotal: 9 },
@@ -129,5 +141,29 @@ describe('caselle non pre-spuntate', () => {
     const choices = emptyConsentChoices();
     expect(choices.map((choice) => choice.granted)).toEqual([false, false]);
     expect(choices.map((choice) => choice.purpose)).toEqual(['marketing', 'profiling']);
+  });
+
+  it('in caricamento non disegna le caselle, e la versione sta accanto', () => {
+    const src = fs.readFileSync(path.join(root, 'components/features/CustomerConsentCard.tsx'), 'utf8');
+    expect(src).toContain('Caricamento consensi…');
+    expect(src).toContain('Versione {version ?? \'2026-11-draft-1\'}');
+    expect(src).not.toContain('loading ? emptyConsentChoices()');
+    const loadingAt = src.indexOf('Caricamento consensi…');
+    const listAt = src.indexOf('<ConsentChoiceList');
+    expect(loadingAt).toBeGreaterThan(0);
+    expect(listAt).toBeGreaterThan(loadingAt);
+  });
+
+  it('chiede il consenso prima dell’hero delle offerte', () => {
+    const src = fs.readFileSync(path.join(root, 'app/offers.tsx'), 'utf8');
+    const promptAt = src.indexOf('<CustomerConsentCard variant="prompt" />');
+    const heroAt = src.indexOf('Le offerte arrivano presto.');
+    expect(promptAt).toBeGreaterThan(0);
+    expect(heroAt).toBeGreaterThan(promptAt);
+  });
+
+  it('lascia spazio in fondo all’account per la barra', () => {
+    const src = fs.readFileSync(path.join(root, 'app/(tabs)/account.tsx'), 'utf8');
+    expect(src).toContain('paddingBottom: insets.bottom + 96');
   });
 });

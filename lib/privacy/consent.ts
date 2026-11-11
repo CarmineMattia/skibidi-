@@ -46,8 +46,8 @@ export type InactiveCustomer = {
 };
 
 export type WeekHourStat = {
-  weekday: number;
-  hour: number;
+  weekday: number | null;
+  hour: number | null;
   orderCount: number;
 };
 
@@ -178,9 +178,10 @@ export function parseWeekHourStats(data: unknown): WeekHourStat[] {
   for (const item of data) {
     const row = asRecord(item);
     if (!row) continue;
-    const weekday = asNumber(row.weekday);
-    const hour = asNumber(row.hour);
-    if (weekday < 1 || weekday > 7 || hour < 0 || hour > 23) continue;
+    const other = row.weekday == null && row.hour == null;
+    const weekday = other ? null : asNumber(row.weekday);
+    const hour = other ? null : asNumber(row.hour);
+    if (!other && (weekday == null || hour == null || weekday < 1 || weekday > 7 || hour < 0 || hour > 23)) continue;
     rows.push({ weekday, hour, orderCount: asNumber(row.order_count) });
   }
   return rows;

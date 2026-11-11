@@ -618,15 +618,15 @@ export type Database = {
       venue_orders_by_weekday_hour: {
         Args: { p_company: string }
         Returns: {
-          weekday: number
-          hour: number
+          weekday: number | null
+          hour: number | null
           order_count: number
         }[]
       }
       venue_top_products: {
         Args: { p_company: string; p_limit?: number }
         Returns: {
-          product_id: string
+          product_id: string | null
           product_name: string
           quantity_total: number
           order_count: number

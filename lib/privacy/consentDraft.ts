@@ -34,15 +34,21 @@ Le offerte su misura e l'elenco dei clienti inattivi si preparano solo se sono a
 Tu vedi e modifichi solo le tue scelte. Se hai dato entrambi i consensi, vedi anche la proposta calcolata sui tuoi ordini.
 Il titolare della pizzeria (ruolo admin) e i proprietari della piattaforma vedono le statistiche di insieme del locale (ordini per giorno della settimana e per fascia oraria, prodotti più richiesti) e, solo per chi ha entrambi i consensi attivi, l'elenco dei clienti inattivi con nome, email e data dell'ultimo ordine.
 La cassa (ruolo kiosk), gli altri clienti e chi non è entrato nell'account non vedono queste informazioni.
-Le statistiche di insieme non riportano il nome di una persona e valgono anche senza consenso: descrivono l'andamento del locale, non un cliente.
+Le statistiche di insieme non riportano il nome di una persona e valgono anche senza consenso: descrivono l'andamento del locale, non un cliente. Una fascia oraria o un prodotto compare solo se raccoglie almeno 3 ordini distinti. I gruppi più piccoli, se insieme arrivano a 3 ordini, sono mostrati come «Altro»; se restano sotto 3, non compaiono.
 
 5. Base giuridica, da confermare
 Proposta, da confermare con chi cura la privacy: i due consensi di questa pagina sono facoltativi e coprono solo marketing e profilazione. L'ordine, la preparazione, il ritiro e gli obblighi di cassa e fiscali non dipendono da questi consensi. Va anche confermato se questa profilazione rientra nelle decisioni automatizzate del Regolamento (UE) 2016/679: la proposta in app è un suggerimento, non un rifiuto del servizio.
 
 6. Per quanto tempo
-La traccia del consenso (chi, quale finalità, sì o no, data e ora, versione del testo mostrato) resta conservata per poter dimostrare la scelta, anche dopo una revoca. Durata proposta, da confermare: [DURATA CONSERVAZIONE CONSENSO].
+La traccia del consenso (chi, quale finalità, sì o no, data e ora, versione del testo mostrato) resta conservata per poter dimostrare la scelta, anche dopo una revoca.
+DA DECIDERE DA CARMINE. Questo punto è un segnaposto, non una decisione già presa.
+[DURATA CONSERVAZIONE CONSENSO]
+Proposta di partenza, da confermare o scartare: conservare la traccia per 10 anni dalla revoca.
 I dati dell'ordine restano per il tempo richiesto dalla legge, anche se revochi. Dopo la revoca non li usiamo più per offerte o per l'elenco dei clienti inattivi.
-Non teniamo un archivio di marketing separato: proposte ed elenco sono calcolati al momento, e solo se il consenso è ancora attivo. La traccia del consenso, da sola, non cancella l'account: un'eventuale cancellazione dell'account e della traccia va definita con chi cura la privacy. [CANCELLAZIONE ACCOUNT E TRACCIA CONSENSO]
+Non teniamo un archivio di marketing separato: proposte ed elenco sono calcolati al momento, e solo se il consenso è ancora attivo.
+DA DECIDERE DA CARMINE. Questo punto è un segnaposto, non una decisione già presa.
+[CANCELLAZIONE ACCOUNT E TRACCIA CONSENSO]
+Proposta di partenza, da confermare o scartare: se l'account viene cancellato, la traccia del consenso non si cancella da sola e segue la durata indicata sopra. I dati degli ordini restano per gli obblighi di legge.
 
 7. Revoca e diritti
 Puoi revocare ciascun consenso in qualsiasi momento dall'account, o dalla stessa schermata in cui ti viene chiesto. La revoca non annulla gli ordini già fatti e non chiude l'account.

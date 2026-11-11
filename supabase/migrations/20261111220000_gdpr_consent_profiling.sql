@@ -239,15 +239,21 @@ Le offerte su misura e l'elenco dei clienti inattivi si preparano solo se sono a
 Tu vedi e modifichi solo le tue scelte. Se hai dato entrambi i consensi, vedi anche la proposta calcolata sui tuoi ordini.
 Il titolare della pizzeria (ruolo admin) e i proprietari della piattaforma vedono le statistiche di insieme del locale (ordini per giorno della settimana e per fascia oraria, prodotti più richiesti) e, solo per chi ha entrambi i consensi attivi, l'elenco dei clienti inattivi con nome, email e data dell'ultimo ordine.
 La cassa (ruolo kiosk), gli altri clienti e chi non è entrato nell'account non vedono queste informazioni.
-Le statistiche di insieme non riportano il nome di una persona e valgono anche senza consenso: descrivono l'andamento del locale, non un cliente.
+Le statistiche di insieme non riportano il nome di una persona e valgono anche senza consenso: descrivono l'andamento del locale, non un cliente. Una fascia oraria o un prodotto compare solo se raccoglie almeno 3 ordini distinti. I gruppi più piccoli, se insieme arrivano a 3 ordini, sono mostrati come «Altro»; se restano sotto 3, non compaiono.
 
 5. Base giuridica, da confermare
 Proposta, da confermare con chi cura la privacy: i due consensi di questa pagina sono facoltativi e coprono solo marketing e profilazione. L'ordine, la preparazione, il ritiro e gli obblighi di cassa e fiscali non dipendono da questi consensi. Va anche confermato se questa profilazione rientra nelle decisioni automatizzate del Regolamento (UE) 2016/679: la proposta in app è un suggerimento, non un rifiuto del servizio.
 
 6. Per quanto tempo
-La traccia del consenso (chi, quale finalità, sì o no, data e ora, versione del testo mostrato) resta conservata per poter dimostrare la scelta, anche dopo una revoca. Durata proposta, da confermare: [DURATA CONSERVAZIONE CONSENSO].
+La traccia del consenso (chi, quale finalità, sì o no, data e ora, versione del testo mostrato) resta conservata per poter dimostrare la scelta, anche dopo una revoca.
+DA DECIDERE DA CARMINE. Questo punto è un segnaposto, non una decisione già presa.
+[DURATA CONSERVAZIONE CONSENSO]
+Proposta di partenza, da confermare o scartare: conservare la traccia per 10 anni dalla revoca.
 I dati dell'ordine restano per il tempo richiesto dalla legge, anche se revochi. Dopo la revoca non li usiamo più per offerte o per l'elenco dei clienti inattivi.
-Non teniamo un archivio di marketing separato: proposte ed elenco sono calcolati al momento, e solo se il consenso è ancora attivo. La traccia del consenso, da sola, non cancella l'account: un'eventuale cancellazione dell'account e della traccia va definita con chi cura la privacy. [CANCELLAZIONE ACCOUNT E TRACCIA CONSENSO]
+Non teniamo un archivio di marketing separato: proposte ed elenco sono calcolati al momento, e solo se il consenso è ancora attivo.
+DA DECIDERE DA CARMINE. Questo punto è un segnaposto, non una decisione già presa.
+[CANCELLAZIONE ACCOUNT E TRACCIA CONSENSO]
+Proposta di partenza, da confermare o scartare: se l'account viene cancellato, la traccia del consenso non si cancella da sola e segue la durata indicata sopra. I dati degli ordini restano per gli obblighi di legge.
 
 7. Revoca e diritti
 Puoi revocare ciascun consenso in qualsiasi momento dall'account, o dalla stessa schermata in cui ti viene chiesto. La revoca non annulla gli ordini già fatti e non chiude l'account.
@@ -665,6 +671,18 @@ BEGIN
 END;
 $$;
 
+-- Unica soglia k. Un gruppo si mostra solo con almeno questi ordini distinti.
+-- I gruppi più piccoli finiscono in «Altro» se, insieme, arrivano a k; altrimenti non escono.
+CREATE OR REPLACE FUNCTION public.stats_k_anonymity()
+RETURNS integer
+LANGUAGE sql
+IMMUTABLE
+PARALLEL SAFE
+SET search_path = public
+AS $$
+  SELECT 3;
+$$;
+
 CREATE OR REPLACE FUNCTION public.venue_orders_by_weekday_hour(p_company uuid)
 RETURNS TABLE (
   weekday smallint,
@@ -676,6 +694,9 @@ STABLE
 SECURITY DEFINER
 SET search_path = public
 AS $$
+#variable_conflict use_column
+DECLARE
+  k integer := public.stats_k_anonymity();
 BEGIN
   IF NOT public.consent_caller_can_read_venue(p_company) THEN
     RAISE EXCEPTION 'CONSENT_FORBIDDEN' USING ERRCODE = '42501';
@@ -684,14 +705,34 @@ BEGIN
     RAISE EXCEPTION 'CONSENT_COMPANY_NOT_FOUND' USING ERRCODE = 'P0002';
   END IF;
   RETURN QUERY
-  SELECT extract(isodow FROM o.created_at AT TIME ZONE 'Europe/Rome')::smallint,
-         extract(hour FROM o.created_at AT TIME ZONE 'Europe/Rome')::smallint,
-         count(*)::integer
-  FROM public.orders o
-  WHERE o.company_id = p_company
-    AND o.status::text NOT IN ('cancelled', 'rejected')
-  GROUP BY 1, 2
-  ORDER BY 1, 2;
+  WITH counted AS (
+    SELECT extract(isodow FROM o.created_at AT TIME ZONE 'Europe/Rome')::smallint AS weekday,
+           extract(hour FROM o.created_at AT TIME ZONE 'Europe/Rome')::smallint AS hour,
+           count(*)::integer AS order_count
+    FROM public.orders o
+    WHERE o.company_id = p_company
+      AND o.status::text NOT IN ('cancelled', 'rejected')
+    GROUP BY 1, 2
+  ),
+  shown AS (
+    SELECT c.weekday, c.hour, c.order_count
+    FROM counted c
+    WHERE c.order_count >= k
+  ),
+  folded AS (
+    SELECT NULL::smallint AS weekday,
+           NULL::smallint AS hour,
+           coalesce(sum(c.order_count), 0)::integer AS order_count
+    FROM counted c
+    WHERE c.order_count < k
+  )
+  SELECT s.weekday, s.hour, s.order_count
+  FROM shown s
+  UNION ALL
+  SELECT f.weekday, f.hour, f.order_count
+  FROM folded f
+  WHERE f.order_count >= k
+  ORDER BY 1 NULLS LAST, 2 NULLS LAST;
 END;
 $$;
 
@@ -709,6 +750,7 @@ SET search_path = public
 AS $$
 #variable_conflict use_column
 DECLARE
+  k integer := public.stats_k_anonymity();
   v_limit integer := coalesce(p_limit, 8);
 BEGIN
   IF NOT public.consent_caller_can_read_venue(p_company) THEN
@@ -721,18 +763,63 @@ BEGIN
     RAISE EXCEPTION 'CONSENT_LIMIT_INVALID' USING ERRCODE = '22023';
   END IF;
   RETURN QUERY
-  SELECT pr.id,
-         pr.name,
-         sum(i.quantity)::integer,
-         count(DISTINCT o.id)::integer
-  FROM public.order_items i
-  JOIN public.orders o ON o.id = i.order_id
-  JOIN public.products pr ON pr.id = i.product_id
-  WHERE o.company_id = p_company
-    AND o.status::text NOT IN ('cancelled', 'rejected')
-  GROUP BY pr.id, pr.name
-  ORDER BY sum(i.quantity) DESC, pr.name
-  LIMIT v_limit;
+  WITH lines AS (
+    SELECT pr.id AS product_id,
+           pr.name AS product_name,
+           i.quantity,
+           o.id AS order_id
+    FROM public.order_items i
+    JOIN public.orders o ON o.id = i.order_id
+    JOIN public.products pr ON pr.id = i.product_id
+    WHERE o.company_id = p_company
+      AND o.status::text NOT IN ('cancelled', 'rejected')
+  ),
+  by_product AS (
+    SELECT l.product_id,
+           l.product_name,
+           sum(l.quantity)::integer AS quantity_total,
+           count(DISTINCT l.order_id)::integer AS order_count
+    FROM lines l
+    GROUP BY l.product_id, l.product_name
+  ),
+  kept AS (
+    SELECT b.product_id, b.product_name, b.quantity_total, b.order_count
+    FROM by_product b
+    WHERE b.order_count >= k
+    ORDER BY b.quantity_total DESC, b.product_name
+    LIMIT v_limit
+  ),
+  folded AS (
+    SELECT NULL::uuid AS product_id,
+           'Altro'::text AS product_name,
+           coalesce(sum(l.quantity), 0)::integer AS quantity_total,
+           count(DISTINCT l.order_id)::integer AS order_count
+    FROM lines l
+    JOIN by_product b ON b.product_id = l.product_id
+    WHERE b.order_count < k
+  )
+  SELECT ranked.product_id, ranked.product_name, ranked.quantity_total, ranked.order_count
+  FROM (
+    SELECT 0 AS sort_group,
+           kept_row.quantity_total AS sort_qty,
+           kept_row.product_name AS sort_name,
+           kept_row.product_id,
+           kept_row.product_name,
+           kept_row.quantity_total,
+           kept_row.order_count
+    FROM kept kept_row
+    UNION ALL
+    SELECT 1,
+           0,
+           folded.product_name,
+           folded.product_id,
+           folded.product_name,
+           folded.quantity_total,
+           folded.order_count
+    FROM folded
+    WHERE folded.order_count >= k
+  ) ranked
+  ORDER BY ranked.sort_group, ranked.sort_qty DESC, ranked.sort_name;
 END;
 $$;
 
@@ -780,6 +867,7 @@ BEGIN
     'public.profiling_inactive_days(uuid)',
     'public.set_inactive_customer_days(uuid, integer)',
     'public.list_inactive_customers(uuid, integer)',
+    'public.stats_k_anonymity()',
     'public.venue_orders_by_weekday_hour(uuid)',
     'public.venue_top_products(uuid, integer)'
   ]

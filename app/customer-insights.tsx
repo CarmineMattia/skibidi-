@@ -118,8 +118,10 @@ export default function CustomerInsightsScreen() {
   const waitingForOwner = isAuthenticated && !isAdmin && ownerQuery.isLoading;
   const showGate = authLoading || waitingForOwner || !canRead;
   const hours = hoursQuery.data ?? [];
+  const otherHours = hours.filter((row) => row.weekday == null);
   const byDay = new Map<number, WeekHourStat[]>();
   for (const row of hours) {
+    if (row.weekday == null || row.hour == null) continue;
     const list = byDay.get(row.weekday) ?? [];
     list.push(row);
     byDay.set(row.weekday, list);
@@ -163,8 +165,9 @@ export default function CustomerInsightsScreen() {
             <Text className="text-xs font-bold uppercase tracking-wider text-[#8d171e]">Solo titolare</Text>
             <Text className="text-2xl font-black text-gray-900">Andamento e clienti inattivi</Text>
             <Text className="text-sm leading-5 text-gray-600">
-              I numeri di insieme contano tutti gli ordini e non riportano nomi. L’elenco inattivi mostra solo chi ha
-              accettato sia la profilazione sia le offerte personalizzate.
+              I numeri di insieme contano tutti gli ordini e non riportano nomi. Una fascia o un prodotto si vede solo
+              con almeno 3 ordini distinti; i gruppi più piccoli, se insieme arrivano a 3, stanno in Altro. L’elenco
+              inattivi mostra solo chi ha accettato sia la profilazione sia le offerte personalizzate.
             </Text>
           </View>
 
@@ -219,13 +222,19 @@ export default function CustomerInsightsScreen() {
               <View className="bg-white rounded-2xl border border-[#e1a255]/40 p-5 gap-3">
                 <Text className="text-lg font-black text-gray-900">Andamento del locale</Text>
                 <Text className="text-sm leading-5 text-gray-600">
-                  Ordini non annullati e non rifiutati, in ora di Roma. Nessun nome di cliente.
+                  Ordini non annullati e non rifiutati, in ora di Roma. Nessun nome di cliente. Le fasce con meno di 3
+                  ordini non compaiono da sole.
                 </Text>
                 {hoursQuery.isLoading ? <Text className="text-sm text-gray-600">Carico gli orari…</Text> : null}
                 {hoursQuery.isError ? <Text className="text-sm font-bold text-[#8d171e]">{errorText(hoursQuery.error)}</Text> : null}
                 {hoursQuery.data && hours.length === 0 ? (
                   <Text className="text-sm text-gray-600">Non ci sono ancora ordini da riassumere.</Text>
                 ) : null}
+                {otherHours.map((row) => (
+                  <Text key="altro-ore" className="text-base font-bold text-gray-900">
+                    Altro · {row.orderCount} {row.orderCount === 1 ? 'ordine' : 'ordini'}
+                  </Text>
+                ))}
                 {[1, 2, 3, 4, 5, 6, 7].filter((day) => byDay.has(day)).map((day) => {
                   const rows = byDay.get(day) ?? [];
                   const total = rows.reduce((sum, row) => sum + row.orderCount, 0);
@@ -235,9 +244,11 @@ export default function CustomerInsightsScreen() {
                         {weekdayLabel(day)} · {total} {total === 1 ? 'ordine' : 'ordini'}
                       </Text>
                       {rows.map((row) => (
-                        <Text key={`${day}-${row.hour}`} className="text-sm text-gray-600">
-                          {formatHour(row.hour)} · {row.orderCount}
-                        </Text>
+                        row.hour == null ? null : (
+                          <Text key={`${day}-${row.hour}`} className="text-sm text-gray-600">
+                            {formatHour(row.hour)} · {row.orderCount}
+                          </Text>
+                        )
                       ))}
                     </View>
                   );
@@ -246,6 +257,10 @@ export default function CustomerInsightsScreen() {
 
               <View className="bg-white rounded-2xl border border-[#e1a255]/40 p-5 gap-3">
                 <Text className="text-lg font-black text-gray-900">Prodotti più richiesti</Text>
+                <Text className="text-sm leading-5 text-gray-600">
+                  Un prodotto entra in lista solo con almeno 3 ordini distinti. Altro riunisce quelli sotto soglia, se
+                  insieme arrivano a 3.
+                </Text>
                 {productsQuery.isLoading ? <Text className="text-sm text-gray-600">Carico i prodotti…</Text> : null}
                 {productsQuery.isError ? (
                   <Text className="text-sm font-bold text-[#8d171e]">{errorText(productsQuery.error)}</Text>

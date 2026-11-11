@@ -38,6 +38,9 @@ SELECT pg_temp.check(
   AND (SELECT body FROM public.consent_documents) LIKE '%[SEDE LEGALE]%'
   AND (SELECT body FROM public.consent_documents) LIKE '%[EMAIL PRIVACY]%'
   AND (SELECT body FROM public.consent_documents) LIKE '%[ETÀ MINIMA]%'
+  AND (SELECT body FROM public.consent_documents) LIKE '%DA DECIDERE DA CARMINE%'
+  AND (SELECT body FROM public.consent_documents) LIKE '%[DURATA CONSERVAZIONE CONSENSO]%'
+  AND (SELECT body FROM public.consent_documents) LIKE '%[CANCELLAZIONE ACCOUNT E TRACCIA CONSENSO]%'
   AND (SELECT body FROM public.consent_documents) NOT LIKE '%12345678901%',
   'draft seeded once with placeholders only');
 
@@ -88,6 +91,10 @@ SELECT pg_temp.check(
   AND NOT has_function_privilege('public', 'public.list_inactive_customers(uuid, integer)', 'EXECUTE')
   AND NOT has_function_privilege('service_role', 'public.my_personalised_offer(uuid)', 'EXECUTE')
   AND NOT has_function_privilege('authenticated', 'public.consent_is_active(uuid, text)', 'EXECUTE')
+  AND NOT has_function_privilege('authenticated', 'public.stats_k_anonymity()', 'EXECUTE')
+  AND NOT has_function_privilege('anon', 'public.stats_k_anonymity()', 'EXECUTE')
+  AND NOT has_function_privilege('public', 'public.stats_k_anonymity()', 'EXECUTE')
+  AND public.stats_k_anonymity() = 3
   AND NOT has_function_privilege('anon', 'public.consent_allows_personalisation(uuid)', 'EXECUTE')
   AND NOT has_function_privilege('authenticated', 'public.consent_events_guard()', 'EXECUTE')
   AND NOT has_function_privilege('public', 'public.consent_block_truncate()', 'EXECUTE'),
@@ -144,7 +151,9 @@ INSERT INTO public.products (id, company_id, name) VALUES
   ('00000000-0000-0000-0000-000000000011', '00000000-0000-0000-0000-000000000001', 'Margherita'),
   ('00000000-0000-0000-0000-000000000012', '00000000-0000-0000-0000-000000000001', 'Diavola'),
   ('00000000-0000-0000-0000-000000000013', '00000000-0000-0000-0000-000000000001', 'Capricciosa'),
-  ('00000000-0000-0000-0000-000000000014', '00000000-0000-0000-0000-000000000002', 'Solo Altra Pizzeria');
+  ('00000000-0000-0000-0000-000000000014', '00000000-0000-0000-0000-000000000002', 'Solo Altra Pizzeria'),
+  ('00000000-0000-0000-0000-000000000015', '00000000-0000-0000-0000-000000000002', 'Tre Ordini'),
+  ('00000000-0000-0000-0000-000000000016', '00000000-0000-0000-0000-000000000002', 'Due Ordini');
 
 INSERT INTO public.orders (id, company_id, customer_id, status, total_amount, created_at) VALUES
   ('00000000-0000-0000-0000-000000000101', '00000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-0000000000c1', 'delivered', 30, now() - interval '10 days'),
@@ -157,7 +166,12 @@ INSERT INTO public.orders (id, company_id, customer_id, status, total_amount, cr
   ('00000000-0000-0000-0000-000000000108', '00000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-0000000000c3', 'delivered', 8, now() - interval '90 days'),
   ('00000000-0000-0000-0000-000000000109', '00000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-0000000000c4', 'delivered', 8, now() - interval '90 days'),
   ('00000000-0000-0000-0000-00000000010a', '00000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-0000000000c7', 'delivered', 8, now() - interval '40 days'),
-  ('00000000-0000-0000-0000-00000000010b', '00000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-0000000000c5', 'delivered', 100, now() - interval '90 days'),
+  ('00000000-0000-0000-0000-00000000010b', '00000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-0000000000c5', 'delivered', 100, timestamptz '2024-03-04 08:00:00+00'),
+  ('00000000-0000-0000-0000-000000000120', '00000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-0000000000c2', 'delivered', 8, timestamptz '2024-03-05 11:00:00+00'),
+  ('00000000-0000-0000-0000-00000000010e', '00000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-0000000000c3', 'delivered', 8, timestamptz '2024-03-05 11:00:00+00'),
+  ('00000000-0000-0000-0000-00000000010f', '00000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-0000000000c4', 'delivered', 8, timestamptz '2024-03-05 11:00:00+00'),
+  ('00000000-0000-0000-0000-000000000110', '00000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-0000000000c2', 'delivered', 8, timestamptz '2024-03-06 11:00:00+00'),
+  ('00000000-0000-0000-0000-000000000111', '00000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-0000000000c4', 'delivered', 8, timestamptz '2024-03-06 11:00:00+00'),
   ('00000000-0000-0000-0000-00000000010c', '00000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-0000000000c1', 'delivered', 8, timestamptz '2026-06-02 22:30:00+00');
 
 INSERT INTO public.order_items (order_id, product_id, quantity) VALUES
@@ -172,6 +186,11 @@ INSERT INTO public.order_items (order_id, product_id, quantity) VALUES
   ('00000000-0000-0000-0000-000000000109', '00000000-0000-0000-0000-000000000011', 1),
   ('00000000-0000-0000-0000-00000000010a', '00000000-0000-0000-0000-000000000011', 1),
   ('00000000-0000-0000-0000-00000000010b', '00000000-0000-0000-0000-000000000014', 100),
+  ('00000000-0000-0000-0000-000000000120', '00000000-0000-0000-0000-000000000015', 2),
+  ('00000000-0000-0000-0000-00000000010e', '00000000-0000-0000-0000-000000000015', 2),
+  ('00000000-0000-0000-0000-00000000010f', '00000000-0000-0000-0000-000000000015', 2),
+  ('00000000-0000-0000-0000-000000000110', '00000000-0000-0000-0000-000000000016', 1),
+  ('00000000-0000-0000-0000-000000000111', '00000000-0000-0000-0000-000000000016', 1),
   ('00000000-0000-0000-0000-00000000010c', '00000000-0000-0000-0000-000000000012', 1);
 
 SELECT pg_temp.check(
@@ -272,7 +291,7 @@ SELECT set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000e1
 SELECT pg_temp.check(
   (SELECT count(*) FROM public.list_inactive_customers('00000000-0000-0000-0000-000000000001')) = 1
   AND (SELECT email FROM public.list_inactive_customers('00000000-0000-0000-0000-000000000002')) = 'ada.inattiva@example.test'
-  AND (SELECT coalesce(sum(order_count), 0) FROM public.venue_orders_by_weekday_hour('00000000-0000-0000-0000-000000000002')) = 1,
+  AND (SELECT coalesce(sum(order_count), 0) FROM public.venue_orders_by_weekday_hour('00000000-0000-0000-0000-000000000002')) = 6,
   'platform owner reads both venues');
 
 SELECT set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a2', false);
@@ -286,12 +305,23 @@ SELECT pg_temp.expect_err(
 
 SELECT set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a1', false);
 SELECT pg_temp.check(
-  (SELECT coalesce(sum(order_count), 0) FROM public.venue_orders_by_weekday_hour('00000000-0000-0000-0000-000000000001')) = 9
-  AND (SELECT order_count FROM public.venue_orders_by_weekday_hour('00000000-0000-0000-0000-000000000001') WHERE weekday = 2 AND hour = 15) = 1
-  AND (SELECT order_count FROM public.venue_orders_by_weekday_hour('00000000-0000-0000-0000-000000000001') WHERE weekday = 3 AND hour = 0) = 1
+  NOT EXISTS (
+    SELECT 1 FROM public.venue_orders_by_weekday_hour('00000000-0000-0000-0000-000000000001') s
+    WHERE s.order_count < 3
+  )
+  AND NOT EXISTS (
+    SELECT 1 FROM public.venue_orders_by_weekday_hour('00000000-0000-0000-0000-000000000001') s
+    WHERE (s.weekday = 2 AND s.hour = 15 AND s.order_count = 1)
+       OR (s.weekday = 3 AND s.hour = 0 AND s.order_count = 1)
+  )
+  AND (SELECT order_count FROM public.venue_top_products('00000000-0000-0000-0000-000000000001', 8) WHERE product_name = 'Margherita') = 6
   AND (SELECT quantity_total FROM public.venue_top_products('00000000-0000-0000-0000-000000000001', 8) WHERE product_name = 'Margherita') = 9
+  AND (SELECT order_count FROM public.venue_top_products('00000000-0000-0000-0000-000000000001', 8) WHERE product_name = 'Diavola') = 3
   AND (SELECT quantity_total FROM public.venue_top_products('00000000-0000-0000-0000-000000000001', 8) WHERE product_name = 'Diavola') = 6
-  AND (SELECT quantity_total FROM public.venue_top_products('00000000-0000-0000-0000-000000000001', 8) WHERE product_name = 'Capricciosa') = 5
+  AND NOT EXISTS (
+    SELECT 1 FROM public.venue_top_products('00000000-0000-0000-0000-000000000001', 8)
+    WHERE product_name = 'Capricciosa' OR product_name = 'Altro' OR order_count < 3
+  )
   AND NOT EXISTS (
     SELECT 1 FROM public.venue_top_products('00000000-0000-0000-0000-000000000001', 8)
     WHERE product_name = 'Solo Altra Pizzeria'
@@ -304,7 +334,44 @@ SELECT pg_temp.check(
     SELECT 1 FROM public.venue_top_products('00000000-0000-0000-0000-000000000001', 8) s
     WHERE s::text ILIKE '%@example.test%' OR s::text ILIKE '%nessuno%'
   ),
-  'aggregates count everyone and hide people');
+  'aggregates hide people and buckets under k');
+
+-- k = 3 sulla seconda pizzeria, con orari fissi: 3 ordini si vedono, 2 e 1 no.
+-- Il resto (1+2 ordini) sta in Altro. Un solo prodotto raro non diventa Altro da solo
+-- (sopra, Capricciosa ha un ordine e non compare).
+SELECT set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000e1', false);
+SELECT pg_temp.check(
+  extract(isodow FROM timestamptz '2024-03-04 08:00:00+00' AT TIME ZONE 'Europe/Rome') = 1
+  AND extract(hour FROM timestamptz '2024-03-04 08:00:00+00' AT TIME ZONE 'Europe/Rome') = 9
+  AND extract(isodow FROM timestamptz '2024-03-05 11:00:00+00' AT TIME ZONE 'Europe/Rome') = 2
+  AND extract(hour FROM timestamptz '2024-03-05 11:00:00+00' AT TIME ZONE 'Europe/Rome') = 12
+  AND extract(isodow FROM timestamptz '2024-03-06 11:00:00+00' AT TIME ZONE 'Europe/Rome') = 3
+  AND extract(hour FROM timestamptz '2024-03-06 11:00:00+00' AT TIME ZONE 'Europe/Rome') = 12,
+  'rome clock for the k-anonymity fixture');
+SELECT pg_temp.check(
+  (SELECT order_count FROM public.venue_orders_by_weekday_hour('00000000-0000-0000-0000-000000000002') WHERE weekday = 2 AND hour = 12) = 3
+  AND NOT EXISTS (
+    SELECT 1 FROM public.venue_orders_by_weekday_hour('00000000-0000-0000-0000-000000000002')
+    WHERE (weekday = 1 AND hour = 9) OR (weekday = 3 AND hour = 12) OR order_count < 3
+  )
+  AND (SELECT order_count FROM public.venue_orders_by_weekday_hour('00000000-0000-0000-0000-000000000002') WHERE weekday IS NULL AND hour IS NULL) = 3
+  AND (SELECT order_count FROM public.venue_top_products('00000000-0000-0000-0000-000000000002', 1) WHERE product_name = 'Tre Ordini') = 3
+  AND (SELECT quantity_total FROM public.venue_top_products('00000000-0000-0000-0000-000000000002', 1) WHERE product_name = 'Tre Ordini') = 6
+  AND (SELECT order_count FROM public.venue_top_products('00000000-0000-0000-0000-000000000002', 1) WHERE product_name = 'Altro') = 3
+  AND (SELECT quantity_total FROM public.venue_top_products('00000000-0000-0000-0000-000000000002', 1) WHERE product_name = 'Altro') = 102
+  AND (SELECT count(*) FROM public.venue_top_products('00000000-0000-0000-0000-000000000002', 1)) = 2
+  AND NOT EXISTS (
+    SELECT 1 FROM public.venue_top_products('00000000-0000-0000-0000-000000000002', 8) s
+    WHERE s.order_count < 3
+       OR s::text ILIKE '%Due Ordini%'
+       OR s::text ILIKE '%Solo Altra%'
+  )
+  AND NOT EXISTS (
+    SELECT 1 FROM public.venue_orders_by_weekday_hour('00000000-0000-0000-0000-000000000002') s
+    WHERE s::text ILIKE '%@example.test%' OR s::text ILIKE '%Due Ordini%' OR s::text ILIKE '%Solo Altra%'
+  ),
+  'buckets under k do not leak, and the remainder is Altro only at k');
+SELECT set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a1', false);
 
 SELECT pg_temp.check(
   public.set_inactive_customer_days('00000000-0000-0000-0000-000000000001', 30) = 30,
