@@ -1,3 +1,4 @@
+import { CustomerConsentCard } from '@/components/features/CustomerConsentCard';
 import { PageTitle } from '@/components/ui/PageTitle';
 import { FontAwesome } from '@expo/vector-icons';
 import { useIsPlatformOwner } from '@/lib/hooks/useIsPlatformOwner';
@@ -10,7 +11,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 export default function AccountScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { profile, userRole, isAuthenticated, isAdmin, signOut, isLoading } = useAuth();
+  const { profile, userRole, isAuthenticated, isAdmin, isCustomer, signOut, isLoading } = useAuth();
   const platformOwner = useIsPlatformOwner();
 
   const handleLogout = async () => {
@@ -35,7 +36,7 @@ export default function AccountScreen() {
     return (
       <>
         <PageTitle page="account" />
-        <ScrollView className="flex-1 bg-[#f9ecdd] p-5" contentContainerStyle={{ paddingTop: insets.top + 8 }}>
+        <ScrollView className="flex-1 bg-[#f9ecdd] p-5" contentContainerStyle={{ paddingTop: insets.top + 8, paddingBottom: insets.bottom + 96 }}>
           <SkeletonAccountProfile />
         </ScrollView>
       </>
@@ -43,7 +44,7 @@ export default function AccountScreen() {
   }
 
   return (
-    <ScrollView className="flex-1 bg-[#f9ecdd] p-5" contentContainerStyle={{ paddingTop: insets.top + 8 }}>
+    <ScrollView className="flex-1 bg-[#f9ecdd] p-5" contentContainerStyle={{ paddingTop: insets.top + 8, paddingBottom: insets.bottom + 96 }}>
       <PageTitle page="account" />
       <View className="bg-white rounded-2xl p-5 border border-[#e1a255]/40 mb-4 gap-1">
         <Text className="text-xs font-bold uppercase tracking-wider text-[#8d171e]">Account Ambrosia</Text>
@@ -85,6 +86,8 @@ export default function AccountScreen() {
         <Text className="text-base text-gray-900">{displayRole}</Text>
       </View>
 
+      {isCustomer ? <CustomerConsentCard variant="account" /> : null}
+
       {isAdmin && (
         <Pressable
           onPress={() => router.push('/admin-options')}
@@ -104,6 +107,18 @@ export default function AccountScreen() {
         >
           <Text className="text-[#8d171e] text-center font-bold text-base">
             Resoconto commissioni
+          </Text>
+        </Pressable>
+      )}
+
+      {(isAdmin || platformOwner.data === true) && (
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => router.push('/customer-insights')}
+          className="bg-white border border-[#8d171e] rounded-xl px-4 py-4 active:opacity-80 mb-3"
+        >
+          <Text className="text-[#8d171e] text-center font-bold text-base">
+            Andamento e clienti inattivi
           </Text>
         </Pressable>
       )}

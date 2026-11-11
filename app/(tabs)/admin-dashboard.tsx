@@ -444,6 +444,18 @@ export default function AdminDashboardScreen() {
           </Text>
         </Pressable>
 
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Apri andamento e clienti inattivi"
+          onPress={() => router.push('/customer-insights')}
+          className="bg-white rounded-2xl border border-[#e1a255]/40 p-4"
+        >
+          <Text className="text-base font-black text-[#8d171e]">Andamento e clienti inattivi</Text>
+          <Text className="text-sm text-gray-600 mt-1">
+            Statistiche di insieme per tutti. L’elenco inattivi solo per chi ha dato il consenso.
+          </Text>
+        </Pressable>
+
         <View className={`rounded-2xl border p-4 flex-row items-center gap-3 ${isKitchenOpen ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'}`}>
           <FontAwesome name={isKitchenOpen ? 'check-circle' : 'pause-circle'} size={18} color={isKitchenOpen ? '#047857' : '#b91c1c'} />
           <View>

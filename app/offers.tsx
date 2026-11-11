@@ -2,11 +2,14 @@
  * Pagina Offerte — combo con card verticali scrollabili.
  */
 
+import { CustomerConsentCard } from '@/components/features/CustomerConsentCard';
 import { OffersList } from '@/components/features/offers/OffersList';
+import { PageTitle } from '@/components/ui/PageTitle';
 import { SkeletonOffersPage } from '@/components/ui/Skeleton';
 import { BRAND } from '@/lib/data/brand';
 import { COMBO_OFFERS_ENABLED, type ResolvedComboOffer } from '@/lib/data/offers';
 import { useOffers } from '@/lib/hooks/useOffers';
+import { useAuth } from '@/lib/stores/AuthContext';
 import { useCart } from '@/lib/stores/CartContext';
 import { FontAwesome } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -37,6 +40,7 @@ export default function OffersScreen() {
   const insets = useSafeAreaInsets();
   const width = useViewportWidth();
   const { offers, isLoading, refetch, isRefetching } = useOffers();
+  const { isCustomer } = useAuth();
   const { addItem } = useCart();
   const isCompact = width < 430;
   const isWide = width >= 768;
@@ -50,15 +54,29 @@ export default function OffersScreen() {
   };
 
   return (
+    <>
+    <PageTitle page="offers" />
     <ScrollView
       className="flex-1 bg-[#f9ecdd]"
       contentContainerStyle={{ paddingBottom: insets.bottom + 32 }}
       refreshControl={<RefreshControl refreshing={isRefetching && !isLoading} onRefresh={refetch} />}
       showsVerticalScrollIndicator={false}
     >
+      {isCustomer ? (
+        <View
+          className="w-full max-w-[1240px] self-center"
+          style={{ paddingTop: insets.top + 12, paddingHorizontal: isCompact ? 16 : 20 }}
+        >
+          <CustomerConsentCard variant="prompt" />
+        </View>
+      ) : null}
       <View
         className="border-b border-[#8d171e]/10 bg-[#fff9f1]"
-        style={{ paddingTop: insets.top + 8, paddingHorizontal: isCompact ? 16 : 20, paddingBottom: 16 }}
+        style={{
+          paddingTop: isCustomer ? 8 : insets.top + 8,
+          paddingHorizontal: isCompact ? 16 : 20,
+          paddingBottom: 16,
+        }}
       >
         <View className="w-full max-w-[1240px] self-center gap-5">
           <View className="flex-row items-center gap-3">
@@ -139,5 +157,6 @@ export default function OffersScreen() {
         )}
       </View>
     </ScrollView>
+    </>
   );
 }

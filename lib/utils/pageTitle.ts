@@ -9,6 +9,8 @@ export const PAGE_TITLES = {
   account: 'Il tuo account',
   orderTracking: 'Stato del tuo ordine',
   commission: 'Resoconto commissioni',
+  insights: 'Andamento e clienti inattivi',
+  offers: 'Offerte',
 } as const;
 
 export const HOME_TITLE_SUFFIX = 'Pizza e consegna a Montecchio Emilia';
