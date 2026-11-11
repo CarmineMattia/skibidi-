@@ -87,6 +87,7 @@ function RootLayoutNav() {
                           <Stack.Screen name="login" options={{ headerShown: false }} />
                           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
                           <Stack.Screen name="admin-options" options={{ headerShown: false }} />
+                          <Stack.Screen name="commission-summary" options={{ headerShown: false, title: 'Resoconto commissioni' }} />
                           <Stack.Screen
                             name="modal"
                             options={{

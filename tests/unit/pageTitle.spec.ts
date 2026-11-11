@@ -58,6 +58,7 @@ describe('screens use the title', () => {
     ['app/(tabs)/account.tsx', 'account'],
     ['app/(tabs)/order-tracking.tsx', 'orderTracking'],
     ['app/(tabs)/index.tsx', 'home'],
+    ['app/commission-summary.tsx', 'commission'],
   ])('%s renders <PageTitle page="%s" />', (file, key) => {
     const src = fs.readFileSync(path.join(root, file), 'utf8');
     expect(src).toContain(`<PageTitle page="${key}" />`);
