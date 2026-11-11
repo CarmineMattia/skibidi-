@@ -7,6 +7,7 @@ import {
   canEditCommissionRate,
   canReadCommissionSummary,
   commissionErrorMessage,
+  commissionPanelState,
   formatCommissionMonth,
   formatEuro,
   formatRateBreakdown,
@@ -24,12 +25,12 @@ import { useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-function errorText(error: unknown): string {
+function errorText(error: unknown, kind: 'summary' | 'rates' = 'summary'): string {
   if (error && typeof error === 'object') {
     const row = error as { message?: string; code?: string };
-    return commissionErrorMessage(row.message ?? '', row.code);
+    return commissionErrorMessage(row.message ?? '', row.code, kind);
   }
-  return commissionErrorMessage('');
+  return commissionErrorMessage('', undefined, kind);
 }
 
 export default function CommissionSummaryScreen() {
@@ -113,6 +114,16 @@ export default function CommissionSummaryScreen() {
 
   const waitingForOwner = isAuthenticated && !isAdmin && ownerQuery.isLoading;
   const showGate = authLoading || waitingForOwner || !canRead;
+  const summaryState = commissionPanelState({
+    isLoading: summaryQuery.isLoading,
+    isError: summaryQuery.isError,
+    count: summaryQuery.data?.length ?? 0,
+  });
+  const ratesState = commissionPanelState({
+    isLoading: scheduleQuery.isLoading,
+    isError: scheduleQuery.isError,
+    count: scheduleQuery.data?.length ?? 0,
+  });
 
   return (
     <>
@@ -160,24 +171,41 @@ export default function CommissionSummaryScreen() {
             </View>
           ) : (
             <>
-              {summaryQuery.isLoading ? (
+              {summaryState === 'loading' ? (
                 <Text className="text-sm text-gray-600">Caricamento del resoconto…</Text>
               ) : null}
-              {summaryQuery.error ? (
+              {summaryState === 'error' ? (
                 <View className="bg-white rounded-2xl border border-red-200 p-4">
                   <Text className="text-sm text-red-800">{errorText(summaryQuery.error)}</Text>
                 </View>
               ) : null}
-              {(summaryQuery.data ?? []).map((month) => (
-                <MonthCard key={month.month_start} month={month} />
-              ))}
+              {summaryState === 'empty' ? (
+                <View className="bg-white rounded-2xl border border-[#e1a255]/40 p-5">
+                  <Text className="text-base text-gray-800">Nessun mese da mostrare.</Text>
+                </View>
+              ) : null}
+              {summaryState === 'ready'
+                ? (summaryQuery.data ?? []).map((month) => <MonthCard key={month.month_start} month={month} />)
+                : null}
 
               <View className="bg-white rounded-2xl border border-[#e1a255]/40 p-5 gap-3">
                 <Text className="text-lg font-black text-gray-900">Aliquote</Text>
                 <Text className="text-sm text-gray-600">
                   Ogni ordine usa la percentuale in vigore nel momento in cui è stato fatto. Un cambio non riscrive i mesi già chiusi.
                 </Text>
-                {(scheduleQuery.data ?? []).map((rate) => (
+                {ratesState === 'loading' ? (
+                  <Text className="text-sm text-gray-600">Caricamento delle aliquote…</Text>
+                ) : null}
+                {ratesState === 'error' ? (
+                  <View className="bg-red-50 rounded-xl border border-red-200 p-3">
+                    <Text className="text-sm text-red-800">{errorText(scheduleQuery.error, 'rates')}</Text>
+                  </View>
+                ) : null}
+                {ratesState === 'empty' ? (
+                  <Text className="text-sm text-gray-700">Nessuna aliquota impostata.</Text>
+                ) : null}
+                {ratesState === 'ready'
+                  ? (scheduleQuery.data ?? []).map((rate) => (
                   <View key={rate.effective_from} className="flex-row items-center justify-between gap-3">
                     <View className="flex-1">
                       <Text className="text-base font-bold text-gray-900">{formatRatePercent(rate.rate_percent)}</Text>
@@ -198,7 +226,8 @@ export default function CommissionSummaryScreen() {
                       </Pressable>
                     ) : null}
                   </View>
-                ))}
+                ))
+                  : null}
 
                 {canEdit ? (
                   <View className="gap-2 pt-2">
@@ -256,7 +285,7 @@ export default function CommissionSummaryScreen() {
                       <Text className="text-[#8d171e] text-center font-bold">Programma dal giorno indicato</Text>
                     </Pressable>
                   </View>
-                ) : (
+                ) : ratesState === 'error' ? null : (
                   <Text className="text-xs text-gray-500">
                     L’aliquota la imposta Skibidi. Qui puoi solo consultarla.
                   </Text>

@@ -3,6 +3,7 @@ import {
   canEditCommissionRate,
   canReadCommissionSummary,
   commissionErrorMessage,
+  commissionPanelState,
   formatCommissionMonth,
   formatEuro,
   formatRateBreakdown,
@@ -41,6 +42,12 @@ describe('formato italiano', () => {
         { rate_percent: 10, order_count: 2, gross_total: 40, commission_total: 4 },
       ])
     ).toBe('5% su 1 ordine, 10% su 2 ordini');
+    expect(
+      formatRateBreakdown([
+        { rate_percent: 5, order_count: 1, gross_total: 100, commission_total: 5, effective_from: '2026-11-01T12:00:00.000Z' },
+        { rate_percent: 5, order_count: 1, gross_total: 40, commission_total: 2, effective_from: '2026-11-21T12:00:00.000Z' },
+      ])
+    ).toBe('5% dal 01/11/2026 su 1 ordine, 5% dal 21/11/2026 su 1 ordine');
   });
 
   it('accetta la percentuale con la virgola e rifiuta i valori fuori scala', () => {
@@ -74,7 +81,7 @@ describe('risposta della RPC', () => {
         unrated_gross: '0',
         is_preview: false,
         generated_at: '2026-11-11T10:00:00.000Z',
-        rates: '[{"rate_percent":5,"order_count":1,"gross_total":100,"commission_total":5}]',
+        rates: '[{"rate_percent":5,"order_count":1,"gross_total":100,"commission_total":5,"effective_from":"2026-10-01T00:00:00.000Z"}]',
       },
     ]);
     expect(month.order_count).toBe(2);
@@ -82,11 +89,22 @@ describe('risposta della RPC', () => {
     expect(month.commission_total).toBe(9);
     expect(month.is_preview).toBe(false);
     expect(month.rates[0].rate_percent).toBe(5);
+    expect(month.rates[0].effective_from).toBe('2026-10-01T00:00:00.000Z');
   });
 
   it('traduce gli errori senza mostrare cifre', () => {
     expect(commissionErrorMessage('COMMISSION_FORBIDDEN')).toBe('Non hai accesso a questo resoconto.');
     expect(commissionErrorMessage('missing', 'PGRST202')).toContain('migration');
     expect(commissionErrorMessage('COMMISSION_RATE_BACKDATE')).toContain('passato');
+    expect(commissionErrorMessage('boom', undefined, 'rates')).toBe('Impossibile leggere le aliquote. Riprova.');
+  });
+});
+
+describe('stati della schermata', () => {
+  it('mostra errore, elenco vuoto o mesi', () => {
+    expect(commissionPanelState({ isLoading: true, isError: false, count: 0 })).toBe('loading');
+    expect(commissionPanelState({ isLoading: false, isError: true, count: 0 })).toBe('error');
+    expect(commissionPanelState({ isLoading: false, isError: false, count: 0 })).toBe('empty');
+    expect(commissionPanelState({ isLoading: false, isError: false, count: 2 })).toBe('ready');
   });
 });

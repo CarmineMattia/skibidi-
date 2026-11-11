@@ -8,6 +8,7 @@ export type CommissionRateSlice = {
   order_count: number;
   gross_total: number;
   commission_total: number;
+  effective_from?: string;
 };
 
 export type CommissionMonth = {
@@ -56,6 +57,7 @@ function asRateSlices(value: unknown): CommissionRateSlice[] {
       order_count: asNumber(row.order_count),
       gross_total: asNumber(row.gross_total),
       commission_total: asNumber(row.commission_total),
+      ...(typeof row.effective_from === 'string' && row.effective_from ? { effective_from: row.effective_from } : {}),
     };
   });
 }
@@ -124,6 +126,12 @@ const romeStamp = new Intl.DateTimeFormat('it-IT', {
   timeStyle: 'short',
   timeZone: 'Europe/Rome',
 });
+const romeDate = new Intl.DateTimeFormat('it-IT', {
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric',
+  timeZone: 'Europe/Rome',
+});
 
 export function formatEuro(value: number): string {
   return euro.format(value);
@@ -145,19 +153,42 @@ export function formatRomeDateTime(iso: string): string {
   return romeStamp.format(date);
 }
 
+export function formatRomeDate(iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '';
+  return romeDate.format(date);
+}
+
+export type CommissionPanelState = 'loading' | 'error' | 'empty' | 'ready';
+
+export function commissionPanelState(input: {
+  isLoading: boolean;
+  isError: boolean;
+  count: number;
+}): CommissionPanelState {
+  if (input.isLoading) return 'loading';
+  if (input.isError) return 'error';
+  if (input.count === 0) return 'empty';
+  return 'ready';
+}
+
 function orderWord(count: number): string {
   return count === 1 ? 'ordine' : 'ordini';
 }
 
 export function formatRateBreakdown(rates: CommissionRateSlice[]): string {
   if (rates.length === 0) return 'Nessuna aliquota';
-  if (rates.length === 1) return formatRatePercent(rates[0].rate_percent);
+  if (rates.length === 1 && !rates[0].effective_from) return formatRatePercent(rates[0].rate_percent);
   return rates
-    .map((rate) => `${formatRatePercent(rate.rate_percent)} su ${rate.order_count} ${orderWord(rate.order_count)}`)
+    .map((rate) => {
+      const from = rate.effective_from ? formatRomeDate(rate.effective_from) : '';
+      const period = from ? ` dal ${from}` : '';
+      return `${formatRatePercent(rate.rate_percent)}${period} su ${rate.order_count} ${orderWord(rate.order_count)}`;
+    })
     .join(', ');
 }
 
-export function commissionErrorMessage(message: string, code?: string): string {
+export function commissionErrorMessage(message: string, code?: string, kind: 'summary' | 'rates' = 'summary'): string {
   const text = `${code ?? ''} ${message}`;
   if (text.includes('COMMISSION_RATE_BACKDATE')) {
     return 'La decorrenza è nel passato. Usa «Da questo momento» oppure un giorno futuro.';
@@ -174,8 +205,10 @@ export function commissionErrorMessage(message: string, code?: string): string {
   if (text.includes('COMMISSION_FORBIDDEN')) {
     return 'Non hai accesso a questo resoconto.';
   }
-  if (text.includes('PGRST202') || text.includes('commission_monthly_summary') || text.includes('schema cache')) {
-    return 'Resoconto non disponibile: la migration non è ancora stata applicata.';
+  if (text.includes('PGRST202') || text.includes('commission_monthly_summary') || text.includes('commission_rate_schedule') || text.includes('schema cache')) {
+    return kind === 'rates'
+      ? 'Aliquote non disponibili: la migration non è ancora stata applicata.'
+      : 'Resoconto non disponibile: la migration non è ancora stata applicata.';
   }
-  return 'Impossibile leggere il resoconto. Riprova.';
+  return kind === 'rates' ? 'Impossibile leggere le aliquote. Riprova.' : 'Impossibile leggere il resoconto. Riprova.';
 }
