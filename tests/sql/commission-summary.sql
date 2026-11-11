@@ -1,4 +1,4 @@
--- Dopo 20261111180000 (eseguita due volte). DB locale usa-e-getta.
+-- Dopo 20261111180000 e 20261111193000 (ciascuna due volte). DB locale usa-e-getta.
 -- Fuso di sessione UTC di proposito: il mese deve essere Europe/Rome.
 SET TIME ZONE 'UTC';
 
@@ -65,7 +65,10 @@ SELECT pg_temp.check(
   AND NOT has_function_privilege('service_role', 'public.commission_monthly_summary(uuid, integer)', 'EXECUTE')
   AND NOT has_function_privilege('authenticated', 'public.commission_month_compute(uuid, date)', 'EXECUTE')
   AND NOT has_function_privilege('anon', 'public.commission_month_compute(uuid, date)', 'EXECUTE')
-  AND NOT has_function_privilege('authenticated', 'public.commission_caller_can_read(uuid)', 'EXECUTE'),
+  AND NOT has_function_privilege('authenticated', 'public.commission_caller_can_read(uuid)', 'EXECUTE')
+  AND NOT has_function_privilege('anon', 'public.commission_block_truncate()', 'EXECUTE')
+  AND NOT has_function_privilege('authenticated', 'public.commission_block_truncate()', 'EXECUTE')
+  AND NOT has_function_privilege('public', 'public.commission_block_truncate()', 'EXECUTE'),
   'execute grants');
 
 SELECT pg_temp.check(
@@ -423,5 +426,159 @@ SELECT pg_temp.expect_err(
   $q$DELETE FROM public.commission_rates
      WHERE company_id = '00000000-0000-0000-0000-000000000001' AND rate_percent = 5$q$,
   'COMMISSION_FORBIDDEN', 'deleting an effective rate is rejected');
+
+-- 8) Il mese di Roma in corso (e un mese futuro) non si congela, neanche da postgres.
+-- Il JWT di sessione dei casi precedenti non deve restare acceso.
+SELECT set_config('request.jwt.claim.sub', '', false);
+SELECT pg_temp.expect_err(
+  $q$INSERT INTO public.commission_month_snapshots (
+       company_id, month_start, order_count, gross_total, commission_total, rates
+     ) VALUES (
+       '00000000-0000-0000-0000-000000000001',
+       (SELECT cur FROM t_bounds),
+       1, 1, 1, '[]'
+     )$q$,
+  'COMMISSION_SNAPSHOT_OPEN', 'current Rome month cannot be snapshotted');
+SELECT pg_temp.expect_err(
+  $q$INSERT INTO public.commission_month_snapshots (
+       company_id, month_start, order_count, gross_total, commission_total, rates
+     ) VALUES (
+       '00000000-0000-0000-0000-000000000001',
+       (SELECT (cur + interval '1 month')::date FROM t_bounds),
+       1, 1, 1, '[]'
+     )$q$,
+  'COMMISSION_SNAPSHOT_OPEN', 'future month cannot be snapshotted');
+SELECT pg_temp.check(
+  (SELECT count(*) = 0 FROM public.commission_month_snapshots s, t_bounds b
+    WHERE s.company_id = '00000000-0000-0000-0000-000000000001'
+      AND s.month_start >= b.cur),
+  'open month insert left no snapshot');
+
+SELECT pg_temp.check(
+  (SELECT count(*) = 2
+     AND bool_and(pg_get_triggerdef(t.oid) ILIKE '%BEFORE TRUNCATE%')
+   FROM pg_trigger t
+   WHERE NOT t.tgisinternal
+     AND t.tgname IN ('commission_snapshots_block_truncate', 'commission_rates_block_truncate')),
+  'truncate triggers are statement-level');
+SELECT pg_temp.expect_err(
+  $q$TRUNCATE public.commission_month_snapshots$q$,
+  'COMMISSION_SNAPSHOT_IMMUTABLE', 'truncate cannot wipe frozen months');
+SELECT pg_temp.expect_err(
+  $q$TRUNCATE public.commission_rates$q$,
+  'COMMISSION_RATE_IMMUTABLE', 'truncate cannot wipe rate history');
+SELECT pg_temp.check(
+  (SELECT count(*) > 0 FROM public.commission_month_snapshots
+    WHERE company_id = '00000000-0000-0000-0000-000000000001')
+  AND (SELECT count(*) >= 1 FROM public.commission_rates
+    WHERE company_id = '00000000-0000-0000-0000-000000000001' AND rate_percent = 5),
+  'rows survive a rejected truncate');
+
+-- Anche con TRUNCATE concesso, il trigger ferma i ruoli dell'app (TRUNCATE ignora la RLS).
+GRANT TRUNCATE ON public.commission_month_snapshots, public.commission_rates TO authenticated;
+SET ROLE authenticated;
+SELECT pg_temp.expect_err(
+  $q$TRUNCATE public.commission_month_snapshots$q$,
+  'COMMISSION_SNAPSHOT_IMMUTABLE', 'authenticated truncate of snapshots is rejected');
+RESET ROLE;
+REVOKE TRUNCATE ON public.commission_month_snapshots, public.commission_rates FROM authenticated;
+
+-- 9) DELETE del proprietario di piattaforma: solo editor SQL senza JWT.
+INSERT INTO auth.users (id) VALUES ('00000000-0000-0000-0000-0000000000e2');
+INSERT INTO public.platform_owners (user_id) VALUES ('00000000-0000-0000-0000-0000000000e2');
+DELETE FROM public.platform_owners WHERE user_id = '00000000-0000-0000-0000-0000000000e2';
+SELECT pg_temp.check(
+  NOT EXISTS (SELECT 1 FROM public.platform_owners WHERE user_id = '00000000-0000-0000-0000-0000000000e2')
+  AND EXISTS (SELECT 1 FROM public.platform_owners WHERE user_id = '00000000-0000-0000-0000-0000000000e1'),
+  'sql editor without a JWT can remove a wrong platform owner');
+
+SELECT set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000e1', false);
+SELECT pg_temp.expect_err(
+  $q$DELETE FROM public.platform_owners WHERE user_id = '00000000-0000-0000-0000-0000000000e1'$q$,
+  'COMMISSION_FORBIDDEN', 'a JWT on the sql editor session cannot delete a platform owner');
+SELECT set_config('request.jwt.claim.sub', '', false);
+SELECT pg_temp.expect_err(
+  $q$UPDATE public.platform_owners SET created_at = now()
+     WHERE user_id = '00000000-0000-0000-0000-0000000000e1'$q$,
+  'COMMISSION_FORBIDDEN', 'platform owner rows cannot be updated');
+
+-- RLS spenta di proposito: il divieto deve venire dal trigger, non dalla policy assente.
+-- DELETE senza WHERE: il WHERE su una colonna chiederebbe anche SELECT.
+ALTER TABLE public.platform_owners DISABLE ROW LEVEL SECURITY;
+GRANT DELETE ON public.platform_owners TO authenticated, service_role;
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a1', false);
+SELECT pg_temp.expect_err(
+  $q$DELETE FROM public.platform_owners$q$,
+  'COMMISSION_FORBIDDEN', 'authenticated cannot delete a platform owner');
+RESET ROLE;
+SET ROLE service_role;
+SELECT set_config('request.jwt.claim.sub', '', false);
+SELECT pg_temp.expect_err(
+  $q$DELETE FROM public.platform_owners$q$,
+  'COMMISSION_FORBIDDEN', 'service_role cannot delete a platform owner');
+RESET ROLE;
+REVOKE DELETE ON public.platform_owners FROM authenticated, service_role;
+ALTER TABLE public.platform_owners ENABLE ROW LEVEL SECURITY;
+SELECT set_config('request.jwt.claim.sub', '', false);
+SELECT pg_temp.check(
+  EXISTS (SELECT 1 FROM public.platform_owners WHERE user_id = '00000000-0000-0000-0000-0000000000e1')
+  AND (SELECT relrowsecurity FROM pg_class WHERE oid = 'public.platform_owners'::regclass),
+  'platform owner row remains and RLS is back on');
+
+-- 10) 5% poi 8% poi di nuovo 5% sono tre periodi, non una sola fetta al 5%.
+INSERT INTO public.companies (id) VALUES ('00000000-0000-0000-0000-000000000004');
+DO $periods$
+DECLARE
+  v_start timestamptz;
+BEGIN
+  SELECT prev_start INTO v_start FROM t_bounds;
+  PERFORM set_config('skibidi.commission_write', 'seed', true);
+  INSERT INTO public.commission_rates (company_id, rate_percent, effective_from) VALUES
+    ('00000000-0000-0000-0000-000000000004', 5.00, v_start),
+    ('00000000-0000-0000-0000-000000000004', 8.00, v_start + interval '10 days'),
+    ('00000000-0000-0000-0000-000000000004', 5.00, v_start + interval '20 days');
+  PERFORM set_config('skibidi.commission_write', '', true);
+END
+$periods$;
+INSERT INTO public.orders (id, company_id, customer_id, status, total_amount, created_at)
+SELECT '00000000-0000-0000-0000-000000000401'::uuid, '00000000-0000-0000-0000-000000000004'::uuid,
+       '00000000-0000-0000-0000-0000000000c1'::uuid, 'delivered', 100, prev_start + interval '1 day' FROM t_bounds
+UNION ALL
+SELECT '00000000-0000-0000-0000-000000000402'::uuid, '00000000-0000-0000-0000-000000000004'::uuid,
+       '00000000-0000-0000-0000-0000000000c1'::uuid, 'delivered', 50, prev_start + interval '11 days' FROM t_bounds
+UNION ALL
+SELECT '00000000-0000-0000-0000-000000000403'::uuid, '00000000-0000-0000-0000-000000000004'::uuid,
+       '00000000-0000-0000-0000-0000000000c1'::uuid, 'delivered', 40, prev_start + interval '21 days' FROM t_bounds;
+INSERT INTO public.order_items (order_id, quantity) VALUES
+  ('00000000-0000-0000-0000-000000000401', 1),
+  ('00000000-0000-0000-0000-000000000402', 1),
+  ('00000000-0000-0000-0000-000000000403', 1);
+
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000e1', false);
+SELECT pg_temp.check(
+  (SELECT order_count = 3 AND gross_total = 190.00 AND commission_total = 11.00
+      AND jsonb_array_length(rates) = 3
+      AND (SELECT count(*) FROM jsonb_array_elements(rates) e WHERE (e->>'rate_percent')::numeric = 5) = 2
+      AND (SELECT count(*) FROM jsonb_array_elements(rates) e
+           WHERE (e->>'rate_percent')::numeric = 5
+             AND (e->>'order_count')::int = 1
+             AND (e->>'effective_from')::timestamptz = (SELECT prev_start FROM t_bounds)) = 1
+      AND (SELECT count(*) FROM jsonb_array_elements(rates) e
+           WHERE (e->>'rate_percent')::numeric = 8
+             AND (e->>'order_count')::int = 1
+             AND (e->>'gross_total')::numeric = 50
+             AND (e->>'commission_total')::numeric = 4
+             AND (e->>'effective_from')::timestamptz = (SELECT prev_start + interval '10 days' FROM t_bounds)) = 1
+      AND (SELECT count(*) FROM jsonb_array_elements(rates) e
+           WHERE (e->>'rate_percent')::numeric = 5
+             AND (e->>'order_count')::int = 1
+             AND (e->>'gross_total')::numeric = 40
+             AND (e->>'commission_total')::numeric = 2
+             AND (e->>'effective_from')::timestamptz = (SELECT prev_start + interval '20 days' FROM t_bounds)) = 1
+   FROM public.commission_monthly_summary('00000000-0000-0000-0000-000000000004', 18) s, t_bounds b
+   WHERE s.month_start = b.prev),
+  'repeated percents stay separate periods');
 
 SELECT 'PASS commission summary' AS result;
