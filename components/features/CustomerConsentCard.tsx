@@ -106,15 +106,16 @@ export function CustomerConsentCard({ variant }: { readonly variant: 'account' |
   const version = document?.version ?? null;
   const title = document?.title ?? CONSENT_DRAFT_TITLE;
   const body = document?.body ?? CONSENT_DRAFT_BODY;
-  const loading = documentQuery.isLoading || consentQuery.isLoading;
-  const canToggle = Boolean(version) && !registryMissing && !loading && !save.isPending;
+  const reading = documentQuery.isLoading || consentQuery.isLoading || (consentQuery.isFetching && !consentQuery.isSuccess);
+  const readFailed = consentQuery.isError && !registryMissing && !reading;
+  const canToggle = consentQuery.isSuccess && Boolean(version) && !registryMissing && !reading && !readFailed && !save.isPending;
   const draft = consentTextIsDraft(version ?? 'draft', body);
   const offerLine =
     variant === 'prompt' && allowed ? personalisedOfferLine(offerQuery.data ?? { hasConsent: false, productName: null, quantity: 0 }) : null;
 
   const onToggle = (purpose: ConsentPurpose, granted: boolean) => {
-    if (!version) {
-      setFormError('Registro consensi non ancora attivo. La scelta non è stata salvata.');
+    if (!consentQuery.isSuccess || readFailed || !version) {
+      setFormError('Non salvo la scelta finché non ho letto i consensi.');
       return;
     }
     save.mutate({ purpose, granted, version });
@@ -145,8 +146,22 @@ export function CustomerConsentCard({ variant }: { readonly variant: 'account' |
         </Text>
       ) : null}
 
-      {loading ? (
+      {reading ? (
         <Text className="text-sm text-[#65554c]">Caricamento consensi…</Text>
+      ) : readFailed ? (
+        <View className="gap-3">
+          <Text className="text-sm leading-5 text-[#8d171e]">
+            Non riesco a leggere i tuoi consensi. Finché non li rileggo, le caselle restano chiuse e non salvo la scelta.
+          </Text>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Riprova"
+            onPress={() => consentQuery.refetch()}
+            className="self-start rounded-xl bg-[#8d171e] px-4 py-3 active:opacity-80"
+          >
+            <Text className="text-sm font-bold text-white">Riprova</Text>
+          </Pressable>
+        </View>
       ) : (
         <View className="gap-3">
           <Text className="text-xs font-bold text-[#8d171e]">Versione {version ?? '2026-11-draft-1'}</Text>
@@ -163,7 +178,7 @@ export function CustomerConsentCard({ variant }: { readonly variant: 'account' |
             : offerLine ?? 'Con i consensi attivi non c’è ancora una proposta: servono ordini da questa pizzeria.'}
         </Text>
       ) : null}
-      {variant === 'prompt' && !allowed && !loading ? (
+      {variant === 'prompt' && !allowed && !reading && !readFailed ? (
         <Text className="text-sm leading-5 text-[#65554c]">
           Senza entrambe le scelte non c’è un’offerta su misura. Il menu e l’ordine restano aperti.
         </Text>
