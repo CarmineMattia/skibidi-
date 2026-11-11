@@ -2,11 +2,13 @@
  * Pagina Offerte — combo con card verticali scrollabili.
  */
 
+import { CustomerConsentCard } from '@/components/features/CustomerConsentCard';
 import { OffersList } from '@/components/features/offers/OffersList';
 import { SkeletonOffersPage } from '@/components/ui/Skeleton';
 import { BRAND } from '@/lib/data/brand';
 import { COMBO_OFFERS_ENABLED, type ResolvedComboOffer } from '@/lib/data/offers';
 import { useOffers } from '@/lib/hooks/useOffers';
+import { useAuth } from '@/lib/stores/AuthContext';
 import { useCart } from '@/lib/stores/CartContext';
 import { FontAwesome } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -37,6 +39,7 @@ export default function OffersScreen() {
   const insets = useSafeAreaInsets();
   const width = useViewportWidth();
   const { offers, isLoading, refetch, isRefetching } = useOffers();
+  const { isCustomer } = useAuth();
   const { addItem } = useCart();
   const isCompact = width < 430;
   const isWide = width >= 768;
@@ -98,6 +101,7 @@ export default function OffersScreen() {
       </View>
 
       <View className={`w-full max-w-[1240px] self-center ${isCompact ? 'px-4 pt-5' : 'px-5 pt-6'}`}>
+        {isCustomer ? <CustomerConsentCard variant="prompt" /> : null}
         {showSkeleton ? (
           <SkeletonOffersPage cardWidth={cardWidth} />
         ) : (

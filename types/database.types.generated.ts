@@ -553,6 +553,85 @@ export type Database = {
         Args: { p_company: string; p_effective_from: string }
         Returns: undefined
       }
+      current_consent_document: {
+        Args: never
+        Returns: {
+          version: string
+          title: string
+          body: string
+        }[]
+      }
+      get_my_consent: {
+        Args: never
+        Returns: {
+          purpose: string
+          granted: boolean
+          document_version: string | null
+          updated_at: string | null
+        }[]
+      }
+      get_my_consent_history: {
+        Args: never
+        Returns: {
+          purpose: string
+          granted: boolean
+          document_version: string
+          created_at: string
+        }[]
+      }
+      set_my_consent: {
+        Args: { p_purpose: string; p_granted: boolean; p_document_version: string }
+        Returns: {
+          purpose: string
+          granted: boolean
+          document_version: string
+          created_at: string
+        }[]
+      }
+      my_personalised_offer: {
+        Args: { p_company: string }
+        Returns: {
+          has_consent: boolean
+          product_id: string | null
+          product_name: string | null
+          quantity_total: number
+        }[]
+      }
+      profiling_inactive_days: {
+        Args: { p_company: string }
+        Returns: number
+      }
+      set_inactive_customer_days: {
+        Args: { p_company: string; p_days: number }
+        Returns: number
+      }
+      list_inactive_customers: {
+        Args: { p_company: string; p_inactive_days?: number }
+        Returns: {
+          customer_id: string
+          full_name: string | null
+          email: string | null
+          last_order_at: string
+          days_since_order: number
+        }[]
+      }
+      venue_orders_by_weekday_hour: {
+        Args: { p_company: string }
+        Returns: {
+          weekday: number
+          hour: number
+          order_count: number
+        }[]
+      }
+      venue_top_products: {
+        Args: { p_company: string; p_limit?: number }
+        Returns: {
+          product_id: string
+          product_name: string
+          quantity_total: number
+          order_count: number
+        }[]
+      }
       log_fiscal_event: {
         Args: {
           p_action: string

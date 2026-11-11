@@ -1,3 +1,4 @@
+import { CustomerConsentCard } from '@/components/features/CustomerConsentCard';
 import { PageTitle } from '@/components/ui/PageTitle';
 import { FontAwesome } from '@expo/vector-icons';
 import { useIsPlatformOwner } from '@/lib/hooks/useIsPlatformOwner';
@@ -10,7 +11,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 export default function AccountScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { profile, userRole, isAuthenticated, isAdmin, signOut, isLoading } = useAuth();
+  const { profile, userRole, isAuthenticated, isAdmin, isCustomer, signOut, isLoading } = useAuth();
   const platformOwner = useIsPlatformOwner();
 
   const handleLogout = async () => {
@@ -85,6 +86,8 @@ export default function AccountScreen() {
         <Text className="text-base text-gray-900">{displayRole}</Text>
       </View>
 
+      {isCustomer ? <CustomerConsentCard variant="account" /> : null}
+
       {isAdmin && (
         <Pressable
           onPress={() => router.push('/admin-options')}
@@ -104,6 +107,18 @@ export default function AccountScreen() {
         >
           <Text className="text-[#8d171e] text-center font-bold text-base">
             Resoconto commissioni
+          </Text>
+        </Pressable>
+      )}
+
+      {(isAdmin || platformOwner.data === true) && (
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => router.push('/customer-insights')}
+          className="bg-white border border-[#8d171e] rounded-xl px-4 py-4 active:opacity-80 mb-3"
+        >
+          <Text className="text-[#8d171e] text-center font-bold text-base">
+            Andamento e clienti inattivi
           </Text>
         </Pressable>
       )}
