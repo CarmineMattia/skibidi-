@@ -167,9 +167,9 @@ export default function CustomerInsightsScreen() {
             <Text className="text-sm leading-5 text-gray-600">
               I numeri di insieme contano tutti gli ordini e non riportano nomi. Una fascia o un prodotto si vede solo
               con almeno 3 ordini e 3 clienti distinti. I gruppi più piccoli, se insieme arrivano a quella soglia, stanno
-              in Altro senza quantità. Confrontare due momenti diversi può far capire chi è entrato in un gruppo: è un
-              limite dei locali piccoli. L’elenco inattivi mostra solo chi ha accettato sia la profilazione sia le
-              offerte personalizzate.
+              in Altro, che mostra solo il numero di ordini e non le quantità. Confrontare due momenti diversi può far
+              capire chi è entrato in un gruppo: è un limite dei locali piccoli. L’elenco inattivi mostra solo chi ha
+              accettato sia la profilazione sia le offerte personalizzate.
             </Text>
           </View>
 
@@ -261,7 +261,7 @@ export default function CustomerInsightsScreen() {
                 <Text className="text-lg font-black text-gray-900">Prodotti più richiesti</Text>
                 <Text className="text-sm leading-5 text-gray-600">
                   Un prodotto entra in lista solo con almeno 3 ordini e 3 clienti distinti. Altro riunisce quelli sotto
-                  soglia, senza quantità, se insieme arriva alla stessa soglia.
+                  soglia e mostra solo il numero di ordini, non le quantità, se insieme arriva alla stessa soglia.
                 </Text>
                 {productsQuery.isLoading ? <Text className="text-sm text-gray-600">Carico i prodotti…</Text> : null}
                 {productsQuery.isError ? (
