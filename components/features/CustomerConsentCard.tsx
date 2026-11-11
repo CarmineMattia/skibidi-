@@ -139,14 +139,20 @@ export function CustomerConsentCard({ variant }: { readonly variant: 'account' |
           : 'Due scelte separate, tutte e due vuote finché non le segni tu. Puoi toglierle da qui, con lo stesso gesto.'}
       </Text>
 
-      {loading ? <Text className="text-sm text-[#65554c]">Caricamento consensi…</Text> : null}
       {registryMissing ? (
         <Text className="text-sm leading-5 text-[#8d171e]">
           Il registro non è ancora attivo: puoi leggere la bozza, ma la scelta non viene salvata. L’ordine funziona lo stesso.
         </Text>
       ) : null}
 
-      <ConsentChoiceList choices={loading ? emptyConsentChoices() : choices} disabled={!canToggle} onToggle={onToggle} />
+      {loading ? (
+        <Text className="text-sm text-[#65554c]">Caricamento consensi…</Text>
+      ) : (
+        <View className="gap-3">
+          <Text className="text-xs font-bold text-[#8d171e]">Versione {version ?? '2026-11-draft-1'}</Text>
+          <ConsentChoiceList choices={choices} disabled={!canToggle} onToggle={onToggle} />
+        </View>
+      )}
 
       {formError ? <Text className="text-sm font-bold text-[#8d171e]">{formError}</Text> : null}
 

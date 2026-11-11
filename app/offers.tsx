@@ -4,6 +4,7 @@
 
 import { CustomerConsentCard } from '@/components/features/CustomerConsentCard';
 import { OffersList } from '@/components/features/offers/OffersList';
+import { PageTitle } from '@/components/ui/PageTitle';
 import { SkeletonOffersPage } from '@/components/ui/Skeleton';
 import { BRAND } from '@/lib/data/brand';
 import { COMBO_OFFERS_ENABLED, type ResolvedComboOffer } from '@/lib/data/offers';
@@ -53,15 +54,29 @@ export default function OffersScreen() {
   };
 
   return (
+    <>
+    <PageTitle page="offers" />
     <ScrollView
       className="flex-1 bg-[#f9ecdd]"
       contentContainerStyle={{ paddingBottom: insets.bottom + 32 }}
       refreshControl={<RefreshControl refreshing={isRefetching && !isLoading} onRefresh={refetch} />}
       showsVerticalScrollIndicator={false}
     >
+      {isCustomer ? (
+        <View
+          className="w-full max-w-[1240px] self-center"
+          style={{ paddingTop: insets.top + 12, paddingHorizontal: isCompact ? 16 : 20 }}
+        >
+          <CustomerConsentCard variant="prompt" />
+        </View>
+      ) : null}
       <View
         className="border-b border-[#8d171e]/10 bg-[#fff9f1]"
-        style={{ paddingTop: insets.top + 8, paddingHorizontal: isCompact ? 16 : 20, paddingBottom: 16 }}
+        style={{
+          paddingTop: isCustomer ? 8 : insets.top + 8,
+          paddingHorizontal: isCompact ? 16 : 20,
+          paddingBottom: 16,
+        }}
       >
         <View className="w-full max-w-[1240px] self-center gap-5">
           <View className="flex-row items-center gap-3">
@@ -101,7 +116,6 @@ export default function OffersScreen() {
       </View>
 
       <View className={`w-full max-w-[1240px] self-center ${isCompact ? 'px-4 pt-5' : 'px-5 pt-6'}`}>
-        {isCustomer ? <CustomerConsentCard variant="prompt" /> : null}
         {showSkeleton ? (
           <SkeletonOffersPage cardWidth={cardWidth} />
         ) : (
@@ -143,5 +157,6 @@ export default function OffersScreen() {
         )}
       </View>
     </ScrollView>
+    </>
   );
 }

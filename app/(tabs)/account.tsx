@@ -36,7 +36,7 @@ export default function AccountScreen() {
     return (
       <>
         <PageTitle page="account" />
-        <ScrollView className="flex-1 bg-[#f9ecdd] p-5" contentContainerStyle={{ paddingTop: insets.top + 8 }}>
+        <ScrollView className="flex-1 bg-[#f9ecdd] p-5" contentContainerStyle={{ paddingTop: insets.top + 8, paddingBottom: insets.bottom + 96 }}>
           <SkeletonAccountProfile />
         </ScrollView>
       </>
@@ -44,7 +44,7 @@ export default function AccountScreen() {
   }
 
   return (
-    <ScrollView className="flex-1 bg-[#f9ecdd] p-5" contentContainerStyle={{ paddingTop: insets.top + 8 }}>
+    <ScrollView className="flex-1 bg-[#f9ecdd] p-5" contentContainerStyle={{ paddingTop: insets.top + 8, paddingBottom: insets.bottom + 96 }}>
       <PageTitle page="account" />
       <View className="bg-white rounded-2xl p-5 border border-[#e1a255]/40 mb-4 gap-1">
         <Text className="text-xs font-bold uppercase tracking-wider text-[#8d171e]">Account Ambrosia</Text>
