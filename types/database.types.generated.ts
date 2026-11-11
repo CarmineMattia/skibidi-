@@ -513,6 +513,46 @@ export type Database = {
       get_order_tracking: { Args: { p_order_id: string }; Returns: Json }
       reserve_order_display_code: { Args: { p_company_id: string }; Returns: string }
       is_admin: { Args: never; Returns: boolean }
+      is_platform_owner: { Args: never; Returns: boolean }
+      commission_monthly_summary: {
+        Args: { p_company: string; p_months?: number }
+        Returns: {
+          month_start: string
+          order_count: number
+          gross_total: number
+          commission_total: number
+          unrated_order_count: number
+          unrated_gross: number
+          is_preview: boolean
+          generated_at: string
+          rates: Json
+        }[]
+      }
+      commission_rate_schedule: {
+        Args: { p_company: string }
+        Returns: {
+          rate_percent: number
+          effective_from: string
+          is_current: boolean
+          is_scheduled: boolean
+        }[]
+      }
+      set_commission_rate: {
+        Args: {
+          p_company: string
+          p_rate: number
+          p_effective_from?: string | null
+          p_effective_on?: string | null
+        }
+        Returns: {
+          rate_percent: number
+          effective_from: string
+        }[]
+      }
+      cancel_scheduled_commission_rate: {
+        Args: { p_company: string; p_effective_from: string }
+        Returns: undefined
+      }
       log_fiscal_event: {
         Args: {
           p_action: string
