@@ -239,7 +239,7 @@ Le offerte su misura e l'elenco dei clienti inattivi si preparano solo se sono a
 Tu vedi e modifichi solo le tue scelte. Se hai dato entrambi i consensi, vedi anche la proposta calcolata sui tuoi ordini.
 Il titolare della pizzeria (ruolo admin) e i proprietari della piattaforma vedono le statistiche di insieme del locale (ordini per giorno della settimana e per fascia oraria, prodotti più richiesti) e, solo per chi ha entrambi i consensi attivi, l'elenco dei clienti inattivi con nome, email e data dell'ultimo ordine.
 La cassa (ruolo kiosk), gli altri clienti e chi non è entrato nell'account non vedono queste informazioni.
-Le statistiche di insieme non riportano il nome di una persona e valgono anche senza consenso: descrivono l'andamento del locale, non un cliente. Una fascia oraria o un prodotto compare solo se raccoglie almeno 3 ordini distinti. I gruppi più piccoli, se insieme arrivano a 3 ordini, sono mostrati come «Altro»; se restano sotto 3, non compaiono.
+Le statistiche di insieme non riportano il nome di una persona e valgono anche senza consenso: descrivono l'andamento del locale, non un cliente. Una fascia oraria o un prodotto compare solo se raccoglie almeno 3 ordini distinti e almeno 3 clienti distinti. I gruppi più piccoli, se insieme arrivano a 3 ordini e a 3 clienti, sono mostrati come «Altro», senza le quantità; se restano sotto, non compaiono. Limite noto dei locali piccoli: confrontare due letture fatte in momenti diversi può far capire un ordine o una persona che nel frattempo è entrata o uscita da un gruppo. La soglia non chiude quel confronto.
 
 5. Base giuridica, da confermare
 Proposta, da confermare con chi cura la privacy: i due consensi di questa pagina sono facoltativi e coprono solo marketing e profilazione. L'ordine, la preparazione, il ritiro e gli obblighi di cassa e fiscali non dipendono da questi consensi. Va anche confermato se questa profilazione rientra nelle decisioni automatizzate del Regolamento (UE) 2016/679: la proposta in app è un suggerimento, non un rifiuto del servizio.
@@ -671,8 +671,8 @@ BEGIN
 END;
 $$;
 
--- Unica soglia k. Un gruppo si mostra solo con almeno questi ordini distinti.
--- I gruppi più piccoli finiscono in «Altro» se, insieme, arrivano a k; altrimenti non escono.
+-- Unica soglia k. Un gruppo si mostra solo con almeno k ordini distinti
+-- e almeno k clienti distinti. «Altro» usa la stessa soglia e non riporta quantità.
 CREATE OR REPLACE FUNCTION public.stats_k_anonymity()
 RETURNS integer
 LANGUAGE sql
@@ -705,33 +705,43 @@ BEGIN
     RAISE EXCEPTION 'CONSENT_COMPANY_NOT_FOUND' USING ERRCODE = 'P0002';
   END IF;
   RETURN QUERY
-  WITH counted AS (
-    SELECT extract(isodow FROM o.created_at AT TIME ZONE 'Europe/Rome')::smallint AS weekday,
-           extract(hour FROM o.created_at AT TIME ZONE 'Europe/Rome')::smallint AS hour,
-           count(*)::integer AS order_count
+  WITH base AS (
+    SELECT o.id AS order_id,
+           o.customer_id,
+           extract(isodow FROM o.created_at AT TIME ZONE 'Europe/Rome')::smallint AS weekday,
+           extract(hour FROM o.created_at AT TIME ZONE 'Europe/Rome')::smallint AS hour
     FROM public.orders o
     WHERE o.company_id = p_company
       AND o.status::text NOT IN ('cancelled', 'rejected')
-    GROUP BY 1, 2
+  ),
+  counted AS (
+    SELECT b.weekday,
+           b.hour,
+           count(DISTINCT b.order_id)::integer AS order_count,
+           count(DISTINCT b.customer_id)::integer AS customer_count
+    FROM base b
+    GROUP BY b.weekday, b.hour
   ),
   shown AS (
     SELECT c.weekday, c.hour, c.order_count
     FROM counted c
-    WHERE c.order_count >= k
+    WHERE c.order_count >= k AND c.customer_count >= k
   ),
   folded AS (
     SELECT NULL::smallint AS weekday,
            NULL::smallint AS hour,
-           coalesce(sum(c.order_count), 0)::integer AS order_count
-    FROM counted c
-    WHERE c.order_count < k
+           count(DISTINCT b.order_id)::integer AS order_count,
+           count(DISTINCT b.customer_id)::integer AS customer_count
+    FROM base b
+    JOIN counted c ON c.weekday = b.weekday AND c.hour = b.hour
+    WHERE c.order_count < k OR c.customer_count < k
   )
   SELECT s.weekday, s.hour, s.order_count
   FROM shown s
   UNION ALL
   SELECT f.weekday, f.hour, f.order_count
   FROM folded f
-  WHERE f.order_count >= k
+  WHERE f.order_count >= k AND f.customer_count >= k
   ORDER BY 1 NULLS LAST, 2 NULLS LAST;
 END;
 $$;
@@ -767,7 +777,8 @@ BEGIN
     SELECT pr.id AS product_id,
            pr.name AS product_name,
            i.quantity,
-           o.id AS order_id
+           o.id AS order_id,
+           o.customer_id
     FROM public.order_items i
     JOIN public.orders o ON o.id = i.order_id
     JOIN public.products pr ON pr.id = i.product_id
@@ -778,25 +789,27 @@ BEGIN
     SELECT l.product_id,
            l.product_name,
            sum(l.quantity)::integer AS quantity_total,
-           count(DISTINCT l.order_id)::integer AS order_count
+           count(DISTINCT l.order_id)::integer AS order_count,
+           count(DISTINCT l.customer_id)::integer AS customer_count
     FROM lines l
     GROUP BY l.product_id, l.product_name
   ),
   kept AS (
     SELECT b.product_id, b.product_name, b.quantity_total, b.order_count
     FROM by_product b
-    WHERE b.order_count >= k
+    WHERE b.order_count >= k AND b.customer_count >= k
     ORDER BY b.quantity_total DESC, b.product_name
     LIMIT v_limit
   ),
   folded AS (
     SELECT NULL::uuid AS product_id,
            'Altro'::text AS product_name,
-           coalesce(sum(l.quantity), 0)::integer AS quantity_total,
-           count(DISTINCT l.order_id)::integer AS order_count
+           NULL::integer AS quantity_total,
+           count(DISTINCT l.order_id)::integer AS order_count,
+           count(DISTINCT l.customer_id)::integer AS customer_count
     FROM lines l
     JOIN by_product b ON b.product_id = l.product_id
-    WHERE b.order_count < k
+    WHERE b.order_count < k OR b.customer_count < k
   )
   SELECT ranked.product_id, ranked.product_name, ranked.quantity_total, ranked.order_count
   FROM (
@@ -817,7 +830,7 @@ BEGIN
            folded.quantity_total,
            folded.order_count
     FROM folded
-    WHERE folded.order_count >= k
+    WHERE folded.order_count >= k AND folded.customer_count >= k
   ) ranked
   ORDER BY ranked.sort_group, ranked.sort_qty DESC, ranked.sort_name;
 END;

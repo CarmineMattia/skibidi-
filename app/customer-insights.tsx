@@ -166,8 +166,10 @@ export default function CustomerInsightsScreen() {
             <Text className="text-2xl font-black text-gray-900">Andamento e clienti inattivi</Text>
             <Text className="text-sm leading-5 text-gray-600">
               I numeri di insieme contano tutti gli ordini e non riportano nomi. Una fascia o un prodotto si vede solo
-              con almeno 3 ordini distinti; i gruppi più piccoli, se insieme arrivano a 3, stanno in Altro. L’elenco
-              inattivi mostra solo chi ha accettato sia la profilazione sia le offerte personalizzate.
+              con almeno 3 ordini e 3 clienti distinti. I gruppi più piccoli, se insieme arrivano a quella soglia, stanno
+              in Altro senza quantità. Confrontare due momenti diversi può far capire chi è entrato in un gruppo: è un
+              limite dei locali piccoli. L’elenco inattivi mostra solo chi ha accettato sia la profilazione sia le
+              offerte personalizzate.
             </Text>
           </View>
 
@@ -222,8 +224,8 @@ export default function CustomerInsightsScreen() {
               <View className="bg-white rounded-2xl border border-[#e1a255]/40 p-5 gap-3">
                 <Text className="text-lg font-black text-gray-900">Andamento del locale</Text>
                 <Text className="text-sm leading-5 text-gray-600">
-                  Ordini non annullati e non rifiutati, in ora di Roma. Nessun nome di cliente. Le fasce con meno di 3
-                  ordini non compaiono da sole.
+                  Ordini non annullati e non rifiutati, in ora di Roma. Nessun nome di cliente. Una fascia compare solo
+                  con almeno 3 ordini e 3 clienti distinti.
                 </Text>
                 {hoursQuery.isLoading ? <Text className="text-sm text-gray-600">Carico gli orari…</Text> : null}
                 {hoursQuery.isError ? <Text className="text-sm font-bold text-[#8d171e]">{errorText(hoursQuery.error)}</Text> : null}
@@ -258,8 +260,8 @@ export default function CustomerInsightsScreen() {
               <View className="bg-white rounded-2xl border border-[#e1a255]/40 p-5 gap-3">
                 <Text className="text-lg font-black text-gray-900">Prodotti più richiesti</Text>
                 <Text className="text-sm leading-5 text-gray-600">
-                  Un prodotto entra in lista solo con almeno 3 ordini distinti. Altro riunisce quelli sotto soglia, se
-                  insieme arrivano a 3.
+                  Un prodotto entra in lista solo con almeno 3 ordini e 3 clienti distinti. Altro riunisce quelli sotto
+                  soglia, senza quantità, se insieme arriva alla stessa soglia.
                 </Text>
                 {productsQuery.isLoading ? <Text className="text-sm text-gray-600">Carico i prodotti…</Text> : null}
                 {productsQuery.isError ? (
@@ -270,8 +272,9 @@ export default function CustomerInsightsScreen() {
                 ) : null}
                 {productsQuery.data?.map((product: TopProductStat, index) => (
                   <Text key={product.productName} className="text-base text-gray-900">
-                    {index + 1}. {product.productName} — {product.quantityTotal}{' '}
-                    {product.quantityTotal === 1 ? 'pezzo' : 'pezzi'}
+                    {product.quantityTotal == null
+                      ? `${index + 1}. ${product.productName} — ${product.orderCount} ${product.orderCount === 1 ? 'ordine' : 'ordini'}`
+                      : `${index + 1}. ${product.productName} — ${product.quantityTotal} ${product.quantityTotal === 1 ? 'pezzo' : 'pezzi'}`}
                   </Text>
                 ))}
               </View>

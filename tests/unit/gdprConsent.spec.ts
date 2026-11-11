@@ -42,6 +42,8 @@ describe('bozza di informativa', () => {
     expect(CONSENT_DRAFT_BODY).toContain('[DURATA CONSERVAZIONE CONSENSO]');
     expect(CONSENT_DRAFT_BODY).toContain('[CANCELLAZIONE ACCOUNT E TRACCIA CONSENSO]');
     expect(CONSENT_DRAFT_BODY).toContain('10 anni dalla revoca');
+    expect(CONSENT_DRAFT_BODY).toContain('almeno 3 clienti distinti');
+    expect(CONSENT_DRAFT_BODY).toContain('confrontare due letture');
     expect(CONSENT_DRAFT_BODY).not.toContain('12345678901');
     expect(sql).toMatch(/FUNCTION public\.stats_k_anonymity\(\)[\s\S]*?SELECT 3;/);
     const kCalls = sql.match(/public\.stats_k_anonymity\(\)/g) ?? [];
@@ -106,8 +108,12 @@ describe('risposte delle RPC', () => {
       { weekday: 2, hour: 15, orderCount: 4 },
       { weekday: null, hour: null, orderCount: 5 },
     ]);
-    expect(parseTopProducts([{ product_name: 'Margherita', quantity_total: '9' }])).toEqual([
-      { productName: 'Margherita', quantityTotal: 9 },
+    expect(parseTopProducts([
+      { product_name: 'Margherita', quantity_total: '9', order_count: 6 },
+      { product_name: 'Altro', quantity_total: null, order_count: 3 },
+    ])).toEqual([
+      { productName: 'Margherita', quantityTotal: 9, orderCount: 6 },
+      { productName: 'Altro', quantityTotal: null, orderCount: 3 },
     ]);
     expect(weekdayLabel(2)).toBe('Martedì');
     expect(formatHour(15)).toBe('15:00');

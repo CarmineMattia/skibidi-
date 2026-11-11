@@ -147,13 +147,16 @@ INSERT INTO public.profiles (id, role, company_id, full_name, email) VALUES
   ('00000000-0000-0000-0000-0000000000e1', 'customer', NULL, 'Piattaforma', 'piattaforma@example.test');
 INSERT INTO public.platform_owners (user_id) VALUES ('00000000-0000-0000-0000-0000000000e1');
 
+INSERT INTO public.companies (id) VALUES ('00000000-0000-0000-0000-000000000003');
+
 INSERT INTO public.products (id, company_id, name) VALUES
   ('00000000-0000-0000-0000-000000000011', '00000000-0000-0000-0000-000000000001', 'Margherita'),
   ('00000000-0000-0000-0000-000000000012', '00000000-0000-0000-0000-000000000001', 'Diavola'),
   ('00000000-0000-0000-0000-000000000013', '00000000-0000-0000-0000-000000000001', 'Capricciosa'),
   ('00000000-0000-0000-0000-000000000014', '00000000-0000-0000-0000-000000000002', 'Solo Altra Pizzeria'),
   ('00000000-0000-0000-0000-000000000015', '00000000-0000-0000-0000-000000000002', 'Tre Ordini'),
-  ('00000000-0000-0000-0000-000000000016', '00000000-0000-0000-0000-000000000002', 'Due Ordini');
+  ('00000000-0000-0000-0000-000000000016', '00000000-0000-0000-0000-000000000002', 'Due Ordini'),
+  ('00000000-0000-0000-0000-000000000017', '00000000-0000-0000-0000-000000000003', 'Coppia');
 
 INSERT INTO public.orders (id, company_id, customer_id, status, total_amount, created_at) VALUES
   ('00000000-0000-0000-0000-000000000101', '00000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-0000000000c1', 'delivered', 30, now() - interval '10 days'),
@@ -172,7 +175,10 @@ INSERT INTO public.orders (id, company_id, customer_id, status, total_amount, cr
   ('00000000-0000-0000-0000-00000000010f', '00000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-0000000000c4', 'delivered', 8, timestamptz '2024-03-05 11:00:00+00'),
   ('00000000-0000-0000-0000-000000000110', '00000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-0000000000c2', 'delivered', 8, timestamptz '2024-03-06 11:00:00+00'),
   ('00000000-0000-0000-0000-000000000111', '00000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-0000000000c4', 'delivered', 8, timestamptz '2024-03-06 11:00:00+00'),
-  ('00000000-0000-0000-0000-00000000010c', '00000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-0000000000c1', 'delivered', 8, timestamptz '2026-06-02 22:30:00+00');
+  ('00000000-0000-0000-0000-00000000010c', '00000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-0000000000c1', 'delivered', 8, timestamptz '2026-06-02 22:30:00+00'),
+  ('00000000-0000-0000-0000-000000000130', '00000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-0000000000c3', 'delivered', 50, timestamptz '2024-04-02 11:00:00+00'),
+  ('00000000-0000-0000-0000-000000000131', '00000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-0000000000c3', 'delivered', 50, timestamptz '2024-04-02 11:00:00+00'),
+  ('00000000-0000-0000-0000-000000000132', '00000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-0000000000c4', 'delivered', 50, timestamptz '2024-04-02 11:00:00+00');
 
 INSERT INTO public.order_items (order_id, product_id, quantity) VALUES
   ('00000000-0000-0000-0000-000000000101', '00000000-0000-0000-0000-000000000011', 3),
@@ -191,6 +197,9 @@ INSERT INTO public.order_items (order_id, product_id, quantity) VALUES
   ('00000000-0000-0000-0000-00000000010f', '00000000-0000-0000-0000-000000000015', 2),
   ('00000000-0000-0000-0000-000000000110', '00000000-0000-0000-0000-000000000016', 1),
   ('00000000-0000-0000-0000-000000000111', '00000000-0000-0000-0000-000000000016', 1),
+  ('00000000-0000-0000-0000-000000000130', '00000000-0000-0000-0000-000000000017', 50),
+  ('00000000-0000-0000-0000-000000000131', '00000000-0000-0000-0000-000000000017', 50),
+  ('00000000-0000-0000-0000-000000000132', '00000000-0000-0000-0000-000000000017', 50),
   ('00000000-0000-0000-0000-00000000010c', '00000000-0000-0000-0000-000000000012', 1);
 
 SELECT pg_temp.check(
@@ -199,6 +208,11 @@ SELECT pg_temp.check(
   AND extract(isodow FROM timestamptz '2026-06-02 22:30:00+00' AT TIME ZONE 'Europe/Rome') = 3
   AND extract(hour FROM timestamptz '2026-06-02 22:30:00+00' AT TIME ZONE 'Europe/Rome') = 0,
   'rome clock for the fixture orders');
+SELECT pg_temp.check(
+  (SELECT count(*) FROM public.orders WHERE company_id = '00000000-0000-0000-0000-000000000003' AND status NOT IN ('cancelled', 'rejected')) = 3
+  AND (SELECT count(DISTINCT customer_id) FROM public.orders WHERE company_id = '00000000-0000-0000-0000-000000000003') = 2
+  AND (SELECT coalesce(sum(i.quantity), 0) FROM public.order_items i JOIN public.orders o ON o.id = i.order_id WHERE o.company_id = '00000000-0000-0000-0000-000000000003') = 150,
+  'company 3 fixture is three large orders from two customers');
 
 -- 4) Il cliente accetta solo per sé. La seconda spunta identica non duplica la riga.
 SET ROLE authenticated;
@@ -316,12 +330,12 @@ SELECT pg_temp.check(
   )
   AND (SELECT order_count FROM public.venue_top_products('00000000-0000-0000-0000-000000000001', 8) WHERE product_name = 'Margherita') = 6
   AND (SELECT quantity_total FROM public.venue_top_products('00000000-0000-0000-0000-000000000001', 8) WHERE product_name = 'Margherita') = 9
-  AND (SELECT order_count FROM public.venue_top_products('00000000-0000-0000-0000-000000000001', 8) WHERE product_name = 'Diavola') = 3
-  AND (SELECT quantity_total FROM public.venue_top_products('00000000-0000-0000-0000-000000000001', 8) WHERE product_name = 'Diavola') = 6
   AND NOT EXISTS (
     SELECT 1 FROM public.venue_top_products('00000000-0000-0000-0000-000000000001', 8)
-    WHERE product_name = 'Capricciosa' OR product_name = 'Altro' OR order_count < 3
+    WHERE product_name IN ('Diavola', 'Capricciosa') OR order_count < 3
   )
+  AND (SELECT order_count FROM public.venue_top_products('00000000-0000-0000-0000-000000000001', 8) WHERE product_name = 'Altro') = 4
+  AND (SELECT quantity_total FROM public.venue_top_products('00000000-0000-0000-0000-000000000001', 8) WHERE product_name = 'Altro') IS NULL
   AND NOT EXISTS (
     SELECT 1 FROM public.venue_top_products('00000000-0000-0000-0000-000000000001', 8)
     WHERE product_name = 'Solo Altra Pizzeria'
@@ -358,7 +372,11 @@ SELECT pg_temp.check(
   AND (SELECT order_count FROM public.venue_top_products('00000000-0000-0000-0000-000000000002', 1) WHERE product_name = 'Tre Ordini') = 3
   AND (SELECT quantity_total FROM public.venue_top_products('00000000-0000-0000-0000-000000000002', 1) WHERE product_name = 'Tre Ordini') = 6
   AND (SELECT order_count FROM public.venue_top_products('00000000-0000-0000-0000-000000000002', 1) WHERE product_name = 'Altro') = 3
-  AND (SELECT quantity_total FROM public.venue_top_products('00000000-0000-0000-0000-000000000002', 1) WHERE product_name = 'Altro') = 102
+  AND (SELECT quantity_total FROM public.venue_top_products('00000000-0000-0000-0000-000000000002', 1) WHERE product_name = 'Altro') IS NULL
+  AND NOT EXISTS (
+    SELECT 1 FROM public.venue_top_products('00000000-0000-0000-0000-000000000002', 8) s
+    WHERE s.product_name = 'Altro' AND (s.quantity_total IS NOT NULL OR s::text LIKE '%100%' OR s::text LIKE '%102%')
+  )
   AND (SELECT count(*) FROM public.venue_top_products('00000000-0000-0000-0000-000000000002', 1)) = 2
   AND NOT EXISTS (
     SELECT 1 FROM public.venue_top_products('00000000-0000-0000-0000-000000000002', 8) s
@@ -370,7 +388,17 @@ SELECT pg_temp.check(
     SELECT 1 FROM public.venue_orders_by_weekday_hour('00000000-0000-0000-0000-000000000002') s
     WHERE s::text ILIKE '%@example.test%' OR s::text ILIKE '%Due Ordini%' OR s::text ILIKE '%Solo Altra%'
   ),
-  'buckets under k do not leak, and the remainder is Altro only at k');
+  'buckets under k do not leak, and Altro hides quantities');
+
+-- Tre ordini di due clienti non bastano: né la fascia, né il prodotto, né Altro.
+SELECT pg_temp.check(
+  (SELECT count(*) FROM public.venue_orders_by_weekday_hour('00000000-0000-0000-0000-000000000003')) = 0
+  AND (SELECT count(*) FROM public.venue_top_products('00000000-0000-0000-0000-000000000003', 8)) = 0
+  AND NOT EXISTS (
+    SELECT 1 FROM public.venue_top_products('00000000-0000-0000-0000-000000000003', 8) s
+    WHERE s::text ILIKE '%Coppia%' OR coalesce(s.quantity_total, 0) <> 0
+  ),
+  'three orders from two customers stay unpublished, including Altro');
 SELECT set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a1', false);
 
 SELECT pg_temp.check(

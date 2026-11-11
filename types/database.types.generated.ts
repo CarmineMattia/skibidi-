@@ -628,7 +628,7 @@ export type Database = {
         Returns: {
           product_id: string | null
           product_name: string
-          quantity_total: number
+          quantity_total: number | null
           order_count: number
         }[]
       }

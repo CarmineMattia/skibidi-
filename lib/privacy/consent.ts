@@ -53,7 +53,8 @@ export type WeekHourStat = {
 
 export type TopProductStat = {
   productName: string;
-  quantityTotal: number;
+  quantityTotal: number | null;
+  orderCount: number;
 };
 
 const WEEKDAY_LABELS = ['', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica'];
@@ -195,7 +196,8 @@ export function parseTopProducts(data: unknown): TopProductStat[] {
     if (!row || typeof row.product_name !== 'string' || !row.product_name.trim()) continue;
     rows.push({
       productName: row.product_name,
-      quantityTotal: asNumber(row.quantity_total),
+      quantityTotal: row.quantity_total == null ? null : asNumber(row.quantity_total),
+      orderCount: asNumber(row.order_count),
     });
   }
   return rows;
