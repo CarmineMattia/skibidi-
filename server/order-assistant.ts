@@ -1,4 +1,10 @@
 import { Agent } from '@cursor/sdk';
+/**
+ * Prototipo locale dell'assistente ordini (`npm run chat:server`).
+ * Non è importato dall'app Expo. Non pubblicarlo come endpoint di produzione:
+ * il prompt è nel processo e non c'è un controllo di identità.
+ * Vedi docs/SECURITY-CHECKLIST.md (prompt injection).
+ */
 import type { OrderAssistantRequest, OrderAssistantResponse } from '@/types/chat.types';
 
 type JsonResponse = {

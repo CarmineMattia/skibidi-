@@ -1,5 +1,6 @@
 import { DeliveryAddressField } from '@/components/features/DeliveryAddressField';
 import { Button } from '@/components/ui/Button';
+import { PageTitle } from '@/components/ui/PageTitle';
 import { TimeWheelModal } from '@/components/ui/TimeWheelModal';
 import { supabase } from '@/lib/api/supabase';
 import { BRAND } from '@/lib/data/brand';
@@ -1568,6 +1569,7 @@ export default function CheckoutScreen() {
 
   return (
     <>
+      <PageTitle page="checkout" />
       {/* Hide Expo Router default header */}
       <Stack.Screen options={{ headerShown: false }} />
       

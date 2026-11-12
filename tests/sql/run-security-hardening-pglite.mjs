@@ -1,0 +1,34 @@
+// Runner PGlite (nessun DB ospitato). Uso: npm run test:sql -- security-hardening
+import { PGlite } from '@electric-sql/pglite';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const root = process.env.SKIBIDI_ROOT || path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const migration = 'supabase/migrations/20261111234500_security_hardening.sql';
+const followUp = 'supabase/migrations/20261112003000_company_storage_and_orders_anon.sql';
+const linePrice = 'supabase/migrations/20261112010000_order_item_price_and_company.sql';
+const files = [
+  'tests/sql/security-hardening-schema.sql',
+  migration,
+  migration,
+  followUp,
+  followUp,
+  linePrice,
+  linePrice,
+  'tests/sql/security-hardening.sql',
+];
+
+const db = new PGlite();
+for (const file of files) {
+  const sql = fs.readFileSync(path.join(root, file), 'utf8');
+  try {
+    await db.exec(sql);
+    console.log('OK', file);
+  } catch (error) {
+    const err = error instanceof Error ? error : new Error(String(error));
+    console.log('FAIL', file, err.message);
+    process.exit(1);
+  }
+}
+console.log('ALL PASS');

@@ -43,15 +43,25 @@ interface DigitalReceiptProps {
 }
 
 export function DigitalReceipt({ visible, orderId, onClose }: DigitalReceiptProps) {
-    // Fetch order with items for receipt display.
-    // RPC get_order_tracking: funziona anche per ospiti non autenticati
-    // che conoscono l'UUID dell'ordine (la select diretta è bloccata da RLS).
+    // The receipt is the customer's own order (name, phone, lines). RLS on
+    // orders / order_items allows that read. get_order_tracking stays the
+    // status-only RPC used by the tracking screen.
     const { data: order, isLoading, error } = useQuery({
         queryKey: ['receipt', orderId],
         queryFn: async () => {
-            const { data, error } = await supabase.rpc('get_order_tracking', {
-                p_order_id: orderId,
-            });
+            const { data, error } = await supabase
+                .from('orders')
+                .select(`
+                    id, display_code, created_at, customer_name, total_amount,
+                    fiscal_status, fiscal_external_id, pdf_url, order_type,
+                    table_number, customer_phone, delivery_address, notes,
+                    order_items (
+                        quantity, unit_price, total_price, notes,
+                        product:products (name, price)
+                    )
+                `)
+                .eq('id', orderId)
+                .maybeSingle();
 
             if (error) {
                 console.error('Failed to fetch receipt data:', error);
