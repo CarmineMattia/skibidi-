@@ -6,6 +6,8 @@ import { getForwardActionLabel, isTerminalStatus } from '@/lib/utils/orderStatus
 
 import type { KitchenOrder } from '@/lib/hooks/useKitchenOrders';
 import { DeclineReasonModal } from '@/components/features/orders/DeclineReasonModal';
+import { useConfirmLoyaltyRedeem } from '@/lib/hooks/useLoyalty';
+import { kitchenTillLine } from '@/lib/loyalty/points';
 import { useUpdateOrderStatus } from '@/lib/hooks/useUpdateOrderStatus';
 import { printComanda, printDocumentoCommerciale, extractFulfillmentTime, type PrintOrderData } from '@/lib/print/orderPrint';
 import type { Database } from '@/types/database.types.generated';
@@ -52,6 +54,9 @@ function kitchenOrderToPrintData(order: KitchenOrder): PrintOrderData {
     deliveryAddress: order.delivery_address,
     notes: order.notes,
     totalAmount: order.total_amount,
+    pointsRequested: order.points_requested,
+    pointsRedeemed: order.points_redeemed,
+    pointsDiscountEur: order.points_discount_eur,
     fiscalExternalId: order.fiscal_external_id,
     items: (order.order_items ?? []).map((item) => {
       const product = Array.isArray(item.product) ? item.product[0] : item.product;
@@ -156,9 +161,16 @@ const STATUS_CONFIG: Record<
 };
 
 export function KitchenOrderCard({ order }: KitchenOrderCardProps) {
+  const confirmRedeem = useConfirmLoyaltyRedeem();
   const updateStatus = useUpdateOrderStatus();
   const [showDeclineModal, setShowDeclineModal] = useState(false);
   const statusConfig = STATUS_CONFIG[order.status];
+  const till = kitchenTillLine({
+    totalAmount: order.total_amount,
+    pointsRequested: order.points_requested,
+    pointsRedeemed: order.points_redeemed,
+    pointsDiscountEur: order.points_discount_eur,
+  });
 
   const handleNextStatus = () => {
     if (!statusConfig.nextStatus || (order.status === 'pending' && !order.order_items?.length)) return;
@@ -366,12 +378,52 @@ export function KitchenOrderCard({ order }: KitchenOrderCardProps) {
         </View>
       )}
 
-      {/* Total */}
-      <View className="flex-row justify-between items-center mb-4 pb-4 border-b border-border">
-        <Text className="text-foreground font-bold text-lg">Totale</Text>
-        <Text className={`${statusConfig.totalColor} font-extrabold text-2xl`}>
-          €{order.total_amount.toFixed(2)}
-        </Text>
+      {(order.points_requested ?? 0) > 0 && (
+        <View className="bg-[#fffaf5] border border-[#e1a255]/60 rounded-xl p-3 mb-4 gap-2">
+          <Text className="text-[#8d171e] text-xs font-extrabold uppercase">Punti</Text>
+          {order.points_redeemed == null ? (
+            <>
+              <Text className="text-gray-900 font-bold">
+                {till.requested}
+              </Text>
+              {order.status !== 'cancelled' && order.status !== 'rejected' ? (
+                <Pressable
+                  accessibilityRole="button"
+                  disabled={confirmRedeem.isPending}
+                  onPress={() => {
+                    confirmRedeem.mutate(order.id, {
+                      onError: (error) => Alert.alert('Sconto punti', error.message),
+                    });
+                  }}
+                  className="bg-[#8d171e] rounded-xl py-3 items-center"
+                >
+                  <Text className="text-white font-bold">
+                    {confirmRedeem.isPending ? 'Confermo…' : 'Conferma sconto punti in cassa'}
+                  </Text>
+                </Pressable>
+              ) : null}
+            </>
+          ) : (
+            <Text className="text-gray-900 font-bold">
+              Sconto punti confermato: €{Number(order.points_discount_eur ?? 0).toFixed(2)} ({order.points_redeemed} punti).
+            </Text>
+          )}
+        </View>
+      )}
+
+      {/* Total. Il lordo resta total_amount. L'importo da pagare compare solo dopo la conferma. */}
+      <View className="mb-4 pb-4 border-b border-border gap-1">
+        <View className="flex-row justify-between items-center">
+          <Text className="text-foreground font-bold text-lg">Totale</Text>
+          <Text className={`${statusConfig.totalColor} font-extrabold text-2xl`}>
+            €{order.total_amount.toFixed(2)}
+          </Text>
+        </View>
+        {till.amountDue ? (
+          <Text className="text-[#8d171e] font-extrabold text-2xl text-right">
+            {till.amountDue}
+          </Text>
+        ) : null}
       </View>
 
       {/* Action Buttons */}

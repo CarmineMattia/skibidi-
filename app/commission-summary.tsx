@@ -6,6 +6,7 @@ import { useTenant } from '@/lib/stores/TenantContext';
 import {
   canEditCommissionRate,
   canReadCommissionSummary,
+  COMMISSION_COLLECTED_LABEL,
   commissionErrorMessage,
   commissionPanelState,
   formatCommissionMonth,
@@ -154,6 +155,7 @@ export default function CommissionSummaryScreen() {
             <Text className="text-sm text-gray-600">
               È un resoconto di lavoro, non una fattura. Il cliente paga alla cassa e non vede queste cifre.
               Entrano solo gli ordini fatti dal cliente sull’app e segnati come ritirati e pagati.
+              La base è l’incassato dopo lo sconto punti confermato in cassa. Una richiesta non ancora confermata non cambia la commissione.
             </Text>
           </View>
 
@@ -309,7 +311,7 @@ function MonthCard({ month }: { month: CommissionMonth }) {
         </Text>
       </View>
       <Text className="text-sm text-gray-700">Ordini considerati: {month.order_count}</Text>
-      <Text className="text-sm text-gray-700">Totale lordo: {formatEuro(month.gross_total)}</Text>
+      <Text className="text-sm text-gray-700">{COMMISSION_COLLECTED_LABEL}: {formatEuro(month.gross_total)}</Text>
       <Text className="text-sm text-gray-700">Aliquota: {formatRateBreakdown(month.rates)}</Text>
       <Text className="text-base font-black text-[#8d171e]">Commissione: {formatEuro(month.commission_total)}</Text>
       {month.unrated_order_count > 0 ? (

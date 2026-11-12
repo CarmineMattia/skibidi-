@@ -19,6 +19,7 @@ import {
   isAddressInDeliveryZone,
 } from '@/lib/utils/deliveryZone';
 import { formatOrderItemNotes } from '@/lib/utils/orderItemDetails';
+import { loyaltyUserMessage, LoyaltyUserError } from '@/lib/loyalty/errors';
 import { resolveOrderTotals, type ResolvedOrderTotals, type ServerOrderResponse } from '@/lib/utils/serverOrderTotals';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRef } from 'react';
@@ -41,6 +42,7 @@ interface CreateOrderInput {
   paymentMethod?: PaymentMethod; // For fiscalization
   skipFiscal?: boolean; // Option to skip fiscalization for testing
   turnstileToken?: string | null; // Cloudflare Turnstile (solo se EXPO_PUBLIC_TURNSTILE_SITE_KEY), monouso
+  pointsRequested?: number; // Richiesta del cliente. Il totale non cambia: la cassa conferma.
 }
 
 interface CreateOrderResult {
@@ -117,6 +119,7 @@ export function useCreateOrder() {
       paymentMethod = 'cash',
       skipFiscal = false,
       turnstileToken,
+      pointsRequested: requestedPoints,
     }: CreateOrderInput): Promise<CreateOrderResult> => {
       const lang = language === 'en' ? 'en' : 'it';
       if (!companyId) throw new Error("Ristorante non disponibile. Riprova.");
@@ -151,7 +154,8 @@ export function useCreateOrder() {
 
       // 3. Create order record — UUID generated client-side so we never need
       //    a SELECT after insert (which RLS would block for unauthenticated guests).
-      const fingerprint = JSON.stringify({ companyId, customerId: user?.id ?? null, items, normalizedNotes, orderType, customerName, customerPhone, resolvedDeliveryAddress, tableNumber, totalAmount });
+      const pointsRequested = Number.isFinite(requestedPoints) ? Math.max(0, Math.floor(requestedPoints ?? 0)) : 0;
+      const fingerprint = JSON.stringify({ companyId, customerId: user?.id ?? null, items, normalizedNotes, orderType, customerName, customerPhone, resolvedDeliveryAddress, tableNumber, totalAmount, pointsRequested });
       if (!requestedOrderId && submissionRef.current?.fingerprint !== fingerprint) {
         submissionRef.current = { fingerprint, id: crypto.randomUUID() };
         writeJsonStorage('ambrosia.orderSubmission.v1', submissionRef.current, 'session');
@@ -178,6 +182,7 @@ export function useCreateOrder() {
         delivery_address: resolvedDeliveryAddress,
         table_number: tableNumber,
         company_id: companyId!,
+        ...(pointsRequested > 0 ? { points_requested: pointsRequested } : {}),
       };
 
       // One database transaction: kitchen never receives an empty order,
@@ -212,6 +217,8 @@ export function useCreateOrder() {
         if (antiabuseMessage) throw new AntiabuseError(antiabuseMessage);
         const lineError = toOrderLineError(orderError, items, lang);
         if (lineError) throw lineError;
+        const loyaltyMessage = loyaltyUserMessage(orderError);
+        if (loyaltyMessage) throw new LoyaltyUserError(loyaltyMessage);
         throw new Error(`Impossibile inviare l’ordine: ${orderError?.message ?? 'salvataggio non confermato'}`);
       }
       const saved = persisted as ServerOrderResponse;
