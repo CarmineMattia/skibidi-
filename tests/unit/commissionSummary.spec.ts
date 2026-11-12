@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   canEditCommissionRate,
   canReadCommissionSummary,
+  collectedAfterPointsDiscount,
+  COMMISSION_COLLECTED_LABEL,
   commissionErrorMessage,
   commissionPanelState,
   formatCommissionMonth,
@@ -26,6 +28,22 @@ describe('accesso al resoconto', () => {
   it('solo il proprietario della piattaforma cambia l’aliquota', () => {
     expect(canEditCommissionRate(true)).toBe(true);
     expect(canEditCommissionRate(false)).toBe(false);
+  });
+});
+
+describe('base dopo lo sconto punti', () => {
+  it('scala solo lo sconto confermato e non scende sotto zero', () => {
+    expect(COMMISSION_COLLECTED_LABEL).toBe('Incassato dopo sconto punti');
+    expect(collectedAfterPointsDiscount({ totalAmount: 100, confirmed: false })).toBe(100);
+    expect(collectedAfterPointsDiscount({
+      totalAmount: 100, pointsDiscountEur: 5, confirmed: false,
+    })).toBe(100);
+    expect(collectedAfterPointsDiscount({
+      totalAmount: 100, pointsDiscountEur: 5, confirmed: true,
+    })).toBe(95);
+    expect(collectedAfterPointsDiscount({
+      totalAmount: 4, pointsDiscountEur: 5, confirmed: true,
+    })).toBe(0);
   });
 });
 

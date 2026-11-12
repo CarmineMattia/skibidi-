@@ -54,4 +54,5 @@ function checkOrder(order: (prefix: string) => number) {
   expect(order('20261112003000')).toBeLessThan(order('20261112010000'));
   expect(order('20261112010000')).toBeLessThan(order('20261112020000'));
   expect(order('20261112020000')).toBeLessThan(order('20261112030000'));
+  expect(order('20261112030000')).toBeLessThan(order('20261112040000'));
 }

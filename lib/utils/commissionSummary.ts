@@ -30,6 +30,27 @@ export type CommissionRateRow = {
   is_scheduled: boolean;
 };
 
+/** Etichetta della base in resoconto. Il valore arriva dalla RPC. */
+export const COMMISSION_COLLECTED_LABEL = 'Incassato dopo sconto punti';
+
+/**
+ * Base della commissione per un ordine. Lo sconto conta solo se è confermato in cassa.
+ * Senza conferma il risultato è total_amount. Non scende sotto zero.
+ */
+export function collectedAfterPointsDiscount(input: {
+  totalAmount: number;
+  pointsDiscountEur?: number | null;
+  confirmed: boolean;
+}): number {
+  const total = Number.isFinite(input.totalAmount) ? input.totalAmount : 0;
+  const discount = Number(input.pointsDiscountEur);
+  if (!input.confirmed || !Number.isFinite(discount) || discount <= 0) {
+    return Math.round(total * 100) / 100;
+  }
+  const due = total - discount;
+  return Math.round((due < 0 ? 0 : due) * 100) / 100;
+}
+
 export function canReadCommissionSummary(input: { isAdmin: boolean; isPlatformOwner: boolean }): boolean {
   return input.isAdmin || input.isPlatformOwner;
 }

@@ -39,11 +39,11 @@ I punti sono una condizione del rapporto con la pizzeria, non un trattamento di 
 
 ## Migration
 
-File: `supabase/migrations/20261112020000_skibidi_coin.sql` e `supabase/migrations/20261112030000_skibidi_coin_tracking.sql`.
+File: `supabase/migrations/20261112020000_skibidi_coin.sql`, `supabase/migrations/20261112030000_skibidi_coin_tracking.sql` e `supabase/migrations/20261112040000_commission_after_points_discount.sql`.
 
 La seconda aggiunge `points_requested`, `points_redeemed`, `points_discount_eur` e `points_confirmed_at` a `get_order_tracking`. Non aggiunge nome, telefono, note o indirizzo. La legge chi è il proprietario dell'ordine, lo staff della stessa company o il kiosk della stessa company (`anon` non esegue la funzione). Se sul database c'è già la funzione ristretta di `20261111234500`, si aggiungono solo quei campi. Se c'è ancora la funzione vecchia che restituiva l'ordine intero, viene sostituita con la forma ristretta più i campi punti. `points_confirmed_by` resta fuori: è l'id dello staff.
 
-Si applicano nell'ordine del nome file, insieme a quelle appena precedenti: `20261111234500`, `20261112003000`, `20261112010000`, poi `20261112020000` e `20261112030000`. `20261111234500` ricrea `get_order_tracking`. Se viene applicata dopo `20261112030000`, la funzione torna senza i campi `points_*`. Riapplicare `20261112030000` li rimette.
+Si applicano nell'ordine del nome file, insieme a quelle appena precedenti: `20261111234500`, `20261112003000`, `20261112010000`, poi `20261112020000`, `20261112030000` e `20261112040000`. `20261111234500` ricrea `get_order_tracking`. Se viene applicata dopo `20261112030000`, la funzione torna senza i campi `points_*`. Riapplicare `20261112030000` li rimette. `20261112040000` va per ultima: usa le colonne punti e non riscrive le migration commissioni già in produzione (`20261111180000`, `20261111193000`).
 
 Non sono applicate al progetto ospitato. Vanno eseguite solo con l'ok di Carmine, come le altre migration di questo repo. Non toccano `storage`, `auth` o `realtime`. I test SQL girano su PGlite, in locale, con `npm run test:sql`. Nessun ordine reale e nessun test contro la produzione.
 
@@ -63,19 +63,18 @@ Non sono applicate al progetto ospitato. Vanno eseguite solo con l'ok di Carmine
 - L'accredito è sul lordo della merce, prima dello sconto punti, senza la consegna. Un ordine da 20 € di pizza con 5 € di sconto accredita 20 punti.
 - La richiesta non prenota i punti. La seconda conferma può fallire e il messaggio in pagina è «Punti insufficienti». Bloccare il saldo alla richiesta è un seguito.
 - `total_amount` non cambia. Sulla copia di cortesia e sullo scontrino in app lo sconto è una riga in più, e «Importo da pagare» è il lordo meno lo sconto già confermato (mai sotto zero). Sulla copia stampata «Importo pagato» e la riga del metodo di pagamento usano quell'importo. In cucina la stessa cifra sta accanto al totale lordo. Il registratore telematico e il modulo fiscale restano sul lordo: lo sconto si applica in cassa.
-- Le commissioni (il resoconto già in app) restano calcolate sul lordo. Se debbano usare l'importo pagato dopo lo sconto punti è una decisione ancora aperta.
+- La commissione di piattaforma (5% nel resoconto mensile) si calcola sull'incassato dopo lo sconto punti confermato: `total_amount` meno `points_discount_eur` solo se `points_confirmed_at` è valorizzato, mai sotto zero. Una richiesta non confermata lascia la base com'era. In schermata la base si chiama «Incassato dopo sconto punti». I mesi già congelati non si ricalcolano. L'accredito punti, `total_amount`, l'IVA e il modulo fiscale restano sul lordo.
 
 ## Domande aperte
 
 1. Il documento fiscale emesso dal registratore deve ripetere la riga di sconto, oppure lo sconto resta solo un movimento di cassa fuori dallo scontrino fiscale.
-2. Le commissioni devono restare sul lordo oppure passare all'importo pagato dopo lo sconto punti.
-3. Le ricariche a pagamento restano fuori (fase 2).
-4. L'omaggio accetta qualsiasi intero da 1 a 10000, non solo multipli di 100.
-5. «In scadenza» sono i lotti ancora aperti che scadono entro 30 giorni.
-6. Motivo di omaggio e storno: da 3 a 500 caratteri.
-7. Il lock è `FOR UPDATE` nella stessa transazione. PGlite non apre due sessioni, quindi il test di concorrenza controlla il sorgente della funzione e il secondo riscatto sequenziale, non due connessioni vere.
-8. Il kiosk non conferma e non regala punti.
-9. Lo storno di un riscatto confermato azzera la conferma, e la cassa può confermare di nuovo.
-10. Non c'è un job schedulato per `loyalty_expire_due`: il saldo ignora già le righe scadute. Le righe `expire` sono solo la traccia.
-11. Un insert diretto da postgres può mettere `points_requested` senza passare da `loyalty_normalize_request`. La conferma ricontrolla multiplo, saldo e merce.
-12. Un ordine con righe nel registro non si cancella (`ON DELETE RESTRICT`).
+2. Le ricariche a pagamento restano fuori (fase 2).
+3. L'omaggio accetta qualsiasi intero da 1 a 10000, non solo multipli di 100.
+4. «In scadenza» sono i lotti ancora aperti che scadono entro 30 giorni.
+5. Motivo di omaggio e storno: da 3 a 500 caratteri.
+6. Il lock è `FOR UPDATE` nella stessa transazione. PGlite non apre due sessioni, quindi il test di concorrenza controlla il sorgente della funzione e il secondo riscatto sequenziale, non due connessioni vere.
+7. Il kiosk non conferma e non regala punti.
+8. Lo storno di un riscatto confermato azzera la conferma, e la cassa può confermare di nuovo.
+9. Non c'è un job schedulato per `loyalty_expire_due`: il saldo ignora già le righe scadute. Le righe `expire` sono solo la traccia.
+10. Un insert diretto da postgres può mettere `points_requested` senza passare da `loyalty_normalize_request`. La conferma ricontrolla multiplo, saldo e merce.
+11. Un ordine con righe nel registro non si cancella (`ON DELETE RESTRICT`).
