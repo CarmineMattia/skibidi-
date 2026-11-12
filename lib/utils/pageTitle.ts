@@ -1,6 +1,6 @@
 /**
- * Browser tab titles of the tab pages. /menu, /account and /order-tracking had an
- * empty title; home keeps its longer SEO title.
+ * Browser tab titles. /menu, /account, /order-tracking, checkout, admin and
+ * kitchen had an empty title; home keeps its longer SEO title.
  * Pure module (the brand name is passed in, so it is unit-testable without the logo asset).
  * Static strings only: no order id / customer data ends up in the tab title.
  */
@@ -9,6 +9,9 @@ export const PAGE_TITLES = {
   account: 'Il tuo account',
   orderTracking: 'Stato del tuo ordine',
   commission: 'Resoconto commissioni',
+  checkout: 'Checkout',
+  admin: 'Admin',
+  kitchen: 'Cucina',
 } as const;
 
 export const HOME_TITLE_SUFFIX = 'Pizza e consegna a Montecchio Emilia';

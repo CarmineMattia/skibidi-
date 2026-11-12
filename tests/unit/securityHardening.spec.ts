@@ -39,6 +39,20 @@ describe('prototipo assistente', () => {
   });
 });
 
+describe('checkout', () => {
+  it('passa dal RPC che prezza le righe e rifiuta gli anonimi', () => {
+    const hook = read('lib/hooks/useCreateOrder.ts');
+    expect(hook).toContain("rpc('create_order_with_items'");
+    expect(hook).not.toMatch(/from\('orders'\)\s*\.insert/);
+    expect(hook).not.toMatch(/from\('order_items'\)\s*\.insert/);
+    const rpc = read('supabase/migrations/20261022100000_order_notes_menu_hardening.sql');
+    expect(rpc).toContain('order_line_priced');
+    expect(rpc).toContain('is_anonymous');
+    const followUp = read('supabase/migrations/20261112003000_company_storage_and_orders_anon.sql');
+    expect(followUp).not.toMatch(/FUNCTION public\.create_order_with_items/);
+  });
+});
+
 describe('ruolo del profilo', () => {
   it('il client non scrive profiles.role', () => {
     const src = read('lib/stores/AuthContext.tsx');

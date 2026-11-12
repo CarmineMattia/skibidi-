@@ -308,8 +308,9 @@ SELECT public.t_assert(
   position('split_part' in pg_get_expr(pol.polwithcheck, pol.polrelid)) > 0
   AND position('is_admin' in pg_get_expr(pol.polwithcheck, pol.polrelid)) > 0
   AND position('split_part' in coalesce(pg_get_expr(sel.polqual, sel.polrelid), '')) = 0
-  AND position('!~' in pg_get_expr(pol.polwithcheck, pol.polrelid)) > 0,
-  'writes check the company prefix and reject traversal; staff listing of flat paths does not')
+  AND position('!~' in pg_get_expr(pol.polwithcheck, pol.polrelid)) > 0
+  AND position('regexp_split_to_table' in pg_get_expr(pol.polwithcheck, pol.polrelid)) > 0,
+  'writes check the company prefix and reject dot segments; staff listing of flat paths does not')
 FROM pg_policy pol, pg_policy sel
 WHERE pol.polname = 'products_images_staff_insert'
   AND sel.polname = 'products_images_staff_select';
@@ -318,6 +319,14 @@ BEGIN;
 SELECT public.t_as('authenticated', '00000000-0000-0000-0000-0000000000a1');
 INSERT INTO storage.objects (bucket_id, name)
 VALUES ('products', '00000000-0000-0000-0000-000000000001/pizza.webp');
+INSERT INTO storage.objects (bucket_id, name)
+VALUES ('products', '00000000-0000-0000-0000-000000000001/name..jpg');
+SELECT public.t_assert(
+  EXISTS (
+    SELECT 1 FROM storage.objects
+    WHERE name = '00000000-0000-0000-0000-000000000001/name..jpg'
+  ),
+  'a file named name..jpg is allowed');
 SELECT public.t_assert(
   EXISTS (SELECT 1 FROM storage.objects WHERE name = 'legacy-flat.jpg'),
   'admin can still read a flat-path product image');
@@ -341,6 +350,20 @@ BEGIN
     '00000000-0000-0000-0000-000000000001/../00000000-0000-0000-0000-000000000002/x.jpg'
   );
   RAISE EXCEPTION 'ASSERT FAILED: traversal path was stored';
+EXCEPTION WHEN insufficient_privilege THEN NULL;
+END $$;
+DO $$
+BEGIN
+  INSERT INTO storage.objects (bucket_id, name)
+  VALUES ('products', './x.jpg');
+  RAISE EXCEPTION 'ASSERT FAILED: dot segment was stored';
+EXCEPTION WHEN insufficient_privilege THEN NULL;
+END $$;
+DO $$
+BEGIN
+  INSERT INTO storage.objects (bucket_id, name)
+  VALUES ('products', '00000000-0000-0000-0000-000000000001/./x.jpg');
+  RAISE EXCEPTION 'ASSERT FAILED: dot segment under the company was stored';
 EXCEPTION WHEN insufficient_privilege THEN NULL;
 END $$;
 DO $$
@@ -433,7 +456,185 @@ VALUES (
 SELECT public.t_assert(
   EXISTS (SELECT 1 FROM public.orders WHERE id = '00000000-0000-0000-0000-0000000000d9'),
   'customer can still insert an order');
+INSERT INTO public.order_items (id, order_id, product_id, quantity)
+VALUES (
+  '00000000-0000-0000-0000-0000000000e9',
+  '00000000-0000-0000-0000-0000000000d9',
+  '00000000-0000-0000-0000-000000000011',
+  1
+);
+SELECT public.t_assert(
+  EXISTS (SELECT 1 FROM public.order_items WHERE id = '00000000-0000-0000-0000-0000000000e9'),
+  'customer can add an item while the order is pending');
+DO $$
+BEGIN
+  UPDATE public.orders SET status = 'preparing' WHERE id = '00000000-0000-0000-0000-0000000000d1';
+  RAISE EXCEPTION 'ASSERT FAILED: customer changed status';
+EXCEPTION WHEN raise_exception THEN
+  IF SQLERRM LIKE 'ASSERT FAILED%' THEN RAISE; END IF;
+END $$;
+DO $$
+BEGIN
+  UPDATE public.orders SET total_amount = 1 WHERE id = '00000000-0000-0000-0000-0000000000d1';
+  RAISE EXCEPTION 'ASSERT FAILED: customer changed total';
+EXCEPTION WHEN raise_exception THEN
+  IF SQLERRM LIKE 'ASSERT FAILED%' THEN RAISE; END IF;
+END $$;
+DO $$
+BEGIN
+  UPDATE public.orders
+  SET company_id = '00000000-0000-0000-0000-000000000002'
+  WHERE id = '00000000-0000-0000-0000-0000000000d1';
+  RAISE EXCEPTION 'ASSERT FAILED: customer changed company';
+EXCEPTION WHEN raise_exception THEN
+  IF SQLERRM LIKE 'ASSERT FAILED%' THEN RAISE; END IF;
+END $$;
+SELECT public.t_assert(
+  (SELECT status FROM public.orders WHERE id = '00000000-0000-0000-0000-0000000000d1') = 'pending'
+  AND (SELECT total_amount FROM public.orders WHERE id = '00000000-0000-0000-0000-0000000000d1') = 12
+  AND (SELECT company_id FROM public.orders WHERE id = '00000000-0000-0000-0000-0000000000d1')
+      = '00000000-0000-0000-0000-000000000001',
+  'customer status, total and company stay unchanged');
 ROLLBACK;
+
+BEGIN;
+SELECT public.t_as('authenticated', '00000000-0000-0000-0000-0000000000c1');
+DO $$
+BEGIN
+  INSERT INTO public.orders (id, company_id, customer_id, status)
+  VALUES (
+    '00000000-0000-0000-0000-0000000000da',
+    '00000000-0000-0000-0000-000000000002',
+    '00000000-0000-0000-0000-0000000000c1',
+    'pending'
+  );
+  RAISE EXCEPTION 'ASSERT FAILED: customer inserted another company';
+EXCEPTION WHEN insufficient_privilege THEN NULL;
+END $$;
+DO $$
+BEGIN
+  INSERT INTO public.orders (id, company_id, customer_id, status)
+  VALUES (
+    '00000000-0000-0000-0000-0000000000db',
+    '00000000-0000-0000-0000-000000000001',
+    '00000000-0000-0000-0000-0000000000c2',
+    'pending'
+  );
+  RAISE EXCEPTION 'ASSERT FAILED: customer inserted another customer id';
+EXCEPTION WHEN insufficient_privilege THEN NULL;
+END $$;
+ROLLBACK;
+
+BEGIN;
+INSERT INTO public.orders (id, company_id, customer_id, status)
+VALUES (
+  '00000000-0000-0000-0000-0000000000d8',
+  '00000000-0000-0000-0000-000000000001',
+  '00000000-0000-0000-0000-0000000000c1',
+  'preparing'
+);
+SELECT public.t_as('authenticated', '00000000-0000-0000-0000-0000000000c1');
+DO $$
+BEGIN
+  INSERT INTO public.order_items (id, order_id, product_id, quantity)
+  VALUES (
+    '00000000-0000-0000-0000-0000000000eb',
+    '00000000-0000-0000-0000-0000000000d8',
+    '00000000-0000-0000-0000-000000000011',
+    1
+  );
+  RAISE EXCEPTION 'ASSERT FAILED: customer added an item to a non-pending order';
+EXCEPTION WHEN insufficient_privilege THEN NULL;
+END $$;
+ROLLBACK;
+
+BEGIN;
+SELECT public.t_as('authenticated', '00000000-0000-0000-0000-0000000000c2');
+DO $$
+BEGIN
+  INSERT INTO public.order_items (id, order_id, product_id, quantity)
+  VALUES (
+    '00000000-0000-0000-0000-0000000000ec',
+    '00000000-0000-0000-0000-0000000000d1',
+    '00000000-0000-0000-0000-000000000011',
+    1
+  );
+  RAISE EXCEPTION 'ASSERT FAILED: another customer added an item';
+EXCEPTION WHEN insufficient_privilege THEN NULL;
+END $$;
+ROLLBACK;
+
+BEGIN;
+SELECT public.t_as('authenticated', '00000000-0000-0000-0000-0000000000a1');
+INSERT INTO public.orders (id, company_id, customer_id, status)
+VALUES (
+  '00000000-0000-0000-0000-0000000000dc',
+  '00000000-0000-0000-0000-000000000001',
+  '00000000-0000-0000-0000-0000000000c1',
+  'accepted'
+);
+INSERT INTO public.order_items (id, order_id, product_id, quantity)
+VALUES (
+  '00000000-0000-0000-0000-0000000000ed',
+  '00000000-0000-0000-0000-0000000000dc',
+  '00000000-0000-0000-0000-000000000011',
+  1
+);
+SELECT public.t_assert(
+  EXISTS (SELECT 1 FROM public.order_items WHERE id = '00000000-0000-0000-0000-0000000000ed'),
+  'admin can insert an order and an item in their company');
+ROLLBACK;
+
+BEGIN;
+SELECT public.t_as('authenticated', '00000000-0000-0000-0000-0000000000b1');
+INSERT INTO public.orders (id, company_id, customer_id, status)
+VALUES (
+  '00000000-0000-0000-0000-0000000000dd',
+  '00000000-0000-0000-0000-000000000001',
+  '00000000-0000-0000-0000-0000000000c1',
+  'pending'
+);
+SELECT public.t_assert(
+  EXISTS (SELECT 1 FROM public.orders WHERE id = '00000000-0000-0000-0000-0000000000dd'),
+  'kiosk can insert an order in their company');
+ROLLBACK;
+
+BEGIN;
+SELECT public.t_as('authenticated', '00000000-0000-0000-0000-0000000000b2');
+DO $$
+BEGIN
+  INSERT INTO public.orders (id, company_id, customer_id, status)
+  VALUES (
+    '00000000-0000-0000-0000-0000000000de',
+    '00000000-0000-0000-0000-000000000001',
+    '00000000-0000-0000-0000-0000000000c1',
+    'pending'
+  );
+  RAISE EXCEPTION 'ASSERT FAILED: kiosk inserted into another company';
+EXCEPTION WHEN insufficient_privilege THEN NULL;
+END $$;
+ROLLBACK;
+
+SELECT public.t_assert(
+  position('customer_id' in pg_get_expr(o.polwithcheck, o.polrelid)) > 0
+  AND position('get_my_company_id' in pg_get_expr(o.polwithcheck, o.polrelid)) > 0
+  AND position('pending' in pg_get_expr(i.polwithcheck, i.polrelid)) > 0
+  AND position('kiosk' in pg_get_expr(o.polwithcheck, o.polrelid)) > 0
+  AND o.polroles = ARRAY[(SELECT oid FROM pg_roles WHERE rolname = 'authenticated')]
+  AND i.polroles = ARRAY[(SELECT oid FROM pg_roles WHERE rolname = 'authenticated')],
+  'order inserts are authenticated and limited to the caller company')
+FROM pg_policy o, pg_policy i
+WHERE o.polname = 'Anyone can create orders' AND i.polname = 'Anyone can create order items';
+
+SELECT public.t_assert(
+  EXISTS (
+    SELECT 1 FROM pg_trigger
+    WHERE tgname = 'trg_prevent_customer_order_tampering' AND NOT tgisinternal
+  )
+  AND position(
+    'ORDER_LOCKED_FOR_CUSTOMER' in pg_get_functiondef('public.prevent_customer_order_tampering()'::regprocedure)
+  ) > 0,
+  'customer status and total lock is installed');
 
 BEGIN;
 SELECT public.t_as('authenticated', '00000000-0000-0000-0000-0000000000a2');

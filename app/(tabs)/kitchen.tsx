@@ -5,6 +5,7 @@
 
 import { View, Text, FlatList, Pressable, ScrollView } from 'react-native';
 import { useViewportWidth } from '@/lib/hooks/useHydrated';
+import { PageTitle } from '@/components/ui/PageTitle';
 import { SkeletonKitchenGrid } from '@/components/ui/Skeleton';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useKitchenOrders } from '@/lib/hooks/useKitchenOrders';
@@ -138,6 +139,7 @@ export default function KitchenScreen() {
   if (error) {
     return (
       <View className="flex-1 bg-background items-center justify-center p-8">
+        <PageTitle page="kitchen" />
         <FontAwesome name="exclamation-triangle" size={44} color="#f59e0b" style={{ marginBottom: 12 }} />
         <Text className="text-foreground font-bold text-xl text-center mb-2">
           Errore nel caricamento
@@ -157,6 +159,7 @@ export default function KitchenScreen() {
 
   return (
     <View className="flex-1 bg-background" style={{ paddingTop: insets.top }}>
+      <PageTitle page="kitchen" />
       {/* Header */}
       <View className={`px-3 md:px-8 ${isMobile ? (isUltraCompact ? 'py-2' : 'py-2.5') : 'py-4'} border-b border-[#e1a255]/35 bg-[#f9ecdd]`}>
         <View className={`flex-row items-center justify-between gap-2 ${isMobile ? 'mb-2' : 'mb-3'}`}>

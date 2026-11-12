@@ -7,6 +7,7 @@
  */
 
 import { Button } from '@/components/ui/Button';
+import { PageTitle } from '@/components/ui/PageTitle';
 import { TurnstileWidget } from '@/components/features/TurnstileWidget';
 import { isAntiabuseError } from '@/lib/utils/antiabuse';
 import { isOrderLineError } from '@/lib/utils/orderLineErrors';
@@ -128,6 +129,7 @@ export default function OneScreenCheckout() {
 
   return (
     <View className="flex-1 bg-background">
+      <PageTitle page="checkout" />
       <ScrollView
         className="flex-1"
         contentContainerClassName="p-4 pb-6 gap-4"
