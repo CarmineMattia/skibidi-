@@ -49,7 +49,21 @@ BEGIN
       allowed_mime_types = EXCLUDED.allowed_mime_types
   $q$;
 
-  EXECUTE $q$ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY$q$;
+  -- storage.objects is owned by supabase_storage_admin on hosted Supabase.
+  -- Migrations run as postgres, which can insert bucket rows and manage
+  -- policies, but cannot change ownership or row-level-security flags.
+  -- RLS is already enabled in production. A database that left it off gets
+  -- a warning; this block never issues owner-only DDL.
+  IF EXISTS (
+    SELECT 1
+    FROM pg_class c
+    JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE n.nspname = 'storage'
+      AND c.relname = 'objects'
+      AND c.relrowsecurity IS NOT TRUE
+  ) THEN
+    RAISE WARNING '20261111234500: storage.objects.relrowsecurity is false; skipped enabling row level security because postgres does not own that table on hosted Supabase';
+  END IF;
 END
 $storage$;
 
@@ -96,7 +110,7 @@ BEGIN
     -- Any products policy that does not call is_admin() is the old broad read
     -- or the old "any authenticated user can write" rule.
     IF expr ILIKE '%products%' AND expr NOT ILIKE '%is_admin%' THEN
-      EXECUTE format('DROP POLICY %I ON storage.objects', r.polname);
+      EXECUTE format('DROP POLICY IF EXISTS %I ON storage.objects', r.polname);
     END IF;
   END LOOP;
 

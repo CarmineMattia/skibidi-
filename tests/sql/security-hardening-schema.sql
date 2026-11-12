@@ -4,6 +4,11 @@
 CREATE ROLE anon;
 CREATE ROLE authenticated;
 CREATE ROLE service_role;
+-- Hosted Supabase owns storage.objects and storage.buckets as this role.
+CREATE ROLE supabase_storage_admin NOLOGIN;
+-- PGlite's session user is a superuser, so it skips the owner check that
+-- rejects the real postgres migration role. This role is that non-owner.
+CREATE ROLE hosted_postgres NOLOGIN NOSUPERUSER NOBYPASSRLS;
 CREATE SCHEMA auth;
 GRANT USAGE ON SCHEMA public, auth TO anon, authenticated, service_role;
 
@@ -273,13 +278,48 @@ CREATE TABLE storage.objects (
   name text
 );
 ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
+ALTER TABLE storage.objects OWNER TO supabase_storage_admin;
+ALTER TABLE storage.buckets OWNER TO supabase_storage_admin;
+
+-- Vanilla Postgres uses the same owner check for ALTER TABLE and for
+-- CREATE/DROP POLICY. Hosted Supabase does not: postgres may manage policies
+-- and bucket rows, and must not alter the storage tables. PGlite cannot split
+-- those checks by role membership (INHERIT would allow both). This trigger
+-- raises the hosted 42501 for owner DDL while policy DDL stays allowed.
+CREATE FUNCTION public.reject_hosted_storage_owner_ddl()
+RETURNS event_trigger
+LANGUAGE plpgsql
+AS $$
+DECLARE
+  cmd record;
+BEGIN
+  FOR cmd IN
+    SELECT schema_name, object_identity, command_tag
+    FROM pg_event_trigger_ddl_commands()
+  LOOP
+    IF cmd.command_tag = 'ALTER TABLE'
+       AND cmd.schema_name = 'storage'
+       AND cmd.object_identity IN ('storage.objects', 'storage.buckets') THEN
+      RAISE EXCEPTION 'must be owner of table %', split_part(cmd.object_identity, '.', 2)
+        USING ERRCODE = '42501';
+    END IF;
+  END LOOP;
+END;
+$$;
+
+CREATE EVENT TRIGGER reject_hosted_storage_owner_ddl
+  ON ddl_command_end
+  WHEN TAG IN ('ALTER TABLE')
+  EXECUTE FUNCTION public.reject_hosted_storage_owner_ddl();
+
 INSERT INTO storage.objects (bucket_id, name) VALUES ('products', 'legacy-flat.jpg');
 
 -- Hosted-style grants: client roles can touch every table, including ones RLS
 -- has no policy for. The migration must take those back.
 GRANT ALL ON ALL TABLES IN SCHEMA public TO anon, authenticated, service_role;
-GRANT USAGE ON SCHEMA storage TO anon, authenticated, service_role;
+GRANT USAGE ON SCHEMA storage TO anon, authenticated, service_role, hosted_postgres;
 GRANT ALL ON storage.buckets, storage.objects TO anon, authenticated, service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON storage.buckets, storage.objects TO hosted_postgres;
 GRANT ALL ON TABLE public.order_daily_counters, public.internal_probe TO PUBLIC;
 ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public
   GRANT EXECUTE ON FUNCTIONS TO anon, authenticated, service_role;

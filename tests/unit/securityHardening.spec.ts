@@ -53,6 +53,39 @@ describe('checkout', () => {
   });
 });
 
+describe('migration sul progetto ospitato', () => {
+  const storageAlter = /ALTER\s+TABLE\s+(IF\s+EXISTS\s+)?(ONLY\s+)?storage\./i;
+  const unsafeStorageDrop = /DROP\s+POLICY\s+(?!IF\s+EXISTS)[^;]*\bON\s+storage\./i;
+  const managedAlter = /ALTER\s+TABLE\s+(IF\s+EXISTS\s+)?(ONLY\s+)?(auth|realtime)\./i;
+
+  it('nessun file in supabase/migrations contiene ALTER TABLE storage.', () => {
+    const dir = path.join(root, 'supabase/migrations');
+    for (const name of fs.readdirSync(dir).filter((file) => file.endsWith('.sql'))) {
+      const sql = fs.readFileSync(path.join(dir, name), 'utf8');
+      expect(sql, name).not.toMatch(storageAlter);
+    }
+  });
+
+  it('le tre migration di #57 non richiedono il proprietario di storage, auth o realtime', () => {
+    const files = [
+      'supabase/migrations/20261111234500_security_hardening.sql',
+      'supabase/migrations/20261112003000_company_storage_and_orders_anon.sql',
+      'supabase/migrations/20261112010000_order_item_price_and_company.sql',
+    ];
+    for (const rel of files) {
+      const sql = read(rel);
+      expect(sql, rel).not.toMatch(storageAlter);
+      expect(sql, rel).not.toMatch(managedAlter);
+      expect(sql, rel).not.toMatch(/FORCE\s+ROW\s+LEVEL\s+SECURITY/i);
+      expect(sql, rel).not.toMatch(unsafeStorageDrop);
+    }
+    const first = read(files[0]);
+    expect(first).toContain('relrowsecurity');
+    expect(first).toContain('RAISE WARNING');
+    expect(first).toContain('DROP POLICY IF EXISTS %I ON storage.objects');
+  });
+});
+
 describe('ruolo del profilo', () => {
   it('il client non scrive profiles.role', () => {
     const src = read('lib/stores/AuthContext.tsx');
