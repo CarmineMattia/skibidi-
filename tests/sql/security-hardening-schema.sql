@@ -192,6 +192,14 @@ CREATE POLICY products_insert ON public.products FOR INSERT TO authenticated
   WITH CHECK (public.is_admin() AND company_id = public.get_my_company_id());
 CREATE POLICY orders_select ON public.orders FOR SELECT
   USING (auth.uid() = customer_id OR (public.is_admin() AND company_id = public.get_my_company_id()));
+-- Leftover from the early RLS script: applies to PUBLIC, so anon still matches it
+-- until 20261112003000 pins every orders policy to authenticated.
+CREATE POLICY "Users can view own orders" ON public.orders FOR SELECT
+  USING (customer_id = auth.uid() OR EXISTS (
+    SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role IN ('admin', 'kiosk')
+  ));
+CREATE POLICY "Anyone can create orders" ON public.orders FOR INSERT
+  WITH CHECK (auth.uid() IS NOT NULL);
 CREATE POLICY staff_read_only_select ON public.staff_read_only FOR SELECT TO authenticated USING (true);
 
 INSERT INTO public.companies (id, name, active) VALUES
@@ -228,9 +236,28 @@ INSERT INTO public.orders (
   'Mario Rossi', '+39 333 0000000', 'Via Roma 1', 'citofono Rossi', 'forno pieno', 12
 );
 
+-- Minimal storage catalog so the products policies can be created and checked.
+CREATE SCHEMA IF NOT EXISTS storage;
+CREATE TABLE storage.buckets (
+  id text PRIMARY KEY,
+  name text,
+  public boolean,
+  file_size_limit bigint,
+  allowed_mime_types text[]
+);
+CREATE TABLE storage.objects (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  bucket_id text,
+  name text
+);
+ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
+INSERT INTO storage.objects (bucket_id, name) VALUES ('products', 'legacy-flat.jpg');
+
 -- Hosted-style grants: client roles can touch every table, including ones RLS
 -- has no policy for. The migration must take those back.
 GRANT ALL ON ALL TABLES IN SCHEMA public TO anon, authenticated, service_role;
+GRANT USAGE ON SCHEMA storage TO anon, authenticated, service_role;
+GRANT ALL ON storage.buckets, storage.objects TO anon, authenticated, service_role;
 GRANT ALL ON TABLE public.order_daily_counters, public.internal_probe TO PUBLIC;
 ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public
   GRANT EXECUTE ON FUNCTIONS TO anon, authenticated, service_role;

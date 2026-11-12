@@ -153,6 +153,17 @@ SELECT public.t_assert(
   AND (SELECT full_name FROM public.profiles WHERE id = '00000000-0000-0000-0000-0000000000f1') = 'Attacco',
   'two active companies: metadata company and role are ignored');
 
+INSERT INTO auth.users (id, email, raw_user_meta_data) VALUES (
+  '00000000-0000-0000-0000-0000000000f4',
+  'giulia@example.test',
+  '{"name":"Giulia Google","role":"admin","company_id":"00000000-0000-0000-0000-000000000002","picture":"https://example.test/giulia.png"}'::jsonb
+);
+SELECT public.t_assert(
+  (SELECT full_name FROM public.profiles WHERE id = '00000000-0000-0000-0000-0000000000f4') = 'Giulia Google'
+  AND (SELECT role FROM public.profiles WHERE id = '00000000-0000-0000-0000-0000000000f4') = 'customer'
+  AND (SELECT company_id FROM public.profiles WHERE id = '00000000-0000-0000-0000-0000000000f4') IS NULL,
+  'google name is copied when full_name is missing; role and company are not');
+
 UPDATE public.companies SET active = false WHERE id = '00000000-0000-0000-0000-000000000002';
 INSERT INTO auth.users (id, email, raw_user_meta_data) VALUES (
   '00000000-0000-0000-0000-0000000000f2',
@@ -251,5 +262,103 @@ SELECT public.t_assert(
   (SELECT role FROM public.profiles WHERE id = '00000000-0000-0000-0000-0000000000f3') = 'customer'
   AND (SELECT company_id FROM public.profiles WHERE id = '00000000-0000-0000-0000-0000000000f3') = '00000000-0000-0000-0000-000000000001',
   'self-heal insert gets customer and the default company');
+
+-- 5) anon cannot read or write orders. Policies are TO authenticated.
+SELECT public.t_assert(
+  NOT has_table_privilege('anon', 'public.orders', 'SELECT')
+  AND NOT has_table_privilege('anon', 'public.orders', 'INSERT')
+  AND NOT has_table_privilege('anon', 'public.orders', 'UPDATE')
+  AND NOT has_table_privilege('anon', 'public.orders', 'DELETE')
+  AND NOT has_table_privilege('anon', 'public.order_items', 'SELECT')
+  AND NOT has_table_privilege('anon', 'public.order_items', 'INSERT')
+  AND NOT has_table_privilege('anon', 'public.order_items', 'UPDATE')
+  AND NOT has_table_privilege('anon', 'public.order_items', 'DELETE')
+  AND has_table_privilege('authenticated', 'public.orders', 'SELECT')
+  AND NOT has_table_privilege('authenticated', 'public.order_items', 'UPDATE')
+  AND NOT has_table_privilege('authenticated', 'public.order_items', 'DELETE'),
+  'anon has no privileges on orders or order_items');
+DO $$
+DECLARE n integer;
+BEGIN
+  SELECT count(*) INTO n
+  FROM pg_policy pol
+  JOIN pg_class c ON c.oid = pol.polrelid
+  JOIN pg_namespace ns ON ns.oid = c.relnamespace
+  WHERE ns.nspname = 'public'
+    AND c.relname IN ('orders', 'order_items')
+    AND (
+      coalesce(cardinality(pol.polroles), 0) = 0
+      OR 0::oid = ANY (coalesce(pol.polroles, ARRAY[]::oid[]))
+      OR EXISTS (
+        SELECT 1 FROM pg_roles r
+        WHERE r.rolname = 'anon' AND r.oid = ANY (coalesce(pol.polroles, ARRAY[]::oid[]))
+      )
+    );
+  IF n <> 0 THEN
+    RAISE EXCEPTION 'orders policies still apply to anon or public (%)', n;
+  END IF;
+END $$;
+
+-- 6) Product images: writes need the company prefix. Flat objects stay listable by staff.
+SELECT public.t_assert(
+  (SELECT "public" FROM storage.buckets WHERE id = 'products')
+  AND (SELECT file_size_limit FROM storage.buckets WHERE id = 'products') = 5242880,
+  'products bucket stays public with the 5 MB cap');
+SELECT public.t_assert(
+  position('split_part' in pg_get_expr(pol.polwithcheck, pol.polrelid)) > 0
+  AND position('is_admin' in pg_get_expr(pol.polwithcheck, pol.polrelid)) > 0
+  AND position('split_part' in coalesce(pg_get_expr(sel.polqual, sel.polrelid), '')) = 0,
+  'writes check the company prefix; staff listing of flat paths does not')
+FROM pg_policy pol, pg_policy sel
+WHERE pol.polname = 'products_images_staff_insert'
+  AND sel.polname = 'products_images_staff_select';
+
+BEGIN;
+SELECT public.t_as('authenticated', '00000000-0000-0000-0000-0000000000a1');
+INSERT INTO storage.objects (bucket_id, name)
+VALUES ('products', '00000000-0000-0000-0000-000000000001/pizza.webp');
+SELECT public.t_assert(
+  EXISTS (SELECT 1 FROM storage.objects WHERE name = 'legacy-flat.jpg'),
+  'admin can still read a flat-path product image');
+DO $$
+BEGIN
+  INSERT INTO storage.objects (bucket_id, name) VALUES ('products', 'flat-new.jpg');
+  RAISE EXCEPTION 'ASSERT FAILED: admin wrote a flat path';
+EXCEPTION WHEN insufficient_privilege THEN NULL;
+END $$;
+DO $$
+BEGIN
+  INSERT INTO storage.objects (bucket_id, name)
+  VALUES ('products', '00000000-0000-0000-0000-000000000002/pizza.webp');
+  RAISE EXCEPTION 'ASSERT FAILED: admin wrote another company prefix';
+EXCEPTION WHEN insufficient_privilege THEN NULL;
+END $$;
+ROLLBACK;
+
+BEGIN;
+SELECT public.t_as('authenticated', '00000000-0000-0000-0000-0000000000c1');
+DO $$
+BEGIN
+  INSERT INTO storage.objects (bucket_id, name)
+  VALUES ('products', '00000000-0000-0000-0000-000000000001/customer.webp');
+  RAISE EXCEPTION 'ASSERT FAILED: customer wrote a product image';
+EXCEPTION WHEN insufficient_privilege THEN NULL;
+END $$;
+ROLLBACK;
+
+-- Avatar column is optional. When it exists, picture/avatar_url is copied.
+ALTER TABLE public.profiles ADD COLUMN avatar_url text;
+INSERT INTO auth.users (id, email, raw_user_meta_data) VALUES (
+  '00000000-0000-0000-0000-0000000000f5',
+  'avatar@example.test',
+  '{"name":"Ada Avatar","role":"kiosk","company_id":"00000000-0000-0000-0000-000000000002","picture":"https://example.test/ada.png"}'::jsonb
+);
+SELECT public.t_assert(
+  (SELECT full_name FROM public.profiles WHERE id = '00000000-0000-0000-0000-0000000000f5') = 'Ada Avatar'
+  AND (SELECT role FROM public.profiles WHERE id = '00000000-0000-0000-0000-0000000000f5') = 'customer'
+  AND (SELECT avatar_url FROM public.profiles WHERE id = '00000000-0000-0000-0000-0000000000f5') = 'https://example.test/ada.png'
+  AND (SELECT company_id FROM public.profiles WHERE id = '00000000-0000-0000-0000-0000000000f5')
+      IS NOT DISTINCT FROM public.default_customer_company_id(),
+  'avatar column receives the Google picture; role and company stay server-side');
 
 SELECT 'PASS: security hardening grants, tracking, signup, role lock' AS result;

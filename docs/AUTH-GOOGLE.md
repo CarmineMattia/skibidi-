@@ -77,7 +77,8 @@ cambiare la password di `admin@skibidi.com`.
 - `handle_new_user` non legge `role` né `company_id` da `raw_user_meta_data`.
   Il profilo nuovo è `customer`. La company è quella scelta dal database
   (`default_customer_company_id`: l'unica company attiva; se non ce n'è una sola,
-  resta vuota). La promozione ad admin si fa dal SQL editor, come nello snippet sopra.
+  resta vuota). Il nome è `full_name` oppure, se manca, il `name` di Google.
+  La promozione ad admin si fa dal SQL editor, come nello snippet sopra.
 - Il client non aggiorna `profiles.role` né `profiles.company_id` (niente
   `setUserRole`). I grant di colonna e il trigger rifiutano la scrittura anche
   se qualcuno chiama l'API a mano.
