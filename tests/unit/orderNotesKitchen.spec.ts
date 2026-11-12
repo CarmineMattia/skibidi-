@@ -93,6 +93,29 @@ describe('kitchen card / print: everything after "Nota:" is customer text', () =
       expect(html).not.toContain('Taglia: Mezzo metro ·');
     }
   });
+
+  it('documento commerciale: sconto punti confermato accanto al totale lordo, richiesta ancora da confermare', () => {
+    const base = {
+      id: 'o1', displayCode: 'Ordine #1', createdAt: '2026-10-20T10:00:00Z', orderType: 'take_away',
+      tableNumber: null, customerName: null, customerPhone: null, deliveryAddress: null, notes: null,
+      fiscalExternalId: null,
+      items: [{ name: 'Margherita', quantity: 1, unitPrice: 25, totalPrice: 25, notes: null }],
+    };
+    const confirmed = buildDocumentoCommercialeHtml({
+      ...base, totalAmount: 25, pointsRequested: 100, pointsRedeemed: 100, pointsDiscountEur: 5,
+    }, null);
+    expect(confirmed).toContain('TOTALE COMPLESSIVO');
+    expect(confirmed).toContain('€ 25,00');
+    expect(confirmed).toContain('Sconto punti Skibidi Coin -€5.00');
+    expect(confirmed).toContain('Importo da pagare');
+    expect(confirmed).toContain('€ 20,00');
+    const requested = buildDocumentoCommercialeHtml({
+      ...base, totalAmount: 25, pointsRequested: 100, pointsRedeemed: null, pointsDiscountEur: null,
+    }, null);
+    expect(requested).toContain('Punti richiesti: da confermare in cassa');
+    expect(requested).not.toContain('Sconto punti Skibidi Coin');
+    expect(requested).toContain('€ 25,00');
+  });
 });
 
 describe('order line errors → clear messages', () => {

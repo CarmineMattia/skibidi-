@@ -19,6 +19,7 @@ import {
   isAddressInDeliveryZone,
 } from '@/lib/utils/deliveryZone';
 import { formatOrderItemNotes } from '@/lib/utils/orderItemDetails';
+import { loyaltyUserMessage, LoyaltyUserError } from '@/lib/loyalty/errors';
 import { resolveOrderTotals, type ResolvedOrderTotals, type ServerOrderResponse } from '@/lib/utils/serverOrderTotals';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRef } from 'react';
@@ -216,6 +217,8 @@ export function useCreateOrder() {
         if (antiabuseMessage) throw new AntiabuseError(antiabuseMessage);
         const lineError = toOrderLineError(orderError, items, lang);
         if (lineError) throw lineError;
+        const loyaltyMessage = loyaltyUserMessage(orderError);
+        if (loyaltyMessage) throw new LoyaltyUserError(loyaltyMessage);
         throw new Error(`Impossibile inviare l’ordine: ${orderError?.message ?? 'salvataggio non confermato'}`);
       }
       const saved = persisted as ServerOrderResponse;

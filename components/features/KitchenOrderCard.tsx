@@ -53,6 +53,9 @@ function kitchenOrderToPrintData(order: KitchenOrder): PrintOrderData {
     deliveryAddress: order.delivery_address,
     notes: order.notes,
     totalAmount: order.total_amount,
+    pointsRequested: order.points_requested,
+    pointsRedeemed: order.points_redeemed,
+    pointsDiscountEur: order.points_discount_eur,
     fiscalExternalId: order.fiscal_external_id,
     items: (order.order_items ?? []).map((item) => {
       const product = Array.isArray(item.product) ? item.product[0] : item.product;

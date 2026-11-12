@@ -115,6 +115,89 @@ export function canRequestPoints(input: {
   return input.authenticated && input.role === 'customer' && input.enabled;
 }
 
+export const POINTS_REQUESTED_LINE = 'Punti richiesti: da confermare in cassa';
+export const AMOUNT_DUE_LABEL = 'Importo da pagare';
+
+export type PointsTrackingKind = 'requested' | 'confirmed' | 'not_applied';
+
+export interface PointsTrackingStatus {
+  kind: PointsTrackingKind;
+  label: string;
+}
+
+/** Stato mostrato nel tracking. Senza i campi punti il payload è quello vecchio e non si inventa una riga. */
+export function pointsTrackingStatus(input: {
+  pointsRequested?: number | null;
+  pointsRedeemed?: number | null;
+  pointsDiscountEur?: number | null;
+  pointsConfirmedAt?: string | null;
+  orderStatus?: string | null;
+}): PointsTrackingStatus | null {
+  const hasPointsFields = input.pointsRequested != null
+    || input.pointsRedeemed != null
+    || input.pointsConfirmedAt != null
+    || input.pointsDiscountEur != null;
+  if (!hasPointsFields) return null;
+
+  const redeemed = Number(input.pointsRedeemed ?? 0);
+  const confirmed = input.pointsConfirmedAt != null || (input.pointsRedeemed != null && redeemed > 0);
+  if (confirmed) {
+    const discount = Number(input.pointsDiscountEur ?? 0);
+    return {
+      kind: 'confirmed',
+      label: discount > 0
+        ? `Sconto punti confermato in cassa: €${discount.toFixed(2)}`
+        : 'Sconto punti confermato in cassa',
+    };
+  }
+
+  const requested = Number(input.pointsRequested ?? 0);
+  const closed = input.orderStatus === 'cancelled' || input.orderStatus === 'rejected';
+  if (requested > 0 && !closed) {
+    return { kind: 'requested', label: POINTS_REQUESTED_LINE };
+  }
+  return { kind: 'not_applied', label: 'Sconto punti non applicato' };
+}
+
+export function pointsDiscountLine(discountEur: number): string {
+  return `Sconto punti Skibidi Coin -€${discountEur.toFixed(2)}`;
+}
+
+/** Quanto resta da pagare in cassa. Il total_amount dell'ordine non cambia. */
+export function receiptAmountDue(totalAmount: number, discountEur: number): number {
+  const total = Number.isFinite(totalAmount) ? totalAmount : 0;
+  const discount = Number.isFinite(discountEur) && discountEur > 0 ? discountEur : 0;
+  const due = total - discount;
+  return Math.round((due < 0 ? 0 : due) * 100) / 100;
+}
+
+export type ReceiptPointsView =
+  | { kind: 'confirmed'; discountLine: string; discountEur: number; amountDue: number }
+  | { kind: 'requested'; line: string }
+  | { kind: 'none' };
+
+export function receiptPointsView(input: {
+  totalAmount: number;
+  pointsRequested?: number | null;
+  pointsRedeemed?: number | null;
+  pointsDiscountEur?: number | null;
+}): ReceiptPointsView {
+  const discount = Number(input.pointsDiscountEur ?? 0);
+  const redeemed = Number(input.pointsRedeemed ?? 0);
+  if (input.pointsRedeemed != null && redeemed > 0 && discount > 0) {
+    return {
+      kind: 'confirmed',
+      discountLine: pointsDiscountLine(discount),
+      discountEur: discount,
+      amountDue: receiptAmountDue(input.totalAmount, discount),
+    };
+  }
+  if (Number(input.pointsRequested ?? 0) > 0) {
+    return { kind: 'requested', line: POINTS_REQUESTED_LINE };
+  }
+  return { kind: 'none' };
+}
+
 export function parseLoyaltySummary(raw: unknown): LoyaltySummary {
   const row = asRecord(raw);
   return {

@@ -14,6 +14,7 @@ import { isOrderLineError } from '@/lib/utils/orderLineErrors';
 import { PointsRequestToggle } from '@/components/features/loyalty/PointsRequestToggle';
 import { useCreateOrder } from '@/lib/hooks/useCreateOrder';
 import { useLoyaltySummary } from '@/lib/hooks/useLoyalty';
+import { loyaltyUserMessage } from '@/lib/loyalty/errors';
 import { canRequestPoints, clampPointsRequest, maxRedeemablePoints } from '@/lib/loyalty/points';
 import { useAuth } from '@/lib/stores/AuthContext';
 import { useOrderSubmissionGuard } from '@/lib/hooks/useOrderSubmissionGuard';
@@ -125,9 +126,10 @@ export default function OneScreenCheckout() {
       }
       // Messaggio in pagina: Alert.alert non compare sul web.
       setSubmissionError(
-        isAntiabuseError(error)
+        loyaltyUserMessage(error)
+        ?? (isAntiabuseError(error)
           ? error.message
-          : 'Non abbiamo ricevuto la conferma del tuo ordine. Riprova. Se il problema continua, contatta la pizzeria.'
+          : 'Non abbiamo ricevuto la conferma del tuo ordine. Riprova. Se il problema continua, contatta la pizzeria.')
       );
     }
   }, [

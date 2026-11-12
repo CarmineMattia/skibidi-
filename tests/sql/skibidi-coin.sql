@@ -428,5 +428,48 @@ SELECT public.t_clear();
 -- PGlite ha una sola sessione: il secondo riscatto qui sopra è il controllo
 -- di non andare sotto zero dopo che il primo ha preso il lock e scritto.
 -- Il FOR UPDATE è affermato sul sorgente della funzione.
+
+-- 11) Tracking: punti sì, dati del cliente no. Proprietario o staff della company.
+SELECT public.t_assert(
+  NOT has_function_privilege('anon', 'public.get_order_tracking(uuid)', 'EXECUTE')
+  AND position('points_requested' in pg_get_functiondef('public.get_order_tracking(uuid)'::regprocedure)) > 0
+  AND position('customer_name' in pg_get_functiondef('public.get_order_tracking(uuid)'::regprocedure)) = 0,
+  'tracking exposes points and not the customer name');
+SAVEPOINT skibidi_sp_20;
+SELECT public.t_as('authenticated', '00000000-0000-0000-0000-0000000000c1');
+SELECT public.t_assert(
+  (public.get_order_tracking('00000000-0000-0000-0000-000000000108')->>'points_redeemed')::integer = 150
+  AND (public.get_order_tracking('00000000-0000-0000-0000-000000000108')->>'points_discount_eur')::numeric = 15
+  AND (public.get_order_tracking('00000000-0000-0000-0000-000000000106')->>'points_requested')::integer = 100
+  AND (public.get_order_tracking('00000000-0000-0000-0000-000000000106')->>'points_redeemed') IS NULL
+  AND NOT (public.get_order_tracking('00000000-0000-0000-0000-000000000108') ? 'customer_name')
+  AND NOT (public.get_order_tracking('00000000-0000-0000-0000-000000000108') ? 'customer_phone')
+  AND NOT (public.get_order_tracking('00000000-0000-0000-0000-000000000108') ? 'delivery_address')
+  AND NOT (public.get_order_tracking('00000000-0000-0000-0000-000000000108') ? 'notes')
+  AND NOT (public.get_order_tracking('00000000-0000-0000-0000-000000000108') ? 'points_confirmed_by'),
+  'owner sees the points status without personal data');
+ROLLBACK TO SAVEPOINT skibidi_sp_20;
+SELECT public.t_clear();
+SAVEPOINT skibidi_sp_21;
+SELECT public.t_as('authenticated', '00000000-0000-0000-0000-0000000000a2');
+SELECT public.t_assert(
+  public.get_order_tracking('00000000-0000-0000-0000-000000000108') IS NULL,
+  'other company staff cannot track the order');
+ROLLBACK TO SAVEPOINT skibidi_sp_21;
+SELECT public.t_clear();
+SAVEPOINT skibidi_sp_22;
+SELECT public.t_as('authenticated', '00000000-0000-0000-0000-0000000000c2');
+SELECT public.t_assert(
+  public.get_order_tracking('00000000-0000-0000-0000-000000000108') IS NULL,
+  'another customer cannot track the order');
+ROLLBACK TO SAVEPOINT skibidi_sp_22;
+SELECT public.t_clear();
+SAVEPOINT skibidi_sp_23;
+SELECT public.t_as('anon', NULL);
+SELECT public.t_expect_detail(
+  $$SELECT public.get_order_tracking('00000000-0000-0000-0000-000000000108')$$,
+  'permission denied');
+ROLLBACK TO SAVEPOINT skibidi_sp_23;
+SELECT public.t_clear();
 SELECT 'skibidi coin ok' AS status;
 COMMIT;

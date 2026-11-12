@@ -48,6 +48,9 @@ CREATE TABLE public.orders (
   display_code text,
   accepted_at timestamptz,
   accepted_by uuid,
+  decline_reason_preset text,
+  decline_reason_note text,
+  declined_at timestamptz,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
 );
@@ -155,6 +158,56 @@ INSERT INTO public.profiles (id, role, email, full_name, company_id) VALUES
   ('00000000-0000-0000-0000-0000000000c1', 'customer', 'anna@example.test', 'Anna Rossi', '00000000-0000-0000-0000-000000000001'),
   ('00000000-0000-0000-0000-0000000000c2', 'customer', 'bruno@example.test', 'Bruno Verdi', '00000000-0000-0000-0000-000000000002'),
   ('00000000-0000-0000-0000-0000000000d1', 'kiosk', 'kiosk@example.test', 'Cassa', '00000000-0000-0000-0000-000000000001');
+
+-- Forma ristretta di get_order_tracking (20261111234500), senza i campi punti:
+-- la migration successiva li aggiunge e non deve rimettere i dati del cliente.
+CREATE FUNCTION public.get_order_tracking(p_order_id uuid)
+RETURNS jsonb
+LANGUAGE plpgsql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v jsonb;
+BEGIN
+  IF auth.uid() IS NULL THEN
+    RETURN NULL;
+  END IF;
+  SELECT jsonb_build_object(
+    'id', o.id,
+    'status', o.status,
+    'created_at', o.created_at,
+    'updated_at', o.updated_at,
+    'accepted_at', o.accepted_at,
+    'display_code', o.display_code,
+    'order_type', o.order_type,
+    'table_number', o.table_number,
+    'decline_reason_preset', o.decline_reason_preset,
+    'decline_reason_note', o.decline_reason_note,
+    'declined_at', o.declined_at
+  )
+  INTO v
+  FROM public.orders o
+  WHERE o.id = p_order_id
+    AND (
+      o.customer_id = auth.uid()
+      OR (
+        coalesce(public.is_admin(), false)
+        AND o.company_id IS NOT DISTINCT FROM public.get_my_company_id()
+      )
+      OR EXISTS (
+        SELECT 1 FROM public.profiles p
+        WHERE p.id = auth.uid()
+          AND p.role = 'kiosk'::public.user_role
+          AND p.company_id IS NOT DISTINCT FROM o.company_id
+      )
+    );
+  RETURN v;
+END;
+$$;
+REVOKE ALL ON FUNCTION public.get_order_tracking(uuid) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.get_order_tracking(uuid) TO authenticated;
 
 -- Stub con gli stessi frammenti di create_order_with_items (20261022100000),
 -- così la migration può collegare la richiesta punti e il test lo verifica.

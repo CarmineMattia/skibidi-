@@ -9,6 +9,7 @@
  */
 
 import { BRAND, BRAND_LOGO } from '@/lib/data/brand';
+import { AMOUNT_DUE_LABEL, receiptPointsView } from '@/lib/loyalty/points';
 import { getOrderDisplayCode } from '@/lib/utils/orderDisplayCode';
 import { cleanKitchenOrderNotes, parseOrderItemNotes } from '@/lib/utils/orderItemDetails';
 import { Asset } from 'expo-asset';
@@ -34,7 +35,10 @@ export interface PrintOrderData {
   customerPhone?: string | null;
   deliveryAddress?: string | null;
   notes?: string | null;
-  totalAmount: number; // euro
+  totalAmount: number; // euro, lordo. Lo sconto punti non lo modifica.
+  pointsRequested?: number | null;
+  pointsRedeemed?: number | null;
+  pointsDiscountEur?: number | null;
   fiscalExternalId?: string | null;
   items: PrintOrderItem[];
 }
@@ -208,6 +212,19 @@ export function buildDocumentoCommercialeHtml(order: PrintOrderData, logoSrc: st
     })
     .join('');
 
+  const pointsView = receiptPointsView({
+    totalAmount: order.totalAmount,
+    pointsRequested: order.pointsRequested,
+    pointsRedeemed: order.pointsRedeemed,
+    pointsDiscountEur: order.pointsDiscountEur,
+  });
+  const pointsHtml = pointsView.kind === 'confirmed'
+    ? `<div class="row"><span>${escapeHtml(pointsView.discountLine)}</span></div>
+  <div class="row bold"><span>${escapeHtml(AMOUNT_DUE_LABEL)}</span><span>€ ${formatEuro(pointsView.amountDue)}</span></div>`
+    : pointsView.kind === 'requested'
+      ? `<div class="row"><span>${escapeHtml(pointsView.line)}</span></div>`
+      : '';
+
   const fiscalFooter = order.fiscalExternalId
     ? `<div class="center small">Rif. scontrino RT: ${escapeHtml(order.fiscalExternalId)}</div>`
     : '';
@@ -231,6 +248,7 @@ export function buildDocumentoCommercialeHtml(order: PrintOrderData, logoSrc: st
   </table>
   <div class="divider"></div>
   <div class="row bold"><span>TOTALE COMPLESSIVO</span><span>€ ${formatEuro(order.totalAmount)}</span></div>
+  ${pointsHtml}
   <div class="row small"><span>di cui IVA (${VAT_RATE}%)</span><span>€ ${formatEuro(vatAmount)}</span></div>
   <div class="divider"></div>
   <div class="row"><span>${escapeHtml(paymentLabel)}</span><span>€ ${formatEuro(order.totalAmount)}</span></div>

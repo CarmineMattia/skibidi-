@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest';
+import { LoyaltyUserError, loyaltyUserMessage } from '../../lib/loyalty/errors';
 import * as loyalty from '../../lib/loyalty/points';
 
 describe('Skibidi Coin fase 1', () => {
@@ -72,7 +73,9 @@ describe('Skibidi Coin fase 1', () => {
 
   test('fase 1 non espone un acquisto di punti', () => {
     expect(Object.keys(loyalty).sort()).toEqual([
+      'AMOUNT_DUE_LABEL',
       'LOYALTY_RULES',
+      'POINTS_REQUESTED_LINE',
       'POINTS_REQUEST_CAPTION',
       'canRequestPoints',
       'clampPointsRequest',
@@ -83,7 +86,62 @@ describe('Skibidi Coin fase 1', () => {
       'ledgerTypeLabel',
       'maxRedeemablePoints',
       'parseLoyaltySummary',
+      'pointsDiscountLine',
       'pointsRequestCaption',
+      'pointsTrackingStatus',
+      'receiptAmountDue',
+      'receiptPointsView',
     ]);
+  });
+
+  test('il tracking distingue richiesta, conferma in cassa e sconto non applicato', () => {
+    expect(loyalty.pointsTrackingStatus({
+      pointsRequested: 100,
+      pointsRedeemed: null,
+      orderStatus: 'pending',
+    })).toEqual({ kind: 'requested', label: 'Punti richiesti: da confermare in cassa' });
+    expect(loyalty.pointsTrackingStatus({
+      pointsRequested: 100,
+      pointsRedeemed: 100,
+      pointsDiscountEur: 5,
+      pointsConfirmedAt: '2026-11-12T12:00:00.000Z',
+    })?.kind).toBe('confirmed');
+    expect(loyalty.pointsTrackingStatus({
+      pointsRequested: 100,
+      pointsRedeemed: null,
+      orderStatus: 'cancelled',
+    })?.kind).toBe('not_applied');
+    expect(loyalty.pointsTrackingStatus({ pointsRequested: 0 })?.label).toBe('Sconto punti non applicato');
+    expect(loyalty.pointsTrackingStatus({})).toBeNull();
+  });
+
+  test('lo scontrino mostra lo sconto confermato senza cambiare il totale lordo', () => {
+    const confirmed = loyalty.receiptPointsView({
+      totalAmount: 25,
+      pointsRequested: 100,
+      pointsRedeemed: 100,
+      pointsDiscountEur: 5,
+    });
+    expect(confirmed).toMatchObject({
+      kind: 'confirmed',
+      discountLine: 'Sconto punti Skibidi Coin -€5.00',
+      amountDue: 20,
+    });
+    expect(loyalty.displayedCheckoutTotal(25, 0, 100)).toBe(25);
+    expect(loyalty.receiptPointsView({ totalAmount: 25, pointsRequested: 100, pointsRedeemed: null }))
+      .toEqual({ kind: 'requested', line: 'Punti richiesti: da confermare in cassa' });
+    expect(loyalty.receiptPointsView({ totalAmount: 25, pointsRequested: 0 }).kind).toBe('none');
+  });
+
+  test('gli errori dei punti diventano frasi italiane, anche nel dettaglio PostgREST', () => {
+    expect(loyaltyUserMessage({ message: 'new row violates check', details: 'LOYALTY_INSUFFICIENT' }))
+      .toBe('Punti insufficienti');
+    expect(loyaltyUserMessage({ details: 'LOYALTY_DISABLED' }))
+      .toBe('Skibidi Coin non è attivo in questa pizzeria');
+    expect(loyaltyUserMessage({ message: 'LOYALTY_INVALID' })).toBe('Quantità punti non valida');
+    expect(loyaltyUserMessage({ details: 'LOYALTY_NOT_STAFF' })).toBe('Solo lo staff della pizzeria può farlo');
+    expect(loyaltyUserMessage({ message: 'connection reset' })).toBeNull();
+    const typed = new LoyaltyUserError('Punti insufficienti');
+    expect(loyaltyUserMessage(typed)).toBe('Punti insufficienti');
   });
 });

@@ -6,10 +6,10 @@ La fase 2 (ricariche a pagamento) è ferma. Non c'è una funzione, una schermata
 
 ## Regole (Carmine)
 
-- 1 punto per ogni euro intero di merce. Si prende il floor della somma delle righe `order_items`. La consegna, se è separata dal totale merci, non conta.
+- 1 punto per ogni euro intero di merce, sul lordo prima dello sconto punti. Si prende il floor della somma delle righe `order_items`. La consegna, se è separata dal totale merci, non conta. Lo sconto confermato non riduce i punti che l'ordine farà guadagnare.
 - 100 punti = 5 € di sconto.
 - I punti scadono 12 mesi dopo l'accredito (anche gli omaggi).
-- Il cliente può chiedere di usarli, a multipli di 100. La richiesta resta «da confermare in cassa»: il totale dell'ordine non cambia nel client.
+- Il cliente può chiedere di usarli, a multipli di 100. La richiesta non prenota i punti: due ordini possono chiedere lo stesso saldo e la seconda conferma in cassa fallisce con «Punti insufficienti». Una prenotazione che blocchi il saldo è un seguito, non è in questa fase.
 - Lo sconto diventa effettivo solo quando lo staff lo conferma insieme al pagamento (`loyalty_confirm_redeem`).
 - I punti dell'ordine si accreditano solo quando lo stato passa a `delivered` (ritirato e pagato). Annullato, rifiutato, non ritirato, vuoto o senza cliente: niente punti.
 - Un accredito sbagliato si corregge con una riga di storno (`loyalty_reverse`). Le righe del registro non si modificano e non si cancellano.
@@ -39,7 +39,9 @@ I punti sono una condizione del rapporto con la pizzeria, non un trattamento di 
 
 ## Migration
 
-File: `supabase/migrations/20261112020000_skibidi_coin.sql`.
+File: `supabase/migrations/20261112020000_skibidi_coin.sql` e `supabase/migrations/20261112030000_skibidi_coin_tracking.sql`.
+
+La seconda aggiunge `points_requested`, `points_redeemed`, `points_discount_eur` e `points_confirmed_at` a `get_order_tracking`. Non aggiunge nome, telefono, note o indirizzo. La legge chi è il proprietario dell'ordine, lo staff della stessa company o il kiosk della stessa company (`anon` non esegue la funzione). Se sul database c'è già la funzione ristretta di `20261111234500`, si aggiungono solo quei campi. Se c'è ancora la funzione vecchia che restituiva l'ordine intero, viene sostituita con la forma ristretta più i campi punti. `points_confirmed_by` resta fuori: è l'id dello staff.
 
 Non è applicata al progetto ospitato. Va eseguita solo con l'ok di Carmine, come le altre migration di questo repo. Non tocca `storage`, `auth` o `realtime`. I test SQL girano su PGlite, in locale, con `npm run test:sql`. Nessun ordine reale e nessun test contro la produzione.
 
@@ -48,21 +50,30 @@ Non è applicata al progetto ospitato. Va eseguita solo con l'ok di Carmine, com
 ## Schermate
 
 - Account e premi: saldo, punti in scadenza (30 giorni) e storico. La pagina premi non mostra più punti finti.
-- Checkout (schermata unica e modale): il cliente loggato può spuntare «Usa i punti». La didascalia è «da confermare in cassa». Il totale visualizzato resta quello di merce e consegna.
+- Checkout (schermata unica e modale): il cliente loggato può spuntare «Usa i punti». La didascalia è «da confermare in cassa». Il totale visualizzato resta quello di merce e consegna. Se il server rifiuta la richiesta, la pagina mostra la frase italiana del codice (`Punti insufficienti`, programma spento, quantità non valida, operazione non consentita) e non il messaggio generico di invio non confermato. Le stesse frasi compaiono sulla conferma in cucina e sull'omaggio.
+- Tracking: «Punti richiesti: da confermare in cassa», «Sconto punti confermato in cassa» oppure «Sconto punti non applicato».
+- Scontrino digitale e copia di cortesia stampata: il totale lordo resta `total_amount`. Se lo sconto è confermato compaiono «Sconto punti Skibidi Coin -€X» e «Importo da pagare» (lordo meno lo sconto confermato). Se è solo richiesto, compare «Punti richiesti: da confermare in cassa». Lo sconto si applica al banco. Il modulo fiscale e il registratore telematico non vengono modificati: continuano a vedere il lordo.
 - Cucina: sull'ordine c'è «Conferma sconto punti in cassa». Il pannello «Regala punti» cerca il cliente, chiede quantità e motivo, e mostra lo storico della company.
+- La pagina `/rewards` ha il titolo «Punti».
+
+## Decisioni già prese
+
+- L'accredito è sul lordo della merce, prima dello sconto punti, senza la consegna. Un ordine da 20 € di pizza con 5 € di sconto accredita 20 punti.
+- La richiesta non prenota i punti. La seconda conferma può fallire e il messaggio in pagina è «Punti insufficienti». Bloccare il saldo alla richiesta è un seguito.
+- `total_amount` non cambia. Sulla copia di cortesia e sullo scontrino in app lo sconto è una riga in più, e «Importo da pagare» è il lordo meno lo sconto già confermato. Il registratore telematico e il modulo fiscale restano sul lordo: lo sconto si applica in cassa.
+- Le commissioni (il resoconto già in app) restano calcolate sul lordo. Se debbano usare l'importo pagato dopo lo sconto punti è una decisione ancora aperta.
 
 ## Domande aperte
 
-1. Lo sconto confermato non modifica `total_amount`. Scontrino e fiscale continuano a vedere il totale pieno, con lo sconto solo nelle colonne punti. Va deciso se il documento commerciale deve stampare la riga di sconto.
-2. L'accredito usa il floor della merce, non il netto dopo lo sconto punti e non «gli euro davvero pagati». Un ordine da 20 € con 5 € di sconto accredita comunque 20 punti.
-3. La richiesta non prenota i punti. Due ordini possono chiedere lo stesso saldo: la seconda conferma fallisce con punti insufficienti.
-4. Le ricariche a pagamento restano fuori (fase 2).
-5. L'omaggio accetta qualsiasi intero da 1 a 10000, non solo multipli di 100.
-6. «In scadenza» sono i lotti ancora aperti che scadono entro 30 giorni.
-7. Motivo di omaggio e storno: da 3 a 500 caratteri.
-8. Il lock è `FOR UPDATE` nella stessa transazione. PGlite non apre due sessioni, quindi il test di concorrenza controlla il sorgente della funzione e il secondo riscatto sequenziale, non due connessioni vere.
-9. Il kiosk non conferma e non regala punti.
-10. Lo storno di un riscatto confermato azzera la conferma, e la cassa può confermare di nuovo.
-11. Non c'è un job schedulato per `loyalty_expire_due`: il saldo ignora già le righe scadute. Le righe `expire` sono solo la traccia.
-12. Un insert diretto da postgres può mettere `points_requested` senza passare da `loyalty_normalize_request`. La conferma ricontrolla multiplo, saldo e merce.
-13. Un ordine con righe nel registro non si cancella (`ON DELETE RESTRICT`).
+1. Il documento fiscale emesso dal registratore deve ripetere la riga di sconto, oppure lo sconto resta solo un movimento di cassa fuori dallo scontrino fiscale.
+2. Le commissioni devono restare sul lordo oppure passare all'importo pagato dopo lo sconto punti.
+3. Le ricariche a pagamento restano fuori (fase 2).
+4. L'omaggio accetta qualsiasi intero da 1 a 10000, non solo multipli di 100.
+5. «In scadenza» sono i lotti ancora aperti che scadono entro 30 giorni.
+6. Motivo di omaggio e storno: da 3 a 500 caratteri.
+7. Il lock è `FOR UPDATE` nella stessa transazione. PGlite non apre due sessioni, quindi il test di concorrenza controlla il sorgente della funzione e il secondo riscatto sequenziale, non due connessioni vere.
+8. Il kiosk non conferma e non regala punti.
+9. Lo storno di un riscatto confermato azzera la conferma, e la cassa può confermare di nuovo.
+10. Non c'è un job schedulato per `loyalty_expire_due`: il saldo ignora già le righe scadute. Le righe `expire` sono solo la traccia.
+11. Un insert diretto da postgres può mettere `points_requested` senza passare da `loyalty_normalize_request`. La conferma ricontrolla multiplo, saldo e merce.
+12. Un ordine con righe nel registro non si cancella (`ON DELETE RESTRICT`).

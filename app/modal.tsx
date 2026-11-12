@@ -17,6 +17,7 @@ import { useTenant } from '@/lib/stores/TenantContext';
 import { finalizeDeliveryAddress, isAddressInDeliveryZone } from '@/lib/utils/deliveryZone';
 import { isOpenAt, getNextOpening } from '@/lib/utils/businessHours';
 import { buildCapacityUnitsToken, sumCartPizzaCapacity } from '@/lib/utils/pizzaCapacity';
+import { loyaltyUserMessage } from '@/lib/loyalty/errors';
 import { canRequestPoints, clampPointsRequest, displayedCheckoutTotal, maxRedeemablePoints } from '@/lib/loyalty/points';
 import { PAY_AT_TILL_LABEL_EN, PAY_AT_TILL_LABEL_IT, PAY_AT_TILL_METHOD, PAY_AT_TILL_NOTE } from '@/lib/payments/payAtTill';
 import { FontAwesome } from '@expo/vector-icons';
@@ -1030,6 +1031,12 @@ export default function CheckoutScreen() {
       // Prodotto non più disponibile / opzioni non valide: tolto dal carrello.
       if (isOrderLineError(error) && error.removeFromCart && error.productId) {
         removeProductLines(error.productId);
+      }
+      const loyaltyMessage = loyaltyUserMessage(error);
+      if (loyaltyMessage) {
+        setSubmissionError(loyaltyMessage);
+        Alert.alert('Punti', loyaltyMessage, [{ text: 'OK' }]);
+        return;
       }
       if (isAntiabuseError(error)) {
         setSubmissionError(error.message);

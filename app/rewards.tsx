@@ -1,4 +1,5 @@
 import { SkibidiCoinCard } from '@/components/features/loyalty/SkibidiCoinCard';
+import { PageTitle } from '@/components/ui/PageTitle';
 import { useAuth } from '@/lib/stores/AuthContext';
 import { Stack, useRouter } from 'expo-router';
 import { Pressable, ScrollView, Text, View } from 'react-native';
@@ -12,6 +13,7 @@ export default function RewardsScreen() {
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
+      <PageTitle page="rewards" />
       <ScrollView
         className="flex-1 bg-[#f9ecdd]"
         contentContainerStyle={{ paddingTop: insets.top + 12, paddingBottom: insets.bottom + 24 }}

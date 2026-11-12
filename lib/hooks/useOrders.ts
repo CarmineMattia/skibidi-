@@ -30,6 +30,10 @@ export interface OrderTrackingSnapshot {
   decline_reason_preset: string | null;
   decline_reason_note: string | null;
   declined_at: string | null;
+  points_requested?: number | null;
+  points_redeemed?: number | null;
+  points_discount_eur?: number | null;
+  points_confirmed_at?: string | null;
 }
 
 interface UseOrdersOptions {

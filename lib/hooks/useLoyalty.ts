@@ -3,11 +3,12 @@
  */
 
 import { supabase } from '@/lib/api/supabase';
+import { loyaltyUserError } from '@/lib/loyalty/errors';
 import { parseLoyaltySummary, type LoyaltySummary } from '@/lib/loyalty/points';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 function asError(error: { message: string } | null, fallback: string): Error {
-  return new Error(error?.message || fallback);
+  return loyaltyUserError(error, error?.message || fallback);
 }
 
 export function useLoyaltySummary(enabled = true) {
