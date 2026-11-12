@@ -250,8 +250,8 @@ export function buildDocumentoCommercialeHtml(order: PrintOrderData, logoSrc: st
   </table>
   <div class="divider"></div>
   <div class="row bold"><span>TOTALE COMPLESSIVO</span><span>€ ${formatEuro(order.totalAmount)}</span></div>
+  <div class="row small"><span>di cui IVA sul totale (${VAT_RATE}%)</span><span>€ ${formatEuro(vatAmount)}</span></div>
   ${pointsHtml}
-  <div class="row small"><span>di cui IVA (${VAT_RATE}%)</span><span>€ ${formatEuro(vatAmount)}</span></div>
   <div class="divider"></div>
   <div class="row"><span>${escapeHtml(paymentLabel)}</span><span>€ ${formatEuro(paidAmount)}</span></div>
   <div class="row"><span>Importo pagato</span><span>€ ${formatEuro(paidAmount)}</span></div>

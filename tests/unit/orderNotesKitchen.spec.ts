@@ -105,7 +105,10 @@ describe('kitchen card / print: everything after "Nota:" is customer text', () =
       ...base, totalAmount: 25, pointsRequested: 100, pointsRedeemed: 100, pointsDiscountEur: 5,
     }, null);
     expect(rowAmount(confirmed, 'TOTALE COMPLESSIVO')).toBe('25,00');
-    expect(rowAmount(confirmed, 'di cui IVA (22%)')).toBe('4,51');
+    expect(rowAmount(confirmed, 'di cui IVA sul totale (22%)')).toBe('4,51');
+    expect(confirmed.indexOf('TOTALE COMPLESSIVO')).toBeLessThan(confirmed.indexOf('di cui IVA sul totale'));
+    expect(confirmed.indexOf('di cui IVA sul totale')).toBeLessThan(confirmed.indexOf('Importo da pagare'));
+    expect(confirmed).not.toContain('di cui IVA (22%)');
     expect(confirmed).toContain('Sconto punti Skibidi Coin -€5.00');
     expect(rowAmount(confirmed, 'Importo da pagare')).toBe('20,00');
     expect(rowAmount(confirmed, 'Pagamento contante')).toBe('20,00');
