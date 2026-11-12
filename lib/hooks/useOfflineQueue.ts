@@ -46,6 +46,7 @@ export interface PendingOrder {
   deliveryAddress?: string;
   tableNumber?: string;
   paymentMethod: PaymentMethod;
+  pointsRequested?: number;
   createdAt: string; // ISO timestamp
   syncAttempts: number;
   lastSyncAttempt?: string;

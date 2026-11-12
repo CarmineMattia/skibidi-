@@ -10,6 +10,7 @@ import { SkeletonKitchenGrid } from '@/components/ui/Skeleton';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useKitchenOrders } from '@/lib/hooks/useKitchenOrders';
 import { KitchenOrderCard } from '@/components/features/KitchenOrderCard';
+import { LoyaltyStaffPanel } from '@/components/features/loyalty/LoyaltyStaffPanel';
 import { PendingReceiptsPanel } from '@/components/features/PendingReceiptsPanel';
 import { TimeWheelModal } from '@/components/ui/TimeWheelModal';
 import { useEffect, useState } from 'react';
@@ -334,6 +335,8 @@ export default function KitchenScreen() {
           </View>
         )}
       </View>
+
+      <LoyaltyStaffPanel />
 
       {/* Orders Grid */}
       {isLoading ? (

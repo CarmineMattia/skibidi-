@@ -1,17 +1,13 @@
+import { SkibidiCoinCard } from '@/components/features/loyalty/SkibidiCoinCard';
+import { useAuth } from '@/lib/stores/AuthContext';
 import { Stack, useRouter } from 'expo-router';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const REWARDS = [
-  { id: 'r1', title: 'Pizza omaggio', points: 1200, unlocked: true },
-  { id: 'r2', title: 'Dolce premium', points: 1800, unlocked: false },
-  { id: 'r3', title: 'Consegna gratuita', points: 2400, unlocked: false },
-];
-
 export default function RewardsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const currentPoints = 1460;
+  const { isAuthenticated } = useAuth();
 
   return (
     <>
@@ -23,51 +19,35 @@ export default function RewardsScreen() {
         <View className="px-4 gap-4">
           <View className="rounded-2xl border border-[#e1a255]/60 bg-[#8d171e] p-5">
             <Text className="text-[#f3dabb] text-xs font-bold uppercase tracking-wider">
-              Rewards & Loyalty
+              Pizzeria Ambrosia
             </Text>
-            <Text className="text-white text-2xl font-black mt-1">Ambrosia Club</Text>
-            <Text className="text-[#f3dabb] mt-1">Punti attuali: {currentPoints}</Text>
+            <Text className="text-white text-2xl font-black mt-1">Skibidi Coin</Text>
+            <Text className="text-[#f3dabb] mt-1">
+              1 punto per ogni euro di pizza. 100 punti, 5 euro di sconto in cassa.
+            </Text>
           </View>
 
-          <View className="bg-white rounded-2xl border border-[#e1a255]/40 p-4 gap-3">
-            <Text className="text-gray-900 font-extrabold">Progresso livello</Text>
-            <View className="h-3 bg-[#f3dabb] rounded-full overflow-hidden">
-              <View className="h-3 w-3/4 bg-[#8d171e]" />
-            </View>
-            <Text className="text-xs text-gray-600">340 punti al prossimo premio premium.</Text>
-          </View>
-
-          <View className="bg-white rounded-2xl border border-[#e1a255]/40 p-4 gap-3">
-            <Text className="text-gray-900 font-extrabold">Premi disponibili</Text>
-            {REWARDS.map((reward) => (
-              <View
-                key={reward.id}
-                className="rounded-xl border border-[#e1a255]/40 bg-[#fffaf5] p-3 flex-row items-center justify-between"
+          {isAuthenticated ? (
+            <SkibidiCoinCard />
+          ) : (
+            <View className="bg-white rounded-2xl border border-[#e1a255]/40 p-4 gap-3">
+              <Text className="text-gray-900 font-extrabold">Accedi per vedere i tuoi punti</Text>
+              <Text className="text-sm text-gray-600">
+                I punti restano sul tuo account e si usano solo in questa pizzeria. Non si comprano e non si regalano ad altri clienti.
+              </Text>
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => router.push('/login')}
+                className="h-12 rounded-xl bg-[#8d171e] items-center justify-center"
               >
-                <View>
-                  <Text className="text-gray-900 font-bold">{reward.title}</Text>
-                  <Text className="text-xs text-gray-600">{reward.points} punti</Text>
-                </View>
-                <View
-                  className={`px-2.5 py-1 rounded-full ${
-                    reward.unlocked ? 'bg-emerald-100' : 'bg-[#f3dabb]'
-                  }`}
-                >
-                  <Text
-                    className={`text-xs font-bold ${
-                      reward.unlocked ? 'text-emerald-700' : 'text-[#8d171e]'
-                    }`}
-                  >
-                    {reward.unlocked ? 'Sbloccato' : 'Bloccato'}
-                  </Text>
-                </View>
-              </View>
-            ))}
-          </View>
+                <Text className="text-white font-bold">Accedi</Text>
+              </Pressable>
+            </View>
+          )}
 
           <Pressable
             onPress={() => router.push('/(tabs)/menu')}
-            className="h-12 rounded-xl bg-[#8d171e] items-center justify-center active:opacity-90"
+            className="h-12 rounded-xl bg-[#1f2937] items-center justify-center active:opacity-90"
           >
             <Text className="text-white font-bold">Vai al menu</Text>
           </Pressable>

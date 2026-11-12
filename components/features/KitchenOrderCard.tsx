@@ -6,6 +6,7 @@ import { getForwardActionLabel, isTerminalStatus } from '@/lib/utils/orderStatus
 
 import type { KitchenOrder } from '@/lib/hooks/useKitchenOrders';
 import { DeclineReasonModal } from '@/components/features/orders/DeclineReasonModal';
+import { useConfirmLoyaltyRedeem } from '@/lib/hooks/useLoyalty';
 import { useUpdateOrderStatus } from '@/lib/hooks/useUpdateOrderStatus';
 import { printComanda, printDocumentoCommerciale, extractFulfillmentTime, type PrintOrderData } from '@/lib/print/orderPrint';
 import type { Database } from '@/types/database.types.generated';
@@ -156,6 +157,7 @@ const STATUS_CONFIG: Record<
 };
 
 export function KitchenOrderCard({ order }: KitchenOrderCardProps) {
+  const confirmRedeem = useConfirmLoyaltyRedeem();
   const updateStatus = useUpdateOrderStatus();
   const [showDeclineModal, setShowDeclineModal] = useState(false);
   const statusConfig = STATUS_CONFIG[order.status];
@@ -363,6 +365,39 @@ export function KitchenOrderCard({ order }: KitchenOrderCardProps) {
           {order.decline_reason_note ? (
             <Text className="text-red-700 text-xs mt-1">{order.decline_reason_note}</Text>
           ) : null}
+        </View>
+      )}
+
+      {(order.points_requested ?? 0) > 0 && (
+        <View className="bg-[#fffaf5] border border-[#e1a255]/60 rounded-xl p-3 mb-4 gap-2">
+          <Text className="text-[#8d171e] text-xs font-extrabold uppercase">Punti</Text>
+          {order.points_redeemed == null ? (
+            <>
+              <Text className="text-gray-900 font-bold">
+                {order.points_requested} punti, da confermare in cassa
+              </Text>
+              {order.status !== 'cancelled' && order.status !== 'rejected' ? (
+                <Pressable
+                  accessibilityRole="button"
+                  disabled={confirmRedeem.isPending}
+                  onPress={() => {
+                    confirmRedeem.mutate(order.id, {
+                      onError: (error) => Alert.alert('Sconto punti', error.message),
+                    });
+                  }}
+                  className="bg-[#8d171e] rounded-xl py-3 items-center"
+                >
+                  <Text className="text-white font-bold">
+                    {confirmRedeem.isPending ? 'Confermo…' : 'Conferma sconto punti in cassa'}
+                  </Text>
+                </Pressable>
+              ) : null}
+            </>
+          ) : (
+            <Text className="text-gray-900 font-bold">
+              Sconto punti confermato: €{Number(order.points_discount_eur ?? 0).toFixed(2)} ({order.points_redeemed} punti). Il totale ordine resta €{order.total_amount.toFixed(2)}.
+            </Text>
+          )}
         </View>
       )}
 
