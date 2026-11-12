@@ -19,17 +19,38 @@ un utente autenticato (`/modal` e `/one-screen-checkout` reindirizzano a `/login
 
 ### Supabase (progetto zqubwvhstobaugifzoyb)
 1. Authentication → Sign In / Providers → **Google**: abilitare, incollare Client ID e Secret.
-2. Authentication → URL Configuration:
-   - Site URL: URL di produzione.
-   - Redirect URLs: `https://skibidi-eight-virid.vercel.app/login`, le preview Vercel
-     (`https://*.vercel.app/login` ristretto al proprio team), `http://localhost:8081/login`,
-     `pizzeriaambrosia://login` (app nativa).
+2. Authentication → URL Configuration. Allowlist **esatta**, senza wildcard.
+   Non inserire `https://*.vercel.app/**` né `https://*.vercel.app/login`: un
+   progetto Vercel di un altro account potrebbe ricevere il redirect.
+   - Site URL: `https://skibidi-eight-virid.vercel.app`
+   - Redirect URLs, una riga per URL:
+     - `https://skibidi-eight-virid.vercel.app/login`
+     - `http://localhost:8081/login`
+     - `http://localhost:8081`
+     - `http://127.0.0.1:8081/login`
+     - `http://127.0.0.1:8081`
+     - `pizzeriaambrosia://login` (deep link dell'app nativa, non è un wildcard)
+   Se il dev server Expo stampa un'altra porta, aggiungere quell'origine scritta
+   per intero (`http://localhost:PORTA/login`). Non usare un pattern.
 3. **Anonymous sign-ins**: disattivato.
 4. **Email provider**: se si usa l'accesso admin con password (vedi sotto) resta attivo ma
-   con la registrazione via email **disattivata**. Se l'admin entra con Google,
+   con **Allow new users to sign up disattivato**, così `admin@skibidi.com` può
+   ancora entrare e nessuno crea un account email nuovo. Se l'admin entra con Google,
    l'Email provider si può disattivare del tutto.
-5. (Facoltativo, più avanti) Facebook: abilitare il provider e buildare con
+5. **Protezione password** (Authentication → Attack Protection / Password security):
+   **Leaked password protection** acceso (controllo Have I Been Pwned).
+6. **Collegamento identità** (pre-hijacking):
+   - niente automatic linking di un'identità non confermata su un account esistente
+     (stessa email Google / email);
+   - **Secure email change** acceso, se il provider email resta acceso: la conferma
+     va sia al vecchio indirizzo sia al nuovo;
+   - non abilitare il phone provider.
+7. **Rate limits** (Authentication → Rate Limits): non alzarli. Tenere i limiti di
+   sign-in / sign-up, verifica token e refresh. Con le registrazioni email spente
+   il limite di sign-up conta comunque per Google.
+8. (Facoltativo, più avanti) Facebook: abilitare il provider e buildare con
    `EXPO_PUBLIC_ENABLE_FACEBOOK_LOGIN=true`. Di default il pulsante non compare.
+   Aggiungere il redirect esatto del provider, non un wildcard Vercel.
 
 ## Accesso admin
 
@@ -53,7 +74,13 @@ Il form chiama `signInWithPassword`, poi legge `profiles.role`: se non è `admin
 cambiare la password di `admin@skibidi.com`.
 
 ## Note
-- Nuovi utenti Google: `company_id` nel profilo resta `null` (prima veniva passato nei
-  metadata dell'OTP). Se una policy lo richiede sul profilo cliente va gestito nel trigger.
-- Il vincolo "solo utenti loggati ordinano" oggi è lato client; il controllo lato DB
-  (RPC/policy che rifiuta `auth.uid() is null`) va nella PR antiabuso.
+- `handle_new_user` non legge `role` né `company_id` da `raw_user_meta_data`.
+  Il profilo nuovo è `customer`. La company è quella scelta dal database
+  (`default_customer_company_id`: l'unica company attiva; se non ce n'è una sola,
+  resta vuota). La promozione ad admin si fa dal SQL editor, come nello snippet sopra.
+- Il client non aggiorna `profiles.role` né `profiles.company_id` (niente
+  `setUserRole`). I grant di colonna e il trigger rifiutano la scrittura anche
+  se qualcuno chiama l'API a mano.
+- Il vincolo "solo utenti loggati ordinano" è nella RPC `create_order_with_items`
+  (migration antiabuso). Il tracking richiede che `auth.uid()` sia il cliente
+  dell'ordine oppure staff della stessa pizzeria.

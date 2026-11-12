@@ -16,7 +16,7 @@ Enhanced authentication context with full profile management and role-based acce
 - ✅ isAuthenticated boolean flag
 - ✅ Role check helpers: isAdmin, isCustomer
 - ✅ signUp method for user registration
-- ✅ setUserRole method for changing roles (admin only)
+- Il ruolo non si cambia dal client. La promozione resta nel SQL editor (vedi docs/AUTH-GOOGLE.md).
 - ✅ Enhanced fetchUserRole to return full profile
 - ✅ Profile state management with proper cleanup
 
@@ -49,7 +49,6 @@ interface AuthContextType {
 
   // Mode switching
   enterKioskMode: () => void;
-  setUserRole: (role: UserRole) => Promise<void>;
 }
 ```
 
@@ -500,15 +499,14 @@ return (
 );
 ```
 
-### Change User Role (Admin Only)
-```tsx
-const { setUserRole, isAdmin } = useAuth();
+### Change User Role
+Il client non scrive `profiles.role`. Un utente autenticato non può promuoversi.
+La promozione si fa dal SQL editor (ruolo postgres), non con `setUserRole`:
 
-if (!isAdmin) return null;
-
-const promoteToAdmin = async (userId: string) => {
-  await setUserRole('admin');
-};
+```sql
+update public.profiles
+set role = 'admin'
+where email = '<account-google-admin>@gmail.com';
 ```
 
 ---

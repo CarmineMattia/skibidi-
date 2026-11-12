@@ -17,6 +17,21 @@ export interface OrderWithItems extends Order {
   order_items: Array<OrderItem & { product: Product }>;
 }
 
+/** Fields get_order_tracking is allowed to return. No customer PII. */
+export interface OrderTrackingSnapshot {
+  id: string;
+  status: Order['status'];
+  created_at: string;
+  updated_at: string | null;
+  accepted_at: string | null;
+  display_code: string | null;
+  order_type: string | null;
+  table_number: string | null;
+  decline_reason_preset: string | null;
+  decline_reason_note: string | null;
+  declined_at: string | null;
+}
+
 interface UseOrdersOptions {
   status?: Order['status'];
   limit?: number;
@@ -111,15 +126,16 @@ export function useOrders(options: UseOrdersOptions = {}) {
 }
 
 /**
- * Hook to fetch a single order by ID.
- * Usa la RPC get_order_tracking (SECURITY DEFINER) così anche gli ospiti
- * non autenticati possono tracciare il proprio ordine conoscendone l'UUID
- * (magic link). Il polling compensa l'assenza di realtime per gli anonimi.
+ * Hook to fetch one order for the tracking screen.
+ * get_order_tracking returns only status, timestamps, order number and pickup
+ * info, and only when the signed-in user owns the order (including an
+ * anonymous session) or is staff. Polling covers guests who do not receive
+ * the protected order row over Realtime.
  */
 export function useOrder(orderId: string) {
   return useQuery({
     queryKey: ['orders', orderId],
-    queryFn: async (): Promise<OrderWithItems> => {
+    queryFn: async (): Promise<OrderTrackingSnapshot> => {
       // A made-up id never reaches the server: it is simply not an order.
       if (!isValidOrderId(orderId)) throw new OrderNotFoundError();
       const { data, error } = await supabase.rpc('get_order_tracking', {
@@ -135,7 +151,7 @@ export function useOrder(orderId: string) {
         throw new Error(`Errore nel recupero dell'ordine: ${error.message}`);
       }
 
-      return data as unknown as OrderWithItems;
+      return data as unknown as OrderTrackingSnapshot;
     },
 
     enabled: !!orderId, // Only run if orderId is provided

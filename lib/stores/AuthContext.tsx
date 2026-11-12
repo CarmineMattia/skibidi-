@@ -74,7 +74,6 @@ interface AuthContextType {
   // Mode switching
   enterKioskMode: () => void;
   exitKioskMode: () => void;
-  setUserRole: (role: UserRole) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -185,13 +184,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
         // Self-healing: Profile missing, create it
         console.log('Profile missing for user, creating default profile...');
         const metadata = user.user_metadata || {};
-        // role is never taken from client-controlled metadata — the DB trigger
-        // would reject it anyway, and new self-healed profiles are always 'customer'.
+        // role and company_id are not sent. The database assigns customer and
+        // the default company; a signed-in user cannot write those columns.
         const { error: insertError } = await supabase.from('profiles').insert({
           id: user.id,
           email: user.email,
           full_name: metadata.full_name,
-          role: 'customer',
         });
 
         if (insertError) {
@@ -341,23 +339,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     saveKioskFlag(false);
   };
 
-  const updateUserRole = async (newRole: UserRole) => {
-    if (!user) throw new Error('No user logged in');
-
-    const { error } = await supabase
-      .from('profiles')
-      .update({ role: newRole })
-      .eq('id', user.id);
-
-    if (error) throw error;
-
-    // Update local state
-    setUserRole(newRole);
-    if (profile) {
-      setProfile({ ...profile, role: newRole });
-    }
-  };
-
   const value: AuthContextType = {
     session,
     user,
@@ -373,7 +354,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     signOut,
     enterKioskMode,
     exitKioskMode,
-    setUserRole: updateUserRole,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

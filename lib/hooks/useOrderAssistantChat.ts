@@ -6,6 +6,16 @@ import type {
 } from '@/types/chat.types';
 import { useCallback, useMemo, useState } from 'react';
 
+/**
+ * Prototipo locale. Non è nel barrel dei hook. In produzione Metro lo sostituisce
+ * con lib/dev/orderAssistantStub.ts (vedi metro.config.js). La rete parte solo
+ * in dev con EXPO_PUBLIC_ENABLE_ORDER_ASSISTANT=true.
+ */
+const ORDER_ASSISTANT_DEV_ENABLED =
+  typeof __DEV__ !== 'undefined' &&
+  __DEV__ &&
+  process.env.EXPO_PUBLIC_ENABLE_ORDER_ASSISTANT === 'true';
+
 const ORDER_ASSISTANT_URL = process.env.EXPO_PUBLIC_ORDER_ASSISTANT_URL || '';
 
 function createMessage(role: ChatMessage['role'], text: string, isError = false): ChatMessage {
@@ -29,12 +39,12 @@ export function useOrderAssistantChat() {
   const [conversationId, setConversationId] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
 
-  const canSend = useMemo(() => Boolean(ORDER_ASSISTANT_URL), []);
+  const canSend = useMemo(() => ORDER_ASSISTANT_DEV_ENABLED && Boolean(ORDER_ASSISTANT_URL), []);
 
   const sendMessage = useCallback(
     async (text: string) => {
       const trimmed = text.trim();
-      if (!trimmed || isLoading) return;
+      if (!ORDER_ASSISTANT_DEV_ENABLED || !trimmed || isLoading) return;
 
       const userMessage = createMessage('user', trimmed);
       setMessages((prev) => [...prev, userMessage]);

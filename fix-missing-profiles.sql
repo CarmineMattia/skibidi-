@@ -5,24 +5,31 @@
 -- 1. Create a Trigger to automatically create a profile for new users
 -- This ensures that users created via Supabase Dashboard or Sign Up flow always have a profile
 
+-- Non leggere role né company_id dai metadata: chi si iscrive non sceglie il ruolo.
 CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
 BEGIN
-  INSERT INTO public.profiles (id, email, full_name, role)
+  INSERT INTO public.profiles (id, email, full_name, role, company_id)
   VALUES (
     new.id,
     new.email,
     new.raw_user_meta_data->>'full_name',
-    COALESCE((new.raw_user_meta_data->>'role')::public.user_role, 'customer')
+    'customer'::public.user_role,
+    public.default_customer_company_id()
   )
   ON CONFLICT (id) DO UPDATE
   SET
     email = EXCLUDED.email,
-    full_name = EXCLUDED.full_name,
-    role = EXCLUDED.role;
+    full_name = COALESCE(EXCLUDED.full_name, public.profiles.full_name);
   RETURN new;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
+
+REVOKE ALL ON FUNCTION public.handle_new_user() FROM PUBLIC, anon, authenticated;
 
 -- Drop the trigger if it exists to clean up
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
@@ -35,12 +42,13 @@ CREATE TRIGGER on_auth_user_created
 -- 2. Backfill missing profiles for existing users
 -- This fixes the issue for users who already exist but have no profile (appear as "Ospite")
 
-INSERT INTO public.profiles (id, email, full_name, role)
+INSERT INTO public.profiles (id, email, full_name, role, company_id)
 SELECT
   id,
   email,
   raw_user_meta_data->>'full_name',
-  COALESCE((raw_user_meta_data->>'role')::public.user_role, 'customer')
+  'customer'::public.user_role,
+  public.default_customer_company_id()
 FROM auth.users
 WHERE id NOT IN (SELECT id FROM public.profiles)
 ON CONFLICT (id) DO NOTHING;
