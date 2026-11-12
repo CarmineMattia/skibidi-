@@ -176,6 +176,23 @@ export type ReceiptPointsView =
   | { kind: 'requested'; line: string }
   | { kind: 'none' };
 
+/** Riga sulla card cucina. Il totale lordo resta `total_amount`. */
+export function kitchenTillLine(input: {
+  totalAmount: number;
+  pointsRequested?: number | null;
+  pointsRedeemed?: number | null;
+  pointsDiscountEur?: number | null;
+}): { requested: string | null; amountDue: string | null } {
+  const view = receiptPointsView(input);
+  if (view.kind === 'confirmed') {
+    return { requested: null, amountDue: `${AMOUNT_DUE_LABEL} €${view.amountDue.toFixed(2)}` };
+  }
+  if (view.kind === 'requested') {
+    return { requested: POINTS_REQUESTED_LINE, amountDue: null };
+  }
+  return { requested: null, amountDue: null };
+}
+
 export function receiptPointsView(input: {
   totalAmount: number;
   pointsRequested?: number | null;

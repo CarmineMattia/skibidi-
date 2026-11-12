@@ -224,6 +224,8 @@ export function buildDocumentoCommercialeHtml(order: PrintOrderData, logoSrc: st
     : pointsView.kind === 'requested'
       ? `<div class="row"><span>${escapeHtml(pointsView.line)}</span></div>`
       : '';
+  // TOTALE COMPLESSIVO e l'IVA restano sul lordo. Importo pagato e la riga del metodo seguono lo sconto già confermato.
+  const paidAmount = pointsView.kind === 'confirmed' ? pointsView.amountDue : order.totalAmount;
 
   const fiscalFooter = order.fiscalExternalId
     ? `<div class="center small">Rif. scontrino RT: ${escapeHtml(order.fiscalExternalId)}</div>`
@@ -251,8 +253,8 @@ export function buildDocumentoCommercialeHtml(order: PrintOrderData, logoSrc: st
   ${pointsHtml}
   <div class="row small"><span>di cui IVA (${VAT_RATE}%)</span><span>€ ${formatEuro(vatAmount)}</span></div>
   <div class="divider"></div>
-  <div class="row"><span>${escapeHtml(paymentLabel)}</span><span>€ ${formatEuro(order.totalAmount)}</span></div>
-  <div class="row"><span>Importo pagato</span><span>€ ${formatEuro(order.totalAmount)}</span></div>
+  <div class="row"><span>${escapeHtml(paymentLabel)}</span><span>€ ${formatEuro(paidAmount)}</span></div>
+  <div class="row"><span>Importo pagato</span><span>€ ${formatEuro(paidAmount)}</span></div>
   <div class="divider"></div>
   <div class="row small"><span>${dateLabel} ${timeLabel}</span><span>DOC. N. ${docNumber}</span></div>
   ${fiscalFooter}

@@ -104,19 +104,33 @@ describe('kitchen card / print: everything after "Nota:" is customer text', () =
     const confirmed = buildDocumentoCommercialeHtml({
       ...base, totalAmount: 25, pointsRequested: 100, pointsRedeemed: 100, pointsDiscountEur: 5,
     }, null);
-    expect(confirmed).toContain('TOTALE COMPLESSIVO');
-    expect(confirmed).toContain('€ 25,00');
+    expect(rowAmount(confirmed, 'TOTALE COMPLESSIVO')).toBe('25,00');
+    expect(rowAmount(confirmed, 'di cui IVA (22%)')).toBe('4,51');
     expect(confirmed).toContain('Sconto punti Skibidi Coin -€5.00');
-    expect(confirmed).toContain('Importo da pagare');
-    expect(confirmed).toContain('€ 20,00');
+    expect(rowAmount(confirmed, 'Importo da pagare')).toBe('20,00');
+    expect(rowAmount(confirmed, 'Pagamento contante')).toBe('20,00');
+    expect(rowAmount(confirmed, 'Importo pagato')).toBe('20,00');
     const requested = buildDocumentoCommercialeHtml({
       ...base, totalAmount: 25, pointsRequested: 100, pointsRedeemed: null, pointsDiscountEur: null,
     }, null);
     expect(requested).toContain('Punti richiesti: da confermare in cassa');
     expect(requested).not.toContain('Sconto punti Skibidi Coin');
-    expect(requested).toContain('€ 25,00');
+    expect(rowAmount(requested, 'TOTALE COMPLESSIVO')).toBe('25,00');
+    expect(rowAmount(requested, 'Pagamento contante')).toBe('25,00');
+    expect(rowAmount(requested, 'Importo pagato')).toBe('25,00');
+    const clamped = buildDocumentoCommercialeHtml({
+      ...base, totalAmount: 4, pointsRequested: 100, pointsRedeemed: 100, pointsDiscountEur: 5,
+    }, null);
+    expect(rowAmount(clamped, 'TOTALE COMPLESSIVO')).toBe('4,00');
+    expect(rowAmount(clamped, 'Importo pagato')).toBe('0,00');
   });
 });
+
+function rowAmount(html: string, label: string): string {
+  const match = html.match(new RegExp(`${label.replace(/[()]/g, '\\$&')}</span><span>€ ([0-9]+,[0-9]{2})`));
+  expect(match, label).not.toBeNull();
+  return match![1];
+}
 
 describe('order line errors → clear messages', () => {
   const items = [{ product: { id: 'p-1', name: 'Diavola' } }];

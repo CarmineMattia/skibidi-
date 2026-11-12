@@ -83,6 +83,7 @@ describe('Skibidi Coin fase 1', () => {
       'displayedCheckoutTotal',
       'earnPoints',
       'isExpiringSoon',
+      'kitchenTillLine',
       'ledgerTypeLabel',
       'maxRedeemablePoints',
       'parseLoyaltySummary',
@@ -131,6 +132,27 @@ describe('Skibidi Coin fase 1', () => {
     expect(loyalty.receiptPointsView({ totalAmount: 25, pointsRequested: 100, pointsRedeemed: null }))
       .toEqual({ kind: 'requested', line: 'Punti richiesti: da confermare in cassa' });
     expect(loyalty.receiptPointsView({ totalAmount: 25, pointsRequested: 0 }).kind).toBe('none');
+    expect(loyalty.receiptAmountDue(4, 5)).toBe(0);
+  });
+
+  test('in cucina l\'importo da pagare sta accanto al lordo, la richiesta resta da confermare', () => {
+    expect(loyalty.kitchenTillLine({
+      totalAmount: 25,
+      pointsRequested: 100,
+      pointsRedeemed: 100,
+      pointsDiscountEur: 5,
+    })).toEqual({ requested: null, amountDue: 'Importo da pagare €20.00' });
+    expect(loyalty.kitchenTillLine({
+      totalAmount: 4,
+      pointsRequested: 100,
+      pointsRedeemed: 100,
+      pointsDiscountEur: 5,
+    })).toEqual({ requested: null, amountDue: 'Importo da pagare €0.00' });
+    expect(loyalty.kitchenTillLine({
+      totalAmount: 25,
+      pointsRequested: 100,
+      pointsRedeemed: null,
+    })).toEqual({ requested: 'Punti richiesti: da confermare in cassa', amountDue: null });
   });
 
   test('gli errori dei punti diventano frasi italiane, anche nel dettaglio PostgREST', () => {

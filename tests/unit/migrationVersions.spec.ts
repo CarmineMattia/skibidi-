@@ -49,4 +49,9 @@ function checkOrder(order: (prefix: string) => number) {
   expect(order('20260901000000_fix_guest_order_items_rls')).toBeLessThan(order('20260901223534_fix_can_insert_order_item_guest_scope'));
   expect(order('20260901223534_fix_can_insert_order_item_guest_scope')).toBeLessThan(order('20260901224024_fix_can_insert_order_item_column'));
   expect(order('20260901224024_fix_can_insert_order_item_column')).toBeLessThan(order('20261020140000_order_items_insert_guard'));
+  // 20261111234500 ricrea get_order_tracking. Va prima di 20261112030000, che ci aggiunge points_*.
+  expect(order('20261111234500')).toBeLessThan(order('20261112003000'));
+  expect(order('20261112003000')).toBeLessThan(order('20261112010000'));
+  expect(order('20261112010000')).toBeLessThan(order('20261112020000'));
+  expect(order('20261112020000')).toBeLessThan(order('20261112030000'));
 }

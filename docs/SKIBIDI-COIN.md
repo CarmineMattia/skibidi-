@@ -43,7 +43,9 @@ File: `supabase/migrations/20261112020000_skibidi_coin.sql` e `supabase/migratio
 
 La seconda aggiunge `points_requested`, `points_redeemed`, `points_discount_eur` e `points_confirmed_at` a `get_order_tracking`. Non aggiunge nome, telefono, note o indirizzo. La legge chi è il proprietario dell'ordine, lo staff della stessa company o il kiosk della stessa company (`anon` non esegue la funzione). Se sul database c'è già la funzione ristretta di `20261111234500`, si aggiungono solo quei campi. Se c'è ancora la funzione vecchia che restituiva l'ordine intero, viene sostituita con la forma ristretta più i campi punti. `points_confirmed_by` resta fuori: è l'id dello staff.
 
-Non è applicata al progetto ospitato. Va eseguita solo con l'ok di Carmine, come le altre migration di questo repo. Non tocca `storage`, `auth` o `realtime`. I test SQL girano su PGlite, in locale, con `npm run test:sql`. Nessun ordine reale e nessun test contro la produzione.
+Si applicano nell'ordine del nome file, insieme a quelle appena precedenti: `20261111234500`, `20261112003000`, `20261112010000`, poi `20261112020000` e `20261112030000`. `20261111234500` ricrea `get_order_tracking`. Se viene applicata dopo `20261112030000`, la funzione torna senza i campi `points_*`. Riapplicare `20261112030000` li rimette.
+
+Non sono applicate al progetto ospitato. Vanno eseguite solo con l'ok di Carmine, come le altre migration di questo repo. Non toccano `storage`, `auth` o `realtime`. I test SQL girano su PGlite, in locale, con `npm run test:sql`. Nessun ordine reale e nessun test contro la produzione.
 
 `loyalty_expire_due(company)` scrive le righe `expire` di audit. Il saldo le esclude già quando `expires_at` è passato, quindi non serve un cron perché i punti scaduti restino fuori dal saldo. La funzione è idempotente.
 
@@ -52,15 +54,15 @@ Non è applicata al progetto ospitato. Va eseguita solo con l'ok di Carmine, com
 - Account e premi: saldo, punti in scadenza (30 giorni) e storico. La pagina premi non mostra più punti finti.
 - Checkout (schermata unica e modale): il cliente loggato può spuntare «Usa i punti». La didascalia è «da confermare in cassa». Il totale visualizzato resta quello di merce e consegna. Se il server rifiuta la richiesta, la pagina mostra la frase italiana del codice (`Punti insufficienti`, programma spento, quantità non valida, operazione non consentita) e non il messaggio generico di invio non confermato. Le stesse frasi compaiono sulla conferma in cucina e sull'omaggio.
 - Tracking: «Punti richiesti: da confermare in cassa», «Sconto punti confermato in cassa» oppure «Sconto punti non applicato».
-- Scontrino digitale e copia di cortesia stampata: il totale lordo resta `total_amount`. Se lo sconto è confermato compaiono «Sconto punti Skibidi Coin -€X» e «Importo da pagare» (lordo meno lo sconto confermato). Se è solo richiesto, compare «Punti richiesti: da confermare in cassa». Lo sconto si applica al banco. Il modulo fiscale e il registratore telematico non vengono modificati: continuano a vedere il lordo.
-- Cucina: sull'ordine c'è «Conferma sconto punti in cassa». Il pannello «Regala punti» cerca il cliente, chiede quantità e motivo, e mostra lo storico della company.
+- Scontrino digitale e copia di cortesia stampata: il totale lordo resta `total_amount`. Se lo sconto è confermato compaiono «Sconto punti Skibidi Coin -€X» e «Importo da pagare» (lordo meno lo sconto confermato, mai sotto zero). Sulla copia stampata «Importo pagato» e la riga del metodo di pagamento sono quello stesso importo. Se è solo richiesto, compare «Punti richiesti: da confermare in cassa» e «Importo pagato» resta il lordo. Lo sconto si applica al banco. Il modulo fiscale e il registratore telematico non vengono modificati: continuano a vedere il lordo. L'IVA sulla copia di cortesia resta calcolata sul lordo.
+- Cucina: sull'ordine c'è «Conferma sconto punti in cassa». Finché è solo una richiesta, la card dice «Punti richiesti: da confermare in cassa». Dopo la conferma, accanto al totale lordo compare «Importo da pagare €X». Il pannello «Regala punti» cerca il cliente, chiede quantità e motivo, e mostra lo storico della company.
 - La pagina `/rewards` ha il titolo «Punti».
 
 ## Decisioni già prese
 
 - L'accredito è sul lordo della merce, prima dello sconto punti, senza la consegna. Un ordine da 20 € di pizza con 5 € di sconto accredita 20 punti.
 - La richiesta non prenota i punti. La seconda conferma può fallire e il messaggio in pagina è «Punti insufficienti». Bloccare il saldo alla richiesta è un seguito.
-- `total_amount` non cambia. Sulla copia di cortesia e sullo scontrino in app lo sconto è una riga in più, e «Importo da pagare» è il lordo meno lo sconto già confermato. Il registratore telematico e il modulo fiscale restano sul lordo: lo sconto si applica in cassa.
+- `total_amount` non cambia. Sulla copia di cortesia e sullo scontrino in app lo sconto è una riga in più, e «Importo da pagare» è il lordo meno lo sconto già confermato (mai sotto zero). Sulla copia stampata «Importo pagato» e la riga del metodo di pagamento usano quell'importo. In cucina la stessa cifra sta accanto al totale lordo. Il registratore telematico e il modulo fiscale restano sul lordo: lo sconto si applica in cassa.
 - Le commissioni (il resoconto già in app) restano calcolate sul lordo. Se debbano usare l'importo pagato dopo lo sconto punti è una decisione ancora aperta.
 
 ## Domande aperte
