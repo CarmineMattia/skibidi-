@@ -7,12 +7,15 @@ import { fileURLToPath } from 'node:url';
 const root = process.env.SKIBIDI_ROOT || path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const migration = 'supabase/migrations/20261111234500_security_hardening.sql';
 const followUp = 'supabase/migrations/20261112003000_company_storage_and_orders_anon.sql';
+const linePrice = 'supabase/migrations/20261112010000_order_item_price_and_company.sql';
 const files = [
   'tests/sql/security-hardening-schema.sql',
   migration,
   migration,
   followUp,
   followUp,
+  linePrice,
+  linePrice,
   'tests/sql/security-hardening.sql',
 ];
 

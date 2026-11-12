@@ -464,8 +464,10 @@ VALUES (
   1
 );
 SELECT public.t_assert(
-  EXISTS (SELECT 1 FROM public.order_items WHERE id = '00000000-0000-0000-0000-0000000000e9'),
-  'customer can add an item while the order is pending');
+  EXISTS (SELECT 1 FROM public.order_items WHERE id = '00000000-0000-0000-0000-0000000000e9')
+  AND (SELECT unit_price FROM public.order_items WHERE id = '00000000-0000-0000-0000-0000000000e9') = 8.50
+  AND (SELECT total_price FROM public.order_items WHERE id = '00000000-0000-0000-0000-0000000000e9') = 8.50,
+  'customer can add an item while the order is pending, at the catalog price');
 DO $$
 BEGIN
   UPDATE public.orders SET status = 'preparing' WHERE id = '00000000-0000-0000-0000-0000000000d1';
@@ -560,7 +562,10 @@ BEGIN
     1
   );
   RAISE EXCEPTION 'ASSERT FAILED: another customer added an item';
-EXCEPTION WHEN insufficient_privilege THEN NULL;
+EXCEPTION
+  WHEN insufficient_privilege THEN NULL;
+  WHEN raise_exception THEN
+    IF SQLERRM LIKE 'ASSERT FAILED%' THEN RAISE; END IF;
 END $$;
 ROLLBACK;
 
@@ -573,16 +578,18 @@ VALUES (
   '00000000-0000-0000-0000-0000000000c1',
   'accepted'
 );
-INSERT INTO public.order_items (id, order_id, product_id, quantity)
+INSERT INTO public.order_items (id, order_id, product_id, quantity, unit_price, total_price)
 VALUES (
   '00000000-0000-0000-0000-0000000000ed',
   '00000000-0000-0000-0000-0000000000dc',
   '00000000-0000-0000-0000-000000000011',
+  1,
+  1,
   1
 );
 SELECT public.t_assert(
-  EXISTS (SELECT 1 FROM public.order_items WHERE id = '00000000-0000-0000-0000-0000000000ed'),
-  'admin can insert an order and an item in their company');
+  (SELECT unit_price FROM public.order_items WHERE id = '00000000-0000-0000-0000-0000000000ed') = 1,
+  'admin can insert an order and an item in their company, with the price they send');
 ROLLBACK;
 
 BEGIN;
@@ -594,9 +601,20 @@ VALUES (
   '00000000-0000-0000-0000-0000000000c1',
   'pending'
 );
+INSERT INTO public.order_items (id, order_id, product_id, quantity, unit_price, total_price)
+VALUES (
+  '00000000-0000-0000-0000-0000000000ee',
+  '00000000-0000-0000-0000-0000000000dd',
+  '00000000-0000-0000-0000-000000000011',
+  2,
+  0.01,
+  0.02
+);
 SELECT public.t_assert(
-  EXISTS (SELECT 1 FROM public.orders WHERE id = '00000000-0000-0000-0000-0000000000dd'),
-  'kiosk can insert an order in their company');
+  EXISTS (SELECT 1 FROM public.orders WHERE id = '00000000-0000-0000-0000-0000000000dd')
+  AND (SELECT unit_price FROM public.order_items WHERE id = '00000000-0000-0000-0000-0000000000ee') = 8.50
+  AND (SELECT total_price FROM public.order_items WHERE id = '00000000-0000-0000-0000-0000000000ee') = 17.00,
+  'kiosk can insert an order in their company; the line price comes from the catalog');
 ROLLBACK;
 
 BEGIN;
@@ -617,6 +635,7 @@ ROLLBACK;
 
 SELECT public.t_assert(
   position('customer_id' in pg_get_expr(o.polwithcheck, o.polrelid)) > 0
+  AND position('IS NOT NULL' in pg_get_expr(o.polwithcheck, o.polrelid)) > 0
   AND position('get_my_company_id' in pg_get_expr(o.polwithcheck, o.polrelid)) > 0
   AND position('pending' in pg_get_expr(i.polwithcheck, i.polrelid)) > 0
   AND position('kiosk' in pg_get_expr(o.polwithcheck, o.polrelid)) > 0
@@ -635,6 +654,112 @@ SELECT public.t_assert(
     'ORDER_LOCKED_FOR_CUSTOMER' in pg_get_functiondef('public.prevent_customer_order_tampering()'::regprocedure)
   ) > 0,
   'customer status and total lock is installed');
+
+SELECT public.t_assert(
+  (SELECT convalidated FROM pg_constraint WHERE conname = 'order_items_quantity_positive')
+  AND position('quantity' in pg_get_constraintdef(
+    (SELECT oid FROM pg_constraint WHERE conname = 'order_items_quantity_positive')
+  )) > 0,
+  'order item quantity must be greater than zero');
+
+DO $$
+BEGIN
+  INSERT INTO public.order_items (id, order_id, product_id, quantity)
+  VALUES (
+    '00000000-0000-0000-0000-0000000000ef',
+    '00000000-0000-0000-0000-0000000000d1',
+    '00000000-0000-0000-0000-000000000011',
+    0
+  );
+  RAISE EXCEPTION 'ASSERT FAILED: quantity 0 was stored';
+EXCEPTION WHEN check_violation THEN NULL;
+END $$;
+
+INSERT INTO public.products (id, company_id, name, price, active) VALUES
+  ('00000000-0000-0000-0000-000000000012', '00000000-0000-0000-0000-000000000002', 'Altra', 4, true),
+  ('00000000-0000-0000-0000-000000000013', '00000000-0000-0000-0000-000000000001', 'Spenta', 4, false);
+
+BEGIN;
+SELECT public.t_as('authenticated', '00000000-0000-0000-0000-0000000000c1');
+DO $$
+BEGIN
+  INSERT INTO public.order_items (id, order_id, product_id, quantity, unit_price, total_price)
+  VALUES (
+    '00000000-0000-0000-0000-0000000000f1',
+    '00000000-0000-0000-0000-0000000000d1',
+    '00000000-0000-0000-0000-000000000012',
+    1, 0.01, 0.01
+  );
+  RAISE EXCEPTION 'ASSERT FAILED: other company product was stored';
+EXCEPTION WHEN raise_exception THEN
+  IF SQLERRM LIKE 'ASSERT FAILED%' THEN RAISE; END IF;
+END $$;
+DO $$
+BEGIN
+  INSERT INTO public.order_items (id, order_id, product_id, quantity, unit_price, total_price)
+  VALUES (
+    '00000000-0000-0000-0000-0000000000f2',
+    '00000000-0000-0000-0000-0000000000d1',
+    '00000000-0000-0000-0000-000000000013',
+    1, 0.01, 0.01
+  );
+  RAISE EXCEPTION 'ASSERT FAILED: inactive product was stored';
+EXCEPTION WHEN raise_exception THEN
+  IF SQLERRM LIKE 'ASSERT FAILED%' THEN RAISE; END IF;
+END $$;
+ROLLBACK;
+
+BEGIN;
+INSERT INTO public.order_items (id, order_id, product_id, quantity, unit_price, total_price)
+VALUES (
+  '00000000-0000-0000-0000-0000000000e8',
+  '00000000-0000-0000-0000-0000000000d1',
+  '00000000-0000-0000-0000-000000000011',
+  1, 3, 3
+);
+GRANT UPDATE ON public.order_items TO authenticated;
+CREATE POLICY order_items_update_test ON public.order_items
+  FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
+SELECT public.t_as('authenticated', '00000000-0000-0000-0000-0000000000c1');
+UPDATE public.order_items
+SET unit_price = 0.01, total_price = 0.01, quantity = 2
+WHERE id = '00000000-0000-0000-0000-0000000000e8';
+RESET ROLE;
+SELECT public.t_assert(
+  (SELECT unit_price FROM public.order_items WHERE id = '00000000-0000-0000-0000-0000000000e8') = 8.50
+  AND (SELECT total_price FROM public.order_items WHERE id = '00000000-0000-0000-0000-0000000000e8') = 17.00
+  AND (SELECT quantity FROM public.order_items WHERE id = '00000000-0000-0000-0000-0000000000e8') = 2,
+  'a customer update is repriced from the product');
+ROLLBACK;
+
+BEGIN;
+UPDATE public.profiles SET company_id = NULL WHERE id = '00000000-0000-0000-0000-0000000000c1';
+SELECT public.t_as('authenticated', '00000000-0000-0000-0000-0000000000c1');
+DO $$
+BEGIN
+  INSERT INTO public.orders (id, company_id, customer_id, status)
+  VALUES (
+    '00000000-0000-0000-0000-0000000000df',
+    NULL,
+    '00000000-0000-0000-0000-0000000000c1',
+    'pending'
+  );
+  RAISE EXCEPTION 'ASSERT FAILED: null company was stored';
+EXCEPTION WHEN insufficient_privilege THEN NULL;
+END $$;
+DO $$
+BEGIN
+  INSERT INTO public.orders (id, company_id, customer_id, status)
+  VALUES (
+    '00000000-0000-0000-0000-0000000000df',
+    '00000000-0000-0000-0000-000000000001',
+    '00000000-0000-0000-0000-0000000000c1',
+    'pending'
+  );
+  RAISE EXCEPTION 'ASSERT FAILED: customer without a company inserted an order';
+EXCEPTION WHEN insufficient_privilege THEN NULL;
+END $$;
+ROLLBACK;
 
 BEGIN;
 SELECT public.t_as('authenticated', '00000000-0000-0000-0000-0000000000a2');

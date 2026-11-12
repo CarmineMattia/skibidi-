@@ -46,6 +46,7 @@ CREATE TABLE public.products (
   id uuid PRIMARY KEY,
   company_id uuid REFERENCES public.companies(id),
   name text,
+  price numeric,
   active boolean NOT NULL DEFAULT true
 );
 CREATE TABLE public.orders (
@@ -226,8 +227,8 @@ CREATE POLICY staff_read_only_select ON public.staff_read_only FOR SELECT TO aut
 INSERT INTO public.companies (id, name, active) VALUES
   ('00000000-0000-0000-0000-000000000001', 'Ambrosia', true),
   ('00000000-0000-0000-0000-000000000002', 'Altra', true);
-INSERT INTO public.products (id, company_id, name) VALUES
-  ('00000000-0000-0000-0000-000000000011', '00000000-0000-0000-0000-000000000001', 'Margherita');
+INSERT INTO public.products (id, company_id, name, price) VALUES
+  ('00000000-0000-0000-0000-000000000011', '00000000-0000-0000-0000-000000000001', 'Margherita', 8.50);
 
 INSERT INTO auth.users (id, email) VALUES
   ('00000000-0000-0000-0000-0000000000c1', 'mario@example.test'),

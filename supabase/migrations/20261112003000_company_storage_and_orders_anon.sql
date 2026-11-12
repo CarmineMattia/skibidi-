@@ -19,7 +19,8 @@
 -- 4. The legacy INSERT policies "Anyone can create orders" and "Anyone can
 --    create order items" are replaced. A customer inserts only their own
 --    order, in their company; an item only while that order is still pending.
---    Admin and kiosk of the same company can still insert. Checkout stays on
+--    Admin and kiosk of the same company can still insert. company_id must
+--    be present: a profile with no company cannot insert. Checkout stays on
 --    create_order_with_items (SECURITY DEFINER, server prices, no anonymous).
 -- 5. prevent_customer_order_tampering is installed idempotently, same body
 --    as 20261023100000, so a customer cannot change status, total or company.
@@ -204,7 +205,8 @@ BEGIN
     CREATE POLICY "Anyone can create orders" ON public.orders
       FOR INSERT TO authenticated
       WITH CHECK (
-        company_id IS NOT DISTINCT FROM public.get_my_company_id()
+        company_id IS NOT NULL
+        AND company_id IS NOT DISTINCT FROM public.get_my_company_id()
         AND (
           customer_id = auth.uid()
           OR EXISTS (
