@@ -34,11 +34,36 @@ function mimeFromName(fileName: string | null | undefined): string | null {
   return null;
 }
 
+export const PRODUCT_IMAGE_NOT_AN_IMAGE = 'Il file non è un\'immagine JPEG, PNG o WebP.';
+export const PRODUCT_IMAGE_MISMATCH = 'Il contenuto del file non corrisponde al formato dichiarato.';
+
 export function decodedBase64Bytes(base64: string): number {
   const cleaned = base64.replace(/\s/g, '');
   if (!cleaned) return 0;
   const padding = cleaned.endsWith('==') ? 2 : cleaned.endsWith('=') ? 1 : 0;
   return Math.floor((cleaned.length * 3) / 4) - padding;
+}
+
+function bytesFromBase64(base64: string): Uint8Array {
+  const binary = atob(base64.replace(/\s/g, ''));
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes;
+}
+
+/** MIME comes from the file header, not from the name the picker reports. */
+export function mimeFromMagicBytes(bytes: Uint8Array): ProductImageMime | null {
+  if (bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return 'image/jpeg';
+  const png = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+  if (png.every((byte, index) => bytes[index] === byte)) return 'image/png';
+  if (
+    bytes.length >= 12 &&
+    bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46 &&
+    bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50
+  ) {
+    return 'image/webp';
+  }
+  return null;
 }
 
 export function validateProductImage(input: {
@@ -48,21 +73,22 @@ export function validateProductImage(input: {
   base64?: string | null;
 }): ProductImageCheck {
   const raw = (input.mimeType || mimeFromName(input.fileName) || '').toLowerCase().split(';')[0].trim();
-  const mimeType = CANONICAL_MIME[raw as keyof typeof CANONICAL_MIME];
-  if (!mimeType) {
-    return { ok: false, message: 'Formato non supportato. Usa JPEG, PNG o WebP.' };
-  }
-  const size = input.base64 ? decodedBase64Bytes(input.base64) : input.sizeBytes;
+  const declared = CANONICAL_MIME[raw as keyof typeof CANONICAL_MIME] ?? null;
   if (input.sizeBytes != null && input.sizeBytes > PRODUCT_IMAGE_MAX_BYTES) {
     return { ok: false, message: 'Immagine troppo grande. Il massimo è 5 MB.' };
   }
-  if (size == null || size <= 0) {
-    return { ok: false, message: 'Immagine non valida.' };
+  if (!input.base64) {
+    return { ok: false, message: declared ? 'Immagine non valida.' : PRODUCT_IMAGE_NOT_AN_IMAGE };
   }
-  if (size > PRODUCT_IMAGE_MAX_BYTES) {
+  const bytes = bytesFromBase64(input.base64);
+  if (bytes.length <= 0) return { ok: false, message: 'Immagine non valida.' };
+  if (bytes.length > PRODUCT_IMAGE_MAX_BYTES) {
     return { ok: false, message: 'Immagine troppo grande. Il massimo è 5 MB.' };
   }
-  return { ok: true, mimeType, extension: EXTENSION_BY_MIME[mimeType] };
+  const sniffed = mimeFromMagicBytes(bytes);
+  if (!sniffed) return { ok: false, message: PRODUCT_IMAGE_NOT_AN_IMAGE };
+  if (declared && declared !== sniffed) return { ok: false, message: PRODUCT_IMAGE_MISMATCH };
+  return { ok: true, mimeType: sniffed, extension: EXTENSION_BY_MIME[sniffed] };
 }
 
 /** Object key inside the products bucket. The first segment is the company id. */

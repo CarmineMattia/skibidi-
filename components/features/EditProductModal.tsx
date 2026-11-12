@@ -67,11 +67,7 @@ export function EditProductModal({ visible, onClose, product }: EditProductModal
         });
 
         const asset = result.canceled ? null : result.assets[0];
-        if (!asset?.base64) return;
-        if (!companyId) {
-            reportImageError('Tenant non risolto. Riprova tra qualche secondo.');
-            return;
-        }
+        if (!asset) return;
         const checked = validateProductImage({
             mimeType: asset.mimeType,
             fileName: asset.fileName,
@@ -80,6 +76,14 @@ export function EditProductModal({ visible, onClose, product }: EditProductModal
         });
         if (!checked.ok) {
             reportImageError(checked.message);
+            return;
+        }
+        if (!companyId) {
+            reportImageError('Tenant non risolto. Riprova tra qualche secondo.');
+            return;
+        }
+        if (!asset.base64) {
+            reportImageError('Immagine non valida.');
             return;
         }
         await uploadImage(asset.base64, checked.mimeType, checked.extension);

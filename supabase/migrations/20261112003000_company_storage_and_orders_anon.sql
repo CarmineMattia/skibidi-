@@ -1,10 +1,13 @@
 -- Follow-up to 20261111234500. File only: not applied to production.
 --
 -- 1. products bucket writes: is_admin() and the first path segment must be
---    the caller's company id ({company_id}/...). Flat keys such as
---    margherita.jpg stay readable: the bucket stays public, and the staff
---    SELECT policy is not limited to the company prefix, so existing public
---    URLs and admin listing of old objects keep working.
+--    the caller's company id ({company_id}/...). Names with '..', a
+--    backslash, a leading slash or an empty segment ('//') are rejected, so
+--    a key like {company}/../other/x.jpg cannot slip through if the host
+--    normalizes the path. Flat keys such as margherita.jpg stay readable:
+--    the bucket stays public, and the staff SELECT policy is not limited to
+--    the company prefix, so existing public URLs and admin listing of old
+--    objects keep working.
 -- 2. orders / order_items: every policy that still applied to PUBLIC or anon
 --    is pinned to authenticated. anon (and PUBLIC) lose every table privilege.
 --    Authenticated keeps the commands its policies use. order_items stays
@@ -29,6 +32,7 @@ BEGIN
   EXECUTE 'DROP POLICY IF EXISTS products_images_staff_delete ON storage.objects';
 
   -- split_part is the first folder. storage.foldername is not required.
+  -- The regex rejects traversal even when the first segment is the company.
   EXECUTE $q$
     CREATE POLICY products_images_staff_insert
     ON storage.objects FOR INSERT TO authenticated
@@ -36,6 +40,7 @@ BEGIN
       bucket_id = 'products'
       AND coalesce(public.is_admin(), false)
       AND split_part(name, '/', 1) = public.get_my_company_id()::text
+      AND name !~ '(\.\.|\\|^/|//)'
     )
   $q$;
   EXECUTE $q$
@@ -45,11 +50,13 @@ BEGIN
       bucket_id = 'products'
       AND coalesce(public.is_admin(), false)
       AND split_part(name, '/', 1) = public.get_my_company_id()::text
+      AND name !~ '(\.\.|\\|^/|//)'
     )
     WITH CHECK (
       bucket_id = 'products'
       AND coalesce(public.is_admin(), false)
       AND split_part(name, '/', 1) = public.get_my_company_id()::text
+      AND name !~ '(\.\.|\\|^/|//)'
     )
   $q$;
   EXECUTE $q$
@@ -59,6 +66,7 @@ BEGIN
       bucket_id = 'products'
       AND coalesce(public.is_admin(), false)
       AND split_part(name, '/', 1) = public.get_my_company_id()::text
+      AND name !~ '(\.\.|\\|^/|//)'
     )
   $q$;
 END
@@ -113,6 +121,75 @@ BEGIN
     IF to_regclass('public.order_items') IS NOT NULL THEN
       EXECUTE 'GRANT SELECT, INSERT ON TABLE public.order_items TO authenticated';
     END IF;
+  END IF;
+
+  -- 20260210152600 left staff SELECT/UPDATE on every company's orders.
+  -- Customers still see and update only their own rows. Staff (admin and
+  -- kiosk, which is the kitchen/cassa role) only their company. Insert
+  -- policies are left as they are so a logged-in customer can still create
+  -- an order; checkout RPCs are SECURITY DEFINER and do not use these policies.
+  EXECUTE 'DROP POLICY IF EXISTS "Users can view own orders" ON public.orders';
+  EXECUTE $q$
+    CREATE POLICY "Users can view own orders" ON public.orders
+      FOR SELECT TO authenticated
+      USING (
+        customer_id = auth.uid()
+        OR (
+          EXISTS (
+            SELECT 1 FROM public.profiles p
+            WHERE p.id = auth.uid() AND p.role IN ('admin', 'kiosk')
+          )
+          AND company_id IS NOT DISTINCT FROM public.get_my_company_id()
+        )
+      )
+  $q$;
+  EXECUTE 'DROP POLICY IF EXISTS "Users can update own orders" ON public.orders';
+  EXECUTE $q$
+    CREATE POLICY "Users can update own orders" ON public.orders
+      FOR UPDATE TO authenticated
+      USING (
+        customer_id = auth.uid()
+        OR (
+          EXISTS (
+            SELECT 1 FROM public.profiles p
+            WHERE p.id = auth.uid() AND p.role IN ('admin', 'kiosk')
+          )
+          AND company_id IS NOT DISTINCT FROM public.get_my_company_id()
+        )
+      )
+      WITH CHECK (
+        customer_id = auth.uid()
+        OR (
+          EXISTS (
+            SELECT 1 FROM public.profiles p
+            WHERE p.id = auth.uid() AND p.role IN ('admin', 'kiosk')
+          )
+          AND company_id IS NOT DISTINCT FROM public.get_my_company_id()
+        )
+      )
+  $q$;
+  IF to_regclass('public.order_items') IS NOT NULL THEN
+    EXECUTE 'DROP POLICY IF EXISTS "Users can view order items" ON public.order_items';
+    EXECUTE $q$
+      CREATE POLICY "Users can view order items" ON public.order_items
+        FOR SELECT TO authenticated
+        USING (
+          EXISTS (
+            SELECT 1 FROM public.orders o
+            WHERE o.id = order_items.order_id
+              AND (
+                o.customer_id = auth.uid()
+                OR (
+                  EXISTS (
+                    SELECT 1 FROM public.profiles p
+                    WHERE p.id = auth.uid() AND p.role IN ('admin', 'kiosk')
+                  )
+                  AND o.company_id IS NOT DISTINCT FROM public.get_my_company_id()
+                )
+              )
+          )
+        )
+    $q$;
   END IF;
 END
 $orders_roles$;

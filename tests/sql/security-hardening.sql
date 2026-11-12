@@ -307,8 +307,9 @@ SELECT public.t_assert(
 SELECT public.t_assert(
   position('split_part' in pg_get_expr(pol.polwithcheck, pol.polrelid)) > 0
   AND position('is_admin' in pg_get_expr(pol.polwithcheck, pol.polrelid)) > 0
-  AND position('split_part' in coalesce(pg_get_expr(sel.polqual, sel.polrelid), '')) = 0,
-  'writes check the company prefix; staff listing of flat paths does not')
+  AND position('split_part' in coalesce(pg_get_expr(sel.polqual, sel.polrelid), '')) = 0
+  AND position('!~' in pg_get_expr(pol.polwithcheck, pol.polrelid)) > 0,
+  'writes check the company prefix and reject traversal; staff listing of flat paths does not')
 FROM pg_policy pol, pg_policy sel
 WHERE pol.polname = 'products_images_staff_insert'
   AND sel.polname = 'products_images_staff_select';
@@ -333,6 +334,36 @@ BEGIN
   RAISE EXCEPTION 'ASSERT FAILED: admin wrote another company prefix';
 EXCEPTION WHEN insufficient_privilege THEN NULL;
 END $$;
+DO $$
+BEGIN
+  INSERT INTO storage.objects (bucket_id, name) VALUES (
+    'products',
+    '00000000-0000-0000-0000-000000000001/../00000000-0000-0000-0000-000000000002/x.jpg'
+  );
+  RAISE EXCEPTION 'ASSERT FAILED: traversal path was stored';
+EXCEPTION WHEN insufficient_privilege THEN NULL;
+END $$;
+DO $$
+BEGIN
+  INSERT INTO storage.objects (bucket_id, name)
+  VALUES ('products', '00000000-0000-0000-0000-000000000001//x.jpg');
+  RAISE EXCEPTION 'ASSERT FAILED: empty path segment was stored';
+EXCEPTION WHEN insufficient_privilege THEN NULL;
+END $$;
+DO $$
+BEGIN
+  INSERT INTO storage.objects (bucket_id, name)
+  VALUES ('products', '/00000000-0000-0000-0000-000000000001/x.jpg');
+  RAISE EXCEPTION 'ASSERT FAILED: leading slash was stored';
+EXCEPTION WHEN insufficient_privilege THEN NULL;
+END $$;
+DO $$
+BEGIN
+  INSERT INTO storage.objects (bucket_id, name)
+  VALUES ('products', E'00000000-0000-0000-0000-000000000001\\x.jpg');
+  RAISE EXCEPTION 'ASSERT FAILED: backslash was stored';
+EXCEPTION WHEN insufficient_privilege THEN NULL;
+END $$;
 ROLLBACK;
 
 BEGIN;
@@ -344,6 +375,94 @@ BEGIN
   RAISE EXCEPTION 'ASSERT FAILED: customer wrote a product image';
 EXCEPTION WHEN insufficient_privilege THEN NULL;
 END $$;
+ROLLBACK;
+
+-- 7) Staff see only their company. Customers see only their own order.
+INSERT INTO auth.users (id, email) VALUES ('00000000-0000-0000-0000-0000000000a2', 'admin2@example.test');
+UPDATE public.profiles
+SET role = 'admin', company_id = '00000000-0000-0000-0000-000000000002', full_name = 'Admin Altra'
+WHERE id = '00000000-0000-0000-0000-0000000000a2';
+INSERT INTO public.order_items (id, order_id, product_id, quantity)
+VALUES (
+  '00000000-0000-0000-0000-0000000000e1',
+  '00000000-0000-0000-0000-0000000000d1',
+  '00000000-0000-0000-0000-000000000011',
+  1
+);
+SELECT public.t_assert(
+  position('get_my_company_id' in pg_get_expr(v.polqual, v.polrelid)) > 0
+  AND position('get_my_company_id' in pg_get_expr(u.polqual, u.polrelid)) > 0
+  AND position('get_my_company_id' in pg_get_expr(i.polqual, i.polrelid)) > 0,
+  'legacy order policies filter staff by company')
+FROM pg_policy v, pg_policy u, pg_policy i
+WHERE v.polname = 'Users can view own orders'
+  AND u.polname = 'Users can update own orders'
+  AND i.polname = 'Users can view order items';
+
+BEGIN;
+SELECT public.t_as('authenticated', '00000000-0000-0000-0000-0000000000a1');
+SELECT public.t_assert(
+  EXISTS (SELECT 1 FROM public.orders WHERE id = '00000000-0000-0000-0000-0000000000d1')
+  AND EXISTS (SELECT 1 FROM public.order_items WHERE id = '00000000-0000-0000-0000-0000000000e1'),
+  'admin sees the order of their company');
+UPDATE public.orders SET notes = 'cucina' WHERE id = '00000000-0000-0000-0000-0000000000d1';
+SELECT public.t_assert(
+  (SELECT notes FROM public.orders WHERE id = '00000000-0000-0000-0000-0000000000d1') = 'cucina',
+  'admin of the company can update the order');
+ROLLBACK;
+
+BEGIN;
+SELECT public.t_as('authenticated', '00000000-0000-0000-0000-0000000000b1');
+SELECT public.t_assert(
+  EXISTS (SELECT 1 FROM public.orders WHERE id = '00000000-0000-0000-0000-0000000000d1'),
+  'kiosk of the company can see the order');
+ROLLBACK;
+
+BEGIN;
+SELECT public.t_as('authenticated', '00000000-0000-0000-0000-0000000000c1');
+SELECT public.t_assert(
+  EXISTS (SELECT 1 FROM public.orders WHERE id = '00000000-0000-0000-0000-0000000000d1'),
+  'customer sees their own order');
+INSERT INTO public.orders (id, company_id, customer_id, status)
+VALUES (
+  '00000000-0000-0000-0000-0000000000d9',
+  '00000000-0000-0000-0000-000000000001',
+  '00000000-0000-0000-0000-0000000000c1',
+  'pending'
+);
+SELECT public.t_assert(
+  EXISTS (SELECT 1 FROM public.orders WHERE id = '00000000-0000-0000-0000-0000000000d9'),
+  'customer can still insert an order');
+ROLLBACK;
+
+BEGIN;
+SELECT public.t_as('authenticated', '00000000-0000-0000-0000-0000000000a2');
+SELECT public.t_assert(
+  NOT EXISTS (SELECT 1 FROM public.orders WHERE id = '00000000-0000-0000-0000-0000000000d1')
+  AND NOT EXISTS (SELECT 1 FROM public.order_items WHERE id = '00000000-0000-0000-0000-0000000000e1'),
+  'admin of another company cannot see the order');
+DO $$
+DECLARE n integer;
+BEGIN
+  UPDATE public.orders SET status = 'cancelled' WHERE id = '00000000-0000-0000-0000-0000000000d1';
+  GET DIAGNOSTICS n = ROW_COUNT;
+  IF n <> 0 THEN RAISE EXCEPTION 'ASSERT FAILED: other company admin updated the order'; END IF;
+END $$;
+ROLLBACK;
+
+BEGIN;
+SELECT public.t_as('authenticated', '00000000-0000-0000-0000-0000000000b2');
+SELECT public.t_assert(
+  NOT EXISTS (SELECT 1 FROM public.orders WHERE id = '00000000-0000-0000-0000-0000000000d1')
+  AND NOT EXISTS (SELECT 1 FROM public.order_items WHERE id = '00000000-0000-0000-0000-0000000000e1'),
+  'kiosk of another company cannot see the order');
+ROLLBACK;
+
+BEGIN;
+SELECT public.t_as('authenticated', '00000000-0000-0000-0000-0000000000c2');
+SELECT public.t_assert(
+  NOT EXISTS (SELECT 1 FROM public.orders WHERE id = '00000000-0000-0000-0000-0000000000d1'),
+  'another customer cannot see the order');
 ROLLBACK;
 
 -- Avatar column is optional. When it exists, picture/avatar_url is copied.

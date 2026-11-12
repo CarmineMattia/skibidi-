@@ -180,6 +180,7 @@ GRANT EXECUTE ON FUNCTION public.create_order_with_items(jsonb, jsonb) TO authen
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.order_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.order_daily_counters ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.internal_probe ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.staff_read_only ENABLE ROW LEVEL SECURITY;
@@ -200,6 +201,24 @@ CREATE POLICY "Users can view own orders" ON public.orders FOR SELECT
   ));
 CREATE POLICY "Anyone can create orders" ON public.orders FOR INSERT
   WITH CHECK (auth.uid() IS NOT NULL);
+CREATE POLICY "Users can update own orders" ON public.orders FOR UPDATE
+  USING (
+    customer_id = auth.uid() OR EXISTS (
+      SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role IN ('admin', 'kiosk')
+    )
+  );
+CREATE POLICY "Users can view order items" ON public.order_items FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.orders o
+      WHERE o.id = order_items.order_id
+        AND (
+          o.customer_id = auth.uid() OR EXISTS (
+            SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role IN ('admin', 'kiosk')
+          )
+        )
+    )
+  );
 CREATE POLICY staff_read_only_select ON public.staff_read_only FOR SELECT TO authenticated USING (true);
 
 INSERT INTO public.companies (id, name, active) VALUES
