@@ -19,6 +19,7 @@ import {
   isAddressInDeliveryZone,
 } from '@/lib/utils/deliveryZone';
 import { formatOrderItemNotes } from '@/lib/utils/orderItemDetails';
+import { requestOrderConfirmationEmail } from '@/lib/utils/orderConfirmationRequest';
 import { resolveOrderTotals, type ResolvedOrderTotals, type ServerOrderResponse } from '@/lib/utils/serverOrderTotals';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRef } from 'react';
@@ -216,6 +217,14 @@ export function useCreateOrder() {
       }
       const saved = persisted as ServerOrderResponse;
       if (saved.id !== orderId) throw new Error('Il server non ha confermato l’ordine. Riprova.');
+      // Email di conferma (edge function). Non è attesa e non può far fallire l'ordine:
+      // senza RESEND_API_KEY / EMAIL_FROM la function non invia nulla.
+      try {
+        const invoke = supabase.functions?.invoke;
+        if (invoke) requestOrderConfirmationEmail(orderId, (name, args) => invoke.call(supabase.functions, name, args));
+      } catch {
+        // ignore
+      }
       displayCode = saved.display_code || displayCode;
       // Server prices (lines, delivery fee, total) for receipt and confirmation.
       const confirmed = resolveOrderTotals(

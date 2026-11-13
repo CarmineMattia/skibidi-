@@ -1,7 +1,7 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Stack, useRouter, useSegments } from 'expo-router';
+import { Stack, useGlobalSearchParams, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { Platform } from 'react-native';
@@ -17,6 +17,13 @@ import { TenantProvider } from '@/lib/stores/TenantContext';
 import { MenuPricingProvider } from '@/lib/stores/MenuPricingContext';
 import { OfflineQueueProvider, OfflineIndicator } from '@/lib/hooks/useOfflineQueue';
 import { OrderNotificationProvider } from '@/lib/stores/OrderNotificationContext';
+import {
+  authRouteKey,
+  clearAuthReturn,
+  readAuthReturn,
+  resolveAuthRedirect,
+  writeAuthReturn,
+} from '@/lib/utils/authReturn';
 
 // Import global CSS for NativeWind
 import '../global.css';
@@ -126,26 +133,49 @@ function RootLayoutNav() {
 /**
  * Authentication Guard
  * - Il menu resta navigabile senza login.
- * - Checkout/ordine richiedono un utente loggato (Google): altrimenti /login.
+ * - Checkout e tracking richiedono un utente loggato (Google): altrimenti /login.
+ * - Il link nell'email di conferma apre /order-tracking; se la sessione non c'è,
+ *   dopo il login Google si torna su quella pagina (il redirect OAuth resta /login).
  * - Gli utenti già autenticati non restano sulla pagina di login.
  */
-const ORDER_ROUTES = new Set(['modal', 'one-screen-checkout']);
-
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
   const segments = useSegments();
+  const params = useGlobalSearchParams<{ orderId?: string; orderType?: string }>();
   const router = useRouter();
 
   useEffect(() => {
-    if (isLoading) return; // Wait for auth to initialize
+    if (isLoading) return;
 
-    const first = segments[0] as string | undefined;
-    if (isAuthenticated && first === 'login') {
-      router.replace('/(tabs)/menu');
-    } else if (!isAuthenticated && first && ORDER_ROUTES.has(first)) {
-      router.replace('/login');
+    const route = authRouteKey(segments);
+    const webLocation = Platform.OS === 'web' && typeof window !== 'undefined'
+      ? `${window.location.pathname}${window.location.search}`
+      : null;
+    const nativeLocation = route === 'order-tracking'
+      ? `/order-tracking?${new URLSearchParams({
+          ...(typeof params.orderId === 'string' ? { orderId: params.orderId } : {}),
+          ...(typeof params.orderType === 'string' ? { orderType: params.orderType } : {}),
+        }).toString()}`
+      : null;
+    const decision = resolveAuthRedirect({
+      isLoading,
+      isAuthenticated,
+      route,
+      location: webLocation ?? nativeLocation,
+      storedReturn: readAuthReturn(),
+    });
+    if (decision.action === 'none') {
+      if (decision.remember) writeAuthReturn(decision.remember);
+      return;
     }
-  }, [isAuthenticated, isLoading, segments, router]);
+    if (decision.action === 'login') {
+      if (decision.remember) writeAuthReturn(decision.remember);
+      router.replace('/login');
+      return;
+    }
+    if (decision.clearStored) clearAuthReturn();
+    router.replace(decision.href as '/login');
+  }, [isAuthenticated, isLoading, params.orderId, params.orderType, segments, router]);
 
   return <>{children}</>;
 }

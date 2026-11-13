@@ -297,6 +297,7 @@ export type Database = {
       orders: {
         Row: {
           company_id: string
+          confirmation_email_sent_at: string | null
           created_at: string
           customer_id: string | null
           customer_name: string | null
@@ -321,6 +322,7 @@ export type Database = {
         }
         Insert: {
           company_id: string
+          confirmation_email_sent_at?: string | null
           created_at?: string
           customer_id?: string | null
           customer_name?: string | null
@@ -345,6 +347,7 @@ export type Database = {
         }
         Update: {
           company_id?: string
+          confirmation_email_sent_at?: string | null
           created_at?: string
           customer_id?: string | null
           customer_name?: string | null

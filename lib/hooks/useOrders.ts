@@ -132,7 +132,7 @@ export function useOrders(options: UseOrdersOptions = {}) {
  * anonymous session) or is staff. Polling covers guests who do not receive
  * the protected order row over Realtime.
  */
-export function useOrder(orderId: string) {
+export function useOrder(orderId: string, enabled = true) {
   return useQuery({
     queryKey: ['orders', orderId],
     queryFn: async (): Promise<OrderTrackingSnapshot> => {
@@ -154,7 +154,7 @@ export function useOrder(orderId: string) {
       return data as unknown as OrderTrackingSnapshot;
     },
 
-    enabled: !!orderId, // Only run if orderId is provided
+    enabled: Boolean(orderId) && enabled, // Il tracking pubblico anonimo è negato: la pagina aspetta il login.
     staleTime: 0,
     // Guests cannot receive protected order rows over Realtime: poll the
     // tracking RPC so acceptance remains visible without a WebSocket.
