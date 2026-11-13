@@ -1,9 +1,11 @@
 import { DeliveryAddressField } from '@/components/features/DeliveryAddressField';
 import { Button } from '@/components/ui/Button';
+import { PageTitle } from '@/components/ui/PageTitle';
 import { TimeWheelModal } from '@/components/ui/TimeWheelModal';
 import { supabase } from '@/lib/api/supabase';
 import { BRAND } from '@/lib/data/brand';
 import { useCreateOrder } from '@/lib/hooks/useCreateOrder';
+import { useLoyaltySummary } from '@/lib/hooks/useLoyalty';
 import { useOrderSubmissionGuard } from '@/lib/hooks/useOrderSubmissionGuard';
 import { useCustomerLookup, type CustomerLookupOrder } from '@/lib/hooks/useCustomerLookup';
 import { useOfflineQueue } from '@/lib/hooks/useOfflineQueue';
@@ -15,11 +17,14 @@ import { useTenant } from '@/lib/stores/TenantContext';
 import { finalizeDeliveryAddress, isAddressInDeliveryZone } from '@/lib/utils/deliveryZone';
 import { isOpenAt, getNextOpening } from '@/lib/utils/businessHours';
 import { buildCapacityUnitsToken, sumCartPizzaCapacity } from '@/lib/utils/pizzaCapacity';
+import { loyaltyUserMessage } from '@/lib/loyalty/errors';
+import { canRequestPoints, clampPointsRequest, displayedCheckoutTotal, maxRedeemablePoints } from '@/lib/loyalty/points';
 import { PAY_AT_TILL_LABEL_EN, PAY_AT_TILL_LABEL_IT, PAY_AT_TILL_METHOD, PAY_AT_TILL_NOTE } from '@/lib/payments/payAtTill';
 import { FontAwesome } from '@expo/vector-icons';
 import { countries } from 'countries-list';
 import { useRouter, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { PointsRequestToggle } from '@/components/features/loyalty/PointsRequestToggle';
 import { TurnstileWidget } from '@/components/features/TurnstileWidget';
 import { isAntiabuseError } from '@/lib/utils/antiabuse';
 import { isOrderLineError } from '@/lib/utils/orderLineErrors';
@@ -216,6 +221,8 @@ export default function CheckoutScreen() {
   const [orderType, setOrderType] = useState<OrderType>('eat_in');
   const { isProcessing, start, complete } = useOrderSubmissionGuard();
   const [submissionError, setSubmissionError] = useState<string | null>(null);
+  const [pointsRequested, setPointsRequested] = useState(0);
+  const loyalty = useLoyaltySummary(isAuthenticated && profile?.role === 'customer');
   const [showPhonePrefixModal, setShowPhonePrefixModal] = useState(false);
   const [phonePrefixSearch, setPhonePrefixSearch] = useState('');
   const [fulfillmentMode, setFulfillmentMode] = useState<FulfillmentMode>('asap');
@@ -411,7 +418,15 @@ export default function CheckoutScreen() {
   );
 
   const appliedDeliveryFee = orderType === 'delivery' ? deliveryFee : 0;
-  const checkoutTotal = totalAmount + appliedDeliveryFee;
+  const checkoutTotal = displayedCheckoutTotal(totalAmount, appliedDeliveryFee, pointsRequested);
+  const showPoints = canRequestPoints({
+    authenticated: isAuthenticated,
+    role: profile?.role,
+    enabled: loyalty.data?.enabled === true,
+  });
+  const pointsMax = loyalty.data
+    ? maxRedeemablePoints(loyalty.data.balance, loyalty.data.pointsPerRedeemUnit, totalAmount, loyalty.data.redeemValueEur)
+    : 0;
   const isDelivery = orderType === 'delivery';
 
 
@@ -967,6 +982,9 @@ export default function CheckoutScreen() {
           deliveryAddress: fullDeliveryAddress,
           tableNumber: tableNumber,
           paymentMethod: PAY_AT_TILL_METHOD,
+          pointsRequested: showPoints && loyalty.data
+            ? clampPointsRequest(pointsRequested, pointsMax, loyalty.data.pointsPerRedeemUnit)
+            : 0,
         });
 
         // Queuing stays on this screen until the offline notice is dismissed.
@@ -992,6 +1010,9 @@ export default function CheckoutScreen() {
         fulfillmentAt: selectedFulfillmentIso,
         paymentMethod: PAY_AT_TILL_METHOD,
         turnstileToken,
+        pointsRequested: showPoints && loyalty.data
+          ? clampPointsRequest(pointsRequested, pointsMax, loyalty.data.pointsPerRedeemUnit)
+          : 0,
       });
 
       console.log('✅ Order created successfully:', result.orderId);
@@ -1010,6 +1031,12 @@ export default function CheckoutScreen() {
       // Prodotto non più disponibile / opzioni non valide: tolto dal carrello.
       if (isOrderLineError(error) && error.removeFromCart && error.productId) {
         removeProductLines(error.productId);
+      }
+      const loyaltyMessage = loyaltyUserMessage(error);
+      if (loyaltyMessage) {
+        setSubmissionError(loyaltyMessage);
+        Alert.alert('Punti', loyaltyMessage, [{ text: 'OK' }]);
+        return;
       }
       if (isAntiabuseError(error)) {
         setSubmissionError(error.message);
@@ -1515,6 +1542,19 @@ export default function CheckoutScreen() {
         </View>
       )}
 
+      {showPoints && loyalty.data ? (
+        <View className="mb-4">
+          <PointsRequestToggle
+            balance={loyalty.data.balance}
+            unit={loyalty.data.pointsPerRedeemUnit}
+            redeemValueEur={loyalty.data.redeemValueEur}
+            maxPoints={pointsMax}
+            value={pointsRequested}
+            onChange={setPointsRequested}
+          />
+        </View>
+      ) : null}
+
       {/* Payment Methods */}
       <View className="mb-4">
         <Text className="text-lg font-bold mb-3">{i18n.paymentMethod}</Text>
@@ -1568,6 +1608,7 @@ export default function CheckoutScreen() {
 
   return (
     <>
+      <PageTitle page="checkout" />
       {/* Hide Expo Router default header */}
       <Stack.Screen options={{ headerShown: false }} />
       

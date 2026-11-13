@@ -1,4 +1,7 @@
+import { SkibidiCoinCard } from '@/components/features/loyalty/SkibidiCoinCard';
+import { PageTitle } from '@/components/ui/PageTitle';
 import { FontAwesome } from '@expo/vector-icons';
+import { useIsPlatformOwner } from '@/lib/hooks/useIsPlatformOwner';
 import { useAuth } from '@/lib/stores/AuthContext';
 import { SkeletonAccountProfile } from '@/components/ui/Skeleton';
 import { useRouter } from 'expo-router';
@@ -9,6 +12,7 @@ export default function AccountScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { profile, userRole, isAuthenticated, isAdmin, signOut, isLoading } = useAuth();
+  const platformOwner = useIsPlatformOwner();
 
   const handleLogout = async () => {
     try {
@@ -30,14 +34,18 @@ export default function AccountScreen() {
 
   if (isLoading) {
     return (
-      <ScrollView className="flex-1 bg-[#f9ecdd] p-5" contentContainerStyle={{ paddingTop: insets.top + 8 }}>
-        <SkeletonAccountProfile />
-      </ScrollView>
+      <>
+        <PageTitle page="account" />
+        <ScrollView className="flex-1 bg-[#f9ecdd] p-5" contentContainerStyle={{ paddingTop: insets.top + 8 }}>
+          <SkeletonAccountProfile />
+        </ScrollView>
+      </>
     );
   }
 
   return (
     <ScrollView className="flex-1 bg-[#f9ecdd] p-5" contentContainerStyle={{ paddingTop: insets.top + 8 }}>
+      <PageTitle page="account" />
       <View className="bg-white rounded-2xl p-5 border border-[#e1a255]/40 mb-4 gap-1">
         <Text className="text-xs font-bold uppercase tracking-wider text-[#8d171e]">Account Ambrosia</Text>
         <Text className="text-2xl font-black text-gray-900">Profilo</Text>
@@ -78,6 +86,8 @@ export default function AccountScreen() {
         <Text className="text-base text-gray-900">{displayRole}</Text>
       </View>
 
+      <SkibidiCoinCard />
+
       {isAdmin && (
         <Pressable
           onPress={() => router.push('/admin-options')}
@@ -85,6 +95,18 @@ export default function AccountScreen() {
         >
           <Text className="text-white text-center font-bold text-base">
             Opzioni Admin
+          </Text>
+        </Pressable>
+      )}
+
+      {(isAdmin || platformOwner.data === true) && (
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => router.push('/commission-summary')}
+          className="bg-white border border-[#8d171e] rounded-xl px-4 py-4 active:opacity-80 mb-3"
+        >
+          <Text className="text-[#8d171e] text-center font-bold text-base">
+            Resoconto commissioni
           </Text>
         </Pressable>
       )}

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { SkeletonReceipt } from '@/components/ui/Skeleton';
 import { supabase } from '@/lib/api/supabase';
 import { BRAND } from '@/lib/data/brand';
+import { AMOUNT_DUE_LABEL, receiptPointsView } from '@/lib/loyalty/points';
 import { printDocumentoCommerciale, type PrintOrderData } from '@/lib/print/orderPrint';
 import { getOrderDisplayCode } from '@/lib/utils/orderDisplayCode';
 import type { Database } from '@/types/database.types';
@@ -30,6 +31,9 @@ type ReceiptOrder = {
     created_at: string;
     customer_name: string | null;
     total_amount: number | null;
+    points_requested?: number | null;
+    points_redeemed?: number | null;
+    points_discount_eur?: number | null;
     fiscal_status: Database['public']['Enums']['fiscal_status'] | null;
     fiscal_external_id: string | null;
     pdf_url: string | null;
@@ -43,15 +47,26 @@ interface DigitalReceiptProps {
 }
 
 export function DigitalReceipt({ visible, orderId, onClose }: DigitalReceiptProps) {
-    // Fetch order with items for receipt display.
-    // RPC get_order_tracking: funziona anche per ospiti non autenticati
-    // che conoscono l'UUID dell'ordine (la select diretta è bloccata da RLS).
+    // The receipt is the customer's own order (name, phone, lines). RLS on
+    // orders / order_items allows that read. get_order_tracking stays the
+    // status-only RPC used by the tracking screen.
     const { data: order, isLoading, error } = useQuery({
         queryKey: ['receipt', orderId],
         queryFn: async () => {
-            const { data, error } = await supabase.rpc('get_order_tracking', {
-                p_order_id: orderId,
-            });
+            const { data, error } = await supabase
+                .from('orders')
+                .select(`
+                    id, display_code, created_at, customer_name, total_amount,
+                    points_requested, points_redeemed, points_discount_eur,
+                    fiscal_status, fiscal_external_id, pdf_url, order_type,
+                    table_number, customer_phone, delivery_address, notes,
+                    order_items (
+                        quantity, unit_price, total_price, notes,
+                        product:products (name, price)
+                    )
+                `)
+                .eq('id', orderId)
+                .maybeSingle();
 
             if (error) {
                 console.error('Failed to fetch receipt data:', error);
@@ -115,6 +130,9 @@ export function DigitalReceipt({ visible, orderId, onClose }: DigitalReceiptProp
             deliveryAddress: order.delivery_address,
             notes: order.notes,
             totalAmount: order.total_amount ?? 0,
+            pointsRequested: order.points_requested,
+            pointsRedeemed: order.points_redeemed,
+            pointsDiscountEur: order.points_discount_eur,
             fiscalExternalId: order.fiscal_external_id,
             items: (order.order_items || []).map((item: ReceiptOrderItem) => ({
                 name: item.product?.name || 'Prodotto',
@@ -163,6 +181,18 @@ export function DigitalReceipt({ visible, orderId, onClose }: DigitalReceiptProp
         text += `\n`;
         text += `---------------------------------\n`;
         text += `TOTALE: €${orderData.total_amount?.toFixed(2) || '0.00'}\n`;
+        const pointsView = receiptPointsView({
+            totalAmount: orderData.total_amount ?? 0,
+            pointsRequested: orderData.points_requested,
+            pointsRedeemed: orderData.points_redeemed,
+            pointsDiscountEur: orderData.points_discount_eur,
+        });
+        if (pointsView.kind === 'confirmed') {
+            text += `${pointsView.discountLine}\n`;
+            text += `${AMOUNT_DUE_LABEL}: €${pointsView.amountDue.toFixed(2)}\n`;
+        } else if (pointsView.kind === 'requested') {
+            text += `${pointsView.line}\n`;
+        }
 
         if (orderData.fiscal_status === 'success') {
             text += `di cui IVA (22%): €${(((orderData.total_amount || 0) * 22) / 122).toFixed(2)}\n`;
@@ -334,6 +364,29 @@ export function DigitalReceipt({ visible, orderId, onClose }: DigitalReceiptProp
                                                 €{order.total_amount?.toFixed(2) || '0.00'}
                                             </Text>
                                         </View>
+                                        {(() => {
+                                            const pointsView = receiptPointsView({
+                                                totalAmount: order.total_amount ?? 0,
+                                                pointsRequested: order.points_requested,
+                                                pointsRedeemed: order.points_redeemed,
+                                                pointsDiscountEur: order.points_discount_eur,
+                                            });
+                                            if (pointsView.kind === 'confirmed') {
+                                                return (
+                                                    <>
+                                                        <Text className="text-[#8d171e] font-bold mt-2">{pointsView.discountLine}</Text>
+                                                        <View className="flex-row justify-between items-center mt-1">
+                                                            <Text className="text-card-foreground font-bold">{AMOUNT_DUE_LABEL}</Text>
+                                                            <Text className="text-card-foreground font-bold">€{pointsView.amountDue.toFixed(2)}</Text>
+                                                        </View>
+                                                    </>
+                                                );
+                                            }
+                                            if (pointsView.kind === 'requested') {
+                                                return <Text className="text-[#8d171e] font-bold mt-2">{pointsView.line}</Text>;
+                                            }
+                                            return null;
+                                        })()}
                                     </View>
 
                                     {/* Fiscal Status */}

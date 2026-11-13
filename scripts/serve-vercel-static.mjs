@@ -10,6 +10,9 @@ const root = path.resolve(process.env.DIST_DIR || 'dist');
 const port = Number(process.argv[2] || process.env.PORT || 4173);
 const config = JSON.parse(fs.readFileSync(process.argv[3] || 'vercel.json', 'utf8'));
 const cleanUrls = config.cleanUrls === true;
+const securityHeaders = Object.fromEntries(
+  (config.headers || []).flatMap((group) => group.headers || []).map((h) => [h.key, h.value])
+);
 const rewrites = (config.rewrites || []).map((r) => ({
   re: new RegExp(`^${r.source.replace(/:(\w+)\*/g, '(?<$1>.*)').replace(/:(\w+)/g, '(?<$1>[^/]+)')}$`),
   destination: r.destination,
@@ -30,7 +33,10 @@ const fileFor = (p) => {
   return null;
 };
 const send = (res, file, status = 200) => {
-  res.writeHead(status, { 'content-type': types[path.extname(file)] || 'application/octet-stream' });
+  res.writeHead(status, {
+    'content-type': types[path.extname(file)] || 'application/octet-stream',
+    ...securityHeaders,
+  });
   fs.createReadStream(file).pipe(res);
 };
 
@@ -39,7 +45,7 @@ http.createServer((req, res) => {
   let p = url.pathname;
   if (cleanUrls && p.endsWith('.html')) {
     const target = p.replace(/(\/index)?\.html$/, '') || '/';
-    res.writeHead(308, { location: target + url.search });
+    res.writeHead(308, { location: target + url.search, ...securityHeaders });
     return res.end();
   }
   let file = fileFor(p);
@@ -55,5 +61,5 @@ http.createServer((req, res) => {
   if (file) return send(res, file);
   const notFound = path.join(root, '404.html');
   if (fs.existsSync(notFound)) return send(res, notFound, 404);
-  res.writeHead(404).end('Not found');
+  res.writeHead(404, securityHeaders).end('Not found');
 }).listen(port, () => console.log(`vercel-like static server on http://localhost:${port} (cleanUrls=${cleanUrls})`));

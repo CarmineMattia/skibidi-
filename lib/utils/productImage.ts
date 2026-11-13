@@ -32,11 +32,19 @@ const STORAGE_PUBLIC_PATH = '/storage/v1/object/public/';
 
 export const normalizeRecipe = (value: string) => value.normalize('NFC').toLowerCase().replace(/\s+/g, ' ').trim();
 
+/**
+ * An image_url is usable only if it has something besides whitespace: '', '   ' and
+ * null/undefined all mean "no image" (placeholder). A usable value is returned trimmed.
+ */
+export function cleanImageUrl(value: string | null | undefined): string | undefined {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : undefined;
+}
+
 /** The image_url saved in the DB, also on a product already resolved (idempotent). */
 export function getStoredImageUrl(product: ImageFields): string | null {
   const value = product.stored_image_url !== undefined ? product.stored_image_url : product.image_url;
-  const trimmed = value?.trim();
-  return trimmed ? trimmed : null;
+  return cleanImageUrl(value) ?? null;
 }
 
 /** True for a public Supabase Storage object URL (https, *.supabase.co or the configured project URL). */
@@ -79,13 +87,18 @@ export function resolveProductImage<T extends ImageFields>(
     // already resolved once: put the DB value back
     return { ...product, image_url: stored ?? undefined, stored_image_url: stored } as T;
   }
+  // Not resolved, no bundled photo: keep the product, but a blank / padded image_url is cleaned
+  // so the card shows its placeholder instead of an <Image> with an empty uri.
+  if (typeof product.image_url === 'string' && product.image_url !== cleanImageUrl(product.image_url)) {
+    return { ...product, image_url: cleanImageUrl(product.image_url) } as T;
+  }
   return product;
 }
 
 /** image_url to save from the admin editor: an untouched bundled photo saves the DB value. */
 export function imageUrlToPersist(edited: string | null | undefined, product?: ImageFields | null): string | null {
-  const value = edited?.trim() ? edited.trim() : null;
-  if (product && product.stored_image_url !== undefined && value === (product.image_url?.trim() || null)) {
+  const value = cleanImageUrl(edited) ?? null;
+  if (product && product.stored_image_url !== undefined && value === (cleanImageUrl(product.image_url) ?? null)) {
     return getStoredImageUrl(product);
   }
   return value;

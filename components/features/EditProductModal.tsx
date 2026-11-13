@@ -2,12 +2,17 @@ import { Button } from '@/components/ui/Button';
 import { supabase } from '@/lib/api/supabase';
 import { useTenant } from '@/lib/stores/TenantContext';
 import { buildProductSave, ingredientsToText } from '@/lib/utils/productEditor';
+import {
+    formatStorageUploadError,
+    productImageObjectPath,
+    validateProductImage,
+} from '@/lib/utils/productImageUpload';
 import type { Product } from '@/types';
 import { FontAwesome } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import * as ImagePicker from 'expo-image-picker';
 import { useEffect, useState } from 'react';
-import { Alert, Image, Modal, Pressable, Text, TextInput, View } from 'react-native';
+import { Alert, Image, Modal, Platform, Pressable, Text, TextInput, View } from 'react-native';
 
 interface EditProductModalProps {
     visible: boolean;
@@ -24,6 +29,7 @@ export function EditProductModal({ visible, onClose, product }: EditProductModal
     const [image, setImage] = useState<string | null | undefined>(null);
     const [ingredients, setIngredients] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [imageMessage, setImageMessage] = useState<{ kind: 'error' | 'ok'; text: string } | null>(null);
 
     const queryClient = useQueryClient();
 
@@ -41,10 +47,17 @@ export function EditProductModal({ visible, onClose, product }: EditProductModal
                 setImage(null);
                 setIngredients('');
             }
+            setImageMessage(null);
         }
     }, [visible, product]);
 
+    const reportImageError = (text: string) => {
+        setImageMessage({ kind: 'error', text });
+        if (Platform.OS !== 'web') Alert.alert('Errore Upload', text);
+    };
+
     const pickImage = async () => {
+        setImageMessage(null);
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: true,
@@ -53,48 +66,62 @@ export function EditProductModal({ visible, onClose, product }: EditProductModal
             base64: true,
         });
 
-        if (!result.canceled && result.assets[0].base64) {
-            uploadImage(result.assets[0].base64);
+        const asset = result.canceled ? null : result.assets[0];
+        if (!asset) return;
+        const checked = validateProductImage({
+            mimeType: asset.mimeType,
+            fileName: asset.fileName,
+            sizeBytes: asset.fileSize,
+            base64: asset.base64,
+        });
+        if (!checked.ok) {
+            reportImageError(checked.message);
+            return;
         }
+        if (!companyId) {
+            reportImageError('Tenant non risolto. Riprova tra qualche secondo.');
+            return;
+        }
+        if (!asset.base64) {
+            reportImageError('Immagine non valida.');
+            return;
+        }
+        await uploadImage(asset.base64, checked.mimeType, checked.extension);
     };
 
-    const uploadImage = async (base64: string) => {
+    const uploadImage = async (base64: string, mimeType: 'image/jpeg' | 'image/png' | 'image/webp', extension: 'jpg' | 'png' | 'webp') => {
+        if (!companyId) {
+            reportImageError('Tenant non risolto. Riprova tra qualche secondo.');
+            return;
+        }
         setIsLoading(true);
         try {
-            // Use a temp ID for new products or existing ID
             const idForImage = product?.id || `new-${Date.now()}`;
-            const fileName = `${idForImage}-${Date.now()}.jpg`;
+            const fileName = productImageObjectPath(companyId, idForImage, extension, Date.now());
 
-            console.log('Uploading image:', fileName);
-
-            const { data, error } = await supabase.storage
+            const { error } = await supabase.storage
                 .from('products')
                 .upload(fileName, decode(base64), {
-                    contentType: 'image/jpeg',
+                    contentType: mimeType,
                     upsert: true,
                 });
 
             if (error) {
                 console.error('Upload error details:', error);
-                throw error;
+                reportImageError(formatStorageUploadError(error));
+                return;
             }
-
-            console.log('Upload successful:', data);
 
             const { data: { publicUrl } } = supabase.storage
                 .from('products')
                 .getPublicUrl(fileName);
 
-            console.log('Public URL:', publicUrl);
-
             setImage(publicUrl);
-            Alert.alert('Successo', 'Immagine caricata con successo!');
-        } catch (error: any) {
+            setImageMessage({ kind: 'ok', text: 'Immagine caricata.' });
+            if (Platform.OS !== 'web') Alert.alert('Successo', 'Immagine caricata con successo!');
+        } catch (error: unknown) {
             console.error('Upload error:', error);
-            Alert.alert(
-                'Errore Upload',
-                error?.message || 'Caricamento immagine fallito. Verifica le permessi Storage.'
-            );
+            reportImageError(formatStorageUploadError(error));
         } finally {
             setIsLoading(false);
         }
@@ -209,6 +236,17 @@ export function EditProductModal({ visible, onClose, product }: EditProductModal
                         <Text className="text-primary font-medium mt-2">
                             {isLoading ? 'Attendere...' : 'Tocca per modificare'}
                         </Text>
+                        {imageMessage ? (
+                            <Text
+                                className={
+                                    imageMessage.kind === 'error'
+                                        ? 'text-red-600 text-sm font-semibold mt-2 text-center'
+                                        : 'text-green-700 text-sm font-semibold mt-2 text-center'
+                                }
+                            >
+                                {imageMessage.text}
+                            </Text>
+                        ) : null}
                     </Pressable>
 
                     {/* Inputs */}

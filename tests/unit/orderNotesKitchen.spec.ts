@@ -93,7 +93,47 @@ describe('kitchen card / print: everything after "Nota:" is customer text', () =
       expect(html).not.toContain('Taglia: Mezzo metro ·');
     }
   });
+
+  it('documento commerciale: sconto punti confermato accanto al totale lordo, richiesta ancora da confermare', () => {
+    const base = {
+      id: 'o1', displayCode: 'Ordine #1', createdAt: '2026-10-20T10:00:00Z', orderType: 'take_away',
+      tableNumber: null, customerName: null, customerPhone: null, deliveryAddress: null, notes: null,
+      fiscalExternalId: null,
+      items: [{ name: 'Margherita', quantity: 1, unitPrice: 25, totalPrice: 25, notes: null }],
+    };
+    const confirmed = buildDocumentoCommercialeHtml({
+      ...base, totalAmount: 25, pointsRequested: 100, pointsRedeemed: 100, pointsDiscountEur: 5,
+    }, null);
+    expect(rowAmount(confirmed, 'TOTALE COMPLESSIVO')).toBe('25,00');
+    expect(rowAmount(confirmed, 'di cui IVA sul totale (22%)')).toBe('4,51');
+    expect(confirmed.indexOf('TOTALE COMPLESSIVO')).toBeLessThan(confirmed.indexOf('di cui IVA sul totale'));
+    expect(confirmed.indexOf('di cui IVA sul totale')).toBeLessThan(confirmed.indexOf('Importo da pagare'));
+    expect(confirmed).not.toContain('di cui IVA (22%)');
+    expect(confirmed).toContain('Sconto punti Skibidi Coin -€5.00');
+    expect(rowAmount(confirmed, 'Importo da pagare')).toBe('20,00');
+    expect(rowAmount(confirmed, 'Pagamento contante')).toBe('20,00');
+    expect(rowAmount(confirmed, 'Importo pagato')).toBe('20,00');
+    const requested = buildDocumentoCommercialeHtml({
+      ...base, totalAmount: 25, pointsRequested: 100, pointsRedeemed: null, pointsDiscountEur: null,
+    }, null);
+    expect(requested).toContain('Punti richiesti: da confermare in cassa');
+    expect(requested).not.toContain('Sconto punti Skibidi Coin');
+    expect(rowAmount(requested, 'TOTALE COMPLESSIVO')).toBe('25,00');
+    expect(rowAmount(requested, 'Pagamento contante')).toBe('25,00');
+    expect(rowAmount(requested, 'Importo pagato')).toBe('25,00');
+    const clamped = buildDocumentoCommercialeHtml({
+      ...base, totalAmount: 4, pointsRequested: 100, pointsRedeemed: 100, pointsDiscountEur: 5,
+    }, null);
+    expect(rowAmount(clamped, 'TOTALE COMPLESSIVO')).toBe('4,00');
+    expect(rowAmount(clamped, 'Importo pagato')).toBe('0,00');
+  });
 });
+
+function rowAmount(html: string, label: string): string {
+  const match = html.match(new RegExp(`${label.replace(/[()]/g, '\\$&')}</span><span>€ ([0-9]+,[0-9]{2})`));
+  expect(match, label).not.toBeNull();
+  return match![1];
+}
 
 describe('order line errors → clear messages', () => {
   const items = [{ product: { id: 'p-1', name: 'Diavola' } }];

@@ -12,5 +12,7 @@ export * from './useKitchenOrders';
 export * from './useUpdateOrderStatus';
 export * from './useDashboardStats';
 export * from './useOfflineQueue';
-export * from './useOrderAssistantChat';
+// useOrderAssistantChat is a local prototype. It is not re-exported: a barrel
+// import would pull it into the production bundle. See metro.config.js and
+// docs/SECURITY-CHECKLIST.md.
 export * from './useOrderAlertSound';

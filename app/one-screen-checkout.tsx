@@ -7,10 +7,16 @@
  */
 
 import { Button } from '@/components/ui/Button';
+import { PageTitle } from '@/components/ui/PageTitle';
 import { TurnstileWidget } from '@/components/features/TurnstileWidget';
 import { isAntiabuseError } from '@/lib/utils/antiabuse';
 import { isOrderLineError } from '@/lib/utils/orderLineErrors';
+import { PointsRequestToggle } from '@/components/features/loyalty/PointsRequestToggle';
 import { useCreateOrder } from '@/lib/hooks/useCreateOrder';
+import { useLoyaltySummary } from '@/lib/hooks/useLoyalty';
+import { loyaltyUserMessage } from '@/lib/loyalty/errors';
+import { canRequestPoints, clampPointsRequest, maxRedeemablePoints } from '@/lib/loyalty/points';
+import { useAuth } from '@/lib/stores/AuthContext';
 import { useOrderSubmissionGuard } from '@/lib/hooks/useOrderSubmissionGuard';
 import {
   finalizeDeliveryAddress,
@@ -37,7 +43,10 @@ export default function OneScreenCheckout() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { items, totalAmount, clearCart, removeProductLines } = useCart();
+  const { profile, isAuthenticated } = useAuth();
   const createOrder = useCreateOrder();
+  const loyalty = useLoyaltySummary(isAuthenticated && profile?.role === 'customer');
+  const [pointsRequested, setPointsRequested] = useState(0);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [turnstileResetKey, setTurnstileResetKey] = useState(0);
 
@@ -49,6 +58,14 @@ export default function OneScreenCheckout() {
   const [submissionError, setSubmissionError] = useState<string | null>(null);
 
   const canSubmit = items.length > 0 && !isProcessing;
+  const showPoints = canRequestPoints({
+    authenticated: isAuthenticated,
+    role: profile?.role,
+    enabled: loyalty.data?.enabled === true,
+  });
+  const pointsMax = loyalty.data
+    ? maxRedeemablePoints(loyalty.data.balance, loyalty.data.pointsPerRedeemUnit, totalAmount, loyalty.data.redeemValueEur)
+    : 0;
 
 
   const handleSubmit = useCallback(async () => {
@@ -85,6 +102,9 @@ export default function OneScreenCheckout() {
         fulfillmentMode: 'asap',
         paymentMethod: PAY_AT_TILL_METHOD,
         turnstileToken,
+        pointsRequested: showPoints && loyalty.data
+          ? clampPointsRequest(pointsRequested, pointsMax, loyalty.data.pointsPerRedeemUnit)
+          : 0,
       });
 
       await complete(true);
@@ -106,9 +126,10 @@ export default function OneScreenCheckout() {
       }
       // Messaggio in pagina: Alert.alert non compare sul web.
       setSubmissionError(
-        isAntiabuseError(error)
+        loyaltyUserMessage(error)
+        ?? (isAntiabuseError(error)
           ? error.message
-          : 'Non abbiamo ricevuto la conferma del tuo ordine. Riprova. Se il problema continua, contatta la pizzeria.'
+          : 'Non abbiamo ricevuto la conferma del tuo ordine. Riprova. Se il problema continua, contatta la pizzeria.')
       );
     }
   }, [
@@ -119,6 +140,10 @@ export default function OneScreenCheckout() {
     customerPhone,
     deliveryAddress,
     turnstileToken,
+    pointsRequested,
+    showPoints,
+    pointsMax,
+    loyalty.data,
     createOrder,
     clearCart,
     router,
@@ -128,6 +153,7 @@ export default function OneScreenCheckout() {
 
   return (
     <View className="flex-1 bg-background">
+      <PageTitle page="checkout" />
       <ScrollView
         className="flex-1"
         contentContainerClassName="p-4 pb-6 gap-4"
@@ -220,6 +246,17 @@ export default function OneScreenCheckout() {
             )}
           </View>
         )}
+
+        {showPoints && loyalty.data ? (
+          <PointsRequestToggle
+            balance={loyalty.data.balance}
+            unit={loyalty.data.pointsPerRedeemUnit}
+            redeemValueEur={loyalty.data.redeemValueEur}
+            maxPoints={pointsMax}
+            value={pointsRequested}
+            onChange={setPointsRequested}
+          />
+        ) : null}
 
         {/* Pagamento: v1 solo alla cassa */}
         <View className="gap-2">

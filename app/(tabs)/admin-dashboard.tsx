@@ -2,6 +2,7 @@ import type { OrderStatus } from '@/types/database.types';
 import { ORDER_STATUS_LABEL_IT, getForwardActionLabel, getNextForwardStatus, isTerminalStatus } from '@/lib/utils/orderStatus';
 import { supabase } from '@/lib/api/supabase';
 import { DeclineReasonModal } from '@/components/features/orders/DeclineReasonModal';
+import { PageTitle } from '@/components/ui/PageTitle';
 import { SkeletonDashboardMetrics, SkeletonShiftDoughStats } from '@/components/ui/Skeleton';
 import { useShiftDoughUsage } from '@/lib/hooks/useShiftDoughUsage';
 import { useUpdateOrderStatus } from '@/lib/hooks/useUpdateOrderStatus';
@@ -406,6 +407,7 @@ export default function AdminDashboardScreen() {
       contentContainerStyle={{ paddingTop: insets.top + 12, paddingBottom: insets.bottom + 96 }}
       refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={() => void refetch()} />}
     >
+      <PageTitle page="admin" />
       <View className="px-4 gap-4">
         <View className="bg-white rounded-2xl border border-[#e1a255]/40 p-5">
           <Text className="text-2xl font-black text-gray-900">Dashboard Admin</Text>
@@ -431,6 +433,18 @@ export default function AdminDashboardScreen() {
             ))}
           </View>
         </View>
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Apri il resoconto commissioni"
+          onPress={() => router.push('/commission-summary')}
+          className="bg-white rounded-2xl border border-[#e1a255]/40 p-4"
+        >
+          <Text className="text-base font-black text-[#8d171e]">Resoconto commissioni</Text>
+          <Text className="text-sm text-gray-600 mt-1">
+            Ordini online del mese, uguale per il titolare e per Skibidi. Non è una fattura.
+          </Text>
+        </Pressable>
 
         <View className={`rounded-2xl border p-4 flex-row items-center gap-3 ${isKitchenOpen ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'}`}>
           <FontAwesome name={isKitchenOpen ? 'check-circle' : 'pause-circle'} size={18} color={isKitchenOpen ? '#047857' : '#b91c1c'} />

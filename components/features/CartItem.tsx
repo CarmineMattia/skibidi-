@@ -1,3 +1,4 @@
+import { cleanImageUrl } from '@/lib/utils/productImage';
 import { withPizzaPhoto } from '@/lib/data/pizzaPhotos';
 import { getCartItemUnitPrice, type CartItem as CartItemType } from '@/lib/stores/CartContext';
 import { FontAwesome } from '@expo/vector-icons';
@@ -65,9 +66,9 @@ export function CartItem({
             backgroundColor: '#f0daca',
           }}
         >
-          {product.image_url ? (
+          {cleanImageUrl(product.image_url) ? (
             <Image
-              source={{ uri: product.image_url }}
+              source={{ uri: cleanImageUrl(product.image_url) }}
               style={{ width: 84, height: 84 }}
               resizeMode="cover"
               accessibilityLabel={product.name}
