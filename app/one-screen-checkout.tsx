@@ -6,7 +6,10 @@
  * checkout (useCreateOrder + pagamento alla cassa).
  */
 
+import { ShakeView } from '@/components/motion/motionParts';
 import { Button } from '@/components/ui/Button';
+import { formatGroupedEuro, normalizeCustomerName } from '@/lib/utils/displayFormat';
+import { acceptPhoneTyping, phoneChunkHint, toCheckoutPhone } from '@/lib/utils/phone';
 import { PageTitle } from '@/components/ui/PageTitle';
 import { TurnstileWidget } from '@/components/features/TurnstileWidget';
 import { isAntiabuseError } from '@/lib/utils/antiabuse';
@@ -48,6 +51,8 @@ export default function OneScreenCheckout() {
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const { isProcessing, start, complete } = useOrderSubmissionGuard();
   const [submissionError, setSubmissionError] = useState<string | null>(null);
+  const [invalidPulse, setInvalidPulse] = useState(0);
+  const [fieldErrors, setFieldErrors] = useState<{ name?: boolean; phone?: boolean }>({});
 
   const canSubmit = items.length > 0 && !isProcessing;
 
@@ -57,10 +62,16 @@ export default function OneScreenCheckout() {
       setSubmissionError('Carrello vuoto: aggiungi dei prodotti prima di procedere.');
       return;
     }
-    if (!customerName.trim() || customerPhone.trim().length < 8) {
+    const cleanedName = normalizeCustomerName(customerName);
+    const storedPhone = toCheckoutPhone(customerPhone);
+    const phoneDigits = storedPhone.replaceAll(/\D/g, '');
+    if (!cleanedName || phoneDigits.length < 8) {
+      setFieldErrors({ name: !cleanedName, phone: phoneDigits.length < 8 });
+      setInvalidPulse((current) => current + 1);
       setSubmissionError('Inserisci il nome e un numero di telefono valido.');
       return;
     }
+    setFieldErrors({});
     if (orderType === 'delivery' && !deliveryAddress.trim()) {
       setSubmissionError('Inserisci l\u2019indirizzo di consegna.');
       return;
@@ -79,8 +90,8 @@ export default function OneScreenCheckout() {
         // Stessa nota del checkout /modal: lo scontrino stampa "Pagamento alla cassa".
         notes: PAY_AT_TILL_NOTE,
         orderType,
-        customerName: customerName.trim(),
-        customerPhone: customerPhone.trim(),
+        customerName: cleanedName,
+        customerPhone: storedPhone,
         deliveryAddress:
           orderType === 'delivery' ? resolvedDeliveryAddress.trim() : undefined,
         fulfillmentMode: 'asap',
@@ -149,14 +160,14 @@ export default function OneScreenCheckout() {
                   {item.quantity}× {item.product.name}
                 </Text>
                 <Text>
-                  {(getCartItemUnitPrice(item) * item.quantity).toFixed(2)}€
+                  {formatGroupedEuro(getCartItemUnitPrice(item) * item.quantity)}
                 </Text>
               </View>
             ))
           )}
           <View className="flex-row justify-between border-t border-border pt-2 mt-2">
             <Text className="font-bold">Totale</Text>
-            <Text className="font-bold">{totalAmount.toFixed(2)}€</Text>
+            <Text className="font-bold">{formatGroupedEuro(totalAmount)}</Text>
           </View>
         </View>
 
@@ -168,7 +179,7 @@ export default function OneScreenCheckout() {
               <Pressable
                 key={opt.value}
                 onPress={() => setOrderType(opt.value)}
-                className={`px-4 py-2 rounded-full border ${
+                className={`min-h-[44px] justify-center px-4 py-2 rounded-full border ${
                   orderType === opt.value
                     ? 'bg-primary border-primary'
                     : 'bg-card border-border'
@@ -189,21 +200,33 @@ export default function OneScreenCheckout() {
         </View>
 
         {/* Customer details */}
-        <TextInput
-          className="bg-card border border-border rounded-xl px-4 py-3 text-foreground"
-          placeholder="Nome"
-          placeholderTextColor="#999"
-          value={customerName}
-          onChangeText={setCustomerName}
-        />
-        <TextInput
-          className="bg-card border border-border rounded-xl px-4 py-3 text-foreground"
-          placeholder="Telefono"
-          placeholderTextColor="#999"
-          value={customerPhone}
-          onChangeText={setCustomerPhone}
-          keyboardType="phone-pad"
-        />
+        <ShakeView signal={fieldErrors.name ? invalidPulse : 0}>
+          <TextInput
+            className={`bg-card border rounded-xl px-4 py-3 text-foreground min-h-[48px] ${
+              fieldErrors.name ? 'border-red-500 bg-red-50' : 'border-border'
+            }`}
+            placeholder="Nome"
+            placeholderTextColor="#999"
+            value={customerName}
+            onChangeText={setCustomerName}
+            onBlur={() => setCustomerName((current) => normalizeCustomerName(current))}
+          />
+        </ShakeView>
+        <ShakeView signal={fieldErrors.phone ? invalidPulse : 0}>
+          <TextInput
+            className={`bg-card border rounded-xl px-4 py-3 text-foreground min-h-[48px] ${
+              fieldErrors.phone ? 'border-red-500 bg-red-50' : 'border-border'
+            }`}
+            placeholder="Telefono"
+            placeholderTextColor="#999"
+            value={customerPhone}
+            onChangeText={(text) => setCustomerPhone(acceptPhoneTyping(text))}
+            keyboardType="phone-pad"
+          />
+          {phoneChunkHint(customerPhone) ? (
+            <Text className="mt-1 text-xs font-semibold text-[#8f7068]">{phoneChunkHint(customerPhone)}</Text>
+          ) : null}
+        </ShakeView>
         {orderType === 'delivery' && (
           <View className="gap-1">
             <TextInput
@@ -256,7 +279,12 @@ export default function OneScreenCheckout() {
           title={
             isProcessing
               ? 'Invio in corso…'
-              : `Conferma ordine (${totalAmount.toFixed(2)}€)`
+              : `Ordina (${formatGroupedEuro(totalAmount)})`
+          }
+          accessibilityLabel={
+            isProcessing
+              ? 'Invio in corso…'
+              : `Conferma ordine (${formatGroupedEuro(totalAmount)})`
           }
           onPress={handleSubmit}
           disabled={!canSubmit}

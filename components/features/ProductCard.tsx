@@ -10,6 +10,8 @@ import { useAppSettings } from '@/lib/stores/AppSettingsContext';
 import { useCart } from '@/lib/stores/CartContext';
 import { FontAwesome } from '@expo/vector-icons';
 import { useCallback, useMemo } from 'react';
+import { MicroPlus, useCardPressDepth } from '@/components/motion/motionParts';
+import Animated from 'react-native-reanimated';
 import { Image, Pressable, Text, View } from 'react-native';
 import { useViewportWidth } from '@/lib/hooks/useHydrated';
 
@@ -92,13 +94,16 @@ export function ProductCard({ product, onAddToCart, onPress, onEditPress, quickA
 
   const icon = getProductIcon(product);
   const formattedPrice = `€${product.price.toFixed(2)}`;
+  const depth = useCardPressDepth();
 
   return (
-    <View className="flex-1 rounded-3xl overflow-hidden bg-white border border-[#ead8c7] shadow-sm relative">
+    <Animated.View style={depth.style} className="flex-1 rounded-3xl overflow-hidden bg-white border border-[#ead8c7] shadow-sm relative">
       <Pressable
         className={isMobile ? 'h-[58%]' : 'h-[60%]'}
         style={{ minHeight: isMobile ? 160 : 200, width: '100%' }}
         onPress={handlePress}
+        onPressIn={depth.pressIn}
+        onPressOut={depth.pressOut}
         disabled={!onPress}
         accessibilityRole="button"
         accessibilityLabel={
@@ -128,8 +133,9 @@ export function ProductCard({ product, onAddToCart, onPress, onEditPress, quickA
       {/* Admin Edit Button */}
       {showEditButton && (
         <Pressable
-          className={`absolute z-20 rounded-full bg-black/45 active:bg-black/60 ${
-            isMobile ? 'top-2 right-2 p-2' : 'top-3 right-3 p-3'
+          hitSlop={8}
+          className={`absolute z-20 h-11 w-11 items-center justify-center rounded-full bg-black/45 active:bg-black/60 ${
+            isMobile ? 'top-2 right-2' : 'top-3 right-3'
           }`}
           accessibilityRole="button"
           accessibilityLabel={`Modifica ${product.name}`}
@@ -145,6 +151,8 @@ export function ProductCard({ product, onAddToCart, onPress, onEditPress, quickA
       <View className={isMobile ? 'flex-1 px-4 py-3' : 'flex-1 px-4 py-4'}>
         <Pressable
           onPress={handlePress}
+          onPressIn={depth.pressIn}
+          onPressOut={depth.pressOut}
           disabled={!onPress}
           accessibilityRole="button"
         >
@@ -178,9 +186,10 @@ export function ProductCard({ product, onAddToCart, onPress, onEditPress, quickA
           </Pressable>
           <View className="flex-row items-center bg-[#f9ecdd] rounded-full border border-[#e1a255]/60">
             <Pressable
-              className={`${isMobile ? 'w-10 h-10' : 'w-11 h-11'} items-center justify-center active:opacity-80`}
+              className="h-11 w-11 items-center justify-center active:opacity-80"
               onPress={handleDecrement}
               disabled={quantityInCart <= 0}
+              hitSlop={8}
               accessibilityRole="button"
               accessibilityLabel={
                 language === 'en'
@@ -193,10 +202,9 @@ export function ProductCard({ product, onAddToCart, onPress, onEditPress, quickA
             <Text className={`${isMobile ? 'text-sm w-6' : 'text-base w-7'} text-center font-extrabold text-[#8d171e]`}>
               {quantityInCart}
             </Text>
-            <Pressable
-              className={`${isMobile ? 'w-10 h-10' : 'w-11 h-11'} items-center justify-center bg-[#8d171e] rounded-full active:opacity-90`}
+            <MicroPlus
+              className="h-11 w-11 items-center justify-center bg-[#8d171e] rounded-full active:opacity-90"
               onPress={handleIncrement}
-              accessibilityRole="button"
               accessibilityLabel={
                 language === 'en'
                   ? `Add ${product.name} to cart`
@@ -204,10 +212,10 @@ export function ProductCard({ product, onAddToCart, onPress, onEditPress, quickA
               }
             >
               <FontAwesome name="plus" size={isMobile ? 12 : 13} color="#ffffff" />
-            </Pressable>
+            </MicroPlus>
           </View>
         </View>
       </View>
-    </View>
+    </Animated.View>
   );
 }

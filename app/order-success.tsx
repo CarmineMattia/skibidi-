@@ -3,16 +3,17 @@ import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import Animated, {
+    Easing,
     useAnimatedStyle,
-    useReducedMotion,
     useSharedValue,
-    withDelay,
     withSequence,
-    withSpring
+    withTiming
 } from 'react-native-reanimated';
 import { DigitalReceipt } from '@/components/features/DigitalReceipt';
 import { FontAwesome } from '@expo/vector-icons';
 import { useOrder } from '@/lib/hooks/useOrders';
+import { useMotionEnabled } from '@/components/motion/motionParts';
+import { formatReadableCode } from '@/lib/utils/displayFormat';
 import { formatCustomerOrderCode } from '@/lib/utils/orderDisplayCode';
 import { getOrderConfirmation } from '@/lib/utils/orderTracking';
 import { resolveOrderSuccessState } from '@/lib/utils/orderLookup';
@@ -35,23 +36,32 @@ export default function OrderSuccessScreen() {
         error: isError ? orderError : null,
         formatLabel: formatCustomerOrderCode,
     });
-    const orderLabel = successState.kind === 'found' || successState.kind === 'unverified' ? successState.label : '';
+    const orderLabel = successState.kind === 'found' || successState.kind === 'unverified'
+        ? formatReadableCode(successState.label)
+        : '';
     const [showReceipt, setShowReceipt] = useState(false);
     // With reduced motion the confirmation renders fully visible right away.
     // Otherwise keep the entrance short: this is the page's primary content,
     // so it must not sit invisible behind a long animation delay.
-    const reducedMotion = useReducedMotion();
-    const scale = useSharedValue(reducedMotion ? 1 : 0);
-    const opacity = useSharedValue(reducedMotion ? 1 : 0);
+    const motion = useMotionEnabled();
+    const scale = useSharedValue(motion ? 0 : 1);
+    const opacity = useSharedValue(motion ? 0 : 1);
 
     useEffect(() => {
-        if (reducedMotion) return;
+        if (!motion) {
+            scale.value = 1;
+            opacity.value = 1;
+            return;
+        }
+        const easeOut = Easing.out(Easing.cubic);
+        scale.value = 0;
+        opacity.value = 0;
         scale.value = withSequence(
-            withSpring(1.2),
-            withSpring(1)
+            withTiming(1.12, { duration: 140, easing: easeOut }),
+            withTiming(1, { duration: 120, easing: Easing.out(Easing.quad) })
         );
-        opacity.value = withDelay(150, withSpring(1));
-    }, []);
+        opacity.value = withTiming(1, { duration: 180, easing: easeOut });
+    }, [motion, opacity, scale]);
 
     const animatedIconStyle = useAnimatedStyle(() => ({
         transform: [{ scale: scale.value }],

@@ -8,7 +8,9 @@ import { useCreateOrder } from '@/lib/hooks/useCreateOrder';
 import { useOrderSubmissionGuard } from '@/lib/hooks/useOrderSubmissionGuard';
 import { useCustomerLookup, type CustomerLookupOrder } from '@/lib/hooks/useCustomerLookup';
 import { useOfflineQueue } from '@/lib/hooks/useOfflineQueue';
-import { classifyItalianPhone } from '@/lib/utils/phone';
+import { ShakeView, SettleIn } from '@/components/motion/motionParts';
+import { formatGroupedEuro, normalizeCustomerName } from '@/lib/utils/displayFormat';
+import { acceptPhoneTyping, classifyItalianPhone, phoneChunkHint } from '@/lib/utils/phone';
 import { useAuth } from '@/lib/stores/AuthContext';
 import { useAppSettings } from '@/lib/stores/AppSettingsContext';
 import { getCartItemUnitPrice, useCart } from '@/lib/stores/CartContext';
@@ -225,6 +227,8 @@ export default function CheckoutScreen() {
   const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
   const [availabilityError, setAvailabilityError] = useState<string | null>(null);
   const [showFulfillmentPicker, setShowFulfillmentPicker] = useState(false);
+  const [showOtherTimes, setShowOtherTimes] = useState(false);
+  const [invalidPulse, setInvalidPulse] = useState(0);
   const availabilityCheckStartedAtRef = useRef<number | null>(null);
 
   const i18n = useMemo(
@@ -884,6 +888,7 @@ export default function CheckoutScreen() {
 
       if (hasError) {
         setErrors(newErrors);
+        setInvalidPulse((current) => current + 1);
         const isZoneError = newErrors.address === i18n.deliveryZoneError;
         Alert.alert(
           isZoneError ? i18n.deliveryTitle : i18n.missingFields,
@@ -963,7 +968,7 @@ export default function CheckoutScreen() {
           items,
           notes: notesWithFulfillment,
           orderType,
-          customerName: name,
+          customerName: normalizeCustomerName(name),
           customerPhone: fullPhoneNumber,
           deliveryAddress: fullDeliveryAddress,
           tableNumber: tableNumber,
@@ -985,7 +990,7 @@ export default function CheckoutScreen() {
         items,
         notes: notesWithFulfillment,
         orderType,
-        customerName: name,
+        customerName: normalizeCustomerName(name),
         customerPhone: fullPhoneNumber,
         deliveryAddress: fullDeliveryAddress,
         tableNumber: tableNumber,
@@ -1158,6 +1163,20 @@ export default function CheckoutScreen() {
           {fulfillmentMode === 'asap' && <FontAwesome name="check-circle" size={24} color="#8d171e" />}
         </Pressable>
 
+        <Pressable
+          accessibilityRole="button"
+          accessibilityState={{ expanded: showOtherTimes }}
+          onPress={() => setShowOtherTimes((current) => !current)}
+          className="mt-4 min-h-[44px] flex-row items-center justify-between rounded-xl border border-[#e1a255]/50 bg-white px-4"
+        >
+          <Text className="text-base font-extrabold text-[#271d19]">
+            {language === 'en' ? 'Choose another time' : 'Scegli un altro orario'}
+          </Text>
+          <FontAwesome name={showOtherTimes ? 'chevron-up' : 'chevron-down'} size={14} color="#8d171e" />
+        </Pressable>
+
+        {showOtherTimes ? (
+        <>
         <Text className="text-base font-bold text-gray-900 mt-7 mb-3">{i18n.scheduledTimesTitle}</Text>
         <View className="flex-row flex-wrap justify-between gap-y-3">
           {availableTimeSlots.slice(0, 8).map((slot) => {
@@ -1195,6 +1214,8 @@ export default function CheckoutScreen() {
           onPress={() => setShowFulfillmentPicker(true)}
           className="mt-4"
         />
+        </>
+        ) : null}
 
         {(isRestaurantTemporarilyClosed || availabilityError) && (
           <View className="bg-red-50 border border-red-200 rounded-xl p-4 mt-4">
@@ -1241,6 +1262,7 @@ export default function CheckoutScreen() {
         <Text className="text-2xl font-bold text-center mb-2">{i18n.detailsTitle}</Text>
 
         {/* Nome */}
+        <ShakeView signal={errors.name ? invalidPulse : 0}>
         <View>
           <Text className="text-sm font-medium mb-2">
             {orderType === 'eat_in' ? i18n.nameLabelOptional : i18n.nameLabelRequired}
@@ -1252,6 +1274,7 @@ export default function CheckoutScreen() {
             placeholder={i18n.namePlaceholder}
             value={name}
             onChangeText={setName}
+            onBlur={() => setName((current) => normalizeCustomerName(current))}
             autoCapitalize="words"
           />
           {errors.name && (
@@ -1260,6 +1283,7 @@ export default function CheckoutScreen() {
             </Text>
           )}
         </View>
+        </ShakeView>
 
         {/* Tavolo */}
         {orderType === 'eat_in' && (
@@ -1285,6 +1309,7 @@ export default function CheckoutScreen() {
 
         {/* Telefono */}
         {(orderType === 'take_away' || orderType === 'delivery') && (
+          <ShakeView signal={errors.phone ? invalidPulse : 0}>
           <View>
             <View className="flex-row items-center gap-2 mb-2">
               <Text className="text-sm font-medium">{i18n.phoneLabel}</Text>
@@ -1324,16 +1349,22 @@ export default function CheckoutScreen() {
                 placeholder={i18n.phonePlaceholder}
                 keyboardType="phone-pad"
                 value={phoneNumber}
-                onChangeText={(text) => setPhoneNumber(text.replaceAll(/\D/g, ''))}
-                maxLength={selectedPhonePrefix.maxDigits}
+                onChangeText={(text) => setPhoneNumber(acceptPhoneTyping(text, selectedPhonePrefix.maxDigits))}
+                maxLength={selectedPhonePrefix.maxDigits + 4}
               />
             </View>
+            {phoneChunkHint(phoneNumber) ? (
+              <Text className="text-xs font-semibold text-[#8f7068] mt-1">
+                {phoneChunkHint(phoneNumber)}
+              </Text>
+            ) : null}
             {errors.phone && (
               <Text className="text-red-500 text-xs mt-1">
                 {errors.phone}
               </Text>
             )}
           </View>
+          </ShakeView>
         )}
 
         {/* Cliente riconosciuto dal numero (solo admin/cassa) */}
@@ -1476,7 +1507,7 @@ export default function CheckoutScreen() {
                 <Text className="text-sm font-medium" numberOfLines={1}>{item.product.name}</Text>
                 <Text className="text-xs text-muted-foreground">x{item.quantity}</Text>
               </View>
-              <Text className="text-sm font-bold">€{(getCartItemUnitPrice(item) * item.quantity).toFixed(2)}</Text>
+              <Text className="text-sm font-bold">{formatGroupedEuro(getCartItemUnitPrice(item) * item.quantity)}</Text>
             </View>
           ))}
         </View>
@@ -1485,12 +1516,12 @@ export default function CheckoutScreen() {
         <View className="pt-3 border-t border-border gap-2">
           <View className="flex-row justify-between items-center">
             <Text className="text-sm text-gray-600">{i18n.subtotal}</Text>
-            <Text className="text-sm font-bold text-gray-900">€{totalAmount.toFixed(2)}</Text>
+            <Text className="text-sm font-bold text-gray-900">{formatGroupedEuro(totalAmount)}</Text>
           </View>
           {appliedDeliveryFee > 0 && (
             <View className="flex-row justify-between items-center">
               <Text className="text-sm text-gray-600">{i18n.deliveryFee}</Text>
-              <Text className="text-sm font-bold text-gray-900">€{appliedDeliveryFee.toFixed(2)}</Text>
+              <Text className="text-sm font-bold text-gray-900">{formatGroupedEuro(appliedDeliveryFee)}</Text>
             </View>
           )}
         </View>
@@ -1498,7 +1529,7 @@ export default function CheckoutScreen() {
         {/* Total */}
         <View className="flex-row justify-between items-center pt-3 border-t border-border">
           <Text className="text-base font-bold">{i18n.total}</Text>
-          <Text className="text-2xl font-bold text-primary">€{checkoutTotal.toFixed(2)}</Text>
+          <Text className="text-2xl font-bold text-primary">{formatGroupedEuro(checkoutTotal)}</Text>
         </View>
       </View>
 
@@ -1577,7 +1608,13 @@ export default function CheckoutScreen() {
         {/* Custom Header with Back Button and Title */}
         <View className="pt-4 pb-3 border-b border-[#e1a255]/40 bg-white">
           <View className="flex-row items-center justify-between px-4 mb-2">
-            <Pressable onPress={handleBackStep} className="p-2">
+            <Pressable
+              onPress={handleBackStep}
+              accessibilityRole="button"
+              accessibilityLabel={i18n.back}
+              hitSlop={8}
+              className="h-11 w-11 items-center justify-center"
+            >
               <FontAwesome name="arrow-left" size={20} color="#000" />
             </Pressable>
             <Text className="text-xl font-bold flex-1 text-center">
@@ -1599,10 +1636,12 @@ export default function CheckoutScreen() {
           </View>
         </View>
 
-        {step === 'type' && renderOrderTypeSelection()}
-        {step === 'time' && renderTimeSelection()}
-        {step === 'details' && renderDetailsForm()}
-        {step === 'payment' && renderPayment()}
+        <SettleIn key={step} active>
+          {step === 'type' && renderOrderTypeSelection()}
+          {step === 'time' && renderTimeSelection()}
+          {step === 'details' && renderDetailsForm()}
+          {step === 'payment' && renderPayment()}
+        </SettleIn>
 
         <Modal
           transparent

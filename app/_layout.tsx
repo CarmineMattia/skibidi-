@@ -9,6 +9,7 @@ import 'react-native-reanimated';
 
 import { useColorScheme } from '@/components/useColorScheme';
 import { QueryProvider } from '@/lib/api/QueryProvider';
+import { CartFlyProvider } from '@/components/motion/CartFlyProvider';
 import { CartProvider } from '@/lib/stores/CartContext';
 import { AppSettingsProvider } from '@/lib/stores/AppSettingsContext';
 import { AuthProvider, useAuth } from '@/lib/stores/AuthContext';
@@ -74,6 +75,7 @@ function RootLayoutNav() {
               <AuthProvider>
                 <OrderNotificationProvider>
                   <CartProvider>
+                    <CartFlyProvider>
                     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
                       <AuthGuard>
                         <Stack
@@ -111,6 +113,7 @@ function RootLayoutNav() {
                         </Stack>
                       </AuthGuard>
                     </ThemeProvider>
+                    </CartFlyProvider>
                   </CartProvider>
                 </OrderNotificationProvider>
               </AuthProvider>

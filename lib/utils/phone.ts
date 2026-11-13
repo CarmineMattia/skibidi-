@@ -56,3 +56,78 @@ export function buildPhoneVariants(raw: string): string[] {
 
   return [...variants];
 }
+
+/**
+ * Accetta un numero mentre si digita. Le cifre pure restano invariate
+ * (il checkout e i test possono confrontare "3331234567").
+ * Spazi, trattini, parentesi e il prefisso +39 / 0039 vengono tolti.
+ */
+export function acceptPhoneTyping(raw: string, maxDigits = 15): string {
+  const trimmed = raw.trim();
+  if (!trimmed) return '';
+  const digits = /^\d+$/.test(trimmed) ? trimmed : normalizeItalianPhone(trimmed);
+  return digits.slice(0, Math.max(0, maxDigits));
+}
+
+/** Raggruppa un numero italiano: 0522 171 7681, 333 123 4567. */
+export function formatItalianPhoneChunks(raw: string): string {
+  const national = normalizeItalianPhone(raw);
+  if (!national) return '';
+
+  if (national.startsWith('3')) {
+    if (national.length <= 3) return national;
+    if (national.length <= 6) return `${national.slice(0, 3)} ${national.slice(3)}`;
+    const head = `${national.slice(0, 3)} ${national.slice(3, 6)} ${national.slice(6, 10)}`;
+    return national.length > 10 ? `${head} ${national.slice(10)}`.trim() : head;
+  }
+
+  if (national.startsWith('0')) {
+    const areaLen = national.startsWith('02') || national.startsWith('06')
+      ? 2
+      : national.length >= 10
+        ? 4
+        : 3;
+    const area = national.slice(0, areaLen);
+    const rest = national.slice(areaLen);
+    if (!rest) return area;
+    if (rest.length <= 3) return `${area} ${rest}`;
+    if (rest.length <= 7) return `${area} ${rest.slice(0, 3)} ${rest.slice(3)}`;
+    return `${area} ${rest.slice(0, 3)} ${rest.slice(3, 6)} ${rest.slice(6)}`;
+  }
+
+  return chunkDigits(national);
+}
+
+/** Anteprima raggruppata, solo quando il numero è abbastanza lungo da spezzarsi. */
+export function phoneChunkHint(raw: string): string | null {
+  const chunks = formatItalianPhoneChunks(raw);
+  if (!chunks.includes(' ')) return null;
+  return chunks;
+}
+
+/**
+ * Numero da salvare in ordine: cellulare/fisso italiano diventa +39…,
+ * gli altri prefissi internazionali restano con il +.
+ */
+export function toCheckoutPhone(raw: string): string {
+  const trimmed = raw.trim();
+  const national = normalizeItalianPhone(trimmed);
+  if (!national) return '';
+  if (trimmed.startsWith('+') && !trimmed.startsWith('+39') && !trimmed.startsWith('+0039')) {
+    return `+${national}`;
+  }
+  if (/^[03]/.test(national)) return `+39${national}`;
+  return national;
+}
+
+function chunkDigits(digits: string, size = 3): string {
+  if (digits.length <= size) return digits;
+  const parts: string[] = [];
+  let rest = digits;
+  while (rest.length > size) {
+    parts.unshift(rest.slice(-size));
+    rest = rest.slice(0, -size);
+  }
+  if (rest) parts.unshift(rest);
+  return parts.join(' ');
+}
