@@ -1,14 +1,17 @@
 import { expect, test } from '@playwright/test';
+import { mockLoggedInCustomer } from './fixtures/mockSession';
 const orderId = '00000000-0000-0000-0000-000000000021';
 const pending = { id: orderId, display_code: 'Diavola #1', status: 'pending', order_type: 'take_away', created_at: new Date().toISOString(), total_amount: 6.5, order_items: [] };
 test.describe('customer order confirmation', () => {
   test.use({ viewport: { width: 390, height: 844 } });
   test.beforeEach(async ({ page }) => {
     // Every backend request is intercepted: never sends restaurant orders.
+    // Tracking requires the Google session (anon cannot call get_order_tracking).
     await page.route('**/rest/v1/**', route => route.fulfill({ json: [] }));
     await page.route('**/functions/v1/**', route => route.fulfill({ status: 503, json: { error: 'test only' } }));
+    await mockLoggedInCustomer(page);
   });
-  test('pending becomes accepted and ready via guest polling without Realtime', async ({ page }) => {
+  test('pending becomes accepted and ready via polling without Realtime', async ({ page }) => {
     let status = 'pending';
     await page.route('**/rest/v1/rpc/get_order_tracking', route => route.fulfill({ json: { ...pending, status } }));
     await page.goto(`/order-tracking?orderId=${orderId}&orderType=take_away`);

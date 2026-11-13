@@ -1,11 +1,12 @@
+import { OrderTrackingContactActions } from '@/components/features/orders/OrderTrackingContactActions';
 import { PageTitle } from '@/components/ui/PageTitle';
 import { useHydratedSearchParams } from '@/lib/hooks/useHydrated';
 import { FontAwesome } from '@expo/vector-icons';
 import { supabase } from '@/lib/api/supabase';
 import { useCustomerOrderAlert } from '@/lib/hooks/useCustomerOrderAlert';
+import { useAuth } from '@/lib/stores/AuthContext';
 import { useOrder } from '@/lib/hooks/useOrders';
 import { formatRescheduleLabel, parseRescheduleFromNote } from '@/lib/utils/orderDecline';
-import { pointsTrackingStatus } from '@/lib/loyalty/points';
 import {
   getEstimatedReadyTime,
   getTrackingBadge,
@@ -25,12 +26,13 @@ export default function OrderTrackingScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { isAuthenticated } = useAuth();
   const { orderType: rawOrderType, orderId } = useHydratedSearchParams<{
     orderType?: string;
     orderId?: string;
   }>();
   const orderIdParam = typeof orderId === 'string' ? orderId : undefined;
-  const { data: orderData, isLoading: isOrderLoading, isError, isFetching, refetch } = useOrder(orderIdParam ?? '');
+  const { data: orderData, isLoading: isOrderLoading, isError, isFetching, refetch } = useOrder(orderIdParam ?? '', isAuthenticated);
   const { playStatusAlert } = useCustomerOrderAlert();
   const lastStatusRef = useRef<string | null>(null);
   const [customerNotice, setCustomerNotice] = useState<{
@@ -62,15 +64,6 @@ export default function OrderTrackingScreen() {
   const trackingSteps = getTrackingSteps(orderType, trackedStatus);
   const statusBadge = getTrackingBadge(orderType, trackedStatus);
   const summaryText = getTrackingSummary(orderRef, orderType, trackedStatus);
-  const pointsStatus = orderData
-    ? pointsTrackingStatus({
-        pointsRequested: orderData.points_requested,
-        pointsRedeemed: orderData.points_redeemed,
-        pointsDiscountEur: orderData.points_discount_eur,
-        pointsConfirmedAt: orderData.points_confirmed_at,
-        orderStatus: orderData.status,
-      })
-    : null;
 
   let supportTitle = 'Tracking live';
   let supportDescription = 'Ti aggiorniamo quando la cucina accetta e prepara il tuo ordine.';
@@ -257,13 +250,6 @@ export default function OrderTrackingScreen() {
             </View>
           </View>
 
-          {pointsStatus ? (
-            <View className="bg-white rounded-2xl border border-[#e1a255]/40 px-4 py-3.5">
-              <Text className="text-xs font-bold uppercase tracking-wider text-[#8d171e]">Punti</Text>
-              <Text className="text-base font-bold text-gray-900 mt-1">{pointsStatus.label}</Text>
-            </View>
-          ) : null}
-
           <View className="bg-white rounded-2xl border border-[#e1a255]/40 p-4 gap-2.5">
             {trackingSteps.map((step, index) => {
               const isLast = index === trackingSteps.length - 1;
@@ -346,27 +332,11 @@ export default function OrderTrackingScreen() {
             </View>
           ) : null}
 
-          {orderType === 'delivery' ? (
-            <View className="bg-white rounded-2xl border border-[#e1a255]/40 p-4 gap-3">
-              <Text className="text-xl font-extrabold text-gray-900">{supportTitle}</Text>
-              <Text className="text-sm text-gray-600">{supportDescription}</Text>
-              <View className="flex-row gap-2">
-                <Pressable className="flex-1 h-11 rounded-xl bg-[#8d171e] items-center justify-center active:opacity-90 flex-row gap-1.5">
-                  <FontAwesome name="phone" size={13} color="#ffffff" />
-                  <Text className="text-white font-bold">Chiama</Text>
-                </Pressable>
-                <Pressable className="flex-1 h-11 rounded-xl bg-[#f3dabb] items-center justify-center active:opacity-90 flex-row gap-1.5">
-                  <FontAwesome name="comment" size={13} color="#8d171e" />
-                  <Text className="text-[#8d171e] font-bold">Chat</Text>
-                </Pressable>
-              </View>
-            </View>
-          ) : (
-            <View className="bg-white rounded-2xl border border-[#e1a255]/40 p-4 gap-2">
-              <Text className="text-xl font-extrabold text-gray-900">{supportTitle}</Text>
-              <Text className="text-sm text-gray-600">{supportDescription}</Text>
-            </View>
-          )}
+          <View className="bg-white rounded-2xl border border-[#e1a255]/40 p-4 gap-3">
+            <Text className="text-xl font-extrabold text-gray-900">{supportTitle}</Text>
+            <Text className="text-sm text-gray-600">{supportDescription}</Text>
+            <OrderTrackingContactActions displayCode={orderData ? getOrderDisplayCode(orderData) : null} />
+          </View>
 
           <Pressable
             onPress={() => router.push('/(tabs)/menu')}

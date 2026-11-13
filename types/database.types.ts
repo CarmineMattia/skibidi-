@@ -71,16 +71,13 @@ export interface Order {
   customer_phone?: string;
   delivery_address?: string;
   display_code?: string;
+  /** Claim della email di conferma. Lo scrive solo il service role. */
+  confirmation_email_sent_at?: string | null;
   table_number?: string;
   company_id: string;
   decline_reason_preset?: string | null;
   decline_reason_note?: string | null;
   declined_at?: string | null;
-  points_requested?: number;
-  points_redeemed?: number | null;
-  points_discount_eur?: number | null;
-  points_confirmed_at?: string | null;
-  points_confirmed_by?: string | null;
 }
 
 export interface OrderItem {

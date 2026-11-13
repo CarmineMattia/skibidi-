@@ -297,6 +297,7 @@ export type Database = {
       orders: {
         Row: {
           company_id: string
+          confirmation_email_sent_at: string | null
           created_at: string
           customer_id: string | null
           customer_name: string | null
@@ -312,11 +313,6 @@ export type Database = {
           fiscal_status: Database["public"]["Enums"]["fiscal_status"]
           id: string
           notes: string | null
-          points_confirmed_at: string | null
-          points_confirmed_by: string | null
-          points_discount_eur: number | null
-          points_redeemed: number | null
-          points_requested: number
           order_type: string | null
           pdf_url: string | null
           status: Database["public"]["Enums"]["order_status"]
@@ -326,6 +322,7 @@ export type Database = {
         }
         Insert: {
           company_id: string
+          confirmation_email_sent_at?: string | null
           created_at?: string
           customer_id?: string | null
           customer_name?: string | null
@@ -341,11 +338,6 @@ export type Database = {
           fiscal_status?: Database["public"]["Enums"]["fiscal_status"]
           id?: string
           notes?: string | null
-          points_confirmed_at?: string | null
-          points_confirmed_by?: string | null
-          points_discount_eur?: number | null
-          points_redeemed?: number | null
-          points_requested?: number
           order_type?: string | null
           pdf_url?: string | null
           status?: Database["public"]["Enums"]["order_status"]
@@ -355,6 +347,7 @@ export type Database = {
         }
         Update: {
           company_id?: string
+          confirmation_email_sent_at?: string | null
           created_at?: string
           customer_id?: string | null
           customer_name?: string | null
@@ -370,11 +363,6 @@ export type Database = {
           fiscal_status?: Database["public"]["Enums"]["fiscal_status"]
           id?: string
           notes?: string | null
-          points_confirmed_at?: string | null
-          points_confirmed_by?: string | null
-          points_discount_eur?: number | null
-          points_redeemed?: number | null
-          points_requested?: number
           order_type?: string | null
           pdf_url?: string | null
           status?: Database["public"]["Enums"]["order_status"]
@@ -525,50 +513,6 @@ export type Database = {
       }
       get_my_company_id: { Args: never; Returns: string }
       create_order_with_items: { Args: { p_order: Json; p_items: Json }; Returns: Json }
-      loyalty_my_summary: { Args: never; Returns: Json }
-      loyalty_my_ledger: {
-        Args: { p_limit?: number }
-        Returns: {
-          id: string
-          entry_type: string
-          quantity: number
-          reason: string | null
-          order_id: string | null
-          created_at: string
-          expires_at: string | null
-        }[]
-      }
-      loyalty_staff_ledger: {
-        Args: { p_limit?: number }
-        Returns: {
-          id: string
-          entry_type: string
-          quantity: number
-          reason: string | null
-          order_id: string | null
-          customer_id: string
-          customer_name: string | null
-          created_at: string
-          expires_at: string | null
-          staff_user_id: string | null
-        }[]
-      }
-      loyalty_lookup_customer: {
-        Args: { p_query: string }
-        Returns: {
-          customer_id: string
-          full_name: string | null
-          email: string | null
-          balance: number
-        }[]
-      }
-      loyalty_gift: {
-        Args: { p_customer: string; p_quantity: number; p_reason: string }
-        Returns: string
-      }
-      loyalty_confirm_redeem: { Args: { p_order_id: string }; Returns: Json }
-      loyalty_reverse: { Args: { p_ledger_id: string; p_reason: string }; Returns: number }
-      loyalty_expire_due: { Args: { p_company?: string }; Returns: number }
       get_order_tracking: { Args: { p_order_id: string }; Returns: Json }
       reserve_order_display_code: { Args: { p_company_id: string }; Returns: string }
       is_admin: { Args: never; Returns: boolean }
