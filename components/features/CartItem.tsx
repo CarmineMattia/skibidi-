@@ -2,9 +2,12 @@ import { cleanImageUrl } from '@/lib/utils/productImage';
 import { withPizzaPhoto } from '@/lib/data/pizzaPhotos';
 import { getCartItemUnitPrice, type CartItem as CartItemType } from '@/lib/stores/CartContext';
 import { FontAwesome } from '@expo/vector-icons';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Image, Pressable, Text, View } from 'react-native';
-import Animated, { FadeInRight, FadeOutLeft, Layout } from 'react-native-reanimated';
+import { useMotionEnabled } from '@/components/motion/motionParts';
+import Animated, { Easing, FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
+
+const easeOut = Easing.out(Easing.cubic);
 
 interface CartItemProps {
   item: CartItemType;
@@ -33,6 +36,19 @@ export function CartItem({
   }, [markedForClear]);
 
   const showCheck = markedForClear || pendingRemove;
+  const motion = useMotionEnabled();
+  const entering = useMemo(
+    () => (motion ? FadeIn.duration(180).easing(easeOut) : undefined),
+    [motion]
+  );
+  const exiting = useMemo(
+    () => (motion ? FadeOut.duration(140).easing(Easing.in(Easing.cubic)) : undefined),
+    [motion]
+  );
+  const layout = useMemo(
+    () => (motion ? LinearTransition.duration(200).easing(easeOut) : undefined),
+    [motion]
+  );
 
   const handleTrashPress = () => {
     if (markedForClear) {
@@ -49,9 +65,9 @@ export function CartItem({
 
   return (
     <Animated.View
-      entering={FadeInRight}
-      exiting={FadeOutLeft}
-      layout={Layout.springify()}
+      entering={entering}
+      exiting={exiting}
+      layout={layout}
       className={`mb-4 overflow-hidden rounded-2xl border bg-white shadow-sm ${
         showCheck ? 'border-[#8d171e] bg-[#fff5f4]' : 'border-[#ead8c7]'
       }`}

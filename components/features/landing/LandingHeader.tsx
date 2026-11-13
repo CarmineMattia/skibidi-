@@ -192,7 +192,8 @@ export function LandingHeader({
             <Pressable
               accessibilityRole="link"
               onPress={onAccount}
-              className="h-10 w-10 items-center justify-center rounded-full border border-[#8d171e]/15 bg-white active:opacity-60 web:hover:bg-[#8d171e]/[0.06] web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-[#8d171e]"
+              hitSlop={8}
+              className="h-11 w-11 items-center justify-center rounded-full border border-[#8d171e]/15 bg-white active:opacity-60 web:hover:bg-[#8d171e]/[0.06] web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-[#8d171e]"
             >
               <FontAwesome name="user-o" size={15} color="#8d171e" />
             </Pressable>
