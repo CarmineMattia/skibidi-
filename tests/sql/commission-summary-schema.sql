@@ -22,11 +22,7 @@ CREATE TABLE public.orders (
   customer_id uuid,
   status text NOT NULL,
   total_amount numeric(12,2) NOT NULL,
-  created_at timestamptz NOT NULL DEFAULT now(),
-  points_requested integer NOT NULL DEFAULT 0,
-  points_redeemed integer,
-  points_discount_eur numeric(10,2),
-  points_confirmed_at timestamptz
+  created_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE TABLE public.order_items (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
