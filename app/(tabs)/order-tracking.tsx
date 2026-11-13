@@ -5,7 +5,6 @@ import { supabase } from '@/lib/api/supabase';
 import { useCustomerOrderAlert } from '@/lib/hooks/useCustomerOrderAlert';
 import { useOrder } from '@/lib/hooks/useOrders';
 import { formatRescheduleLabel, parseRescheduleFromNote } from '@/lib/utils/orderDecline';
-import { pointsTrackingStatus } from '@/lib/loyalty/points';
 import {
   getEstimatedReadyTime,
   getTrackingBadge,
@@ -62,15 +61,6 @@ export default function OrderTrackingScreen() {
   const trackingSteps = getTrackingSteps(orderType, trackedStatus);
   const statusBadge = getTrackingBadge(orderType, trackedStatus);
   const summaryText = getTrackingSummary(orderRef, orderType, trackedStatus);
-  const pointsStatus = orderData
-    ? pointsTrackingStatus({
-        pointsRequested: orderData.points_requested,
-        pointsRedeemed: orderData.points_redeemed,
-        pointsDiscountEur: orderData.points_discount_eur,
-        pointsConfirmedAt: orderData.points_confirmed_at,
-        orderStatus: orderData.status,
-      })
-    : null;
 
   let supportTitle = 'Tracking live';
   let supportDescription = 'Ti aggiorniamo quando la cucina accetta e prepara il tuo ordine.';
@@ -256,13 +246,6 @@ export default function OrderTrackingScreen() {
               </View>
             </View>
           </View>
-
-          {pointsStatus ? (
-            <View className="bg-white rounded-2xl border border-[#e1a255]/40 px-4 py-3.5">
-              <Text className="text-xs font-bold uppercase tracking-wider text-[#8d171e]">Punti</Text>
-              <Text className="text-base font-bold text-gray-900 mt-1">{pointsStatus.label}</Text>
-            </View>
-          ) : null}
 
           <View className="bg-white rounded-2xl border border-[#e1a255]/40 p-4 gap-2.5">
             {trackingSteps.map((step, index) => {
