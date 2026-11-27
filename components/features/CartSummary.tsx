@@ -3,6 +3,7 @@
  * Riepilogo carrello (sidebar / sheet mobile)
  */
 
+import { formatGroupedEuro } from '@/lib/utils/displayFormat';
 import { useCart } from '@/lib/stores/CartContext';
 import { FontAwesome } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
@@ -113,7 +114,7 @@ export function CartSummary({ onCheckout, isCheckingOut = false }: CartSummaryPr
               <View className="flex-row items-center justify-between">
                 <Text className="text-2xl font-extrabold text-gray-900">Totale</Text>
                 <Text className="text-4xl font-extrabold text-[#8d171e]">
-                  €{totalAmount.toFixed(2)}
+                  {formatGroupedEuro(totalAmount)}
                 </Text>
               </View>
             </View>
@@ -121,7 +122,10 @@ export function CartSummary({ onCheckout, isCheckingOut = false }: CartSummaryPr
             <Pressable
               accessibilityRole="button"
               className="min-h-[72px] items-center justify-center rounded-2xl border border-[#8d171e] bg-[#8d171e] px-6 py-5 shadow-xl active:opacity-80"
-              style={{ opacity: isCheckingOut ? 0.5 : 1 }}
+              style={({ pressed }) => ({
+                opacity: isCheckingOut ? 0.5 : 1,
+                transform: pressed ? [{ scale: 0.985 }] : undefined,
+              })}
               onPress={onCheckout || (() => undefined)}
               disabled={isCheckingOut}
             >

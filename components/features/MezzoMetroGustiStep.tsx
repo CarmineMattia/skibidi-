@@ -152,8 +152,10 @@ export function MezzoMetroGustiStep({ gusti, availablePizzas, onChange }: MezzoM
                   {gusti.length > 1 && (
                     <Pressable
                       onPress={() => removeGusto(gusto.id)}
-                      hitSlop={8}
-                      className="h-8 w-8 items-center justify-center rounded-full bg-destructive/10"
+                      hitSlop={10}
+                      accessibilityRole="button"
+                      accessibilityLabel="Togli gusto"
+                      className="h-11 w-11 items-center justify-center rounded-full bg-destructive/10"
                     >
                       <FontAwesome name="trash-o" size={14} color="#b91c1c" />
                     </Pressable>

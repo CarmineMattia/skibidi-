@@ -1,3 +1,4 @@
+import { StaggerIn } from '@/components/motion/motionParts';
 import { PageTitle } from '@/components/ui/PageTitle';
 import { HomeOffersSection } from '@/components/features/home/HomeOffersSection';
 import { LandingHeader } from '@/components/features/landing/LandingHeader';
@@ -121,13 +122,16 @@ export default function HomeScreen() {
         </View>
       ) : null}
 
+      <StaggerIn index={1}>
       <LandingServices
         isDesktop={isWide}
         isCompact={isCompact}
         onMenu={() => router.push('/(tabs)/menu')}
       />
+      </StaggerIn>
 
       {offers.length > 0 || (COMBO_OFFERS_ENABLED && isLoading) ? (
+      <StaggerIn index={2}>
       <View className="bg-[#f1dcc3]">
         <View className="w-full max-w-[1240px] self-center px-5 py-16 sm:px-8 sm:py-24">
           <View className="mb-8 flex-row items-end justify-between gap-4">
@@ -155,15 +159,20 @@ export default function HomeScreen() {
           />
         </View>
       </View>
+      </StaggerIn>
       ) : null}
 
+      <StaggerIn index={3}>
       <View onLayout={saveSectionOffset('gallery')}>
         <LandingGallery isDesktop={isWide} isCompact={isCompact} />
       </View>
+      </StaggerIn>
 
+      <StaggerIn index={4}>
       <View onLayout={saveSectionOffset('contact')}>
         <LandingContact isDesktop={isWide} isCompact={isCompact} />
       </View>
+      </StaggerIn>
       </ScrollView>
     </>
   );

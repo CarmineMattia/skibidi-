@@ -112,7 +112,10 @@ function StackOfferCard({
       }
       accessibilityHint="Aggiunge il combo al carrello e apre il menu"
       onPress={onPress}
-      style={width ? { width } : undefined}
+      style={({ pressed }) => [
+        width ? { width } : undefined,
+        pressed ? { transform: [{ scale: 0.985 }] } : null,
+      ]}
       className={`overflow-hidden rounded-[24px] bg-white active:opacity-90 ${
         isFeatured
           ? 'border border-[#8d171e]/30 shadow-[0_12px_32px_rgba(141,23,30,0.12)]'
@@ -183,7 +186,10 @@ function RowOfferCard({
       }
       accessibilityHint="Aggiunge il combo al carrello e apre il menu"
       onPress={onPress}
-      style={{ width, height }}
+      style={({ pressed }) => [
+        { width, height },
+        pressed ? { transform: [{ scale: 0.985 }] } : null,
+      ]}
       className={`flex-row overflow-hidden rounded-[20px] bg-white active:opacity-90 ${
         isFeatured
           ? 'border border-[#8d171e]/35 shadow-[0_10px_28px_rgba(141,23,30,0.12)]'

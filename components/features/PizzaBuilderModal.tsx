@@ -23,7 +23,9 @@ import { useCart } from '@/lib/stores/CartContext';
 import { useMenuPricingVersion } from '@/lib/stores/MenuPricingContext';
 import { cn } from '@/lib/utils/cn';
 import type { Product } from '@/types';
+import { useAddToCartMotion } from '@/components/motion/useAddToCartMotion';
 import { FontAwesome } from '@expo/vector-icons';
+import Animated from 'react-native-reanimated';
 import { useEffect, useMemo, useState } from 'react';
 import { Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -132,6 +134,7 @@ export function PizzaBuilderModal({ visible, onClose, product }: PizzaBuilderMod
         onClose();
     };
 
+    const addMotion = useAddToCartMotion();
     const incrementQuantity = () => setQuantity((q) => q + 1);
     const decrementQuantity = () => setQuantity((q) => Math.max(1, q - 1));
 
@@ -150,7 +153,13 @@ export function PizzaBuilderModal({ visible, onClose, product }: PizzaBuilderMod
                                 Taglia, impasto, base e tutti gli ingredienti che vuoi
                             </Text>
                         </View>
-                        <Pressable className="bg-white/15 p-2 rounded-full" onPress={onClose}>
+                        <Pressable
+                            accessibilityRole="button"
+                            accessibilityLabel="Chiudi"
+                            hitSlop={8}
+                            className="h-11 w-11 items-center justify-center rounded-full bg-white/15"
+                            onPress={onClose}
+                        >
                             <FontAwesome name="times" size={20} color="white" />
                         </Pressable>
                     </View>
@@ -160,14 +169,20 @@ export function PizzaBuilderModal({ visible, onClose, product }: PizzaBuilderMod
                         <View className="flex-row items-center justify-center gap-6 mb-6 bg-secondary/20 p-4 rounded-xl">
                             <Pressable
                                 onPress={decrementQuantity}
-                                className="w-12 h-12 rounded-full bg-card border border-border items-center justify-center active:scale-95"
+                                hitSlop={4}
+                                accessibilityRole="button"
+                                accessibilityLabel="Diminuisci quantità"
+                                className="w-12 h-12 rounded-full bg-card border border-border items-center justify-center active:opacity-80"
                             >
                                 <FontAwesome name="minus" size={20} color="#000" />
                             </Pressable>
                             <Text className="text-3xl font-bold text-foreground w-12 text-center">{quantity}</Text>
                             <Pressable
                                 onPress={incrementQuantity}
-                                className="w-12 h-12 rounded-full bg-primary items-center justify-center active:scale-95 shadow-md"
+                                hitSlop={4}
+                                accessibilityRole="button"
+                                accessibilityLabel="Aumenta quantità"
+                                className="w-12 h-12 rounded-full bg-primary items-center justify-center active:opacity-80 shadow-md"
                             >
                                 <FontAwesome name="plus" size={20} color="white" />
                             </Pressable>
@@ -341,7 +356,12 @@ export function PizzaBuilderModal({ visible, onClose, product }: PizzaBuilderMod
                                     autoCorrect={false}
                                 />
                                 {ingredientSearch.length > 0 && (
-                                    <Pressable onPress={() => setIngredientSearch('')} hitSlop={8}>
+                                            <Pressable
+                                                onPress={() => setIngredientSearch('')}
+                                                hitSlop={14}
+                                                accessibilityRole="button"
+                                                accessibilityLabel="Pulisci ricerca"
+                                            >
                                         <FontAwesome name="times-circle" size={16} color="#9ca3af" />
                                     </Pressable>
                                 )}
@@ -491,13 +511,15 @@ export function PizzaBuilderModal({ visible, onClose, product }: PizzaBuilderMod
                         className="px-4 pt-4 border-t border-border bg-card sm:rounded-b-2xl"
                         style={{ paddingBottom: insets.bottom + 16 }}
                     >
+                        <Animated.View ref={addMotion.ref} style={addMotion.style}>
                         <Button
                             title={`Aggiungi al carrello • €${(breakdown.total * quantity).toFixed(2)}`}
                             variant="brand"
                             size="cta"
-                            onPress={handleAddToCart}
+                            onPress={() => addMotion.play(handleAddToCart)}
                             className="w-full"
                         />
+                        </Animated.View>
                     </View>
                 </View>
             </View>

@@ -13,8 +13,6 @@ const files = [
   'supabase/migrations/20261111180000_online_order_commission_summary.sql',
   'supabase/migrations/20261111193000_commission_summary_qa_followup.sql',
   'supabase/migrations/20261111193000_commission_summary_qa_followup.sql',
-  'supabase/migrations/20261112040000_commission_after_points_discount.sql',
-  'supabase/migrations/20261112040000_commission_after_points_discount.sql',
   'tests/sql/commission-summary.sql',
 ];
 

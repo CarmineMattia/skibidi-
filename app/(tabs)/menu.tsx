@@ -21,6 +21,9 @@ import { EditProductModal } from '@/components/features/EditProductModal';
 import { PizzaBuilderModal } from '@/components/features/PizzaBuilderModal';
 import { ProductCard } from '@/components/features/ProductCard';
 import { ProductDetailsModal } from '@/components/features/ProductDetailsModal';
+import { BumpingBadge, MicroPlus, SettleIn } from '@/components/motion/motionParts';
+import { useCartFly } from '@/components/motion/CartFlyProvider';
+import { formatGroupedEuro } from '@/lib/utils/displayFormat';
 import { SkeletonProductCard, SkeletonMenuScreen } from '@/components/ui/Skeleton';
 import { BUILDER_PRODUCT_NAME, getQuickAddPizzaModifiers } from '@/lib/data/pizzaBuilder';
 import { BRAND, BRAND_LOGO } from '@/lib/data/brand';
@@ -215,6 +218,7 @@ export default function MenuScreen() {
   const showDesktopSidebars = isDesktop;
   const createOrder = useCreateOrder();
   const router = useRouter();
+  const { registerTarget } = useCartFly();
   const queryClient = useQueryClient();
   const drinkCategories = useMemo(
     () => categories.filter((category) => isDrinkCategoryName(category.name)),
@@ -295,6 +299,7 @@ export default function MenuScreen() {
             signIn: 'Sign in with Google',
             signInShort: 'Sign in',
             cart: 'Cart',
+            goToCart: 'Go to cart',
             featuredBadge: "Chef's Choice",
             featuredTitle: 'The Truffle Hearth',
             featuredDescription: 'Wild mushrooms, black truffle oil, fresh fior di latte and aged parmesan.',
@@ -311,6 +316,7 @@ export default function MenuScreen() {
             signIn: 'Accedi con Google',
             signInShort: 'Accedi',
             cart: 'Carrello',
+            goToCart: 'Vai al carrello',
             featuredBadge: 'Scelta dello chef',
             featuredTitle: 'La Fiamma al Tartufo',
             featuredDescription: 'Funghi di bosco, olio al tartufo nero, fior di latte fresco e parmigiano stagionato.',
@@ -507,9 +513,8 @@ export default function MenuScreen() {
                 accessibilityRole="button"
                 accessibilityLabel={isMobileCategoriesOpen ? 'Chiudi categorie' : 'Apri categorie'}
                 onPress={() => setIsMobileCategoriesOpen((prev) => !prev)}
-                className={`items-center justify-center rounded-lg border border-[#8d171e]/15 bg-white active:opacity-80 ${
-                  isUltraCompactMobile ? 'h-8 w-8' : 'h-9 w-9'
-                }`}
+                hitSlop={8}
+                className="h-11 w-11 items-center justify-center rounded-lg border border-[#8d171e]/15 bg-white active:opacity-80"
               >
                 <FontAwesome
                   name={isMobileCategoriesOpen ? 'close' : 'bars'}
@@ -583,27 +588,40 @@ export default function MenuScreen() {
             </Pressable>
             )}
 
-            {totalItems > 0 && (
-              <View
-                className={`flex-row items-center gap-1.5 rounded-lg border border-[#8d171e]/20 bg-white ${
-                  isMobile ? 'px-2.5 py-1.5' : 'px-3 py-2'
-                }`}
-                accessibilityLabel={`${i18n.cart}: ${totalItems}`}
+            <View ref={registerTarget} collapsable={false}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={
+                  totalItems > 0 ? `Apri carrello, ${totalItems} articoli` : 'Carrello vuoto'
+                }
+                onPress={() => {
+                  if (!showDesktopSidebars) setIsCartVisible(true);
+                }}
+                hitSlop={4}
+                className="h-11 w-11 items-center justify-center rounded-full border border-[#8d171e]/20 bg-white active:opacity-80"
               >
-                <FontAwesome name="shopping-bag" size={isMobile ? 12 : 13} color="#8d171e" />
-                <Text className={`font-bold text-[#8d171e] ${isMobile ? 'text-xs' : 'text-sm'}`}>
-                  {totalItems}
-                </Text>
-              </View>
-            )}
+                <FontAwesome name="shopping-cart" size={18} color="#8d171e" />
+                {totalItems > 0 ? (
+                  <BumpingBadge
+                    count={totalItems}
+                    style={{ position: 'absolute', top: 2, right: 2 }}
+                  >
+                    <View className="min-h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[#e1a255] px-1">
+                      <Text className="text-[10px] font-black text-[#271d19]">{totalItems}</Text>
+                    </View>
+                  </BumpingBadge>
+                ) : null}
+              </Pressable>
+            </View>
 
             {isAuthenticated && (
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={i18n.signOut}
                 onPress={handleLogout}
-                className={`rounded-lg border border-[#8d171e]/12 bg-white active:opacity-70 web:hover:bg-[#8d171e]/[0.05] ${
-                  isMobile ? 'px-2.5 py-2' : 'px-3 py-2'
+                hitSlop={6}
+                className={`items-center justify-center rounded-lg border border-[#8d171e]/12 bg-white active:opacity-70 web:hover:bg-[#8d171e]/[0.05] ${
+                  isMobile ? 'h-11 w-11' : 'min-h-[44px] px-3 py-2'
                 }`}
               >
                 {isMobile ? (
@@ -755,6 +773,22 @@ export default function MenuScreen() {
                     <Pressable
                       onPress={() => handleProductPress(item.id)}
                       className="overflow-hidden rounded-2xl border border-[#e1a255]/40 bg-white active:opacity-90"
+                      style={({ pressed }) =>
+                        pressed
+                          ? {
+                              transform: [{ scale: 0.985 }],
+                              shadowColor: '#5a1a12',
+                              shadowOpacity: 0.16,
+                              shadowRadius: 10,
+                              shadowOffset: { width: 0, height: 6 },
+                            }
+                          : {
+                              shadowColor: '#5a1a12',
+                              shadowOpacity: 0.05,
+                              shadowRadius: 6,
+                              shadowOffset: { width: 0, height: 2 },
+                            }
+                      }
                     >
                       <View className="flex-row items-stretch gap-0">
                         <View style={{ width: 104, minHeight: 104 }}>
@@ -796,7 +830,8 @@ export default function MenuScreen() {
                               accessibilityRole="button"
                               accessibilityLabel={`Togli una ${item.name}`}
                               disabled={quantityInCart <= 0}
-                              className="h-10 w-10 items-center justify-center"
+                              hitSlop={8}
+                              className="h-11 w-11 items-center justify-center"
                             >
                               <FontAwesome
                                 name="minus"
@@ -807,17 +842,16 @@ export default function MenuScreen() {
                             <Text className="w-5 text-center text-sm font-extrabold text-[#8d171e]">
                               {quantityInCart}
                             </Text>
-                            <Pressable
+                            <MicroPlus
                               onPress={(event) => {
                                 event.stopPropagation();
                                 handleQuickAdd(item);
                               }}
-                              accessibilityRole="button"
                               accessibilityLabel={`Aggiungi ${item.name} al carrello`}
-                              className="h-10 w-10 items-center justify-center rounded-full bg-[#8d171e]"
+                              className="h-11 w-11 items-center justify-center rounded-full bg-[#8d171e]"
                             >
                               <FontAwesome name="plus" size={12} color="#ffffff" />
-                            </Pressable>
+                            </MicroPlus>
                           </View>
                         </View>
                       </View>
@@ -870,13 +904,14 @@ export default function MenuScreen() {
             onPress={() => setIsCartVisible(true)}
             accessibilityRole="button"
             accessibilityLabel={`${i18n.cart}: ${totalItems}`}
-            className="bg-[#8d171e] rounded-2xl p-4 shadow-xl flex-row items-center justify-between active:opacity-80"
+            className="min-h-[72px] bg-[#8d171e] rounded-2xl px-4 py-4 shadow-xl flex-row items-center justify-between active:opacity-80"
+            style={({ pressed }) => (pressed ? { transform: [{ scale: 0.985 }] } : undefined)}
           >
             <View className="flex-row items-center gap-2">
               <FontAwesome name="shopping-cart" size={20} color="#ffffff" />
               <View>
                 <Text className="text-white font-bold text-lg">
-                  {i18n.yourOrder}
+                  {i18n.goToCart}
                 </Text>
                 <Text className="text-[#f3dabb] text-sm">
                   {totalItems} {i18n.itemsLabel}
@@ -884,7 +919,7 @@ export default function MenuScreen() {
               </View>
             </View>
             <Text className="text-white font-extrabold text-2xl">
-              €{totalAmount.toFixed(2)}
+              {formatGroupedEuro(totalAmount)}
             </Text>
           </Pressable>
         </View>
@@ -962,15 +997,20 @@ export default function MenuScreen() {
             </View>
             <Pressable
               onPress={() => setIsCartVisible(false)}
-              className="bg-[#f9ecdd] border border-[#e1a255]/60 rounded-full p-2 w-10 h-10 items-center justify-center active:opacity-80"
+              accessibilityRole="button"
+              accessibilityLabel="Chiudi carrello"
+              hitSlop={8}
+              className="h-11 w-11 items-center justify-center rounded-full border border-[#e1a255]/60 bg-[#f9ecdd] active:opacity-80"
             >
               <FontAwesome name="close" size={20} color="black" />
             </Pressable>
           </View>
+          <SettleIn active={isCartVisible}>
           <CartSummary onCheckout={() => {
             setIsCartVisible(false);
             handleCheckout();
           }} isCheckingOut={createOrder.isPending} />
+          </SettleIn>
         </View>
       </Modal>
 

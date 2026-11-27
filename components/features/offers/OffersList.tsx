@@ -1,3 +1,4 @@
+import { StaggerIn } from '@/components/motion/motionParts';
 import { OfferCard } from '@/components/features/offers/OfferCard';
 import type { OfferCardLayout } from '@/components/features/offers/OfferCard';
 import type { ResolvedComboOffer } from '@/lib/data/offers';
@@ -58,8 +59,10 @@ export function OffersList({
 
   return (
     <View style={{ gap: ITEM_GAP }}>
-      {visibleOffers.map((offer) => (
-        <View key={offer.id}>{renderCard(offer)}</View>
+      {visibleOffers.map((offer, index) => (
+        <StaggerIn key={offer.id} index={index}>
+          {renderCard(offer)}
+        </StaggerIn>
       ))}
     </View>
   );

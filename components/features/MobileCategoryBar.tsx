@@ -1,3 +1,4 @@
+import { StaggerIn } from '@/components/motion/motionParts';
 import { cn } from '@/lib/utils/cn';
 import { PIZZE_CHIP_LABEL } from '@/lib/utils/menuOrder';
 import type { Category } from '@/types';
@@ -112,7 +113,7 @@ export function MobileCategoryBar({
         {searchQuery.length > 0 ? (
           <Pressable
             onPress={() => onChangeSearch('')}
-            hitSlop={10}
+            hitSlop={14}
             accessibilityRole="button"
             accessibilityLabel="Pulisci ricerca"
           >
@@ -131,20 +132,21 @@ export function MobileCategoryBar({
             onSelectCategory(null);
           }}
         />
-        {categories.map((category) => {
+        {categories.map((category, index) => {
           const imageUrl =
             categoryImages[category.id] || fallbackImageForCategory(category.name);
           return (
-            <CategoryChip
-              key={category.id}
-              label={category.name}
-              selected={selectedCategoryId === category.id}
-              imageUrl={imageUrl}
-              onPress={() => {
-                onChangeSearch('');
-                onSelectCategory(category.id);
-              }}
-            />
+            <StaggerIn key={category.id} index={index + 1}>
+              <CategoryChip
+                label={category.name}
+                selected={selectedCategoryId === category.id}
+                imageUrl={imageUrl}
+                onPress={() => {
+                  onChangeSearch('');
+                  onSelectCategory(category.id);
+                }}
+              />
+            </StaggerIn>
           );
         })}
       </ScrollView>

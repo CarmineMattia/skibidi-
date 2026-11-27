@@ -35,7 +35,9 @@ import { buildMenuItemModifiers, computeMenuItemUnitPrice } from '@/lib/data/men
 import type { MenuItemSelection } from '@/lib/data/menuPricing';
 import { cn } from '@/lib/utils/cn';
 import type { Product } from '@/types';
+import { useAddToCartMotion } from '@/components/motion/useAddToCartMotion';
 import { FontAwesome } from '@expo/vector-icons';
+import Animated from 'react-native-reanimated';
 import { useEffect, useMemo, useState } from 'react';
 import { Image, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -54,6 +56,7 @@ interface ProductDetailsModalProps {
 
 export function ProductDetailsModal({ visible, onClose, product, categoryName }: ProductDetailsModalProps) {
     const insets = useSafeAreaInsets();
+    const addMotion = useAddToCartMotion();
     const [quantity, setQuantity] = useState(1);
     const [cookingLevel, setCookingLevel] = useState<CookingLevel>('normale');
     const [sizeId, setSizeId] = useState<MenuPizzaSize['id']>(DEFAULT_MENU_PIZZA_SIZE_ID);
@@ -330,7 +333,10 @@ export function ProductDetailsModal({ visible, onClose, product, categoryName }:
                             </View>
                         )}
                         <Pressable
-                            className="absolute top-4 right-4 bg-black/50 p-2 rounded-full"
+                            accessibilityRole="button"
+                            accessibilityLabel="Chiudi"
+                            hitSlop={8}
+                            className="absolute top-4 right-4 h-11 w-11 items-center justify-center rounded-full bg-black/50"
                             onPress={onClose}
                         >
                             <FontAwesome name="times" size={20} color="white" />
@@ -649,7 +655,12 @@ export function ProductDetailsModal({ visible, onClose, product, categoryName }:
                                             autoCorrect={false}
                                         />
                                         {ingredientSearch.length > 0 && (
-                                            <Pressable onPress={() => setIngredientSearch('')} hitSlop={8}>
+                                            <Pressable
+                                                onPress={() => setIngredientSearch('')}
+                                                hitSlop={14}
+                                                accessibilityRole="button"
+                                                accessibilityLabel="Pulisci ricerca"
+                                            >
                                                 <FontAwesome name="times-circle" size={16} color="#9ca3af" />
                                             </Pressable>
                                         )}
@@ -747,7 +758,10 @@ export function ProductDetailsModal({ visible, onClose, product, categoryName }:
                                 <View className="flex-row items-center justify-center gap-6 mb-6 bg-secondary/20 p-4 rounded-xl">
                                     <Pressable
                                         onPress={decrementQuantity}
-                                        className="w-12 h-12 rounded-full bg-card border border-border items-center justify-center active:scale-95"
+                                        hitSlop={4}
+                                        accessibilityRole="button"
+                                        accessibilityLabel="Diminuisci quantità"
+                                        className="w-12 h-12 rounded-full bg-card border border-border items-center justify-center active:opacity-80"
                                     >
                                         <FontAwesome name="minus" size={20} color="#000" />
                                     </Pressable>
@@ -756,7 +770,10 @@ export function ProductDetailsModal({ visible, onClose, product, categoryName }:
                                     </Text>
                                     <Pressable
                                         onPress={incrementQuantity}
-                                        className="w-12 h-12 rounded-full bg-primary items-center justify-center active:scale-95 shadow-md"
+                                        hitSlop={4}
+                                        accessibilityRole="button"
+                                        accessibilityLabel="Aumenta quantità"
+                                        className="w-12 h-12 rounded-full bg-primary items-center justify-center active:opacity-80 shadow-md"
                                     >
                                         <FontAwesome name="plus" size={20} color="white" />
                                     </Pressable>
@@ -833,16 +850,20 @@ export function ProductDetailsModal({ visible, onClose, product, categoryName }:
                                     className="w-full sm:w-auto"
                                 />
                             )}
-                            <View className="w-full sm:w-auto sm:flex-1">
+                            <Animated.View ref={addMotion.ref} style={addMotion.style} className="w-full sm:w-auto sm:flex-1">
                                 <Button
                                     title={footerPrimaryLabel}
                                     variant="brand"
                                     size="cta"
-                                    onPress={useWizard ? goNext : handleAddToCart}
+                                    onPress={() => {
+                                      const adding = !useWizard || isLastStep;
+                                      if (adding) addMotion.play(useWizard ? goNext : handleAddToCart);
+                                      else goNext();
+                                    }}
                                     disabled={useWizard && !canProceedFromCurrentStep()}
                                     className="w-full"
                                 />
-                            </View>
+                            </Animated.View>
                         </View>
                     </View>
                 </View>

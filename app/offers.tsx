@@ -64,7 +64,8 @@ export default function OffersScreen() {
           <View className="flex-row items-center gap-3">
             <Pressable
               onPress={() => router.back()}
-              className="h-10 w-10 items-center justify-center rounded-full border border-[#ead8c7] bg-white active:opacity-70 web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-[#8d171e]"
+              hitSlop={8}
+              className="h-11 w-11 items-center justify-center rounded-full border border-[#ead8c7] bg-white active:opacity-70 web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-[#8d171e]"
               accessibilityRole="button"
               accessibilityLabel="Indietro"
             >
