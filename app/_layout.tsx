@@ -17,6 +17,7 @@ import { TenantProvider } from '@/lib/stores/TenantContext';
 import { MenuPricingProvider } from '@/lib/stores/MenuPricingContext';
 import { OfflineQueueProvider, OfflineIndicator } from '@/lib/hooks/useOfflineQueue';
 import { OrderNotificationProvider } from '@/lib/stores/OrderNotificationContext';
+import { consumeWhatsAppOrder } from '@/lib/utils/whatsappOrder';
 
 // Import global CSS for NativeWind
 import '../global.css';
@@ -85,6 +86,7 @@ function RootLayoutNav() {
                           }}
                         >
                           <Stack.Screen name="login" options={{ headerShown: false }} />
+                          <Stack.Screen name="ordine-whatsapp" options={{ title: 'Carrello WhatsApp' }} />
                           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
                           <Stack.Screen name="admin-options" options={{ headerShown: false }} />
                           <Stack.Screen name="commission-summary" options={{ headerShown: false, title: 'Resoconto commissioni' }} />
@@ -141,7 +143,12 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
 
     const first = segments[0] as string | undefined;
     if (isAuthenticated && first === 'login') {
-      router.replace('/(tabs)/menu');
+      const whatsappOrder = consumeWhatsAppOrder();
+      if (whatsappOrder) {
+        router.replace({ pathname: '/ordine-whatsapp', params: { righe: whatsappOrder } });
+      } else {
+        router.replace('/(tabs)/menu');
+      }
     } else if (!isAuthenticated && first && ORDER_ROUTES.has(first)) {
       router.replace('/login');
     }
