@@ -33,6 +33,7 @@ interface CartContextType {
   /** Remove every line of a product (e.g. no longer available). */
   removeProductLines: (productId: string) => void;
   updateQuantity: (index: number, quantity: number) => void;
+  replaceCart: (items: CartItem[]) => void;
   clearCart: () => void;
   totalItems: number;
   totalAmount: number;
@@ -134,6 +135,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems([]);
   }, []);
 
+  const replaceCart = useCallback((newItems: CartItem[]) => {
+    setItems(newItems);
+  }, []);
+
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
   const totalAmount = items.reduce(
     (sum, item) => sum + getCartItemUnitPrice(item) * item.quantity,
@@ -146,6 +151,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     removeItem,
     removeProductLines,
     updateQuantity,
+    replaceCart,
     clearCart,
     totalItems,
     totalAmount,
