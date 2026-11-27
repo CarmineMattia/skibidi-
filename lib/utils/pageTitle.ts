@@ -12,7 +12,6 @@ export const PAGE_TITLES = {
   checkout: 'Checkout',
   admin: 'Admin',
   kitchen: 'Cucina',
-  rewards: 'Punti',
 } as const;
 
 export const HOME_TITLE_SUFFIX = 'Pizza e consegna a Montecchio Emilia';

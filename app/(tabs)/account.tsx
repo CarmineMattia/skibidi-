@@ -1,4 +1,3 @@
-import { SkibidiCoinCard } from '@/components/features/loyalty/SkibidiCoinCard';
 import { PageTitle } from '@/components/ui/PageTitle';
 import { FontAwesome } from '@expo/vector-icons';
 import { useIsPlatformOwner } from '@/lib/hooks/useIsPlatformOwner';
@@ -85,8 +84,6 @@ export default function AccountScreen() {
         <Text className="text-sm text-gray-500 mt-3">Ruolo</Text>
         <Text className="text-base text-gray-900">{displayRole}</Text>
       </View>
-
-      <SkibidiCoinCard />
 
       {isAdmin && (
         <Pressable
